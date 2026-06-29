@@ -1,0 +1,6 @@
+-- Demo content is applied via migration:
+-- @see supabase/migrations/20260624140000_demo_content_seed.sql
+--
+-- Published counts (2 per module + 6 CMS pages):
+--   pages: about, colleges, vision-mission, history + 2 college children
+--   news, tenders, circulars, downloads, media albums, related links: 2 each

@@ -1,0 +1,21 @@
+{
+  "name": "ccshau-website",
+  "version": "0.1.0",
+  "private": true,
+  "description": "CCSHAU Official University Website — Next.js + Supabase",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=web",
+    "build": "npm run build --workspace=web",
+    "start": "npm run start --workspace=web",
+    "lint": "npm run lint --workspace=web",
+    "supabase:start": "npx supabase start",
+    "supabase:stop": "npx supabase stop",
+    "supabase:status": "npx supabase status"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

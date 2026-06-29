@@ -1,0 +1,5 @@
+id,legacy_url,new_slug,content_type,title_en,title_hi,department,content_owner,migrate_yes_no,priority,status,notes
+1,https://hau.ac.in/,home,page,Home,मुख पृष्ठ,central,TBD,yes,critical,pending,
+2,https://hau.ac.in/latest-news,news/listing,listing,Latest News,नवीनतम समाचार,PRO,TBD,yes,critical,pending,
+3,https://hau.ac.in/tenders,tenders/listing,listing,Tenders/Auctions,निविदाएं,Store & Purchase,TBD,yes,critical,pending,
+4,https://hau.ac.in/contact-us,contact,page,Contact Us,संपर्क करें,central,TBD,yes,high,pending,
