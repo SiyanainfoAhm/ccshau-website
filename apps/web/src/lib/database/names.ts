@@ -66,6 +66,10 @@ export const Tables = {
   loginAttempts: ccshauTable("login_attempts"),
   urlRedirects: ccshauTable("url_redirects"),
   siteSettings: ccshauTable("site_settings"),
+  homepageQuotes: ccshauTable("homepage_quotes"),
+  homepageDignitaries: ccshauTable("homepage_dignitaries"),
+  homepageInitiatives: ccshauTable("homepage_initiatives"),
+  homepageCta: ccshauTable("homepage_cta"),
 } as const;
 
 export const Functions = {

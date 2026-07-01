@@ -102,18 +102,19 @@ export function SiteHeader({
               {lang === "en" ? "हिंदी" : "English"}
             </button>
             {(!isLight || isHeritage || isMinistry) && <AccessibilityToolbar />}
-            <Link
-              href="/"
-              className={`hidden sm:inline ${isHeritage ? "text-[#9e4a5a] hover:underline" : isLight ? "text-emerald-700 hover:underline" : "text-amber-200 hover:text-white"}`}
-            >
-              {isCollegeContext ? t("University Home", "विश्वविद्यालय होम") : t("Design Gallery", "डिज़ाइन गैलरी")}
-            </Link>
-            {!isCollegeContext && (
+            {isCollegeContext ? (
+              <Link
+                href="/"
+                className={`hidden sm:inline ${isHeritage ? "text-[#9e4a5a] hover:underline" : isLight ? "text-emerald-700 hover:underline" : "text-amber-200 hover:text-white"}`}
+              >
+                {t("University Home", "विश्वविद्यालय होम")}
+              </Link>
+            ) : (
               <Link
                 href="/design"
-                className={`hidden md:inline ${isHeritage ? "text-[#9e4a5a] hover:underline" : isLight ? "text-emerald-700 hover:underline" : "text-amber-200 hover:text-white"}`}
+                className={`hidden sm:inline ${isHeritage ? "text-[#9e4a5a] hover:underline" : isLight ? "text-emerald-700 hover:underline" : "text-amber-200 hover:text-white"}`}
               >
-                Design Gallery
+                {t("Design Gallery", "डिज़ाइन गैलरी")}
               </Link>
             )}
           </div>
@@ -171,7 +172,15 @@ export function SiteHeader({
 
       {shouldShowMainNav && (
       <div
-        className={`${mobileOpen ? "block" : "hidden"} border-t lg:block ${isMinistry ? "border-slate-200 bg-[#146c43]" : isHeritage ? "border-rose-100/80 bg-gradient-to-r from-rose-50/80 via-white to-sky-50/80" : isLight ? "border-slate-200 bg-white" : "border-white/10 bg-[#e85d04]"}`}
+        className={`${mobileOpen ? "block" : "hidden"} lg:block ${
+          isMinistry
+            ? "border-t border-slate-200 bg-[#146c43]"
+            : isHeritage
+              ? "border-t border-rose-100/80 bg-gradient-to-r from-rose-50/80 via-white to-sky-50/80"
+              : isLight
+                ? "border-t border-slate-200 bg-white"
+                : "ccshau-main-nav-bar"
+        }`}
       >
         <form onSubmit={handleSearchSubmit} className="border-b border-white/10 p-4 lg:hidden">
           <div className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2">

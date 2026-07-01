@@ -321,6 +321,59 @@ export interface RelatedLink {
   updated_at: string;
 }
 
+export interface HomepageQuote {
+  id: string;
+  author_en: string;
+  author_hi: string | null;
+  quote_en: string;
+  quote_hi: string | null;
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface HomepageDignitary {
+  id: string;
+  name_en: string;
+  name_hi: string | null;
+  role_en: string;
+  role_hi: string | null;
+  image_path: string;
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface HomepageInitiative {
+  id: string;
+  title_en: string;
+  title_hi: string | null;
+  description_en: string;
+  description_hi: string | null;
+  image_path: string;
+  link_slug: string | null;
+  link_href: string | null;
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface HomepageCta {
+  id: number;
+  title_en: string;
+  title_hi: string | null;
+  subtitle_en: string | null;
+  subtitle_hi: string | null;
+  button_en: string;
+  button_hi: string | null;
+  link_href: string;
+  is_active: boolean;
+  updated_at: string;
+}
+
 /** Bilingual field pair for CMS forms */
 export interface BilingualFields {
   titleEn: string;

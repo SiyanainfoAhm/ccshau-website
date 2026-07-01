@@ -196,6 +196,178 @@ body {
   border-bottom: 1px solid #e2e8f0;
 }
 
+/* CCSHAU main navigation — institutional ribbon style */
+.ccshau-main-nav-bar {
+  position: relative;
+  background:
+    linear-gradient(
+      105deg,
+      rgba(240, 193, 75, 0.06) 0%,
+      transparent 35%,
+      transparent 65%,
+      rgba(34, 160, 107, 0.08) 100%
+    ),
+    linear-gradient(180deg, #0a3628 0%, #0b3d2e 55%, #082a1f 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(240, 193, 75, 0.35),
+    0 4px 14px rgba(11, 61, 46, 0.25);
+}
+
+.ccshau-main-nav-bar::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    #d4a012 0%,
+    #f0c14b 25%,
+    #fff8e7 50%,
+    #f0c14b 75%,
+    #d4a012 100%
+  );
+}
+
+.ccshau-main-nav-bar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    -55deg,
+    transparent,
+    transparent 12px,
+    rgba(255, 255, 255, 0.018) 12px,
+    rgba(255, 255, 255, 0.018) 13px
+  );
+  pointer-events: none;
+}
+
+.ccshau-main-nav-list {
+  position: relative;
+  z-index: 1;
+}
+
+.ccshau-main-nav-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.85rem 1rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.88);
+  transition:
+    color 0.2s ease,
+    background 0.2s ease;
+}
+
+.ccshau-main-nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0.75rem;
+  right: 0.75rem;
+  bottom: 0.35rem;
+  height: 2px;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #f0c14b, #d4a012);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 0.25s ease;
+}
+
+.ccshau-main-nav-link:hover {
+  color: #fde68a;
+}
+
+.ccshau-main-nav-link:hover::after {
+  transform: scaleX(1);
+}
+
+.ccshau-main-nav-link--open:not(.ccshau-main-nav-link--active) {
+  color: #fde68a;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.ccshau-main-nav-link--open:not(.ccshau-main-nav-link--active)::after {
+  transform: scaleX(1);
+}
+
+.ccshau-main-nav-link--active {
+  color: #fff;
+  background: linear-gradient(
+    180deg,
+    rgba(240, 193, 75, 0.28) 0%,
+    rgba(240, 193, 75, 0.1) 100%
+  );
+  box-shadow: inset 0 -3px 0 #f0c14b;
+  border-radius: 0.35rem 0.35rem 0 0;
+}
+
+.ccshau-main-nav-link--active::after {
+  display: none;
+}
+
+.ccshau-main-nav-link--active:hover {
+  color: #fff;
+  background: linear-gradient(
+    180deg,
+    rgba(240, 193, 75, 0.34) 0%,
+    rgba(240, 193, 75, 0.14) 100%
+  );
+}
+
+.ccshau-main-nav-separator {
+  width: 1px;
+  height: 1.25rem;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(240, 193, 75, 0.45) 50%,
+    transparent
+  );
+  flex-shrink: 0;
+}
+
+.ccshau-mega-panel {
+  border: 1px solid rgba(212, 160, 18, 0.25);
+  box-shadow:
+    0 20px 40px rgba(11, 61, 46, 0.18),
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+}
+
+.ccshau-mega-panel-sidebar {
+  background:
+    linear-gradient(180deg, #0b3d2e 0%, #0a3326 100%);
+  border-right: 1px solid rgba(240, 193, 75, 0.2);
+}
+
+.ccshau-mega-panel-sidebar button.is-active {
+  background: linear-gradient(90deg, rgba(240, 193, 75, 0.18), transparent);
+  border-left: 3px solid #f0c14b;
+  color: #fde68a;
+  padding-left: calc(1rem - 3px);
+}
+
+.ccshau-mega-panel-content {
+  background:
+    linear-gradient(135deg, #f8faf8 0%, #f4f9f6 100%);
+}
+
+.ccshau-mega-panel-content a:hover {
+  border-left: 3px solid #146c43;
+  padding-left: calc(1rem - 3px);
+}
+
+.ccshau-nav-dropdown {
+  border: 1px solid rgba(20, 108, 67, 0.15);
+  border-top: 3px solid #d4a012;
+  box-shadow: 0 16px 32px rgba(11, 61, 46, 0.12);
+}
+
 .ministry-card {
   border: 1px solid #e2e8f0;
   background: #fff;
@@ -419,4 +591,23 @@ body {
 html.dark .bento-card {
   background: linear-gradient(145deg, rgba(6, 40, 30, 0.9), rgba(11, 61, 46, 0.6));
   border-color: rgba(34, 160, 107, 0.2);
+}
+
+.homepage-carousel-track {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(20, 108, 67, 0.45) transparent;
+  -webkit-overflow-scrolling: touch;
+}
+
+.homepage-carousel-track::-webkit-scrollbar {
+  height: 6px;
+}
+
+.homepage-carousel-track::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  background: rgba(20, 108, 67, 0.45);
+}
+
+.homepage-carousel-track::-webkit-scrollbar-track {
+  background: transparent;
 }

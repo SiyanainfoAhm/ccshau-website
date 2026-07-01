@@ -269,15 +269,20 @@ export async function getPublishedNewsBySlug(slug: string): Promise<PublicNewsIt
 
 export async function getPublicTenders(options?: {
   status?: "open" | "closed" | "archived";
+  limit?: number;
 }): Promise<PublicTenderItem[]> {
   const admin = createAdminClient();
   if (!admin) return [];
 
-  const query = admin
+  let query = admin
     .from(Tables.tenders)
     .select("*")
     .in("status", options?.status ? [options.status] : ["open", "closed", "archived"])
     .order("published_at", { ascending: false });
+
+  if (options?.limit) {
+    query = query.limit(options.limit);
+  }
 
   const { data } = await query;
   const tenders = (data as Tender[]) ?? [];
@@ -939,6 +944,10 @@ function mapPageSummary(page: Page): PublicPageSummary {
     imageUrl:
       page.featured_image_path && page.featured_image_path !== "pending"
         ? getStoredFileUrl(page.featured_image_path)
+        : null,
+    logoImageUrl:
+      page.logo_image_path && page.logo_image_path !== "pending"
+        ? getStoredFileUrl(page.logo_image_path)
         : null,
     pageType: page.page_type ?? "standard",
   };

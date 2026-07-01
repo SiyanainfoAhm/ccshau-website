@@ -8,6 +8,8 @@ import {
   downloadFilePath,
   getMediaBucket,
   getStorageBucket,
+  homepageDignitaryImagePath,
+  homepageInitiativeImagePath,
   mediaAlbumCoverPath,
   mediaItemPath,
   newsAttachmentPath,
@@ -149,6 +151,50 @@ export async function uploadBannerImage(
 
   const bucket = STORAGE_BUCKETS.public;
   const path = bannerImagePath(bannerId, sanitizeFileName(file.name));
+  const buffer = Buffer.from(await file.arrayBuffer());
+
+  const { error } = await admin.storage.from(bucket).upload(path, buffer, {
+    contentType: file.type,
+    upsert: true,
+  });
+
+  if (error) return fail(`Upload failed: ${error.message}`);
+  return ok(`${bucket}/${path}`);
+}
+
+export async function uploadHomepageDignitaryImage(
+  admin: SupabaseClient,
+  dignitaryId: string,
+  file: File,
+): Promise<ActionResult<string>> {
+  const validationError = validateUploadFile(file);
+  if (validationError) return fail(validationError);
+  if (!file.type.startsWith("image/")) return fail("Photo must be an image file.");
+
+  const bucket = STORAGE_BUCKETS.public;
+  const path = homepageDignitaryImagePath(dignitaryId, sanitizeFileName(file.name));
+  const buffer = Buffer.from(await file.arrayBuffer());
+
+  const { error } = await admin.storage.from(bucket).upload(path, buffer, {
+    contentType: file.type,
+    upsert: true,
+  });
+
+  if (error) return fail(`Upload failed: ${error.message}`);
+  return ok(`${bucket}/${path}`);
+}
+
+export async function uploadHomepageInitiativeImage(
+  admin: SupabaseClient,
+  initiativeId: string,
+  file: File,
+): Promise<ActionResult<string>> {
+  const validationError = validateUploadFile(file);
+  if (validationError) return fail(validationError);
+  if (!file.type.startsWith("image/")) return fail("Banner must be an image file.");
+
+  const bucket = STORAGE_BUCKETS.public;
+  const path = homepageInitiativeImagePath(initiativeId, sanitizeFileName(file.name));
   const buffer = Buffer.from(await file.arrayBuffer());
 
   const { error } = await admin.storage.from(bucket).upload(path, buffer, {

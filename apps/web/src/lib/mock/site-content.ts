@@ -1,3 +1,5 @@
+import { legacyColleges, legacyDignitaries, legacyFlagships } from "@/lib/legacy/homepage-content";
+
 export const university = {
   nameEn: "Chaudhary Charan Singh Haryana Agricultural University, Hisar",
   nameHi: "चौधरी चरण सिंह हरियाणा कृषि विश्वविद्यालय, हिसार",
@@ -177,53 +179,15 @@ export const heritageNotifications = {
   ],
 };
 
-export const colleges = [
-  {
-    nameEn: "College of Agriculture, Hisar",
-    nameHi: "कृषि महाविद्यालय, हिसार",
-    color: "from-rose-400 to-rose-500",
-  },
-  {
-    nameEn: "College of Agriculture, Kaul",
-    nameHi: "कृषि महाविद्यालय, कौल",
-    color: "from-amber-400 to-orange-400",
-  },
-  {
-    nameEn: "College of Agriculture, Bawal",
-    nameHi: "कृषि महाविद्यालय, बावल",
-    color: "from-sky-400 to-blue-400",
-  },
-  {
-    nameEn: "Centre of Food Science & Technology",
-    nameHi: "खाद्य विज्ञान और प्रौद्योगिकी केंद्र",
-    color: "from-violet-400 to-purple-400",
-  },
-  {
-    nameEn: "I.C. College of Community Science",
-    nameHi: "आई.सी. समुदाय विज्ञान महाविद्यालय",
-    color: "from-pink-400 to-rose-400",
-  },
-  {
-    nameEn: "College of Basic Sciences & Humanities",
-    nameHi: "मूल विज्ञान और मानविकी महाविद्यालय",
-    color: "from-teal-400 to-cyan-400",
-  },
-  {
-    nameEn: "College of Agricultural Engineering and Technology",
-    nameHi: "कृषि अभियांत्रिकी और प्रौद्योगिकी महाविद्यालय",
-    color: "from-indigo-400 to-blue-500",
-  },
-  {
-    nameEn: "College of Fisheries Science",
-    nameHi: "मत्स्य विज्ञान महाविद्यालय",
-    color: "from-cyan-400 to-teal-500",
-  },
-  {
-    nameEn: "College of Biotechnology",
-    nameHi: "जैव प्रौद्योगिकी महाविद्यालय",
-    color: "from-fuchsia-400 to-pink-500",
-  },
-];
+export const dignitaries = legacyDignitaries.map(
+  (person) => `${person.nameEn} — ${person.roleEn}`,
+);
+
+export const colleges = legacyColleges.map(({ nameEn, nameHi, color }) => ({
+  nameEn,
+  nameHi,
+  color,
+}));
 
 export const quickLinks = [
   "Self Service Portal for Students",
@@ -247,13 +211,6 @@ export const tenders = [
   { id: 4, title: "Tender Notice — NCRS Gokalpura", dept: "NCRS", date: "2026-06-12", status: "Open" },
 ];
 
-export const dignitaries = [
-  "Droupadi Murmu — Hon'ble President of India",
-  "Narendra Modi — Hon'ble Prime Minister of India",
-  "Prof. Ashim Kumar Ghosh — Hon'ble Governor of Haryana",
-  "Nayab Singh Saini — Hon'ble Chief Minister of Haryana",
-];
-
 export const aboutHau = {
   titleEn: "About HAU",
   titleHi: "एचएयू के बारे में",
@@ -263,48 +220,12 @@ export const aboutHau = {
     "लोकप्रिय रूप से एचएयू के नाम से जाना जाने वाला चौधरी चरण सिंह हरियाणा कृषि विश्वविद्यालय एशिया के सबसे बड़े कृषि विश्वविद्यालयों में से एक है, जो हरियाणा के हिसार में स्थित है। यह भारत के सातवें प्रधानमंत्री चौधरी चरण सिंह के नाम पर है। कृषि अनुसंधान में अग्रणी, इसने 1960 और 70 के दशक में भारत में हरित क्रांति और श्वेत क्रांति में महत्वपूर्ण योगदान दिया।",
 };
 
-export const flagships = [
-  {
-    titleEn: "Agribusiness Incubation",
-    titleHi: "कृषि व्यवसाय इनक्यूबेशन",
-    descEn:
-      "Agriculture is the primary sector of our economy and majority of the population is directly or indirectly dependent on it.",
-    image:
-      "https://images.unsplash.com/photo-1464226184884-fa280b87bab0?auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    titleEn: "Centre for Bio-Nanotechnology",
-    titleHi: "जैव-नैनो प्रौद्योगिकी केंद्र",
-    descEn:
-      "Established at CCS Haryana Agricultural University to advance research at the intersection of biology and nanotechnology.",
-    image:
-      "https://images.unsplash.com/photo-1532187863486-abf9db581ad4?auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    titleEn: "RKVY-RAFTAAR Agribusiness",
-    titleHi: "आरकेवीवाई-रफ्तार कृषि व्यवसाय",
-    descEn:
-      "Supporting agripreneurs and strengthening the primary sector that sustains India's rural economy.",
-    image:
-      "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    titleEn: "Institutional Development",
-    titleHi: "संस्थागत विकास",
-    descEn:
-      "Since its founding in 1970, CCS HAU has grown into a leader in agricultural education, research and extension.",
-    image:
-      "https://images.unsplash.com/photo-1560439514-4e9645039924?auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    titleEn: "Skill Council of India",
-    titleHi: "स्किल काउंसिल ऑफ इंडिया",
-    descEn:
-      "Extension education is a major function of CCS HAU — vocational training and outreach across Haryana.",
-    image:
-      "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=800&q=80",
-  },
-];
+export const flagships = legacyFlagships.map((item) => ({
+  titleEn: item.titleEn,
+  titleHi: item.titleHi,
+  descEn: item.descEn,
+  image: item.imageUrl,
+}));
 
 export const mediaItems = [
   {

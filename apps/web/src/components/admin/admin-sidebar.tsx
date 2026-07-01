@@ -7,6 +7,7 @@ import {
   ClipboardList,
   Download,
   FileText,
+  Home,
   Image,
   LayoutDashboard,
   Link2,
@@ -42,6 +43,7 @@ const navItems: NavItem[] = [
   { href: "/admin/redirects", label: "URL redirects", icon: ArrowRightLeft },
   { href: "/admin/media", label: "Media", icon: Image },
   { href: "/admin/banners", label: "Banners", icon: Megaphone },
+  { href: "/admin/homepage", label: "Homepage", icon: Home },
   { href: "/admin/audit", label: "Audit log", icon: ClipboardList },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];

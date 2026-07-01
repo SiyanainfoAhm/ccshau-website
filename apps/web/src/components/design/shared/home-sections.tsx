@@ -13,14 +13,26 @@ import {
   Landmark,
   Microscope,
   Play,
+  Sprout,
   Users,
 } from "lucide-react";
 
 import { useLanguage } from "@/components/design/shared/language-context";
+import { HomepageScrollCarousel } from "@/components/design/shared/homepage-scroll-carousel";
 import { ScrollReveal } from "@/components/design/shared/scroll-reveal";
 import { usePublicSiteChrome } from "@/components/site/public-site-context";
 import { SELECTED_LAYOUT } from "@/lib/design/selected-layout";
-import type { PublicMediaAlbumItem, PublicNewsItem, PublicPage, PublicPageSummary, PublicQuickLink, PublicRelatedLink } from "@/lib/data/public-types";
+import type { HomepageCollege, HomepageCtaItem, HomepageFlagshipItem, HomepageQuoteItem } from "@/lib/data/homepage";
+import type {
+  PublicMediaAlbumItem,
+  PublicNewsItem,
+  PublicPage,
+  PublicPageSummary,
+  PublicQuickLink,
+  PublicRelatedLink,
+  PublicTenderItem,
+} from "@/lib/data/public-types";
+import { legacyDignitaries, legacyFlagships, legacyQuotes, type LegacyDignitary } from "@/lib/legacy/homepage-content";
 import { getPublicPagePath } from "@/lib/pages/routes";
 import { MINISTRY_STAT_ACCENTS } from "@/lib/design/ministry-theme";
 import {
@@ -34,10 +46,8 @@ import {
 import {
   aboutHau,
   colleges,
-  dignitaries,
   heritageNotifications,
   heritageQuotes,
-  flagships,
   latestNews,
   mediaItems,
   partners,
@@ -223,20 +233,32 @@ export function CollegesGrid({
   colleges: collegesProp,
 }: {
   variant?: "heritage" | "future" | "ministry";
-  colleges?: PublicPageSummary[];
+  colleges?: HomepageCollege[] | PublicPageSummary[];
 }) {
   const { t } = useLanguage();
 
   const heritageColors = HERITAGE_COLLEGE_PASTELS;
-  const displayColleges =
+  const displayColleges: HomepageCollege[] =
     collegesProp && collegesProp.length > 0
-      ? collegesProp.map((c) => ({
-          nameEn: c.titleEn,
-          nameHi: c.titleHi ?? c.titleEn,
-          href: getPublicPagePath(c.slug, c.pageType ?? "college"),
-          color: "from-emerald-600 to-teal-700",
-        }))
-      : colleges.map((c) => ({ ...c, href: "#" as string }));
+      ? collegesProp.map((c) => {
+          if ("logoUrl" in c) return c;
+          return {
+            slug: c.slug,
+            nameEn: c.titleEn,
+            nameHi: c.titleHi ?? c.titleEn,
+            href: getPublicPagePath(c.slug, c.pageType ?? "college"),
+            logoUrl: c.logoImageUrl ?? "",
+            color: "from-emerald-600 to-teal-700",
+          };
+        })
+      : colleges.map((c, i) => ({
+          slug: `legacy-college-${i}`,
+          nameEn: c.nameEn,
+          nameHi: c.nameHi,
+          href: "#",
+          logoUrl: "",
+          color: c.color,
+        }));
 
   return (
     <section
@@ -259,31 +281,49 @@ export function CollegesGrid({
           )}
         </p>
 
-        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <HomepageScrollCarousel
+          ariaLabel={t("Education at University colleges", "विश्वविद्यालय के महाविद्यालय")}
+          variant={variant}
+          scrollStep={260}
+        >
           {displayColleges.map((college, i) => (
             <Link
-              key={college.nameEn}
+              key={college.slug}
               href={college.href}
-              className={`group relative overflow-hidden rounded-2xl p-6 transition hover:-translate-y-1 ${
+              className={`group relative w-[220px] shrink-0 snap-start overflow-hidden rounded-2xl border p-6 text-center transition hover:-translate-y-1 ${
                 variant === "heritage"
                   ? `bg-gradient-to-br ${heritageColors[i % heritageColors.length]} text-slate-800 shadow-md ring-2 ring-white/70 hover:-translate-y-2 hover:shadow-xl`
                   : variant === "ministry"
                     ? "ministry-card border-l-4 border-l-[#146c43] bg-white text-slate-800"
-                    : `text-white bg-gradient-to-br ${college.color} shadow-lg hover:-translate-y-2 hover:shadow-2xl`
+                    : `border-emerald-100 bg-white text-slate-800 shadow-md hover:border-emerald-300 hover:shadow-xl dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-50`
               }`}
               style={{ animationDelay: `${i * 60}ms` }}
             >
-              <div className="absolute -right-6 -top-6 h-32 w-32 rounded-full bg-white/10 transition group-hover:scale-150" />
-              <h3 className="relative font-display text-xl font-bold leading-tight">
+              {college.logoUrl ? (
+                <div className="relative mx-auto mb-4 flex h-[120px] w-[120px] items-center justify-center">
+                  <Image
+                    src={college.logoUrl}
+                    alt=""
+                    width={120}
+                    height={120}
+                    className="max-h-[120px] max-w-[120px] object-contain"
+                  />
+                </div>
+              ) : variant !== "heritage" && variant !== "ministry" ? (
+                <div className={`mx-auto mb-4 flex h-[120px] w-[120px] items-center justify-center rounded-full bg-gradient-to-br ${college.color} text-white shadow-lg`}>
+                  <GraduationCap className="h-12 w-12 opacity-90" aria-hidden />
+                </div>
+              ) : null}
+              <h3 className={`relative font-display text-base font-bold leading-tight ${variant === "future" ? "text-slate-800 dark:text-emerald-50" : ""}`}>
                 {t(college.nameEn, college.nameHi)}
               </h3>
-              <span className={`relative mt-4 inline-flex items-center gap-1 text-sm font-semibold ${variant === "heritage" || variant === "ministry" ? "text-[#146c43]" : "text-white/90"}`}>
+              <span className={`relative mt-4 inline-flex items-center gap-1 text-sm font-semibold ${variant === "heritage" || variant === "ministry" ? "text-[#146c43]" : "text-emerald-700 dark:text-amber-300"}`}>
                 {t("Explore", "अन्वेषण")}
                 <ArrowUpRight className="h-4 w-4 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </span>
             </Link>
           ))}
-        </div>
+        </HomepageScrollCarousel>
       </div>
     </section>
   );
@@ -373,18 +413,36 @@ export function QuickLinksStrip({
   );
 }
 
-export function SpotlightSection({ variant = "future" }: { variant?: "heritage" | "future" | "ministry" }) {
+export function QuotesSection({
+  variant = "future",
+  quotes: quotesProp,
+}: {
+  variant?: "heritage" | "future" | "ministry";
+  quotes?: HomepageQuoteItem[];
+}) {
   const { t } = useLanguage();
+  const displayQuotes =
+    quotesProp && quotesProp.length > 0
+      ? quotesProp
+      : legacyQuotes.length > 0
+        ? legacyQuotes
+        : heritageQuotes;
   const [quoteIndex, setQuoteIndex] = useState(0);
 
   useEffect(() => {
-    if (variant !== "heritage") return;
-    const id = setInterval(() => setQuoteIndex((i) => (i + 1) % heritageQuotes.length), 8000);
+    if (displayQuotes.length === 0) return;
+    const id = setInterval(
+      () => setQuoteIndex((i) => (i + 1) % displayQuotes.length),
+      8000,
+    );
     return () => clearInterval(id);
-  }, [variant]);
+  }, [displayQuotes.length]);
+
+  if (displayQuotes.length === 0) return null;
+
+  const quote = displayQuotes[quoteIndex];
 
   if (variant === "heritage") {
-    const quote = heritageQuotes[quoteIndex];
     const quoteBg = HERITAGE_QUOTE_BACKGROUNDS[quoteIndex % HERITAGE_QUOTE_BACKGROUNDS.length];
     return (
       <ScrollReveal>
@@ -398,7 +456,7 @@ export function SpotlightSection({ variant = "future" }: { variant?: "heritage" 
               &ldquo;{t(quote.quoteEn, quote.quoteHi)}&rdquo;
             </blockquote>
             <div className="mt-8 flex justify-center gap-2">
-              {heritageQuotes.map((_, i) => (
+              {displayQuotes.map((_, i) => (
                 <button
                   key={i}
                   type="button"
@@ -412,6 +470,71 @@ export function SpotlightSection({ variant = "future" }: { variant?: "heritage" 
         </section>
       </ScrollReveal>
     );
+  }
+
+  if (variant === "ministry") {
+    return (
+      <section className="border-y-2 border-slate-200 bg-slate-50 py-12">
+        <div className="mx-auto max-w-4xl px-4 text-center">
+          <p className="text-sm font-bold uppercase tracking-widest text-[#146c43]">
+            {t(quote.authorEn, quote.authorHi)}
+          </p>
+          <blockquote className="mt-6 font-display text-xl font-medium leading-relaxed text-slate-800 md:text-2xl">
+            &ldquo;{t(quote.quoteEn, quote.quoteHi)}&rdquo;
+          </blockquote>
+          <div className="mt-6 flex justify-center gap-2">
+            {displayQuotes.map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setQuoteIndex(i)}
+                className={`h-2 rounded-full transition-all ${i === quoteIndex ? "w-8 bg-[#146c43]" : "w-2 bg-slate-300"}`}
+                aria-label={`Quote ${i + 1}`}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <ScrollReveal>
+      <section className="relative overflow-hidden border-y border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-amber-50/40 py-14 dark:border-emerald-900/40 dark:from-emerald-950/30 dark:via-emerald-950/10 dark:to-amber-950/10">
+        <div className="pattern-dots absolute inset-0 opacity-40" />
+        <div className="relative mx-auto max-w-4xl px-4 text-center">
+          <p className="inline-block rounded-full border border-amber-300/60 bg-white/80 px-5 py-1.5 font-display text-sm font-semibold uppercase tracking-wider text-emerald-800 shadow-sm dark:border-amber-500/30 dark:bg-emerald-950/50 dark:text-amber-200">
+            {t(quote.authorEn, quote.authorHi)}
+          </p>
+          <blockquote className="mt-8 font-display text-2xl font-medium leading-relaxed text-slate-700 md:text-3xl dark:text-emerald-50">
+            &ldquo;{t(quote.quoteEn, quote.quoteHi)}&rdquo;
+          </blockquote>
+          <div className="mt-8 flex justify-center gap-2">
+            {displayQuotes.map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setQuoteIndex(i)}
+                className={`h-2 rounded-full transition-all ${
+                  i === quoteIndex
+                    ? "w-8 bg-gradient-to-r from-emerald-600 to-amber-400"
+                    : "w-2 bg-emerald-200 dark:bg-emerald-800"
+                }`}
+                aria-label={`Quote ${i + 1}`}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+    </ScrollReveal>
+  );
+}
+
+export function SpotlightSection({ variant = "future" }: { variant?: "heritage" | "future" | "ministry" }) {
+  const { t } = useLanguage();
+
+  if (variant === "heritage") {
+    return <QuotesSection variant="heritage" />;
   }
 
   if (variant === "ministry") {
@@ -509,33 +632,76 @@ export function SpotlightSection({ variant = "future" }: { variant?: "heritage" 
   );
 }
 
-export function DignitariesStrip({ variant = "future" }: { variant?: "heritage" | "future" | "ministry" }) {
+export function DignitariesStrip({
+  variant = "future",
+  dignitaries: dignitariesProp,
+}: {
+  variant?: "heritage" | "future" | "ministry";
+  dignitaries?: LegacyDignitary[];
+}) {
   const { t } = useLanguage();
+  const items = dignitariesProp && dignitariesProp.length > 0 ? dignitariesProp : legacyDignitaries;
 
   return (
-    <section className={`border-y py-6 ${
+    <section className={`border-y py-10 ${
       variant === "heritage"
         ? "border-y border-white/60 bg-gradient-to-r from-rose-100/80 via-amber-50/80 to-sky-100/80"
         : variant === "ministry"
           ? "border-y-2 border-slate-200 bg-white"
           : "border-emerald-100 bg-white/80 dark:border-emerald-900/40 dark:bg-emerald-950/20"
     }`}>
-      <div className="mx-auto max-w-7xl px-4 text-center">
-        {(variant === "heritage" || variant === "ministry") && (
-          <p className={`mb-3 text-xs font-bold uppercase tracking-[0.2em] ${variant === "ministry" ? "text-[#146c43]" : "text-violet-600"}`}>
-            {t("Dignitaries", "गणमान्य व्यक्ति")}
-          </p>
-        )}
-        <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2">
-        {dignitaries.map((name) => (
-          <span
-            key={name}
-            className={`text-center text-xs font-semibold ${variant === "heritage" || variant === "ministry" ? "text-slate-600" : "uppercase tracking-wide text-slate-500 dark:text-emerald-200/70"}`}
-          >
-            {t(name, name)}
-          </span>
-        ))}
-        </div>
+      <div className="mx-auto max-w-7xl px-4">
+        <p className={`mb-8 text-center text-xs font-bold uppercase tracking-[0.2em] ${
+          variant === "ministry"
+            ? "text-[#146c43]"
+            : variant === "future"
+              ? "text-emerald-700 dark:text-emerald-400"
+              : "text-violet-600"
+        }`}>
+          {t("Dignitaries", "गणमान्य व्यक्ति")}
+        </p>
+        <HomepageScrollCarousel
+          ariaLabel={t("Dignitaries", "गणमान्य व्यक्ति")}
+          variant={variant}
+          scrollStep={240}
+        >
+          {items.map((person) => (
+            <figure
+              key={person.nameEn}
+              className={`flex w-[200px] shrink-0 snap-start flex-col items-center text-center ${
+                variant === "future"
+                  ? "rounded-2xl border border-emerald-100 bg-white/90 px-4 py-6 shadow-sm dark:border-emerald-900/50 dark:bg-emerald-950/40"
+                  : variant === "ministry"
+                    ? "ministry-card rounded-md px-4 py-6"
+                    : "rounded-2xl bg-white/80 px-4 py-6 shadow-sm"
+              }`}
+            >
+              <div className={`relative h-24 w-24 overflow-hidden rounded-full ring-4 ${
+                variant === "heritage"
+                  ? "ring-rose-200"
+                  : variant === "ministry"
+                    ? "ring-[#146c43]/30"
+                    : "ring-amber-300/60 dark:ring-amber-500/40"
+              }`}>
+                <Image
+                  src={person.imageUrl}
+                  alt=""
+                  fill
+                  className="object-cover"
+                  sizes="96px"
+                />
+              </div>
+              <figcaption className="mt-4">
+                <p className={`font-display text-sm font-bold ${variant === "future" ? "text-slate-800 dark:text-emerald-50" : "text-slate-800"}`}>
+                  {t(person.nameEn, person.nameHi)}
+                </p>
+                <p className={`mt-1 text-xs leading-snug ${variant === "future" ? "text-slate-500 dark:text-emerald-200/70" : "text-slate-600"}`}>
+                  {t(person.roleEn, person.roleHi)}
+                </p>
+              </figcaption>
+            </figure>
+          ))}
+        </HomepageScrollCarousel>
       </div>
     </section>
   );
@@ -781,6 +947,285 @@ export function HeritageNotificationsSection() {
   );
 }
 
+function formatNoticeDate(iso: string | null): string {
+  if (!iso) return "";
+  return new Date(iso).toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
+export function NotificationsSection({
+  variant = "future",
+  newsItems,
+  recruitmentItems,
+  tenderItems,
+}: {
+  variant?: "heritage" | "future" | "ministry";
+  newsItems?: PublicNewsItem[];
+  recruitmentItems?: PublicNewsItem[];
+  tenderItems?: PublicTenderItem[];
+}) {
+  const { t } = useLanguage();
+  const newsPath = SELECTED_LAYOUT.routes.news;
+  const tendersPath = SELECTED_LAYOUT.routes.tenders;
+
+  const columns = [
+    {
+      key: "news" as const,
+      titleEn: "News",
+      titleHi: "समाचार",
+      accent:
+        variant === "ministry"
+          ? "bg-[#146c43]"
+          : variant === "heritage"
+            ? "bg-gradient-to-r from-rose-500 to-pink-500"
+            : "bg-gradient-to-r from-emerald-600 to-teal-600",
+      readMoreHref: newsPath,
+    },
+    {
+      key: "recruitment" as const,
+      titleEn: "Recruitment",
+      titleHi: "भर्ती",
+      accent:
+        variant === "ministry"
+          ? "bg-[#e8850c]"
+          : variant === "heritage"
+            ? "bg-gradient-to-r from-amber-500 to-orange-500"
+            : "bg-gradient-to-r from-amber-500 to-amber-600",
+      readMoreHref: `${newsPath}?category=recruitment`,
+    },
+    {
+      key: "tenders" as const,
+      titleEn: "Tenders / Auctions",
+      titleHi: "निविदा / नीलामी",
+      accent:
+        variant === "ministry"
+          ? "bg-slate-700"
+          : variant === "heritage"
+            ? "bg-gradient-to-r from-violet-500 to-indigo-500"
+            : "bg-gradient-to-r from-slate-700 to-slate-800",
+      readMoreHref: tendersPath,
+    },
+  ];
+
+  const itemsByColumn = {
+    news:
+      newsItems && newsItems.length > 0
+        ? newsItems.map((item) => ({
+            key: item.id,
+            label: t(item.titleEn, item.titleHi ?? item.titleEn),
+            href: `${newsPath}/${item.slug}`,
+            date: formatNoticeDate(item.publishedAt),
+          }))
+        : heritageNotifications.news.map((item) => ({
+            key: item,
+            label: item,
+            href: "#",
+            date: "",
+          })),
+    recruitment:
+      recruitmentItems && recruitmentItems.length > 0
+        ? recruitmentItems.map((item) => ({
+            key: item.id,
+            label: t(item.titleEn, item.titleHi ?? item.titleEn),
+            href: `${newsPath}/${item.slug}`,
+            date: formatNoticeDate(item.publishedAt),
+          }))
+        : heritageNotifications.recruitment.map((item) => ({
+            key: item,
+            label: item,
+            href: "#",
+            date: "",
+          })),
+    tenders:
+      tenderItems && tenderItems.length > 0
+        ? tenderItems.map((item) => ({
+            key: item.id,
+            label: t(item.titleEn, item.titleHi ?? item.titleEn),
+            href: `${tendersPath}/${item.slug}`,
+            date: formatNoticeDate(item.publishedAt ?? item.closingDate),
+          }))
+        : heritageNotifications.tenders.map((item) => ({
+            key: item,
+            label: item,
+            href: "#",
+            date: "",
+          })),
+  };
+
+  return (
+    <ScrollReveal>
+      <section
+        className={`py-14 ${
+          variant === "heritage"
+            ? "bg-gradient-to-br from-teal-50/30 via-white to-orange-50/30"
+            : variant === "ministry"
+              ? "border-y-2 border-slate-200 bg-white"
+              : "bg-gradient-to-b from-white to-emerald-50/50 dark:from-emerald-950/10 dark:to-emerald-950/30"
+        }`}
+      >
+        <div className="mx-auto max-w-7xl px-4">
+          <h2
+            className={`text-center font-display text-3xl font-bold md:text-4xl ${
+              variant === "heritage"
+                ? "text-gradient-heritage"
+                : variant === "ministry"
+                  ? "text-slate-900"
+                  : "text-slate-900 dark:text-white"
+            }`}
+          >
+            {t("Notifications", "सूचनाएं")}
+          </h2>
+          <div className="mt-10 grid gap-6 md:grid-cols-3">
+            {columns.map((col) => (
+              <div
+                key={col.key}
+                className={`overflow-hidden rounded-2xl border bg-white shadow-md ${
+                  variant === "ministry"
+                    ? "ministry-card rounded-md"
+                    : variant === "future"
+                      ? "border-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30"
+                      : "border-slate-100"
+                }`}
+              >
+                <h3 className={`${col.accent} px-5 py-3 font-display text-lg font-bold text-white`}>
+                  {t(col.titleEn, col.titleHi)}
+                </h3>
+                <ul className="space-y-3 p-5">
+                  {itemsByColumn[col.key].map((item) => (
+                    <li key={item.key}>
+                      <Link
+                        href={item.href}
+                        className={`text-sm leading-snug hover:underline ${
+                          variant === "ministry"
+                            ? "text-slate-700 hover:text-[#146c43]"
+                            : variant === "heritage"
+                              ? "text-slate-600 hover:text-violet-600"
+                              : "text-slate-700 hover:text-emerald-700 dark:text-emerald-100/90 dark:hover:text-amber-300"
+                        }`}
+                      >
+                        {item.label}
+                        {item.date ? (
+                          <span className="mt-0.5 block text-xs text-slate-400">{item.date}</span>
+                        ) : null}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+                <div className="border-t border-slate-100 px-5 py-3 dark:border-emerald-900/40">
+                  <Link
+                    href={col.readMoreHref}
+                    className={`inline-flex items-center gap-1 text-sm font-bold hover:underline ${
+                      variant === "ministry"
+                        ? "text-[#146c43]"
+                        : variant === "heritage"
+                          ? "text-violet-600"
+                          : "text-emerald-700 dark:text-amber-300"
+                    }`}
+                  >
+                    {t("Read more", "और पढ़ें")}
+                    <ArrowUpRight className="h-3.5 w-3.5" />
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    </ScrollReveal>
+  );
+}
+
+export function FarmersPortalSection({
+  variant = "future",
+  cta,
+}: {
+  variant?: "heritage" | "future" | "ministry";
+  cta?: HomepageCtaItem | null;
+}) {
+  const { t } = useLanguage();
+  const chrome = usePublicSiteChrome();
+  const farmersLink =
+    cta?.href ??
+    chrome?.quickLinks.find((link) => /farmer/i.test(link.labelEn))?.href ??
+    "/pages/about";
+  const titleEn = cta?.titleEn ?? "Farmers' Portal";
+  const titleHi = cta?.titleHi ?? "किसान पोर्टल";
+  const subtitleEn =
+    cta?.subtitleEn ??
+    "Crop advisories, extension services and farmer-focused resources from CCSHAU Hisar";
+  const subtitleHi =
+    cta?.subtitleHi ??
+    "सीसीएसएचएयू हिसार से फसल सलाह, विस्तार सेवाएं और किसान-केंद्रित संसाधन";
+  const buttonEn = cta?.buttonEn ?? "Click Here";
+  const buttonHi = cta?.buttonHi ?? "यहाँ क्लिक करें";
+
+  return (
+    <ScrollReveal>
+      <section
+        className={`py-12 ${
+          variant === "heritage"
+            ? "bg-gradient-to-r from-amber-50 via-rose-50 to-sky-50"
+            : variant === "ministry"
+              ? "border-y-2 border-slate-200 bg-[#146c43]"
+              : "bg-gradient-to-r from-[#0b3d2e] via-[#146c43] to-[#0d4a38]"
+        }`}
+      >
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 px-4 text-center md:flex-row md:text-left">
+          <div className="flex items-center gap-4">
+            <div
+              className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl ${
+                variant === "ministry"
+                  ? "bg-white/15 text-white"
+                  : variant === "heritage"
+                    ? "bg-white text-amber-700 shadow-md"
+                    : "bg-amber-400/20 text-amber-300"
+              }`}
+            >
+              <Sprout className="h-7 w-7" aria-hidden />
+            </div>
+            <div>
+              <h2
+                className={`font-display text-2xl font-bold md:text-3xl ${
+                  variant === "heritage" ? "text-slate-800" : "text-white"
+                }`}
+              >
+                {t(titleEn, titleHi)}
+              </h2>
+              <p
+                className={`mt-1 text-sm ${
+                  variant === "heritage"
+                    ? "text-slate-600"
+                    : variant === "ministry"
+                      ? "text-emerald-100"
+                      : "text-emerald-100/90"
+                }`}
+              >
+                {t(subtitleEn, subtitleHi)}
+              </p>
+            </div>
+          </div>
+          <Link
+            href={farmersLink}
+            className={`inline-flex shrink-0 items-center gap-2 rounded-xl px-8 py-3 font-bold transition ${
+              variant === "heritage"
+                ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg hover:from-amber-600 hover:to-orange-600"
+                : variant === "ministry"
+                  ? "bg-white text-[#146c43] hover:bg-emerald-50"
+                  : "gradient-gold text-emerald-950 shadow-lg hover:brightness-105"
+            }`}
+          >
+            {t(buttonEn, buttonHi)}
+            <ArrowUpRight className="h-4 w-4" />
+          </Link>
+        </div>
+      </section>
+    </ScrollReveal>
+  );
+}
+
 export function MediaGallerySection({
   variant = "future",
   albums,
@@ -817,7 +1262,7 @@ export function MediaGallerySection({
             ? "border-y border-slate-200 bg-slate-50 py-16"
             : isHeritage
               ? "bg-gradient-to-br from-fuchsia-50/40 via-white to-cyan-50/40 py-16"
-              : "bg-slate-900 py-16 text-white"
+              : "bg-gradient-to-br from-[#0b3d2e] via-slate-900 to-[#0d4a38] py-16 text-white"
         }
       >
         <div className="mx-auto max-w-7xl px-4">
@@ -839,26 +1284,45 @@ export function MediaGallerySection({
             </Link>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {galleryItems.map((item, i) => (
               <Link
                 key={`${item.titleEn}-${i}`}
                 href={item.href}
-                className={`card-shine group relative overflow-hidden rounded-2xl ${isHeritage ? `ring-2 ${["ring-rose-200", "ring-amber-200", "ring-sky-200", "ring-violet-200"][i % 4]}` : isMinistry ? "ministry-card rounded-md" : ""} ${i === 0 ? "sm:row-span-2 sm:min-h-[320px]" : "aspect-[4/3]"}`}
+                className={`card-shine group relative block aspect-[4/3] w-full overflow-hidden rounded-2xl transition hover:-translate-y-0.5 hover:shadow-xl ${
+                  isHeritage
+                    ? `ring-2 ${["ring-rose-200", "ring-amber-200", "ring-sky-200", "ring-violet-200"][i % 4]}`
+                    : isMinistry
+                      ? "ministry-card rounded-md shadow-md"
+                      : "shadow-lg ring-1 ring-white/10 hover:ring-amber-400/40"
+                }`}
               >
-                <Image
-                  src={item.image}
-                  alt=""
-                  fill
-                  className="object-cover transition duration-500 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                {item.image ? (
+                  <Image
+                    src={item.image}
+                    alt=""
+                    fill
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                    className="object-cover transition duration-500 group-hover:scale-105"
+                  />
+                ) : (
+                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-800 to-slate-900" />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
                 {item.type === "video" && (
-                  <div className={`absolute left-1/2 top-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full shadow-xl transition group-hover:scale-110 ${isHeritage ? "bg-[#b45368] text-white" : isMinistry ? "bg-[#146c43] text-white" : "bg-amber-400 text-emerald-950"}`}>
+                  <div
+                    className={`absolute left-1/2 top-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full shadow-xl transition group-hover:scale-110 ${
+                      isHeritage
+                        ? "bg-[#b45368] text-white"
+                        : isMinistry
+                          ? "bg-[#146c43] text-white"
+                          : "bg-amber-400 text-emerald-950"
+                    }`}
+                  >
                     <Play className="h-6 w-6 fill-current" />
                   </div>
                 )}
-                <p className="absolute bottom-4 left-4 right-4 text-sm font-bold">
+                <p className="absolute bottom-0 left-0 right-0 px-4 py-3 text-sm font-bold leading-snug text-white">
                   {t(item.titleEn, item.titleHi ?? item.titleEn)}
                 </p>
               </Link>
@@ -870,11 +1334,23 @@ export function MediaGallerySection({
   );
 }
 
-export function FlagshipsSection({ variant = "future" }: { variant?: "heritage" | "future" | "ministry" }) {
+export function FlagshipsSection({
+  variant = "future",
+  items: itemsProp,
+}: {
+  variant?: "heritage" | "future" | "ministry";
+  items?: HomepageFlagshipItem[];
+}) {
   const { t } = useLanguage();
   const isHeritage = variant === "heritage";
   const isMinistry = variant === "ministry";
-  const items = isHeritage ? flagships : isMinistry ? flagships.slice(0, 4) : flagships.slice(0, 3);
+  const items: HomepageFlagshipItem[] =
+    itemsProp && itemsProp.length > 0
+      ? itemsProp
+      : legacyFlagships.map((item) => ({
+          ...item,
+          href: `/college/${item.slug}`,
+        }));
 
   return (
     <ScrollReveal>
@@ -884,37 +1360,44 @@ export function FlagshipsSection({ variant = "future" }: { variant?: "heritage" 
             {t("Flagships", "प्रमुख पहल")}
           </p>
           <h2 className={`font-display text-3xl font-bold md:text-4xl ${isHeritage ? "text-gradient-heritage" : "text-slate-900 dark:text-white"}`}>
-            {t("University Initiatives", "विश्वविद्यालय की पहल")}
+            {t("Flagships", "प्रमुख पहल")}
           </h2>
         </div>
 
-        <div className={`mt-12 grid gap-6 ${isHeritage ? "sm:grid-cols-2 lg:grid-cols-3" : isMinistry ? "sm:grid-cols-2" : "md:grid-cols-3"}`}>
+        <HomepageScrollCarousel
+          ariaLabel={t("University flagships", "विश्वविद्यालय की प्रमुख पहलें")}
+          variant={variant}
+          scrollStep={340}
+        >
           {items.map((item) => (
             <Link
-              key={item.titleEn}
-              href="#"
-              className={`card-shine group overflow-hidden transition hover:-translate-y-1 ${
-                isMinistry ? "ministry-card rounded-md" : "rounded-2xl border-2 border-white bg-white shadow-lg hover:-translate-y-2 hover:shadow-xl"
+              key={item.slug}
+              href={item.href}
+              className={`card-shine group w-[300px] shrink-0 snap-start overflow-hidden transition hover:-translate-y-1 sm:w-[320px] ${
+                isMinistry ? "ministry-card rounded-md" : "rounded-2xl border border-emerald-100 bg-white shadow-lg hover:shadow-xl dark:border-emerald-900/50 dark:bg-emerald-950/30"
               }`}
             >
-              <div className="relative aspect-[16/10] overflow-hidden">
+              <div className="relative aspect-[16/10] min-h-[180px] overflow-hidden">
                 <Image
-                  src={item.image}
+                  src={item.imageUrl}
                   alt=""
                   fill
+                  sizes="320px"
                   className="object-cover transition duration-500 group-hover:scale-105"
                 />
                 <div className={`absolute inset-0 bg-gradient-to-t to-transparent ${isMinistry ? "from-slate-900/60" : isHeritage ? "from-slate-800/70" : "from-[#0b3d2e]/90"}`} />
               </div>
               <div className="p-5">
-                <h3 className="font-display text-lg font-bold text-slate-900">
+                <h3 className="font-display text-lg font-bold text-slate-900 dark:text-emerald-50">
                   {t(item.titleEn, item.titleHi)}
                 </h3>
-                <p className="mt-2 line-clamp-2 text-sm text-slate-600">{item.descEn}</p>
+                <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-slate-600 dark:text-emerald-100/80">
+                  {t(item.descEn, item.descHi)}
+                </p>
               </div>
             </Link>
           ))}
-        </div>
+        </HomepageScrollCarousel>
       </section>
     </ScrollReveal>
   );

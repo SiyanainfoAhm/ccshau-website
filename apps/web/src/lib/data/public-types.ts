@@ -192,6 +192,7 @@ export interface PublicPageSummary {
   excerptEn: string | null;
   excerptHi: string | null;
   imageUrl: string | null;
+  logoImageUrl: string | null;
   pageType?: PageType;
 }
 
