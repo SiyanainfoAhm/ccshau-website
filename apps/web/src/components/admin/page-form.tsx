@@ -82,6 +82,12 @@ export function PageForm({
 
   return (
     <form action={handleSubmit} className="mx-auto max-w-3xl space-y-6">
+      <input type="hidden" name="pageType" value={pageType} />
+      <input
+        type="hidden"
+        name="layoutTemplate"
+        value={pageType === "college" ? layoutTemplate : "standard"}
+      />
       {error && (
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
           {error}
@@ -94,7 +100,6 @@ export function PageForm({
           <label className="block text-sm">
             <span className="font-medium text-slate-700">Template</span>
             <select
-              name="pageType"
               value={pageType}
               onChange={(e) => {
                 const next = e.target.value as Page["page_type"];
@@ -112,7 +117,6 @@ export function PageForm({
             <label className="block text-sm">
               <span className="font-medium text-slate-700">Layout template</span>
               <select
-                name="layoutTemplate"
                 value={layoutTemplate}
                 onChange={(e) =>
                   setLayoutTemplate(e.target.value as Page["layout_template"])

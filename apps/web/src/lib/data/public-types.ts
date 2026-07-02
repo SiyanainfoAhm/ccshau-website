@@ -20,6 +20,15 @@ export interface PublicQuickLink {
   href: string;
 }
 
+export interface PublicSidebarLink {
+  id: string;
+  labelEn: string;
+  labelHi: string | null;
+  href: string | null;
+  contentEn: string | null;
+  contentHi: string | null;
+}
+
 export interface PublicNewsItem {
   id: string;
   slug: string;
@@ -107,8 +116,8 @@ export interface PublicOfficeHeadOfficer {
 export interface PublicOfficePortalData {
   contactLines: PublicOfficeContactLine[];
   staff: PublicOfficeStaffMember[];
-  sidebarLeft: PublicQuickLink[];
-  sidebarRight: PublicQuickLink[];
+  sidebarLeft: PublicSidebarLink[];
+  sidebarRight: PublicSidebarLink[];
   headOfficer: PublicOfficeHeadOfficer | null;
   officeCtaEnabled: boolean;
 }

@@ -31,7 +31,7 @@ export default async function CollegePage({ params }: { params: Promise<{ slug: 
 
   return (
     <>
-      <SiteHeader variant="future" homeHref={`/college/${slug}`} college={college} showMainNav={false} />
+      <SiteHeader variant="future" homeHref={`/college/${slug}`} college={college} />
       <main id="main-content" className="flex-1 bg-slate-50">
         {isOfficePortal && office ? (
           <PublicOfficePortal

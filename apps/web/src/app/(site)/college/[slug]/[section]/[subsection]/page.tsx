@@ -33,7 +33,6 @@ export default async function CollegeSubsectionPage({
         variant="future"
         homeHref={`/college/${slug}`}
         college={data.college}
-        showMainNav={false}
       />
       <main id="main-content" className="flex-1 bg-white">
         <PublicCollegeSubsectionView

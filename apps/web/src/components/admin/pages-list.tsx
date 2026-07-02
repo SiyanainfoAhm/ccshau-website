@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
 
+import { DeletePageButton } from "@/components/admin/delete-page-button";
 import { StatusBadge } from "@/components/admin/status-badge";
 import type { Page } from "@/lib/database/types";
 
@@ -58,12 +59,13 @@ export function PagesList({ pages }: { pages: Page[] }) {
               <th className="px-4 py-3 text-left font-semibold text-slate-700">Slug</th>
               <th className="px-4 py-3 text-left font-semibold text-slate-700">Status</th>
               <th className="px-4 py-3 text-left font-semibold text-slate-700">Updated</th>
+              <th className="px-4 py-3 text-right font-semibold text-slate-700">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {pages.length === 0 ? (
               <tr>
-                <td colSpan={4} className="px-4 py-10 text-center text-slate-500">
+                <td colSpan={5} className="px-4 py-10 text-center text-slate-500">
                   No pages yet.{" "}
                   <Link href="/admin/pages/new" className="text-emerald-700 hover:underline">
                     Create your first page
@@ -72,7 +74,7 @@ export function PagesList({ pages }: { pages: Page[] }) {
               </tr>
             ) : filteredPages.length === 0 ? (
               <tr>
-                <td colSpan={4} className="px-4 py-10 text-center text-slate-500">
+                <td colSpan={5} className="px-4 py-10 text-center text-slate-500">
                   No pages match &ldquo;{query.trim()}&rdquo;.
                 </td>
               </tr>
@@ -93,6 +95,13 @@ export function PagesList({ pages }: { pages: Page[] }) {
                   </td>
                   <td className="px-4 py-3 text-slate-500">
                     {new Date(page.updated_at).toLocaleDateString("en-IN")}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <DeletePageButton
+                      pageId={page.id}
+                      pageTitle={page.title_en}
+                      variant="list"
+                    />
                   </td>
                 </tr>
               ))

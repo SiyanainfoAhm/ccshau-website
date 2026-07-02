@@ -46,6 +46,17 @@ function parsePageForm(formData: FormData) {
 
 function toPageRow(input: ReturnType<typeof pageFormSchema.parse>, userId: string) {
   const publishedAt = input.status === "published" ? new Date().toISOString() : null;
+  const pageType =
+    input.pageType === "college" || input.layoutTemplate === "office_portal"
+      ? "college"
+      : input.pageType;
+  const layoutTemplate =
+    pageType === "college"
+      ? input.layoutTemplate === "office_portal"
+        ? "office_portal"
+        : "college_home"
+      : "standard";
+
   return {
     slug: input.slug,
     title_en: input.titleEn,
@@ -58,13 +69,8 @@ function toPageRow(input: ReturnType<typeof pageFormSchema.parse>, userId: strin
     meta_description: input.metaDescription || null,
     department_id: input.departmentId || null,
     parent_id: input.parentId || null,
-    page_type: input.pageType,
-    layout_template:
-      input.pageType === "college"
-        ? input.layoutTemplate === "office_portal"
-          ? "office_portal"
-          : "college_home"
-        : "standard",
+    page_type: pageType,
+    layout_template: layoutTemplate,
     featured_image_path: input.featuredImagePath || null,
     logo_image_path: input.logoImagePath || null,
     head_name_en: input.headNameEn || null,
@@ -172,6 +178,12 @@ export async function deletePageAction(pageId: string): Promise<ActionResult> {
     const admin = createAdminClient();
     if (!admin) return fail("Database not configured.");
 
+    const { data: page } = await admin
+      .from(Tables.pages)
+      .select("slug, parent_id")
+      .eq("id", pageId)
+      .maybeSingle();
+
     const { error } = await admin.from(Tables.pages).delete().eq("id", pageId);
     if (error) return fail(error.message);
 
@@ -183,6 +195,10 @@ export async function deletePageAction(pageId: string): Promise<ActionResult> {
     });
 
     revalidatePath("/admin/pages");
+    if (page?.slug) {
+      revalidatePath(`/pages/${page.slug}`);
+      revalidatePath(`/college/${page.slug}`);
+    }
     return ok(undefined);
   } catch (e) {
     return fail(e instanceof Error ? e.message : "Failed to delete page");

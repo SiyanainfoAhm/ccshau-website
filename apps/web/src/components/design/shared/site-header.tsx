@@ -43,8 +43,9 @@ export function SiteHeader({
   const pathname = usePathname();
   const isCollegeRoute = pathname.startsWith("/college/");
   const isCollegeContext = Boolean(college) || isCollegeRoute;
-  const shouldShowMainNav = showMainNav ?? !isCollegeContext;
-  const shouldShowCollegeNav = Boolean(college);
+  const isOfficePortal = college?.layoutTemplate === "office_portal";
+  const shouldShowMainNav = showMainNav ?? (!isCollegeContext || isOfficePortal);
+  const shouldShowCollegeNav = Boolean(college) && !isOfficePortal;
   const chrome = usePublicSiteChrome();
   const navItems = navItemsProp ?? chrome?.headerNav ?? mockNavItems.map((item) => ({
     labelEn: item.labelEn,

@@ -25,12 +25,26 @@ export const pageStaffSchema = z.object({
   isActive,
 });
 
-export const pageSidebarItemSchema = z.object({
-  side: z.enum(["left", "right"]),
-  labelEn: z.string().min(1, "Label is required"),
-  labelHi: z.string().optional(),
-  href: z.string().optional(),
-  linkedPageId: z.string().uuid().optional().or(z.literal("")),
-  sortOrder,
-  isActive,
-});
+export const pageSidebarItemSchema = z
+  .object({
+    side: z.enum(["left", "right"]),
+    labelEn: z.string().min(1, "Label is required"),
+    labelHi: z.string().optional(),
+    href: z.string().optional(),
+    linkedPageId: z.string().uuid().optional().or(z.literal("")),
+    contentEn: z.string().optional(),
+    contentHi: z.string().optional(),
+    sortOrder,
+    isActive,
+  })
+  .superRefine((data, ctx) => {
+    const hasUrl = !!(data.href?.trim() || data.linkedPageId);
+    const hasContent = !!(data.contentEn?.trim());
+    if (!hasUrl && !hasContent) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Provide a URL or content (English).",
+        path: ["contentEn"],
+      });
+    }
+  });

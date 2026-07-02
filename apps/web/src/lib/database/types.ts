@@ -423,6 +423,8 @@ export interface PageSidebarItem {
   label_hi: string | null;
   href: string | null;
   linked_page_id: string | null;
+  content_en: string | null;
+  content_hi: string | null;
   sort_order: number;
   is_active: boolean;
   created_at: string;

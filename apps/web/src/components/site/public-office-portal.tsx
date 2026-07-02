@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 
 import { FarmersPortalSection } from "@/components/design/shared/home-sections";
 import { useLanguage } from "@/components/design/shared/language-context";
@@ -11,16 +12,20 @@ import type {
   PublicCollegePage,
   PublicCollegeSection,
   PublicOfficePortalData,
-  PublicQuickLink,
+  PublicSidebarLink,
 } from "@/lib/data/public-types";
 import { pickBilingual } from "@/lib/i18n/pick-bilingual";
 
 function SidebarPanel({
   title,
   links,
+  activeId,
+  onSelectContent,
 }: {
   title: string;
-  links: PublicQuickLink[];
+  links: PublicSidebarLink[];
+  activeId: string | null;
+  onSelectContent: (link: PublicSidebarLink) => void;
 }) {
   const { lang, t } = useLanguage();
   if (links.length === 0) return null;
@@ -31,16 +36,35 @@ function SidebarPanel({
         {title}
       </h2>
       <ul className="divide-y divide-slate-100">
-        {links.map((link) => (
-          <li key={`${link.href}-${link.labelEn}`}>
-            <Link
-              href={link.href}
-              className={`block px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-emerald-50 hover:text-emerald-900 ${lang === "hi" ? "font-hindi" : ""}`}
-            >
-              {t(link.labelEn, link.labelHi ?? link.labelEn)}
-            </Link>
-          </li>
-        ))}
+        {links.map((link) => {
+          const label = t(link.labelEn, link.labelHi ?? link.labelEn);
+          const isActive = activeId === link.id;
+
+          if (link.href) {
+            return (
+              <li key={link.id}>
+                <Link
+                  href={link.href}
+                  className={`block px-4 py-2.5 text-sm font-medium transition hover:bg-emerald-50 hover:text-emerald-900 ${isActive ? "bg-emerald-50 text-emerald-900" : "text-slate-700"} ${lang === "hi" ? "font-hindi" : ""}`}
+                >
+                  {label}
+                </Link>
+              </li>
+            );
+          }
+
+          return (
+            <li key={link.id}>
+              <button
+                type="button"
+                onClick={() => onSelectContent(link)}
+                className={`block w-full px-4 py-2.5 text-left text-sm font-medium transition hover:bg-emerald-50 hover:text-emerald-900 ${isActive ? "bg-emerald-50 text-emerald-900" : "text-slate-700"} ${lang === "hi" ? "font-hindi" : ""}`}
+              >
+                {label}
+              </button>
+            </li>
+          );
+        })}
       </ul>
     </aside>
   );
@@ -58,17 +82,30 @@ export function PublicOfficePortal({
   cta?: HomepageCtaItem | null;
 }) {
   const { lang, t } = useLanguage();
+  const [selectedSidebar, setSelectedSidebar] = useState<PublicSidebarLink | null>(null);
+
   const title = section
     ? pickBilingual(lang, section.titleEn, section.titleHi)
     : pickBilingual(lang, college.titleEn, college.titleHi);
-  const bodyContent = section
+  const defaultBodyContent = section
     ? pickBilingual(lang, section.contentEn, section.contentHi)
     : pickBilingual(lang, college.contentEn, college.contentHi);
+
+  const sidebarContent = selectedSidebar
+    ? pickBilingual(lang, selectedSidebar.contentEn, selectedSidebar.contentHi)
+    : null;
+  const bodyContent = sidebarContent || defaultBodyContent;
+  const bodyTitle = selectedSidebar
+    ? pickBilingual(lang, selectedSidebar.labelEn, selectedSidebar.labelHi)
+    : section
+      ? title
+      : null;
+
   const heroImage =
     college.featuredImageUrl ??
     "https://images.unsplash.com/photo-1560438154-779a4a5e3e38?auto=format&fit=crop&w=1600&q=80";
 
-  const showHeadOfficer = !section && office.headOfficer;
+  const showHeadOfficer = !section && !selectedSidebar && office.headOfficer;
 
   return (
     <>
@@ -90,7 +127,12 @@ export function PublicOfficePortal({
       <div className="mx-auto max-w-7xl px-4 py-10">
         <div className="grid gap-8 lg:grid-cols-12">
           <div className="lg:col-span-3">
-            <SidebarPanel title={t("Quick Links", "त्वरित लिंक")} links={office.sidebarLeft} />
+            <SidebarPanel
+              title={t("Quick Links", "त्वरित लिंक")}
+              links={office.sidebarLeft}
+              activeId={selectedSidebar?.id ?? null}
+              onSelectContent={setSelectedSidebar}
+            />
           </div>
 
           <div className="space-y-8 lg:col-span-6">
@@ -133,7 +175,7 @@ export function PublicOfficePortal({
               </div>
             )}
 
-            {office.contactLines.length > 0 && (
+            {office.contactLines.length > 0 && !selectedSidebar && (
               <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
                 <h2 className="font-display text-lg font-bold text-slate-900">
                   {t("Telephone", "टेलीफोन")}
@@ -157,7 +199,7 @@ export function PublicOfficePortal({
               </div>
             )}
 
-            {office.staff.length > 0 && (
+            {office.staff.length > 0 && !selectedSidebar && (
               <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
                 <div className="overflow-x-auto">
                   <table className="min-w-full text-left text-sm">
@@ -225,11 +267,11 @@ export function PublicOfficePortal({
 
             {bodyContent && (
               <article className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-                {section && (
+                {bodyTitle && (
                   <h2
                     className={`mb-4 font-display text-2xl font-bold text-slate-900 ${lang === "hi" ? "font-hindi" : ""}`}
                   >
-                    {title}
+                    {bodyTitle}
                   </h2>
                 )}
                 <CmsHtmlContent
@@ -244,6 +286,8 @@ export function PublicOfficePortal({
             <SidebarPanel
               title={t("Related Links", "संबंधित लिंक")}
               links={office.sidebarRight}
+              activeId={selectedSidebar?.id ?? null}
+              onSelectContent={setSelectedSidebar}
             />
           </div>
         </div>

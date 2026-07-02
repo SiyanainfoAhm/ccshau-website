@@ -26,6 +26,17 @@ function parseCollegeNavState(pathname: string, collegeSlug: string) {
   };
 }
 
+function collegeNavLinkClass(active: boolean, isOpen: boolean, lang: string) {
+  return [
+    "ccshau-main-nav-link",
+    isOpen && !active ? "ccshau-main-nav-link--open" : "",
+    active ? "ccshau-main-nav-link--active" : "",
+    lang === "hi" ? "font-hindi normal-case" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
 export function CollegeNavigation({ college }: { college: PublicCollegePage }) {
   const { lang, t } = useLanguage();
   const pathname = usePathname();
@@ -42,20 +53,15 @@ export function CollegeNavigation({ college }: { college: PublicCollegePage }) {
     { type: "contact" as const, labelEn: "Contact Us", labelHi: "संपर्क करें" },
   ];
 
-  const topLinkClass = (active: boolean) =>
-    `flex w-full items-center justify-between gap-1 rounded-lg px-4 py-3 text-sm font-bold uppercase tracking-wide transition lg:w-auto lg:justify-start ${
-      active ? "bg-[#0b3d2e] text-amber-200 shadow-inner" : "text-white hover:bg-white/15"
-    } ${lang === "hi" ? "font-hindi normal-case" : ""}`;
-
   return (
-    <div className="border-t border-white/15 bg-gradient-to-r from-[#5a8530] via-[#6b9b37] to-[#84bd47] shadow-md">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-1 lg:py-0">
-        <p className="hidden text-xs font-medium text-white/90 lg:block">
+    <div className="ccshau-main-nav-bar">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-2 lg:hidden">
+        <p className="text-xs font-medium text-emerald-100/90">
           {t(college.titleEn, college.titleHi ?? college.titleEn)}
         </p>
         <button
           type="button"
-          className="my-2 flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-sm font-semibold text-white lg:hidden"
+          className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-sm font-semibold text-white"
           onClick={() => setMobileOpen((open) => !open)}
           aria-expanded={mobileOpen}
         >
@@ -66,17 +72,18 @@ export function CollegeNavigation({ college }: { college: PublicCollegePage }) {
 
       <nav
         aria-label="College navigation"
-        className={`${mobileOpen ? "block" : "hidden"} border-t border-white/10 lg:block`}
+        className={`relative ${mobileOpen ? "block" : "hidden"} lg:block`}
       >
-        <ul className="mx-auto flex max-w-7xl flex-col gap-1 px-4 py-2 lg:flex-row lg:flex-wrap lg:items-center lg:justify-center">
-          {links.map((link) => {
+        <ul className="ccshau-main-nav-list mx-auto hidden max-w-7xl items-center justify-center gap-0 px-4 lg:flex">
+          {links.map((link, index) => {
             if (link.type === "home") {
               const isActive = activeSectionSlug == null;
               return (
-                <li key="home" className="lg:relative">
+                <li key="home" className="relative flex items-center">
+                  {index > 0 && <span className="ccshau-main-nav-separator" aria-hidden />}
                   <Link
                     href={`/college/${college.collegeSlug}`}
-                    className={topLinkClass(isActive)}
+                    className={collegeNavLinkClass(isActive, false, lang)}
                     onClick={() => setMobileOpen(false)}
                   >
                     {t(link.labelEn, link.labelHi)}
@@ -87,10 +94,11 @@ export function CollegeNavigation({ college }: { college: PublicCollegePage }) {
 
             if (link.type === "contact") {
               return (
-                <li key="contact">
+                <li key="contact" className="relative flex items-center">
+                  {index > 0 && <span className="ccshau-main-nav-separator" aria-hidden />}
                   <Link
                     href="/contact"
-                    className={topLinkClass(false)}
+                    className={collegeNavLinkClass(false, false, lang)}
                     onClick={() => setMobileOpen(false)}
                   >
                     {t(link.labelEn, link.labelHi)}
@@ -108,19 +116,20 @@ export function CollegeNavigation({ college }: { college: PublicCollegePage }) {
               return (
                 <li
                   key={section.slug}
-                  className="lg:relative"
+                  className="relative flex items-center"
                   onMouseEnter={() => setOpenSectionSlug(section.slug)}
                   onMouseLeave={() => setOpenSectionSlug(null)}
                 >
+                  {index > 0 && <span className="ccshau-main-nav-separator" aria-hidden />}
                   <button
                     type="button"
                     aria-expanded={isOpen}
                     aria-haspopup="true"
                     onClick={() => setOpenSectionSlug(isOpen ? null : section.slug)}
-                    className={topLinkClass(isSectionActive)}
+                    className={collegeNavLinkClass(isSectionActive, isOpen, lang)}
                   >
                     <span>{t(section.titleEn, section.titleHi ?? section.titleEn)}</span>
-                    <ChevronDown className={`h-4 w-4 shrink-0 transition ${isOpen ? "rotate-180" : ""}`} />
+                    <ChevronDown className={`h-4 w-4 shrink-0 opacity-70 transition ${isOpen ? "rotate-180" : ""}`} />
                   </button>
                   <ul
                     className={`overflow-hidden rounded-lg border border-emerald-200 bg-white py-1 shadow-xl transition ${
@@ -162,10 +171,11 @@ export function CollegeNavigation({ college }: { college: PublicCollegePage }) {
             }
 
             return (
-              <li key={section.slug}>
+              <li key={section.slug} className="relative flex items-center">
+                {index > 0 && <span className="ccshau-main-nav-separator" aria-hidden />}
                 <Link
                   href={getCollegeSectionPath(college.collegeSlug, section.slug)}
-                  className={topLinkClass(isSectionActive)}
+                  className={collegeNavLinkClass(isSectionActive, false, lang)}
                   onClick={() => setMobileOpen(false)}
                 >
                   {t(section.titleEn, section.titleHi ?? section.titleEn)}
@@ -174,6 +184,58 @@ export function CollegeNavigation({ college }: { college: PublicCollegePage }) {
             );
           })}
         </ul>
+
+        {mobileOpen && (
+          <div className="border-t border-amber-400/20 lg:hidden">
+            <ul>
+              {links.map((link) => {
+                if (link.type === "home") {
+                  const isActive = activeSectionSlug == null;
+                  return (
+                    <li key="home-mobile">
+                      <Link
+                        href={`/college/${college.collegeSlug}`}
+                        onClick={() => setMobileOpen(false)}
+                        className={`flex w-full border-b border-white/5 px-4 py-2.5 text-sm font-semibold text-white/90 transition hover:bg-white/10 hover:text-amber-200 ${isActive ? "bg-white/10 text-amber-200" : ""} ${lang === "hi" ? "font-hindi" : ""}`}
+                      >
+                        {t(link.labelEn, link.labelHi)}
+                      </Link>
+                    </li>
+                  );
+                }
+
+                if (link.type === "contact") {
+                  return (
+                    <li key="contact-mobile">
+                      <Link
+                        href="/contact"
+                        onClick={() => setMobileOpen(false)}
+                        className={`flex w-full border-b border-white/5 px-4 py-2.5 text-sm font-semibold text-white/90 transition hover:bg-white/10 hover:text-amber-200 ${lang === "hi" ? "font-hindi" : ""}`}
+                      >
+                        {t(link.labelEn, link.labelHi)}
+                      </Link>
+                    </li>
+                  );
+                }
+
+                const { section } = link;
+                const isSectionActive = activeSectionSlug === section.slug;
+
+                return (
+                  <li key={`${section.slug}-mobile`}>
+                    <Link
+                      href={getCollegeSectionPath(college.collegeSlug, section.slug)}
+                      onClick={() => setMobileOpen(false)}
+                      className={`flex w-full border-b border-white/5 px-4 py-2.5 text-sm font-semibold text-white/90 transition hover:bg-white/10 hover:text-amber-200 ${isSectionActive ? "bg-white/10 text-amber-200" : ""} ${lang === "hi" ? "font-hindi" : ""}`}
+                    >
+                      {t(section.titleEn, section.titleHi ?? section.titleEn)}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
       </nav>
     </div>
   );

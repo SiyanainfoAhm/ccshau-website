@@ -231,17 +231,17 @@ export async function createPageSidebarItemAction(
       labelHi: formData.get("labelHi") || undefined,
       href: formData.get("href") || undefined,
       linkedPageId: formData.get("linkedPageId") || "",
+      contentEn: formData.get("contentEn") || undefined,
+      contentHi: formData.get("contentHi") || undefined,
       sortOrder: formData.get("sortOrder") ?? 0,
       isActive: formData.get("isActive") !== "off",
     });
     if (!parsed.success) return fail("Validation failed", parsed.error.flatten().fieldErrors);
-    if (!parsed.data.href && !parsed.data.linkedPageId) {
-      return fail("Provide a URL or link to a page.");
-    }
 
     const admin = createAdminClient();
     if (!admin) return fail("Database not configured.");
     const input = parsed.data;
+    const hasUrl = !!(input.href?.trim() || input.linkedPageId);
 
     const { data, error } = await admin
       .from(Tables.pageSidebarItems)
@@ -250,8 +250,10 @@ export async function createPageSidebarItemAction(
         side: input.side,
         label_en: input.labelEn,
         label_hi: input.labelHi || null,
-        href: input.linkedPageId ? null : input.href || null,
+        href: input.linkedPageId ? null : input.href?.trim() || null,
         linked_page_id: input.linkedPageId || null,
+        content_en: hasUrl ? null : input.contentEn?.trim() || null,
+        content_hi: hasUrl ? null : input.contentHi?.trim() || null,
         sort_order: input.sortOrder,
         is_active: input.isActive ?? true,
       })
@@ -269,6 +271,61 @@ export async function createPageSidebarItemAction(
     return ok({ id: data.id });
   } catch (e) {
     return fail(e instanceof Error ? e.message : "Failed to create sidebar link.");
+  }
+}
+
+export async function updatePageSidebarItemAction(
+  pageId: string,
+  itemId: string,
+  formData: FormData,
+): Promise<ActionResult> {
+  try {
+    const session = await requireAdminWithRoles([...OFFICE_ROLES]);
+    const parsed = pageSidebarItemSchema.safeParse({
+      side: formData.get("side"),
+      labelEn: formData.get("labelEn"),
+      labelHi: formData.get("labelHi") || undefined,
+      href: formData.get("href") || undefined,
+      linkedPageId: formData.get("linkedPageId") || "",
+      contentEn: formData.get("contentEn") || undefined,
+      contentHi: formData.get("contentHi") || undefined,
+      sortOrder: formData.get("sortOrder") ?? 0,
+      isActive: formData.get("isActive") !== "off",
+    });
+    if (!parsed.success) return fail("Validation failed", parsed.error.flatten().fieldErrors);
+
+    const admin = createAdminClient();
+    if (!admin) return fail("Database not configured.");
+    const input = parsed.data;
+    const hasUrl = !!(input.href?.trim() || input.linkedPageId);
+
+    const { error } = await admin
+      .from(Tables.pageSidebarItems)
+      .update({
+        side: input.side,
+        label_en: input.labelEn,
+        label_hi: input.labelHi || null,
+        href: input.linkedPageId ? null : input.href?.trim() || null,
+        linked_page_id: input.linkedPageId || null,
+        content_en: hasUrl ? null : input.contentEn?.trim() || null,
+        content_hi: hasUrl ? null : input.contentHi?.trim() || null,
+        sort_order: input.sortOrder,
+        is_active: input.isActive ?? true,
+      })
+      .eq("id", itemId)
+      .eq("page_id", pageId);
+
+    if (error) return fail(error.message);
+    await writeAuditLog({
+      userId: session.userId,
+      action: "update",
+      entityType: "page_sidebar_item",
+      entityId: itemId,
+    });
+    await revalidateOfficePage(pageId);
+    return ok(undefined);
+  } catch (e) {
+    return fail(e instanceof Error ? e.message : "Failed to update sidebar link.");
   }
 }
 

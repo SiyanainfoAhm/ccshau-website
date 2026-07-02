@@ -10,6 +10,7 @@ import {
   deletePageContactLineAction,
   deletePageSidebarItemAction,
   deletePageStaffAction,
+  updatePageSidebarItemAction,
 } from "@/actions/office-portal";
 import type { PageContactLine, PageSidebarItem, PageStaff } from "@/lib/database/types";
 
@@ -160,6 +161,8 @@ export function OfficePortalAdminPanel({
         items={leftItems}
         pageId={pageId}
         isPending={isPending}
+        error={error}
+        setError={setError}
         onAdd={(formData) => runAction(() => createPageSidebarItemAction(pageId, formData))}
         onDelete={(id) => runAction(() => deletePageSidebarItemAction(pageId, id))}
       />
@@ -170,10 +173,105 @@ export function OfficePortalAdminPanel({
         items={rightItems}
         pageId={pageId}
         isPending={isPending}
+        error={error}
+        setError={setError}
         onAdd={(formData) => runAction(() => createPageSidebarItemAction(pageId, formData))}
         onDelete={(id) => runAction(() => deletePageSidebarItemAction(pageId, id))}
       />
     </div>
+  );
+}
+
+function SidebarItemForm({
+  side,
+  item,
+  defaultSortOrder,
+  isPending,
+  submitLabel,
+  onSubmit,
+  onCancel,
+}: {
+  side: "left" | "right";
+  item?: PageSidebarItem;
+  defaultSortOrder: number;
+  isPending: boolean;
+  submitLabel: string;
+  onSubmit: (formData: FormData) => void;
+  onCancel?: () => void;
+}) {
+  return (
+    <form
+      className="grid gap-3 border-t border-slate-100 pt-4 sm:grid-cols-2"
+      action={onSubmit}
+    >
+      <input type="hidden" name="side" value={side} />
+      <input
+        name="labelEn"
+        required
+        defaultValue={item?.label_en ?? ""}
+        placeholder="Label (English)"
+        className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+      />
+      <input
+        name="labelHi"
+        defaultValue={item?.label_hi ?? ""}
+        placeholder="Label (Hindi)"
+        className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-hindi"
+      />
+      <input
+        name="href"
+        defaultValue={item?.href ?? ""}
+        placeholder="URL (optional — navigates when set)"
+        className="rounded-lg border border-slate-300 px-3 py-2 text-sm sm:col-span-2"
+      />
+      <label className="block text-sm sm:col-span-2">
+        <span className="mb-1 block font-medium text-slate-700">
+          Content (English) — required if no URL
+        </span>
+        <textarea
+          name="contentEn"
+          rows={4}
+          defaultValue={item?.content_en ?? ""}
+          placeholder="HTML content shown in main area when URL is empty"
+          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+        />
+      </label>
+      <label className="block text-sm sm:col-span-2">
+        <span className="mb-1 block font-medium text-slate-700">Content (Hindi)</span>
+        <textarea
+          name="contentHi"
+          rows={4}
+          defaultValue={item?.content_hi ?? ""}
+          placeholder="Hindi HTML content"
+          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-hindi"
+        />
+      </label>
+      <input
+        name="sortOrder"
+        type="number"
+        defaultValue={item?.sort_order ?? defaultSortOrder}
+        className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+      />
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="submit"
+          disabled={isPending}
+          className="rounded-lg bg-emerald-800 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+        >
+          {submitLabel}
+        </button>
+        {onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={isPending}
+            className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 disabled:opacity-60"
+          >
+            Cancel
+          </button>
+        )}
+      </div>
+    </form>
   );
 }
 
@@ -183,6 +281,8 @@ function SidebarEditor({
   items,
   pageId,
   isPending,
+  error,
+  setError,
   onAdd,
   onDelete,
 }: {
@@ -191,47 +291,93 @@ function SidebarEditor({
   items: PageSidebarItem[];
   pageId: string;
   isPending: boolean;
+  error: string | null;
+  setError: (value: string | null) => void;
   onAdd: (formData: FormData) => void;
   onDelete: (id: string) => void;
 }) {
+  const router = useRouter();
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [isEditPending, startEditTransition] = useTransition();
+
+  function handleUpdate(itemId: string, formData: FormData) {
+    setError(null);
+    startEditTransition(async () => {
+      const result = await updatePageSidebarItemAction(pageId, itemId, formData);
+      if (!result.success) {
+        setError(result.error ?? "Save failed.");
+        return;
+      }
+      setEditingId(null);
+      router.refresh();
+    });
+  }
+
+  const pending = isPending || isEditPending;
+
   return (
     <section className="rounded-xl border border-emerald-200 bg-white p-6 shadow-sm">
       <h2 className="font-display text-lg font-bold text-slate-900">{title}</h2>
+      <p className="mt-1 text-xs text-slate-500">
+        Set a URL to navigate, or leave URL empty and add content to display in the main area.
+      </p>
       <ul className="mt-4 space-y-2">
         {items.map((item) => (
-          <li
-            key={item.id}
-            className="flex items-center justify-between gap-4 rounded-lg border border-slate-100 px-3 py-2 text-sm"
-          >
-            <div>
-              <p className="font-semibold text-slate-800">{item.label_en}</p>
-              <p className="text-slate-500">{item.href ?? "(linked page)"}</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                if (confirm("Delete this sidebar link?")) onDelete(item.id);
-              }}
-              className="text-sm text-red-600 hover:underline"
-            >
-              Delete
-            </button>
+          <li key={item.id} className="rounded-lg border border-slate-100">
+            {editingId === item.id ? (
+              <div className="p-3">
+                <SidebarItemForm
+                  side={side}
+                  item={item}
+                  defaultSortOrder={item.sort_order}
+                  isPending={pending}
+                  submitLabel="Save changes"
+                  onSubmit={(formData) => handleUpdate(item.id, formData)}
+                  onCancel={() => setEditingId(null)}
+                />
+              </div>
+            ) : (
+              <div className="flex items-center justify-between gap-4 px-3 py-2 text-sm">
+                <div>
+                  <p className="font-semibold text-slate-800">{item.label_en}</p>
+                  <p className="text-slate-500">
+                    {item.href
+                      ? item.href
+                      : item.content_en
+                        ? "Inline content"
+                        : "(linked page)"}
+                  </p>
+                </div>
+                <div className="flex shrink-0 items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setEditingId(item.id)}
+                    className="text-sm font-medium text-emerald-700 hover:underline"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (confirm("Delete this sidebar link?")) onDelete(item.id);
+                    }}
+                    className="text-sm text-red-600 hover:underline"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            )}
           </li>
         ))}
       </ul>
-      <form
-        className="mt-4 grid gap-3 border-t border-slate-100 pt-4 sm:grid-cols-2"
-        action={onAdd}
-      >
-        <input type="hidden" name="side" value={side} />
-        <input name="labelEn" required placeholder="Label (English)" className="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
-        <input name="labelHi" placeholder="Label (Hindi)" className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-hindi" />
-        <input name="href" required placeholder="URL e.g. /college/registrar-office" className="rounded-lg border border-slate-300 px-3 py-2 text-sm sm:col-span-2" />
-        <input name="sortOrder" type="number" defaultValue={items.length + 1} className="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
-        <button type="submit" disabled={isPending} className="rounded-lg bg-emerald-800 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">
-          Add {side} link
-        </button>
-      </form>
+      <SidebarItemForm
+        side={side}
+        defaultSortOrder={items.length + 1}
+        isPending={pending}
+        submitLabel={`Add ${side} link`}
+        onSubmit={onAdd}
+      />
     </section>
   );
 }

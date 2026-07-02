@@ -31,6 +31,7 @@ import type {
   PublicPage,
   PublicPageSummary,
   PublicQuickLink,
+  PublicSidebarLink,
   PublicRelatedLink,
   PublicSiteChrome,
   PublicTenderItem,
@@ -622,14 +623,30 @@ export async function getOfficePortalDataForPage(
     new Map((((pagesRes.data as Page[]) ?? []).map((p) => [p.id, p] as const)));
 
   const sidebarItems = (sidebarRes.data ?? []) as PageSidebarItem[];
-  const sidebarLeft: PublicQuickLink[] = [];
-  const sidebarRight: PublicQuickLink[] = [];
+  let effectiveSidebarItems = sidebarItems;
 
-  for (const item of sidebarItems) {
-    const link: PublicQuickLink = {
+  if (sidebarItems.length === 0 && page.parent_id) {
+    const { data: parentSidebars } = await admin
+      .from(Tables.pageSidebarItems)
+      .select("*")
+      .eq("page_id", page.parent_id)
+      .eq("is_active", true)
+      .order("sort_order");
+    effectiveSidebarItems = (parentSidebars ?? []) as PageSidebarItem[];
+  }
+
+  const sidebarLeft: PublicSidebarLink[] = [];
+  const sidebarRight: PublicSidebarLink[] = [];
+
+  for (const item of effectiveSidebarItems) {
+    const hasUrl = !!(item.href?.trim() || item.linked_page_id);
+    const link: PublicSidebarLink = {
+      id: item.id,
       labelEn: item.label_en,
       labelHi: item.label_hi,
-      href: await resolveSidebarHref(admin, item, pagesMap),
+      href: hasUrl ? await resolveSidebarHref(admin, item, pagesMap) : null,
+      contentEn: item.content_en,
+      contentHi: item.content_hi,
     };
     if (item.side === "left") sidebarLeft.push(link);
     else sidebarRight.push(link);
@@ -692,13 +709,24 @@ export async function getPublishedCollegeBySlug(slug: string): Promise<PublicCol
   const admin = createAdminClient();
   if (!admin) return null;
 
-  const { data } = await admin
+  let { data } = await admin
     .from(Tables.pages)
     .select("*")
     .eq("slug", slug)
     .eq("page_type", "college")
     .eq("status", "published")
     .maybeSingle();
+
+  if (!data) {
+    const { data: officeFallback } = await admin
+      .from(Tables.pages)
+      .select("*")
+      .eq("slug", slug)
+      .eq("layout_template", "office_portal")
+      .eq("status", "published")
+      .maybeSingle();
+    data = officeFallback;
+  }
 
   if (!data) return null;
   const college = data as Page;
