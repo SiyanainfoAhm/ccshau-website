@@ -29,8 +29,17 @@ function parsePageForm(formData: FormData) {
     departmentId: formData.get("departmentId") || "",
     parentId: formData.get("parentId") || "",
     pageType: formData.get("pageType") || "standard",
+    layoutTemplate:
+      (formData.get("layoutTemplate") as string | null) ||
+      (formData.get("pageType") === "college" ? "college_home" : "standard"),
     featuredImagePath: formData.get("featuredImagePath") || undefined,
     logoImagePath: formData.get("logoImagePath") || undefined,
+    headNameEn: formData.get("headNameEn") || undefined,
+    headNameHi: formData.get("headNameHi") || undefined,
+    headRoleEn: formData.get("headRoleEn") || undefined,
+    headRoleHi: formData.get("headRoleHi") || undefined,
+    headImagePath: formData.get("headImagePath") || undefined,
+    officeCtaEnabled: formData.get("officeCtaEnabled") !== "off",
     status: formData.get("status"),
   });
 }
@@ -50,8 +59,20 @@ function toPageRow(input: ReturnType<typeof pageFormSchema.parse>, userId: strin
     department_id: input.departmentId || null,
     parent_id: input.parentId || null,
     page_type: input.pageType,
+    layout_template:
+      input.pageType === "college"
+        ? input.layoutTemplate === "office_portal"
+          ? "office_portal"
+          : "college_home"
+        : "standard",
     featured_image_path: input.featuredImagePath || null,
     logo_image_path: input.logoImagePath || null,
+    head_name_en: input.headNameEn || null,
+    head_name_hi: input.headNameHi || null,
+    head_role_en: input.headRoleEn || null,
+    head_role_hi: input.headRoleHi || null,
+    head_image_path: input.headImagePath || null,
+    office_cta_enabled: input.officeCtaEnabled ?? true,
     status: input.status as ContentStatus,
     published_at: publishedAt,
     content_owner_id: userId,

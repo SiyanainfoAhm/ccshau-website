@@ -3,7 +3,12 @@ import { notFound, redirect } from "next/navigation";
 import { SiteFooter } from "@/components/design/shared/site-footer";
 import { SiteHeader } from "@/components/design/shared/site-header";
 import { PublicCollegeSectionView } from "@/components/site/public-college-page";
-import { getPublishedCollegeSection } from "@/lib/data/public";
+import { PublicOfficePortal } from "@/components/site/public-office-portal";
+import { getHomepageContent } from "@/lib/data/homepage";
+import {
+  getOfficePortalDataByPageId,
+  getPublishedCollegeSection,
+} from "@/lib/data/public";
 import { getCollegeSubsectionPath } from "@/lib/pages/routes";
 
 export async function generateMetadata({
@@ -31,6 +36,15 @@ export default async function CollegeSectionPage({
     redirect(getCollegeSubsectionPath(slug, section, first.slug));
   }
 
+  const useOfficeLayout =
+    data.college.layoutTemplate === "office_portal" ||
+    data.section.layoutTemplate === "office_portal";
+
+  const office = useOfficeLayout
+    ? await getOfficePortalDataByPageId(data.section.pageId)
+    : null;
+  const homepage = useOfficeLayout ? await getHomepageContent() : null;
+
   return (
     <>
       <SiteHeader
@@ -40,7 +54,16 @@ export default async function CollegeSectionPage({
         showMainNav={false}
       />
       <main id="main-content" className="flex-1 bg-white">
-        <PublicCollegeSectionView college={data.college} section={data.section} />
+        {useOfficeLayout && office ? (
+          <PublicOfficePortal
+            college={data.college}
+            office={office}
+            section={data.section}
+            cta={office.officeCtaEnabled ? homepage?.cta ?? null : null}
+          />
+        ) : (
+          <PublicCollegeSectionView college={data.college} section={data.section} />
+        )}
       </main>
       <SiteFooter variant="future" />
     </>

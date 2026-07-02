@@ -70,6 +70,9 @@ export const Tables = {
   homepageDignitaries: ccshauTable("homepage_dignitaries"),
   homepageInitiatives: ccshauTable("homepage_initiatives"),
   homepageCta: ccshauTable("homepage_cta"),
+  pageContactLines: ccshauTable("page_contact_lines"),
+  pageStaff: ccshauTable("page_staff"),
+  pageSidebarItems: ccshauTable("page_sidebar_items"),
 } as const;
 
 export const Functions = {

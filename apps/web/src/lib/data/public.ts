@@ -9,6 +9,9 @@ import type {
   MenuItem,
   NewsItem,
   Page,
+  PageContactLine,
+  PageSidebarItem,
+  PageStaff,
   RelatedLink,
   Tender,
 } from "@/lib/database/types";
@@ -24,6 +27,7 @@ import type {
   PublicMediaAlbumItem,
   PublicNavItem,
   PublicNewsItem,
+  PublicOfficePortalData,
   PublicPage,
   PublicPageSummary,
   PublicQuickLink,
@@ -103,6 +107,7 @@ function mapPublicPage(page: Page): PublicPage {
     metaDescription: page.meta_description,
     publishedAt: page.published_at,
     pageType: page.page_type ?? "standard",
+    layoutTemplate: page.layout_template ?? "standard",
     featuredImageUrl:
       page.featured_image_path && page.featured_image_path !== "pending"
         ? getStoredFileUrl(page.featured_image_path)
@@ -524,6 +529,7 @@ export async function getPublishedPageBySlug(slug: string): Promise<PublicPage |
 
 function mapCollegeSubsection(page: Page): PublicCollegeSubsection {
   return {
+    pageId: page.id,
     slug: page.slug,
     titleEn: page.title_en,
     titleHi: page.title_hi,
@@ -536,7 +542,9 @@ function mapCollegeSubsection(page: Page): PublicCollegeSubsection {
 
 function mapCollegeSection(page: Page, subsections: Page[]): PublicCollegeSection {
   return {
+    pageId: page.id,
     slug: page.slug,
+    layoutTemplate: page.layout_template ?? "standard",
     titleEn: page.title_en,
     titleHi: page.title_hi,
     excerptEn: page.excerpt_en,
@@ -545,6 +553,139 @@ function mapCollegeSection(page: Page, subsections: Page[]): PublicCollegeSectio
     contentHi: page.content_hi,
     subsections: subsections.map(mapCollegeSubsection),
   };
+}
+
+async function resolveSidebarHref(
+  admin: NonNullable<ReturnType<typeof createAdminClient>>,
+  item: PageSidebarItem,
+  pageById: Map<string, Page>,
+): Promise<string> {
+  if (item.linked_page_id) {
+    const linked = pageById.get(item.linked_page_id);
+    if (linked) {
+      const parent = linked.parent_id ? pageById.get(linked.parent_id) : null;
+      if (linked.page_type === "college") {
+        if (parent?.page_type === "college") {
+          return `/college/${parent.slug}/${linked.slug}`;
+        }
+        return `/college/${linked.slug}`;
+      }
+      return `/pages/${linked.slug}`;
+    }
+  }
+  return item.href ?? "#";
+}
+
+export async function getOfficePortalDataForPage(
+  page: Page,
+  pageById?: Map<string, Page>,
+): Promise<PublicOfficePortalData> {
+  const admin = createAdminClient();
+  if (!admin) {
+    return {
+      contactLines: [],
+      staff: [],
+      sidebarLeft: [],
+      sidebarRight: [],
+      headOfficer: null,
+      officeCtaEnabled: page.office_cta_enabled ?? true,
+    };
+  }
+
+  const [contactsRes, staffRes, sidebarRes, pagesRes] = await Promise.all([
+    admin
+      .from(Tables.pageContactLines)
+      .select("*")
+      .eq("page_id", page.id)
+      .eq("is_active", true)
+      .order("sort_order"),
+    admin
+      .from(Tables.pageStaff)
+      .select("*")
+      .eq("page_id", page.id)
+      .eq("is_active", true)
+      .order("sort_order")
+      .order("name_en"),
+    admin
+      .from(Tables.pageSidebarItems)
+      .select("*")
+      .eq("page_id", page.id)
+      .eq("is_active", true)
+      .order("sort_order"),
+    pageById
+      ? Promise.resolve({ data: [...pageById.values()] })
+      : admin.from(Tables.pages).select("id, slug, page_type, parent_id").eq("status", "published"),
+  ]);
+
+  const pagesMap =
+    pageById ??
+    new Map((((pagesRes.data as Page[]) ?? []).map((p) => [p.id, p] as const)));
+
+  const sidebarItems = (sidebarRes.data ?? []) as PageSidebarItem[];
+  const sidebarLeft: PublicQuickLink[] = [];
+  const sidebarRight: PublicQuickLink[] = [];
+
+  for (const item of sidebarItems) {
+    const link: PublicQuickLink = {
+      labelEn: item.label_en,
+      labelHi: item.label_hi,
+      href: await resolveSidebarHref(admin, item, pagesMap),
+    };
+    if (item.side === "left") sidebarLeft.push(link);
+    else sidebarRight.push(link);
+  }
+
+  const headOfficer =
+    page.head_name_en && page.head_image_path
+      ? {
+          nameEn: page.head_name_en,
+          nameHi: page.head_name_hi,
+          roleEn: page.head_role_en ?? "",
+          roleHi: page.head_role_hi,
+          imageUrl: getStoredFileUrl(page.head_image_path),
+        }
+      : page.head_name_en
+        ? {
+            nameEn: page.head_name_en,
+            nameHi: page.head_name_hi,
+            roleEn: page.head_role_en ?? "",
+            roleHi: page.head_role_hi,
+            imageUrl: page.head_image_path ? getStoredFileUrl(page.head_image_path) : null,
+          }
+        : null;
+
+  return {
+    contactLines: ((contactsRes.data ?? []) as PageContactLine[]).map((row) => ({
+      labelEn: row.label_en,
+      labelHi: row.label_hi,
+      valueEn: row.value_en,
+      valueHi: row.value_hi,
+    })),
+    staff: ((staffRes.data ?? []) as PageStaff[]).map((row) => ({
+      nameEn: row.name_en,
+      nameHi: row.name_hi,
+      designationEn: row.designation_en,
+      designationHi: row.designation_hi,
+      specializationEn: row.specialization_en,
+      specializationHi: row.specialization_hi,
+      imageUrl: row.image_path ? getStoredFileUrl(row.image_path) : null,
+      detailHref: row.detail_href,
+    })),
+    sidebarLeft,
+    sidebarRight,
+    headOfficer,
+    officeCtaEnabled: page.office_cta_enabled ?? true,
+  };
+}
+
+export async function getOfficePortalDataByPageId(
+  pageId: string,
+): Promise<PublicOfficePortalData | null> {
+  const admin = createAdminClient();
+  if (!admin) return null;
+  const { data } = await admin.from(Tables.pages).select("*").eq("id", pageId).maybeSingle();
+  if (!data) return null;
+  return getOfficePortalDataForPage(data as Page);
 }
 
 export async function getPublishedCollegeBySlug(slug: string): Promise<PublicCollegePage | null> {
@@ -596,8 +737,10 @@ export async function getPublishedCollegeBySlug(slug: string): Promise<PublicCol
   const base = mapPublicPage(college);
   return {
     ...base,
+    pageId: college.id,
     pageType: "college",
     collegeSlug: college.slug,
+    layoutTemplate: college.layout_template ?? "college_home",
     sections: sectionRows.map((section) =>
       mapCollegeSection(section, subsectionsBySection.get(section.id) ?? []),
     ),

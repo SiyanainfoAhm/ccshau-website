@@ -40,6 +40,9 @@ export function PageForm({
   const [titleEn, setTitleEn] = useState(page?.title_en ?? "");
   const [slug, setSlug] = useState(page?.slug ?? "");
   const [pageType, setPageType] = useState<Page["page_type"]>(page?.page_type ?? "standard");
+  const [layoutTemplate, setLayoutTemplate] = useState<Page["layout_template"]>(
+    page?.layout_template ?? "college_home",
+  );
   const [parentId, setParentId] = useState(page?.parent_id ?? "");
 
   function handleTitleBlur() {
@@ -93,14 +96,35 @@ export function PageForm({
             <select
               name="pageType"
               value={pageType}
-              onChange={(e) => setPageType(e.target.value as Page["page_type"])}
+              onChange={(e) => {
+                const next = e.target.value as Page["page_type"];
+                setPageType(next);
+                if (next === "standard") setLayoutTemplate("standard");
+                else if (layoutTemplate === "standard") setLayoutTemplate("college_home");
+              }}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
             >
               <option value="standard">Standard page (/pages/slug)</option>
               <option value="college">College landing (/college/slug)</option>
             </select>
           </label>
-          <label className="block text-sm">
+          {pageType === "college" && (
+            <label className="block text-sm">
+              <span className="font-medium text-slate-700">Layout template</span>
+              <select
+                name="layoutTemplate"
+                value={layoutTemplate}
+                onChange={(e) =>
+                  setLayoutTemplate(e.target.value as Page["layout_template"])
+                }
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+              >
+                <option value="college_home">College home (hero + content)</option>
+                <option value="office_portal">Office portal (sidebars + contacts)</option>
+              </select>
+            </label>
+          )}
+          <label className="block text-sm md:col-span-2">
             <span className="font-medium text-slate-700">Parent page</span>
             <select
               name="parentId"
@@ -206,8 +230,7 @@ export function PageForm({
         <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-6 shadow-sm">
           <h2 className="mb-4 text-lg font-semibold text-slate-900">College images</h2>
           <p className="mb-4 text-sm text-slate-600">
-            Paste a Supabase storage path (e.g. <code>ccshau-public/banners/hero.jpg</code>) or a full
-            https:// image URL.
+            Paste a Supabase storage path or a full https:// image URL.
           </p>
           <div className="grid gap-4 md:grid-cols-2">
             <label className="block text-sm">
@@ -229,6 +252,71 @@ export function PageForm({
               />
             </label>
           </div>
+        </div>
+      )}
+
+      {pageType === "college" && layoutTemplate === "office_portal" && (
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50/40 p-6 shadow-sm">
+          <h2 className="mb-4 text-lg font-semibold text-slate-900">Office portal — head officer</h2>
+          <div className="grid gap-4 md:grid-cols-2">
+            <label className="block text-sm">
+              <span className="font-medium text-slate-700">Name (English)</span>
+              <input
+                name="headNameEn"
+                defaultValue={page?.head_name_en ?? ""}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+              />
+            </label>
+            <label className="block text-sm">
+              <span className="font-medium text-slate-700">Name (Hindi)</span>
+              <input
+                name="headNameHi"
+                defaultValue={page?.head_name_hi ?? ""}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-hindi"
+              />
+            </label>
+            <label className="block text-sm md:col-span-2">
+              <span className="font-medium text-slate-700">Role / titles (English, one per line)</span>
+              <textarea
+                name="headRoleEn"
+                rows={2}
+                defaultValue={page?.head_role_en ?? ""}
+                placeholder={"Registrar\nChief Vigilance Officer"}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+              />
+            </label>
+            <label className="block text-sm md:col-span-2">
+              <span className="font-medium text-slate-700">Role / titles (Hindi)</span>
+              <textarea
+                name="headRoleHi"
+                rows={2}
+                defaultValue={page?.head_role_hi ?? ""}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-hindi"
+              />
+            </label>
+            <label className="block text-sm md:col-span-2">
+              <span className="font-medium text-slate-700">Photo URL</span>
+              <input
+                name="headImagePath"
+                defaultValue={page?.head_image_path ?? ""}
+                placeholder="https://..."
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+              />
+            </label>
+            <label className="flex items-center gap-2 text-sm text-slate-700 md:col-span-2">
+              <input
+                name="officeCtaEnabled"
+                type="checkbox"
+                defaultChecked={page?.office_cta_enabled ?? true}
+              />
+              Show farmers&apos; portal band on this office page
+            </label>
+          </div>
+          {page && (
+            <p className="mt-4 text-sm text-emerald-800">
+              Manage contact lines, staff table, and left/right quick links in the panel below after saving.
+            </p>
+          )}
         </div>
       )}
 

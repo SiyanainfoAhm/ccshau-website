@@ -16,8 +16,15 @@ export const pageFormSchema = z.object({
   departmentId: z.string().uuid().optional().or(z.literal("")),
   parentId: z.string().uuid().optional().or(z.literal("")),
   pageType: z.enum(["standard", "college"]).default("standard"),
+  layoutTemplate: z.enum(["college_home", "office_portal", "standard"]).default("college_home"),
   featuredImagePath: z.string().optional(),
   logoImagePath: z.string().optional(),
+  headNameEn: z.string().optional(),
+  headNameHi: z.string().optional(),
+  headRoleEn: z.string().optional(),
+  headRoleHi: z.string().optional(),
+  headImagePath: z.string().optional(),
+  officeCtaEnabled: z.coerce.boolean().optional().default(true),
   status: z.enum(["draft", "pending_review", "published", "archived"]),
 });
 

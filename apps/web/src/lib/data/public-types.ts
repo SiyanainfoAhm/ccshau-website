@@ -69,13 +69,52 @@ export interface PublicPage {
   metaDescription: string | null;
   publishedAt: string | null;
   pageType?: PageType;
+  layoutTemplate?: LayoutTemplate;
   featuredImageUrl?: string | null;
   logoImageUrl?: string | null;
 }
 
 export type PageType = "standard" | "college";
 
+export type LayoutTemplate = "college_home" | "office_portal" | "standard";
+
+export interface PublicOfficeContactLine {
+  labelEn: string;
+  labelHi: string | null;
+  valueEn: string;
+  valueHi: string | null;
+}
+
+export interface PublicOfficeStaffMember {
+  nameEn: string;
+  nameHi: string | null;
+  designationEn: string;
+  designationHi: string | null;
+  specializationEn: string | null;
+  specializationHi: string | null;
+  imageUrl: string | null;
+  detailHref: string | null;
+}
+
+export interface PublicOfficeHeadOfficer {
+  nameEn: string;
+  nameHi: string | null;
+  roleEn: string;
+  roleHi: string | null;
+  imageUrl: string | null;
+}
+
+export interface PublicOfficePortalData {
+  contactLines: PublicOfficeContactLine[];
+  staff: PublicOfficeStaffMember[];
+  sidebarLeft: PublicQuickLink[];
+  sidebarRight: PublicQuickLink[];
+  headOfficer: PublicOfficeHeadOfficer | null;
+  officeCtaEnabled: boolean;
+}
+
 export interface PublicCollegeSubsection {
+  pageId: string;
   slug: string;
   titleEn: string;
   titleHi: string | null;
@@ -86,7 +125,9 @@ export interface PublicCollegeSubsection {
 }
 
 export interface PublicCollegeSection {
+  pageId: string;
   slug: string;
+  layoutTemplate?: LayoutTemplate;
   titleEn: string;
   titleHi: string | null;
   excerptEn: string | null;
@@ -97,8 +138,10 @@ export interface PublicCollegeSection {
 }
 
 export interface PublicCollegePage extends PublicPage {
+  pageId: string;
   pageType: "college";
   collegeSlug: string;
+  layoutTemplate: LayoutTemplate;
   sections: PublicCollegeSection[];
 }
 

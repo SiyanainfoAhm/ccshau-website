@@ -7,6 +7,10 @@ export type ContentStatus = "draft" | "pending_review" | "published" | "archived
 
 export type PageType = "standard" | "college";
 
+export type LayoutTemplate = "college_home" | "office_portal" | "standard";
+
+export type SidebarSide = "left" | "right";
+
 export type UserRole = "super_admin" | "dept_admin" | "editor" | "viewer";
 
 export type MenuLocation = "header" | "footer" | "quick_links";
@@ -93,10 +97,17 @@ export interface Page {
   content_owner_id: string | null;
   parent_id: string | null;
   page_type: PageType;
+  layout_template: LayoutTemplate;
   status: ContentStatus;
   published_at: string | null;
   featured_image_path: string | null;
   logo_image_path: string | null;
+  head_name_en: string | null;
+  head_name_hi: string | null;
+  head_role_en: string | null;
+  head_role_hi: string | null;
+  head_image_path: string | null;
+  office_cta_enabled: boolean;
   sort_order: number;
   created_by: string | null;
   updated_by: string | null;
@@ -371,6 +382,50 @@ export interface HomepageCta {
   button_hi: string | null;
   link_href: string;
   is_active: boolean;
+  updated_at: string;
+}
+
+export interface PageContactLine {
+  id: string;
+  page_id: string;
+  label_en: string;
+  label_hi: string | null;
+  value_en: string;
+  value_hi: string | null;
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PageStaff {
+  id: string;
+  page_id: string;
+  name_en: string;
+  name_hi: string | null;
+  designation_en: string;
+  designation_hi: string | null;
+  specialization_en: string | null;
+  specialization_hi: string | null;
+  image_path: string | null;
+  detail_href: string | null;
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PageSidebarItem {
+  id: string;
+  page_id: string;
+  side: SidebarSide;
+  label_en: string;
+  label_hi: string | null;
+  href: string | null;
+  linked_page_id: string | null;
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
   updated_at: string;
 }
 
