@@ -106,6 +106,8 @@ export function PublicOfficePortal({
     "https://images.unsplash.com/photo-1560438154-779a4a5e3e38?auto=format&fit=crop&w=1600&q=80";
 
   const showHeadOfficer = !section && !selectedSidebar && office.headOfficer;
+  const hasLeftSidebar = office.sidebarLeft.length > 0;
+  const hasRightSidebar = office.sidebarRight.length > 0;
 
   return (
     <>
@@ -125,17 +127,19 @@ export function PublicOfficePortal({
       </section>
 
       <div className="mx-auto max-w-7xl px-4 py-10">
-        <div className="grid gap-8 lg:grid-cols-12">
-          <div className="lg:col-span-3">
-            <SidebarPanel
-              title={t("Quick Links", "त्वरित लिंक")}
-              links={office.sidebarLeft}
-              activeId={selectedSidebar?.id ?? null}
-              onSelectContent={setSelectedSidebar}
-            />
-          </div>
+        <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
+          {hasLeftSidebar && (
+            <aside className="w-full shrink-0 lg:w-[260px] xl:w-[280px]">
+              <SidebarPanel
+                title={t("Quick Links", "त्वरित लिंक")}
+                links={office.sidebarLeft}
+                activeId={selectedSidebar?.id ?? null}
+                onSelectContent={setSelectedSidebar}
+              />
+            </aside>
+          )}
 
-          <div className="space-y-8 lg:col-span-6">
+          <div className="min-w-0 flex-1 space-y-8">
             {showHeadOfficer && office.headOfficer && (
               <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
                 <div className="flex flex-col items-center gap-4 p-6 sm:flex-row sm:items-start">
@@ -282,14 +286,16 @@ export function PublicOfficePortal({
             )}
           </div>
 
-          <div className="lg:col-span-3">
-            <SidebarPanel
-              title={t("Related Links", "संबंधित लिंक")}
-              links={office.sidebarRight}
-              activeId={selectedSidebar?.id ?? null}
-              onSelectContent={setSelectedSidebar}
-            />
-          </div>
+          {hasRightSidebar && (
+            <aside className="w-full shrink-0 lg:w-[260px] xl:w-[280px]">
+              <SidebarPanel
+                title={t("Related Links", "संबंधित लिंक")}
+                links={office.sidebarRight}
+                activeId={selectedSidebar?.id ?? null}
+                onSelectContent={setSelectedSidebar}
+              />
+            </aside>
+          )}
         </div>
       </div>
 

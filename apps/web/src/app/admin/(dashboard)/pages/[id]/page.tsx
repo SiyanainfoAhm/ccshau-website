@@ -7,7 +7,6 @@ import {
   listPageStaffForAdmin,
 } from "@/actions/office-portal";
 import { getPageById, listDepartments, listPagesForAdmin } from "@/actions/pages";
-import { OfficePortalAdminPanel } from "@/components/admin/office-portal-admin-panel";
 import { PageForm } from "@/components/admin/page-form";
 import { requireAdminSession } from "@/lib/auth/session";
 import { buildAdminParentPageOptions } from "@/lib/pages/resolve-public-path";
@@ -24,16 +23,11 @@ export default async function EditPagePage({ params }: { params: Promise<{ id: s
   if (!page) notFound();
 
   const parentPages = buildAdminParentPageOptions(allPages);
-  const isOfficePortal =
-    page.page_type === "college" && page.layout_template === "office_portal";
-
-  const [contactLines, staff, sidebarItems] = isOfficePortal
-    ? await Promise.all([
-        listPageContactLinesForAdmin(page.id),
-        listPageStaffForAdmin(page.id),
-        listPageSidebarItemsForAdmin(page.id),
-      ])
-    : [[], [], []];
+  const [contactLines, staff, sidebarItems] = await Promise.all([
+    listPageContactLinesForAdmin(page.id),
+    listPageStaffForAdmin(page.id),
+    listPageSidebarItemsForAdmin(page.id),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -52,15 +46,12 @@ export default async function EditPagePage({ params }: { params: Promise<{ id: s
           </Link>
         )}
       </div>
-      <PageForm departments={departments} parentPages={parentPages} page={page} />
-      {isOfficePortal && (
-        <OfficePortalAdminPanel
-          pageId={page.id}
-          contactLines={contactLines}
-          staff={staff}
-          sidebarItems={sidebarItems}
-        />
-      )}
+      <PageForm
+        departments={departments}
+        parentPages={parentPages}
+        page={page}
+        officePortalData={{ contactLines, staff, sidebarItems }}
+      />
     </div>
   );
 }

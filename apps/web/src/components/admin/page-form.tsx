@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { createPageAction, updatePageAction } from "@/actions/pages";
-import type { Page } from "@/lib/database/types";
+import { OfficePortalAdminPanel } from "@/components/admin/office-portal-admin-panel";
+import type { Page, PageContactLine, PageSidebarItem, PageStaff } from "@/lib/database/types";
 import type { PagePathAncestors } from "@/lib/pages/resolve-public-path";
 import { resolvePublicPagePath } from "@/lib/pages/resolve-public-path";
 import { slugify } from "@/lib/utils/slug";
@@ -29,10 +30,16 @@ export function PageForm({
   departments,
   parentPages,
   page,
+  officePortalData,
 }: {
   departments: Department[];
   parentPages: ParentOption[];
   page?: Page;
+  officePortalData?: {
+    contactLines: PageContactLine[];
+    staff: PageStaff[];
+    sidebarItems: PageSidebarItem[];
+  };
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -80,7 +87,10 @@ export function PageForm({
       : resolvePublicPagePath(slug, pageType)
     : null;
 
+  const showOfficePortal = pageType === "college" && layoutTemplate === "office_portal";
+
   return (
+    <div className="space-y-6">
     <form action={handleSubmit} className="mx-auto max-w-3xl space-y-6">
       <input type="hidden" name="pageType" value={pageType} />
       <input
@@ -259,7 +269,7 @@ export function PageForm({
         </div>
       )}
 
-      {pageType === "college" && layoutTemplate === "office_portal" && (
+      {showOfficePortal && (
         <div className="rounded-xl border border-emerald-200 bg-emerald-50/40 p-6 shadow-sm">
           <h2 className="mb-4 text-lg font-semibold text-slate-900">Office portal — head officer</h2>
           <div className="grid gap-4 md:grid-cols-2">
@@ -316,9 +326,13 @@ export function PageForm({
               Show farmers&apos; portal band on this office page
             </label>
           </div>
-          {page && (
+          {page ? (
             <p className="mt-4 text-sm text-emerald-800">
-              Manage contact lines, staff table, and left/right quick links in the panel below after saving.
+              Manage contact lines, staff table, and left/right quick links in the panel below.
+            </p>
+          ) : (
+            <p className="mt-4 text-sm text-emerald-800">
+              Save the page first, then manage contact lines, staff, and sidebar links below.
             </p>
           )}
         </div>
@@ -387,5 +401,25 @@ export function PageForm({
         </Link>
       </div>
     </form>
+
+    {showOfficePortal && page && officePortalData && (
+      <OfficePortalAdminPanel
+        pageId={page.id}
+        contactLines={officePortalData.contactLines}
+        staff={officePortalData.staff}
+        sidebarItems={officePortalData.sidebarItems}
+      />
+    )}
+
+    {showOfficePortal && !page && (
+      <div className="mx-auto max-w-3xl rounded-xl border border-dashed border-emerald-200 bg-emerald-50/50 px-6 py-8 text-center text-sm text-emerald-900">
+        <p className="font-medium">Office portal sections</p>
+        <p className="mt-1 text-emerald-800">
+          Contact lines, staff directory, and sidebar quick links will appear here after you create
+          and save this page.
+        </p>
+      </div>
+    )}
+    </div>
   );
 }
