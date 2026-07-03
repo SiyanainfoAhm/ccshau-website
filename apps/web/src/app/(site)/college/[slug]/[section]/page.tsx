@@ -1,14 +1,16 @@
 import { notFound, redirect } from "next/navigation";
 
+export const dynamic = "force-dynamic";
+
 import { SiteFooter } from "@/components/design/shared/site-footer";
 import { SiteHeader } from "@/components/design/shared/site-header";
-import { PublicCollegeSectionView } from "@/components/site/public-college-page";
-import { PublicOfficePortal } from "@/components/site/public-office-portal";
+import { PublicConfigurablePage } from "@/components/site/public-configurable-page";
 import { getHomepageContent } from "@/lib/data/homepage";
 import {
   getOfficePortalDataByPageId,
   getPublishedCollegeSection,
 } from "@/lib/data/public";
+import { needsOfficeDataLoad } from "@/lib/pages/layout-config";
 import { getCollegeSubsectionPath } from "@/lib/pages/routes";
 
 export async function generateMetadata({
@@ -36,14 +38,11 @@ export default async function CollegeSectionPage({
     redirect(getCollegeSubsectionPath(slug, section, first.slug));
   }
 
-  const useOfficeLayout =
-    data.college.layoutTemplate === "office_portal" ||
-    data.section.layoutTemplate === "office_portal";
-
-  const office = useOfficeLayout
+  const { layoutConfig } = data.section;
+  const office = needsOfficeDataLoad(layoutConfig)
     ? await getOfficePortalDataByPageId(data.section.pageId)
     : null;
-  const homepage = useOfficeLayout ? await getHomepageContent() : null;
+  const homepage = layoutConfig.farmersCta ? await getHomepageContent() : null;
 
   return (
     <>
@@ -51,18 +50,16 @@ export default async function CollegeSectionPage({
         variant="future"
         homeHref={`/college/${slug}`}
         college={data.college}
+        pageLayoutConfig={layoutConfig}
       />
-      <main id="main-content" className="flex-1 bg-white">
-        {useOfficeLayout && office ? (
-          <PublicOfficePortal
-            college={data.college}
-            office={office}
-            section={data.section}
-            cta={office.officeCtaEnabled ? homepage?.cta ?? null : null}
-          />
-        ) : (
-          <PublicCollegeSectionView college={data.college} section={data.section} />
-        )}
+      <main id="main-content" className="flex-1 bg-slate-50">
+        <PublicConfigurablePage
+          college={data.college}
+          layoutConfig={layoutConfig}
+          office={office}
+          section={data.section}
+          cta={layoutConfig.farmersCta && office?.officeCtaEnabled ? homepage?.cta ?? null : null}
+        />
       </main>
       <SiteFooter variant="future" />
     </>

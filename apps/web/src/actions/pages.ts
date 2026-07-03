@@ -6,9 +6,14 @@ import { writeAuditLog } from "@/lib/auth/audit";
 import { hasRole } from "@/lib/auth/rbac";
 import { requireAdminSession, requireAdminWithRoles } from "@/lib/auth/session";
 import { Tables } from "@/lib/database/names";
-import type { ContentStatus, Page } from "@/lib/database/types";
+import type { ContentStatus, Page, PageType } from "@/lib/database/types";
 import { fail, ok, type ActionResult } from "@/lib/types/action-result";
 import { slugify } from "@/lib/utils/slug";
+import {
+  layoutConfigFromForm,
+  resolveLayoutTemplateFromForm,
+} from "@/lib/pages/layout-config";
+import { resolvePagePublicPath, getPagePathAncestors } from "@/lib/pages/resolve-public-path";
 import { pageFormSchema } from "@/lib/validations/pages";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -29,9 +34,7 @@ function parsePageForm(formData: FormData) {
     departmentId: formData.get("departmentId") || "",
     parentId: formData.get("parentId") || "",
     pageType: formData.get("pageType") || "standard",
-    layoutTemplate:
-      (formData.get("layoutTemplate") as string | null) ||
-      (formData.get("pageType") === "college" ? "college_home" : "standard"),
+    layoutTemplate: resolveLayoutTemplateFromForm(formData),
     featuredImagePath: formData.get("featuredImagePath") || undefined,
     logoImagePath: formData.get("logoImagePath") || undefined,
     headNameEn: formData.get("headNameEn") || undefined,
@@ -44,18 +47,20 @@ function parsePageForm(formData: FormData) {
   });
 }
 
-function toPageRow(input: ReturnType<typeof pageFormSchema.parse>, userId: string) {
+function toPageRow(
+  input: ReturnType<typeof pageFormSchema.parse>,
+  userId: string,
+  formData: FormData,
+) {
   const publishedAt = input.status === "published" ? new Date().toISOString() : null;
-  const pageType =
-    input.pageType === "college" || input.layoutTemplate === "office_portal"
+  const hasParent = Boolean(input.parentId);
+  const pageType = hasParent
+    ? "standard"
+    : input.pageType === "college"
       ? "college"
-      : input.pageType;
-  const layoutTemplate =
-    pageType === "college"
-      ? input.layoutTemplate === "office_portal"
-        ? "office_portal"
-        : "college_home"
       : "standard";
+  const layoutTemplate = resolveLayoutTemplateFromForm(formData);
+  const layoutConfig = layoutConfigFromForm(formData, layoutTemplate);
 
   return {
     slug: input.slug,
@@ -71,6 +76,7 @@ function toPageRow(input: ReturnType<typeof pageFormSchema.parse>, userId: strin
     parent_id: input.parentId || null,
     page_type: pageType,
     layout_template: layoutTemplate,
+    layout_config: layoutConfig,
     featured_image_path: input.featuredImagePath || null,
     logo_image_path: input.logoImagePath || null,
     head_name_en: input.headNameEn || null,
@@ -105,7 +111,7 @@ export async function createPageAction(formData: FormData): Promise<ActionResult
     if (!admin) return fail("Database not configured.");
 
     const row = {
-      ...toPageRow(parsed.data, session.userId),
+      ...toPageRow(parsed.data, session.userId, formData),
       created_by: session.userId,
     };
 
@@ -149,10 +155,23 @@ export async function updatePageAction(
     const admin = createAdminClient();
     if (!admin) return fail("Database not configured.");
 
-    const row = toPageRow(parsed.data, session.userId);
+    const row = toPageRow(parsed.data, session.userId, formData);
 
     const { error } = await admin.from(Tables.pages).update(row).eq("id", pageId);
     if (error) return fail(error.message);
+
+    const { data: allPages } = await admin
+      .from(Tables.pages)
+      .select("id, slug, page_type, parent_id");
+    const pageById = new Map(((allPages as Page[]) ?? []).map((p) => [p.id, p]));
+    const updatedPage = {
+      id: pageId,
+      slug: parsed.data.slug,
+      page_type: row.page_type as PageType,
+      parent_id: row.parent_id,
+    };
+    const publicPath = resolvePagePublicPath(updatedPage, pageById);
+    const ancestors = getPagePathAncestors(updatedPage, pageById);
 
     await writeAuditLog({
       userId: session.userId,
@@ -166,6 +185,12 @@ export async function updatePageAction(
     revalidatePath(`/admin/pages/${pageId}`);
     revalidatePath(`/pages/${parsed.data.slug}`);
     revalidatePath(`/college/${parsed.data.slug}`);
+    revalidatePath(publicPath);
+    if (ancestors.grandparentSlug) {
+      revalidatePath(`/college/${ancestors.grandparentSlug}`);
+    } else if (ancestors.parentPageType === "college" && ancestors.parentSlug) {
+      revalidatePath(`/college/${ancestors.parentSlug}`);
+    }
     return ok({ id: pageId });
   } catch (e) {
     return fail(e instanceof Error ? e.message : "Failed to update page");

@@ -66,6 +66,8 @@ export interface PublicTenderItem {
   }[];
 }
 
+import type { PageLayoutConfig } from "@/lib/pages/layout-config";
+
 export interface PublicPage {
   slug: string;
   titleEn: string;
@@ -79,6 +81,7 @@ export interface PublicPage {
   publishedAt: string | null;
   pageType?: PageType;
   layoutTemplate?: LayoutTemplate;
+  layoutConfig?: PageLayoutConfig;
   featuredImageUrl?: string | null;
   logoImageUrl?: string | null;
 }
@@ -125,6 +128,7 @@ export interface PublicOfficePortalData {
 export interface PublicCollegeSubsection {
   pageId: string;
   slug: string;
+  layoutConfig: PageLayoutConfig;
   titleEn: string;
   titleHi: string | null;
   excerptEn: string | null;
@@ -137,6 +141,7 @@ export interface PublicCollegeSection {
   pageId: string;
   slug: string;
   layoutTemplate?: LayoutTemplate;
+  layoutConfig: PageLayoutConfig;
   titleEn: string;
   titleHi: string | null;
   excerptEn: string | null;
@@ -151,6 +156,7 @@ export interface PublicCollegePage extends PublicPage {
   pageType: "college";
   collegeSlug: string;
   layoutTemplate: LayoutTemplate;
+  layoutConfig: PageLayoutConfig;
   sections: PublicCollegeSection[];
 }
 

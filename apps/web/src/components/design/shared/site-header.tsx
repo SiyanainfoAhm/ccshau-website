@@ -30,6 +30,7 @@ export function SiteHeader({
   navItems: navItemsProp,
   showMainNav,
   college,
+  pageLayoutConfig,
 }: {
   variant?: HeaderVariant;
   homeHref?: string;
@@ -38,14 +39,17 @@ export function SiteHeader({
   showMainNav?: boolean;
   /** When set, renders college navigation instead of the main site menu. */
   college?: PublicCollegePage;
+  /** Nav toggles for the current page (overrides college root when set). */
+  pageLayoutConfig?: { collegeTopMenu?: boolean };
 }) {
   const { lang, toggle, t } = useLanguage();
   const pathname = usePathname();
   const isCollegeRoute = pathname.startsWith("/college/");
   const isCollegeContext = Boolean(college) || isCollegeRoute;
-  const isOfficePortal = college?.layoutTemplate === "office_portal";
-  const shouldShowMainNav = showMainNav ?? (!isCollegeContext || isOfficePortal);
-  const shouldShowCollegeNav = Boolean(college) && !isOfficePortal;
+  const collegeTopMenu =
+    pageLayoutConfig?.collegeTopMenu ?? college?.layoutConfig?.collegeTopMenu ?? true;
+  const shouldShowMainNav = showMainNav ?? (!isCollegeContext || !collegeTopMenu);
+  const shouldShowCollegeNav = Boolean(college) && collegeTopMenu;
   const chrome = usePublicSiteChrome();
   const navItems = navItemsProp ?? chrome?.headerNav ?? mockNavItems.map((item) => ({
     labelEn: item.labelEn,

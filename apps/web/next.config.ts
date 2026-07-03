@@ -13,6 +13,16 @@ const nextConfig: NextConfig = {
       { source: "/Tender.aspx", destination: "/tenders", permanent: true },
       { source: "/Circular.aspx", destination: "/circulars", permanent: true },
       { source: "/Contact.aspx", destination: "/contact", permanent: true },
+      {
+        source: "/contact-us/:slug",
+        destination: "/college/contact-us/:slug",
+        permanent: true,
+      },
+      {
+        source: "/college/contact-us/:slug/",
+        destination: "/college/contact-us/:slug",
+        permanent: true,
+      },
     ];
   },
   images: {
@@ -25,6 +35,11 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "hau.ac.in",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "www.hau.ac.in",
         pathname: "/**",
       },
       ...(supabaseHostname

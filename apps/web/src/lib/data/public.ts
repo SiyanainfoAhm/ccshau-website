@@ -44,7 +44,11 @@ import {
 } from "@/lib/data/pagination";
 import { navItems as mockNavItems, quickLinks as mockQuickLinks } from "@/lib/mock/site-content";
 import { getPublicPagePath } from "@/lib/pages/routes";
-import { resolvePagePublicPath } from "@/lib/pages/resolve-public-path";
+import { resolvePagePublicPath, getCollegePagePlacement } from "@/lib/pages/resolve-public-path";
+import {
+  readStoredLayoutConfig,
+  type PageLayoutConfig,
+} from "@/lib/pages/layout-config";
 import type { PageType } from "@/lib/database/types";
 import { getStoredFileUrl } from "@/lib/storage/upload";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -95,7 +99,13 @@ function buildNavTree(items: MenuItem[], pageById: Map<string, Page>): PublicNav
   return childrenOf(null).map(mapItem);
 }
 
+function mapLayoutConfig(page: Page): PageLayoutConfig {
+  const template = page.layout_template ?? "college_home";
+  return readStoredLayoutConfig(page.layout_config, template);
+}
+
 function mapPublicPage(page: Page): PublicPage {
+  const layoutTemplate = page.layout_template ?? "standard";
   return {
     slug: page.slug,
     titleEn: page.title_en,
@@ -108,7 +118,11 @@ function mapPublicPage(page: Page): PublicPage {
     metaDescription: page.meta_description,
     publishedAt: page.published_at,
     pageType: page.page_type ?? "standard",
-    layoutTemplate: page.layout_template ?? "standard",
+    layoutTemplate,
+    layoutConfig:
+      page.page_type === "college" || layoutTemplate !== "standard"
+        ? mapLayoutConfig(page)
+        : undefined,
     featuredImageUrl:
       page.featured_image_path && page.featured_image_path !== "pending"
         ? getStoredFileUrl(page.featured_image_path)
@@ -532,6 +546,7 @@ function mapCollegeSubsection(page: Page): PublicCollegeSubsection {
   return {
     pageId: page.id,
     slug: page.slug,
+    layoutConfig: mapLayoutConfig(page),
     titleEn: page.title_en,
     titleHi: page.title_hi,
     excerptEn: page.excerpt_en,
@@ -546,6 +561,7 @@ function mapCollegeSection(page: Page, subsections: Page[]): PublicCollegeSectio
     pageId: page.id,
     slug: page.slug,
     layoutTemplate: page.layout_template ?? "standard",
+    layoutConfig: mapLayoutConfig(page),
     titleEn: page.title_en,
     titleHi: page.title_hi,
     excerptEn: page.excerpt_en,
@@ -725,11 +741,28 @@ export async function getPublishedCollegeBySlug(slug: string): Promise<PublicCol
       .eq("layout_template", "office_portal")
       .eq("status", "published")
       .maybeSingle();
-    data = officeFallback;
+
+    if (officeFallback) {
+      const { data: publishedPages } = await admin
+        .from(Tables.pages)
+        .select("id, slug, page_type, parent_id")
+        .eq("status", "published");
+      const pageById = new Map(((publishedPages as Page[]) ?? []).map((p) => [p.id, p]));
+      if (getCollegePagePlacement(officeFallback as Page, pageById) === "root") {
+        data = officeFallback;
+      }
+    }
   }
 
   if (!data) return null;
   const college = data as Page;
+
+  const { data: publishedPages } = await admin
+    .from(Tables.pages)
+    .select("id, slug, page_type, parent_id")
+    .eq("status", "published");
+  const pageById = new Map(((publishedPages as Page[]) ?? []).map((p) => [p.id, p]));
+  if (getCollegePagePlacement(college, pageById) !== "root") return null;
 
   const { data: sections } = await admin
     .from(Tables.pages)
@@ -769,6 +802,7 @@ export async function getPublishedCollegeBySlug(slug: string): Promise<PublicCol
     pageType: "college",
     collegeSlug: college.slug,
     layoutTemplate: college.layout_template ?? "college_home",
+    layoutConfig: mapLayoutConfig(college),
     sections: sectionRows.map((section) =>
       mapCollegeSection(section, subsectionsBySection.get(section.id) ?? []),
     ),

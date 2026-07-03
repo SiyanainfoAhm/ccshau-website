@@ -6,21 +6,44 @@ import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 
 import { useLanguage } from "@/components/design/shared/language-context";
-import { getCollegeSectionPath, getCollegeSubsectionPath } from "@/lib/pages/routes";
+import { getCollegeContactPath, getCollegeSectionPath, getCollegeSubsectionPath } from "@/lib/pages/routes";
 import type { PublicCollegePage } from "@/lib/data/public-types";
 
 function parseCollegeNavState(pathname: string, collegeSlug: string) {
   const base = `/college/${collegeSlug}`;
+  const contactPath = getCollegeContactPath(collegeSlug);
+
+  if (pathname === contactPath) {
+    return {
+      isHomePage: false,
+      isContactPage: true,
+      activeSectionSlug: null as string | null,
+      activeSubsectionSlug: null as string | null,
+    };
+  }
+
   if (pathname === base) {
-    return { activeSectionSlug: null as string | null, activeSubsectionSlug: null as string | null };
+    return {
+      isHomePage: true,
+      isContactPage: false,
+      activeSectionSlug: null as string | null,
+      activeSubsectionSlug: null as string | null,
+    };
   }
 
   if (!pathname.startsWith(`${base}/`)) {
-    return { activeSectionSlug: null, activeSubsectionSlug: null };
+    return {
+      isHomePage: false,
+      isContactPage: false,
+      activeSectionSlug: null,
+      activeSubsectionSlug: null,
+    };
   }
 
   const parts = pathname.slice(base.length + 1).split("/").filter(Boolean);
   return {
+    isHomePage: false,
+    isContactPage: false,
     activeSectionSlug: parts[0] ?? null,
     activeSubsectionSlug: parts[1] ?? null,
   };
@@ -40,7 +63,7 @@ function collegeNavLinkClass(active: boolean, isOpen: boolean, lang: string) {
 export function CollegeNavigation({ college }: { college: PublicCollegePage }) {
   const { lang, t } = useLanguage();
   const pathname = usePathname();
-  const { activeSectionSlug, activeSubsectionSlug } = parseCollegeNavState(
+  const { isHomePage, isContactPage, activeSectionSlug, activeSubsectionSlug } = parseCollegeNavState(
     pathname,
     college.collegeSlug,
   );
@@ -77,7 +100,7 @@ export function CollegeNavigation({ college }: { college: PublicCollegePage }) {
         <ul className="ccshau-main-nav-list mx-auto hidden max-w-7xl items-center justify-center gap-0 px-4 lg:flex">
           {links.map((link, index) => {
             if (link.type === "home") {
-              const isActive = activeSectionSlug == null;
+              const isActive = isHomePage;
               return (
                 <li key="home" className="relative flex items-center">
                   {index > 0 && <span className="ccshau-main-nav-separator" aria-hidden />}
@@ -97,8 +120,8 @@ export function CollegeNavigation({ college }: { college: PublicCollegePage }) {
                 <li key="contact" className="relative flex items-center">
                   {index > 0 && <span className="ccshau-main-nav-separator" aria-hidden />}
                   <Link
-                    href="/contact"
-                    className={collegeNavLinkClass(false, false, lang)}
+                    href={getCollegeContactPath(college.collegeSlug)}
+                    className={collegeNavLinkClass(isContactPage, false, lang)}
                     onClick={() => setMobileOpen(false)}
                   >
                     {t(link.labelEn, link.labelHi)}
@@ -190,7 +213,7 @@ export function CollegeNavigation({ college }: { college: PublicCollegePage }) {
             <ul>
               {links.map((link) => {
                 if (link.type === "home") {
-                  const isActive = activeSectionSlug == null;
+                  const isActive = isHomePage;
                   return (
                     <li key="home-mobile">
                       <Link
@@ -208,9 +231,9 @@ export function CollegeNavigation({ college }: { college: PublicCollegePage }) {
                   return (
                     <li key="contact-mobile">
                       <Link
-                        href="/contact"
+                        href={getCollegeContactPath(college.collegeSlug)}
                         onClick={() => setMobileOpen(false)}
-                        className={`flex w-full border-b border-white/5 px-4 py-2.5 text-sm font-semibold text-white/90 transition hover:bg-white/10 hover:text-amber-200 ${lang === "hi" ? "font-hindi" : ""}`}
+                        className={`flex w-full border-b border-white/5 px-4 py-2.5 text-sm font-semibold text-white/90 transition hover:bg-white/10 hover:text-amber-200 ${isContactPage ? "bg-white/10 text-amber-200" : ""} ${lang === "hi" ? "font-hindi" : ""}`}
                       >
                         {t(link.labelEn, link.labelHi)}
                       </Link>

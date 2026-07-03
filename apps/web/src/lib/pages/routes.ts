@@ -16,6 +16,10 @@ export function getCollegeSubsectionPath(
   return `/college/${collegeSlug}/${sectionSlug}/${subsectionSlug}`;
 }
 
+export function getCollegeContactPath(collegeSlug: string): string {
+  return `/college/contact-us/${collegeSlug}`;
+}
+
 export function isMegaMenuItem(item: { children?: unknown[] }): boolean {
   return Boolean(item.children?.some((child) => (child as { children?: unknown[] }).children?.length));
 }

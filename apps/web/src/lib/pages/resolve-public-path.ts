@@ -9,15 +9,51 @@ export interface PagePathAncestors {
   grandparentPageType?: PageType | null;
 }
 
+export function isParentUnderCollege(parent: {
+  page_type: PageType;
+  ancestors: PagePathAncestors;
+}): boolean {
+  return (
+    parent.page_type === "college" ||
+    parent.ancestors.parentPageType === "college" ||
+    parent.ancestors.grandparentPageType === "college"
+  );
+}
+
+export function ancestorsForChildPage(parent: {
+  slug: string;
+  page_type: PageType;
+  ancestors: PagePathAncestors;
+}): PagePathAncestors {
+  if (parent.page_type === "college") {
+    return {
+      parentSlug: parent.slug,
+      parentPageType: "college",
+    };
+  }
+
+  if (parent.ancestors.parentPageType === "college" && parent.ancestors.parentSlug) {
+    return {
+      parentSlug: parent.slug,
+      parentPageType: parent.page_type,
+      grandparentSlug: parent.ancestors.parentSlug,
+      grandparentPageType: "college",
+    };
+  }
+
+  return {
+    parentSlug: parent.slug,
+    parentPageType: parent.page_type,
+    grandparentSlug: parent.ancestors.grandparentSlug,
+    grandparentPageType: parent.ancestors.grandparentPageType,
+  };
+}
+
 export function resolvePublicPagePath(
   slug: string,
   pageType: PageType = "standard",
   ancestors: PagePathAncestors = {},
 ): string {
-  if (pageType === "college") {
-    return getPublicPagePath(slug, "college");
-  }
-
   const { parentSlug, parentPageType, grandparentSlug, grandparentPageType } = ancestors;
 
   if (
@@ -33,6 +69,10 @@ export function resolvePublicPagePath(
     return getCollegeSectionPath(parentSlug, slug);
   }
 
+  if (pageType === "college") {
+    return getPublicPagePath(slug, "college");
+  }
+
   return getPublicPagePath(slug, pageType);
 }
 
@@ -42,6 +82,31 @@ interface PageLike {
   title_en?: string;
   page_type?: PageType | null;
   parent_id?: string | null;
+}
+
+export type CollegePagePlacement = "root" | "section" | "subsection" | null;
+
+export function getCollegePagePlacement(
+  page: PageLike,
+  pageById: Map<string, PageLike>,
+): CollegePagePlacement {
+  if (page.page_type !== "college" && !page.parent_id) return null;
+
+  const parent = page.parent_id ? pageById.get(page.parent_id) : undefined;
+  if (!parent) {
+    return page.page_type === "college" ? "root" : null;
+  }
+
+  if (parent.page_type === "college") {
+    return "section";
+  }
+
+  const grandparent = parent.parent_id ? pageById.get(parent.parent_id) : undefined;
+  if (grandparent?.page_type === "college") {
+    return "subsection";
+  }
+
+  return page.page_type === "college" ? "root" : null;
 }
 
 export function getPagePathAncestors(

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useLanguage } from "@/components/design/shared/language-context";
 import { CmsHtmlContent } from "@/components/site/cms-html-content";
 import { pickBilingual } from "@/lib/i18n/pick-bilingual";
+import { getCollegeContactPath } from "@/lib/pages/routes";
 import type {
   PublicCollegePage,
   PublicCollegeSection,
@@ -82,7 +83,7 @@ export function PublicCollegeHome({ college }: { college: PublicCollegePage }) {
             </p>
           )}
           <Link
-            href="/contact"
+            href={getCollegeContactPath(college.collegeSlug)}
             className="mt-8 inline-flex rounded-full bg-[#6b9b37] px-8 py-3 text-sm font-bold uppercase tracking-wide text-white shadow-lg transition hover:bg-[#5a8530]"
           >
             {t("Contact Us", "संपर्क करें")}

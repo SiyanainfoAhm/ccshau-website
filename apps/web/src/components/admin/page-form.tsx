@@ -5,10 +5,23 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { createPageAction, updatePageAction } from "@/actions/pages";
+import { LayoutConfigAdminPanel } from "@/components/admin/layout-config-admin-panel";
 import { OfficePortalAdminPanel } from "@/components/admin/office-portal-admin-panel";
 import type { Page, PageContactLine, PageSidebarItem, PageStaff } from "@/lib/database/types";
+import {
+  applyLayoutConfigToFormData,
+  isCollegeLayoutPage,
+  LAYOUT_CONFIG_KEYS,
+  readStoredLayoutConfig,
+  presetForLayoutTemplate,
+  type PageLayoutConfig,
+} from "@/lib/pages/layout-config";
 import type { PagePathAncestors } from "@/lib/pages/resolve-public-path";
-import { resolvePublicPagePath } from "@/lib/pages/resolve-public-path";
+import {
+  ancestorsForChildPage,
+  isParentUnderCollege,
+  resolvePublicPagePath,
+} from "@/lib/pages/resolve-public-path";
 import { slugify } from "@/lib/utils/slug";
 
 interface Department {
@@ -46,9 +59,21 @@ export function PageForm({
   const [error, setError] = useState<string | null>(null);
   const [titleEn, setTitleEn] = useState(page?.title_en ?? "");
   const [slug, setSlug] = useState(page?.slug ?? "");
-  const [pageType, setPageType] = useState<Page["page_type"]>(page?.page_type ?? "standard");
+  const initialLayoutTemplate =
+    page?.layout_template && page.layout_template !== "standard"
+      ? page.layout_template
+      : "college_home";
+
+  const [pageType, setPageType] = useState<Page["page_type"]>(() =>
+    page ? (isCollegeLayoutPage(page) ? "college" : page.page_type ?? "standard") : "standard",
+  );
   const [layoutTemplate, setLayoutTemplate] = useState<Page["layout_template"]>(
-    page?.layout_template ?? "college_home",
+    initialLayoutTemplate,
+  );
+  const [layoutConfig, setLayoutConfig] = useState<PageLayoutConfig>(() =>
+    page
+      ? readStoredLayoutConfig(page.layout_config, initialLayoutTemplate)
+      : presetForLayoutTemplate("college_home"),
   );
   const [parentId, setParentId] = useState(page?.parent_id ?? "");
 
@@ -60,6 +85,15 @@ export function PageForm({
 
   function handleSubmit(formData: FormData) {
     setError(null);
+
+    formData.set("pageType", parentId ? "standard" : pageType);
+    if (showLayoutTemplate) {
+      const template =
+        layoutTemplate === "standard" ? "college_home" : layoutTemplate;
+      formData.set("layoutTemplate", template);
+      applyLayoutConfigToFormData(formData, layoutConfig);
+    }
+
     startTransition(async () => {
       const result = page
         ? await updatePageAction(page.id, formData)
@@ -76,28 +110,51 @@ export function PageForm({
   }
 
   const selectedParent = parentPages.find((p) => p.id === parentId);
+  const isCollegeHierarchyChild = Boolean(
+    selectedParent && isParentUnderCollege(selectedParent),
+  );
+  const effectivePageType = parentId ? "standard" : pageType;
   const previewPath = slug
     ? selectedParent
-      ? resolvePublicPagePath(slug, pageType, {
-          parentSlug: selectedParent.slug,
-          parentPageType: selectedParent.page_type,
-          grandparentSlug: selectedParent.ancestors.grandparentSlug,
-          grandparentPageType: selectedParent.ancestors.grandparentPageType,
-        })
-      : resolvePublicPagePath(slug, pageType)
+      ? resolvePublicPagePath(slug, effectivePageType, ancestorsForChildPage(selectedParent))
+      : resolvePublicPagePath(slug, effectivePageType)
     : null;
 
-  const showOfficePortal = pageType === "college" && layoutTemplate === "office_portal";
+  const showLayoutTemplate = pageType === "college" || isCollegeHierarchyChild;
+  const showCollegeLayout = showLayoutTemplate;
+  const showHeadOfficerFields = showCollegeLayout && layoutConfig.headOfficer;
+  const showOfficeDataPanel =
+    showCollegeLayout &&
+    (layoutConfig.contacts ||
+      layoutConfig.staff ||
+      layoutConfig.leftSidebar ||
+      layoutConfig.rightSidebar);
+  const showFarmersCtaField = showCollegeLayout && layoutConfig.farmersCta;
 
   return (
     <div className="space-y-6">
     <form action={handleSubmit} className="mx-auto max-w-3xl space-y-6">
-      <input type="hidden" name="pageType" value={pageType} />
+      <input type="hidden" name="pageType" value={parentId ? "standard" : pageType} />
       <input
         type="hidden"
         name="layoutTemplate"
-        value={pageType === "college" ? layoutTemplate : "standard"}
+        value={
+          showLayoutTemplate
+            ? layoutTemplate === "standard"
+              ? "college_home"
+              : layoutTemplate
+            : "standard"
+        }
       />
+      <input type="hidden" name="layoutConfigJson" value={JSON.stringify(layoutConfig)} />
+      {LAYOUT_CONFIG_KEYS.map((key) => (
+        <input
+          key={key}
+          type="hidden"
+          name={`layout_${key}`}
+          value={layoutConfig[key] ? "true" : "false"}
+        />
+      ))}
       {error && (
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
           {error}
@@ -114,8 +171,13 @@ export function PageForm({
               onChange={(e) => {
                 const next = e.target.value as Page["page_type"];
                 setPageType(next);
-                if (next === "standard") setLayoutTemplate("standard");
-                else if (layoutTemplate === "standard") setLayoutTemplate("college_home");
+                if (next === "standard") {
+                  setLayoutTemplate("standard");
+                  setLayoutConfig(presetForLayoutTemplate("standard"));
+                } else if (layoutTemplate === "standard") {
+                  setLayoutTemplate("college_home");
+                  setLayoutConfig(presetForLayoutTemplate("college_home"));
+                }
               }}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
             >
@@ -123,14 +185,16 @@ export function PageForm({
               <option value="college">College landing (/college/slug)</option>
             </select>
           </label>
-          {pageType === "college" && (
+          {showLayoutTemplate && (
             <label className="block text-sm">
               <span className="font-medium text-slate-700">Layout template</span>
               <select
                 value={layoutTemplate}
-                onChange={(e) =>
-                  setLayoutTemplate(e.target.value as Page["layout_template"])
-                }
+                onChange={(e) => {
+                  const next = e.target.value as Page["layout_template"];
+                  setLayoutTemplate(next);
+                  setLayoutConfig(presetForLayoutTemplate(next));
+                }}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
               >
                 <option value="college_home">College home (hero + content)</option>
@@ -167,6 +231,10 @@ export function PageForm({
           </p>
         )}
       </div>
+
+      {showCollegeLayout && (
+        <LayoutConfigAdminPanel layoutConfig={layoutConfig} onChange={setLayoutConfig} />
+      )}
 
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <h2 className="mb-4 text-lg font-semibold text-slate-900">Page content</h2>
@@ -269,9 +337,9 @@ export function PageForm({
         </div>
       )}
 
-      {showOfficePortal && (
+      {showHeadOfficerFields && (
         <div className="rounded-xl border border-emerald-200 bg-emerald-50/40 p-6 shadow-sm">
-          <h2 className="mb-4 text-lg font-semibold text-slate-900">Office portal — head officer</h2>
+          <h2 className="mb-4 text-lg font-semibold text-slate-900">Head officer / Dean</h2>
           <div className="grid gap-4 md:grid-cols-2">
             <label className="block text-sm">
               <span className="font-medium text-slate-700">Name (English)</span>
@@ -323,18 +391,33 @@ export function PageForm({
                 type="checkbox"
                 defaultChecked={page?.office_cta_enabled ?? true}
               />
-              Show farmers&apos; portal band on this office page
+              Enable farmers&apos; portal band (shown when &quot;Farmers portal band&quot; is on above)
             </label>
           </div>
-          {page ? (
+          {showOfficeDataPanel && page ? (
             <p className="mt-4 text-sm text-emerald-800">
-              Manage contact lines, staff table, and left/right quick links in the panel below.
+              Manage the enabled sections below (contact lines, staff, sidebars) using the layout
+              toggles above.
             </p>
-          ) : (
+          ) : showOfficeDataPanel ? (
             <p className="mt-4 text-sm text-emerald-800">
               Save the page first, then manage contact lines, staff, and sidebar links below.
             </p>
-          )}
+          ) : null}
+        </div>
+      )}
+
+      {showFarmersCtaField && !showHeadOfficerFields && (
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50/40 p-6 shadow-sm">
+          <h2 className="mb-4 text-lg font-semibold text-slate-900">Farmers portal</h2>
+          <label className="flex items-center gap-2 text-sm text-slate-700">
+            <input
+              name="officeCtaEnabled"
+              type="checkbox"
+              defaultChecked={page?.office_cta_enabled ?? true}
+            />
+            Enable farmers&apos; portal band on this page
+          </label>
         </div>
       )}
 
@@ -402,16 +485,20 @@ export function PageForm({
       </div>
     </form>
 
-    {showOfficePortal && page && officePortalData && (
+    {showOfficeDataPanel && page && officePortalData && (
       <OfficePortalAdminPanel
         pageId={page.id}
         contactLines={officePortalData.contactLines}
         staff={officePortalData.staff}
         sidebarItems={officePortalData.sidebarItems}
+        showContacts={layoutConfig.contacts}
+        showStaff={layoutConfig.staff}
+        showLeftSidebar={layoutConfig.leftSidebar}
+        showRightSidebar={layoutConfig.rightSidebar}
       />
     )}
 
-    {showOfficePortal && !page && (
+    {showOfficeDataPanel && !page && (
       <div className="mx-auto max-w-3xl rounded-xl border border-dashed border-emerald-200 bg-emerald-50/50 px-6 py-8 text-center text-sm text-emerald-900">
         <p className="font-medium">Office portal sections</p>
         <p className="mt-1 text-emerald-800">

@@ -98,6 +98,7 @@ export interface Page {
   parent_id: string | null;
   page_type: PageType;
   layout_template: LayoutTemplate;
+  layout_config: Record<string, unknown> | null;
   status: ContentStatus;
   published_at: string | null;
   featured_image_path: string | null;

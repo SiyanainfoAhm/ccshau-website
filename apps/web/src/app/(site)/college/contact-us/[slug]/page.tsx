@@ -4,34 +4,28 @@ export const dynamic = "force-dynamic";
 
 import { SiteFooter } from "@/components/design/shared/site-footer";
 import { SiteHeader } from "@/components/design/shared/site-header";
-import { PublicConfigurablePage } from "@/components/site/public-configurable-page";
-import { getHomepageContent } from "@/lib/data/homepage";
+import { PublicCollegeContactPage } from "@/components/site/public-college-contact-page";
 import {
   getOfficePortalDataByPageId,
   getPublishedCollegeBySlug,
 } from "@/lib/data/public";
-import { needsOfficeDataLoad } from "@/lib/pages/layout-config";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const college = await getPublishedCollegeBySlug(slug);
   if (!college) return { title: "College not found" };
   return {
-    title: college.metaTitle ?? college.titleEn,
-    description: college.metaDescription ?? college.excerptEn ?? college.titleEn,
+    title: `Contact Us — ${college.metaTitle ?? college.titleEn}`,
+    description: `Contact information for ${college.titleEn}`,
   };
 }
 
-export default async function CollegePage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function CollegeContactPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const college = await getPublishedCollegeBySlug(slug);
   if (!college) notFound();
 
-  const { layoutConfig } = college;
-  const office = needsOfficeDataLoad(layoutConfig)
-    ? await getOfficePortalDataByPageId(college.pageId)
-    : null;
-  const homepage = layoutConfig.farmersCta ? await getHomepageContent() : null;
+  const office = await getOfficePortalDataByPageId(college.pageId);
 
   return (
     <>
@@ -39,14 +33,12 @@ export default async function CollegePage({ params }: { params: Promise<{ slug: 
         variant="future"
         homeHref={`/college/${slug}`}
         college={college}
-        pageLayoutConfig={layoutConfig}
+        pageLayoutConfig={college.layoutConfig}
       />
       <main id="main-content" className="flex-1 bg-slate-50">
-        <PublicConfigurablePage
+        <PublicCollegeContactPage
           college={college}
-          layoutConfig={layoutConfig}
-          office={office}
-          cta={layoutConfig.farmersCta && office?.officeCtaEnabled ? homepage?.cta ?? null : null}
+          contactLines={office?.contactLines ?? []}
         />
       </main>
       <SiteFooter variant="future" />
