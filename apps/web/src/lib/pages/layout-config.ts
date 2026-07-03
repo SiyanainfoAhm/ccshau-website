@@ -5,6 +5,7 @@ export interface PageLayoutConfig {
   headOfficer: boolean;
   contacts: boolean;
   staff: boolean;
+  gallery: boolean;
   mainContent: boolean;
   leftSidebar: boolean;
   rightSidebar: boolean;
@@ -18,6 +19,7 @@ export const LAYOUT_CONFIG_KEYS = [
   "headOfficer",
   "contacts",
   "staff",
+  "gallery",
   "mainContent",
   "leftSidebar",
   "rightSidebar",
@@ -32,6 +34,7 @@ export const LAYOUT_PRESETS: Record<"college_home" | "office_portal" | "minimal"
     headOfficer: true,
     contacts: true,
     staff: false,
+    gallery: false,
     mainContent: true,
     leftSidebar: false,
     rightSidebar: false,
@@ -44,6 +47,7 @@ export const LAYOUT_PRESETS: Record<"college_home" | "office_portal" | "minimal"
     headOfficer: true,
     contacts: true,
     staff: true,
+    gallery: false,
     mainContent: true,
     leftSidebar: true,
     rightSidebar: true,
@@ -56,6 +60,7 @@ export const LAYOUT_PRESETS: Record<"college_home" | "office_portal" | "minimal"
     headOfficer: false,
     contacts: false,
     staff: false,
+    gallery: false,
     mainContent: true,
     leftSidebar: false,
     rightSidebar: false,
@@ -157,6 +162,7 @@ export function needsOfficePortalData(config: PageLayoutConfig): boolean {
     config.headOfficer ||
     config.contacts ||
     config.staff ||
+    config.gallery ||
     config.leftSidebar ||
     config.rightSidebar
   );
@@ -234,6 +240,11 @@ export const LAYOUT_SECTION_LABELS: Record<
     en: "Staff directory",
     hi: "कर्मचारी सूची",
     description: "Staff table with photos",
+  },
+  gallery: {
+    en: "Photo gallery",
+    hi: "फोटो गैलरी",
+    description: "Zoomable image grid with lightbox",
   },
   mainContent: {
     en: "Main content",

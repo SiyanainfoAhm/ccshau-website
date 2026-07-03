@@ -10,6 +10,7 @@ import type {
   NewsItem,
   Page,
   PageContactLine,
+  PageGalleryItem,
   PageSidebarItem,
   PageStaff,
   RelatedLink,
@@ -22,6 +23,7 @@ import type {
   PublicCollegeSubsection,
   PublicCircularItem,
   PublicDownloadItem,
+  PublicGalleryImage,
   PublicHeroSlide,
   PublicMediaAlbumDetail,
   PublicMediaAlbumItem,
@@ -719,6 +721,26 @@ export async function getOfficePortalDataByPageId(
   const { data } = await admin.from(Tables.pages).select("*").eq("id", pageId).maybeSingle();
   if (!data) return null;
   return getOfficePortalDataForPage(data as Page);
+}
+
+export async function getPageGalleryItemsByPageId(pageId: string): Promise<PublicGalleryImage[]> {
+  const admin = createAdminClient();
+  if (!admin) return [];
+
+  const { data } = await admin
+    .from(Tables.pageGalleryItems)
+    .select("*")
+    .eq("page_id", pageId)
+    .eq("is_active", true)
+    .order("sort_order");
+
+  return ((data ?? []) as PageGalleryItem[]).map((row) => ({
+    id: row.id,
+    imageUrl: getStoredFileUrl(row.image_url) ?? row.image_url,
+    thumbnailUrl: row.thumbnail_url ? getStoredFileUrl(row.thumbnail_url) ?? row.thumbnail_url : null,
+    titleEn: row.title_en,
+    titleHi: row.title_hi,
+  }));
 }
 
 export async function getPublishedCollegeBySlug(slug: string): Promise<PublicCollegePage | null> {

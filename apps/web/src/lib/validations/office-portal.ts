@@ -25,6 +25,15 @@ export const pageStaffSchema = z.object({
   isActive,
 });
 
+export const pageGalleryItemSchema = z.object({
+  imageUrl: z.string().optional(),
+  thumbnailUrl: z.string().optional(),
+  titleEn: z.string().optional(),
+  titleHi: z.string().optional(),
+  sortOrder,
+  isActive,
+});
+
 export const pageSidebarItemSchema = z
   .object({
     side: z.enum(["left", "right"]),

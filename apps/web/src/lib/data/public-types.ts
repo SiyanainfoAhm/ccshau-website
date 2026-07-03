@@ -90,6 +90,14 @@ export type PageType = "standard" | "college";
 
 export type LayoutTemplate = "college_home" | "office_portal" | "standard";
 
+export interface PublicGalleryImage {
+  id: string;
+  imageUrl: string;
+  thumbnailUrl: string | null;
+  titleEn: string | null;
+  titleHi: string | null;
+}
+
 export interface PublicOfficeContactLine {
   labelEn: string;
   labelHi: string | null;

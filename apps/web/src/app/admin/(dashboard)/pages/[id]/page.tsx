@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import {
   listPageContactLinesForAdmin,
+  listPageGalleryItemsForAdmin,
   listPageSidebarItemsForAdmin,
   listPageStaffForAdmin,
 } from "@/actions/office-portal";
@@ -26,9 +27,10 @@ export default async function EditPagePage({ params }: { params: Promise<{ id: s
   const parentPages = buildAdminParentPageOptions(allPages);
   const pageById = new Map(allPages.map((p) => [p.id, p]));
   const publicPath = resolvePagePublicPath(page, pageById);
-  const [contactLines, staff, sidebarItems] = await Promise.all([
+  const [contactLines, staff, galleryItems, sidebarItems] = await Promise.all([
     listPageContactLinesForAdmin(page.id),
     listPageStaffForAdmin(page.id),
+    listPageGalleryItemsForAdmin(page.id),
     listPageSidebarItemsForAdmin(page.id),
   ]);
 
@@ -53,7 +55,7 @@ export default async function EditPagePage({ params }: { params: Promise<{ id: s
         departments={departments}
         parentPages={parentPages}
         page={page}
-        officePortalData={{ contactLines, staff, sidebarItems }}
+        officePortalData={{ contactLines, staff, galleryItems, sidebarItems }}
       />
     </div>
   );

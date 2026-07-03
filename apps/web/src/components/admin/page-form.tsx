@@ -7,7 +7,7 @@ import { useState, useTransition } from "react";
 import { createPageAction, updatePageAction } from "@/actions/pages";
 import { LayoutConfigAdminPanel } from "@/components/admin/layout-config-admin-panel";
 import { OfficePortalAdminPanel } from "@/components/admin/office-portal-admin-panel";
-import type { Page, PageContactLine, PageSidebarItem, PageStaff } from "@/lib/database/types";
+import type { Page, PageContactLine, PageGalleryItem, PageSidebarItem, PageStaff } from "@/lib/database/types";
 import {
   applyLayoutConfigToFormData,
   isCollegeLayoutPage,
@@ -51,6 +51,7 @@ export function PageForm({
   officePortalData?: {
     contactLines: PageContactLine[];
     staff: PageStaff[];
+    galleryItems: PageGalleryItem[];
     sidebarItems: PageSidebarItem[];
   };
 }) {
@@ -127,6 +128,7 @@ export function PageForm({
     showCollegeLayout &&
     (layoutConfig.contacts ||
       layoutConfig.staff ||
+      layoutConfig.gallery ||
       layoutConfig.leftSidebar ||
       layoutConfig.rightSidebar);
   const showFarmersCtaField = showCollegeLayout && layoutConfig.farmersCta;
@@ -490,9 +492,11 @@ export function PageForm({
         pageId={page.id}
         contactLines={officePortalData.contactLines}
         staff={officePortalData.staff}
+        galleryItems={officePortalData.galleryItems}
         sidebarItems={officePortalData.sidebarItems}
         showContacts={layoutConfig.contacts}
         showStaff={layoutConfig.staff}
+        showGallery={layoutConfig.gallery}
         showLeftSidebar={layoutConfig.leftSidebar}
         showRightSidebar={layoutConfig.rightSidebar}
       />
@@ -502,7 +506,7 @@ export function PageForm({
       <div className="mx-auto max-w-3xl rounded-xl border border-dashed border-emerald-200 bg-emerald-50/50 px-6 py-8 text-center text-sm text-emerald-900">
         <p className="font-medium">Office portal sections</p>
         <p className="mt-1 text-emerald-800">
-          Contact lines, staff directory, and sidebar quick links will appear here after you create
+          Contact lines, staff directory, photo gallery, and sidebar quick links will appear here after you create
           and save this page.
         </p>
       </div>

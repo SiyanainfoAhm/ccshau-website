@@ -72,6 +72,7 @@ export const Tables = {
   homepageCta: ccshauTable("homepage_cta"),
   pageContactLines: ccshauTable("page_contact_lines"),
   pageStaff: ccshauTable("page_staff"),
+  pageGalleryItems: ccshauTable("page_gallery_items"),
   pageSidebarItems: ccshauTable("page_sidebar_items"),
 } as const;
 

@@ -8,6 +8,7 @@ import { PublicConfigurablePage } from "@/components/site/public-configurable-pa
 import { getHomepageContent } from "@/lib/data/homepage";
 import {
   getOfficePortalDataByPageId,
+  getPageGalleryItemsByPageId,
   getPublishedCollegeSection,
 } from "@/lib/data/public";
 import { needsOfficeDataLoad } from "@/lib/pages/layout-config";
@@ -42,6 +43,7 @@ export default async function CollegeSectionPage({
   const office = needsOfficeDataLoad(layoutConfig)
     ? await getOfficePortalDataByPageId(data.section.pageId)
     : null;
+  const galleryImages = await getPageGalleryItemsByPageId(data.section.pageId);
   const homepage = layoutConfig.farmersCta ? await getHomepageContent() : null;
 
   return (
@@ -58,6 +60,7 @@ export default async function CollegeSectionPage({
           layoutConfig={layoutConfig}
           office={office}
           section={data.section}
+          galleryImages={galleryImages}
           cta={layoutConfig.farmersCta && office?.officeCtaEnabled ? homepage?.cta ?? null : null}
         />
       </main>

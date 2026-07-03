@@ -12,6 +12,7 @@ import {
   homepageInitiativeImagePath,
   mediaAlbumCoverPath,
   mediaItemPath,
+  pageGalleryImagePath,
   newsAttachmentPath,
   STORAGE_BUCKETS,
   tenderAttachmentPath,
@@ -195,6 +196,30 @@ export async function uploadHomepageInitiativeImage(
 
   const bucket = STORAGE_BUCKETS.public;
   const path = homepageInitiativeImagePath(initiativeId, sanitizeFileName(file.name));
+  const buffer = Buffer.from(await file.arrayBuffer());
+
+  const { error } = await admin.storage.from(bucket).upload(path, buffer, {
+    contentType: file.type,
+    upsert: true,
+  });
+
+  if (error) return fail(`Upload failed: ${error.message}`);
+  return ok(`${bucket}/${path}`);
+}
+
+export async function uploadPageGalleryImage(
+  admin: SupabaseClient,
+  pageId: string,
+  file: File,
+  itemId?: string,
+): Promise<ActionResult<string>> {
+  const validationError = validateUploadFile(file);
+  if (validationError) return fail(validationError);
+  if (!file.type.startsWith("image/")) return fail("Gallery file must be an image.");
+
+  const bucket = STORAGE_BUCKETS.public;
+  const id = itemId ?? crypto.randomUUID();
+  const path = pageGalleryImagePath(pageId, id, sanitizeFileName(file.name));
   const buffer = Buffer.from(await file.arrayBuffer());
 
   const { error } = await admin.storage.from(bucket).upload(path, buffer, {

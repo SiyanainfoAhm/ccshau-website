@@ -7,12 +7,14 @@ import { useState } from "react";
 import { FarmersPortalSection } from "@/components/design/shared/home-sections";
 import { useLanguage } from "@/components/design/shared/language-context";
 import { CmsHtmlContent } from "@/components/site/cms-html-content";
+import { PublicCollegeGallery } from "@/components/site/public-college-gallery";
 import type { HomepageCtaItem } from "@/lib/data/homepage";
 import type {
   PublicCollegePage,
   PublicCollegeSection,
   PublicCollegeSubsection,
   PublicOfficePortalData,
+  PublicGalleryImage,
   PublicSidebarLink,
 } from "@/lib/data/public-types";
 import { pickBilingual } from "@/lib/i18n/pick-bilingual";
@@ -80,6 +82,7 @@ export function PublicConfigurablePage({
   office,
   section,
   subsection,
+  galleryImages,
   cta,
 }: {
   college: PublicCollegePage;
@@ -87,6 +90,7 @@ export function PublicConfigurablePage({
   office?: PublicOfficePortalData | null;
   section?: PublicCollegeSection | null;
   subsection?: PublicCollegeSubsection | null;
+  galleryImages?: PublicGalleryImage[];
   cta?: HomepageCtaItem | null;
 }) {
   const { lang, t } = useLanguage();
@@ -140,6 +144,7 @@ export function PublicConfigurablePage({
   const showMainContent = layoutConfig.mainContent && Boolean(bodyContent);
   const showFarmersCta =
     layoutConfig.farmersCta && (office?.officeCtaEnabled ?? false);
+  const showGallery = layoutConfig.gallery && (galleryImages?.length ?? 0) > 0 && !selectedSidebar;
 
   const heroMinHeight = layoutConfig.heroContactButton || college.logoImageUrl ? "min-h-[420px]" : "min-h-[320px]";
 
@@ -378,6 +383,10 @@ export function PublicConfigurablePage({
               </div>
             )}
 
+            {showGallery && galleryImages && (
+              <PublicCollegeGallery images={galleryImages} />
+            )}
+
             {showMainContent && (
               <article className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
                 {bodyTitle && (
@@ -394,7 +403,7 @@ export function PublicConfigurablePage({
               </article>
             )}
 
-            {!showMainContent && !showHeadOfficer && !showContacts && !showStaffTable && !selectedSidebar && (
+            {!showMainContent && !showHeadOfficer && !showContacts && !showStaffTable && !showGallery && !selectedSidebar && (
               <p className="text-center text-slate-500">{t("Content coming soon.", "सामग्री जल्द आ रही है।")}</p>
             )}
           </div>

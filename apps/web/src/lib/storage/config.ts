@@ -58,6 +58,11 @@ export function mediaItemPath(albumId: string, itemId: string, fileName: string)
   return `albums/${albumId}/items/${itemId}/${safe}`;
 }
 
+export function pageGalleryImagePath(pageId: string, itemId: string, fileName: string): string {
+  const safe = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
+  return `pages/gallery/${pageId}/${itemId}/${safe}`;
+}
+
 export function getMediaBucket(): string {
   return STORAGE_BUCKETS.media;
 }

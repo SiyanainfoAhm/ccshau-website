@@ -5,14 +5,21 @@ import { useState, useTransition } from "react";
 
 import {
   createPageContactLineAction,
+  createPageGalleryItemAction,
   createPageSidebarItemAction,
   createPageStaffAction,
   deletePageContactLineAction,
+  deletePageGalleryItemAction,
   deletePageSidebarItemAction,
   deletePageStaffAction,
   updatePageSidebarItemAction,
 } from "@/actions/office-portal";
-import type { PageContactLine, PageSidebarItem, PageStaff } from "@/lib/database/types";
+import type { PageContactLine, PageGalleryItem, PageSidebarItem, PageStaff } from "@/lib/database/types";
+import { getStoredFileUrl } from "@/lib/storage/upload";
+
+function galleryImagePreview(path: string): string {
+  return getStoredFileUrl(path) ?? path;
+}
 
 function DeleteButton({
   label,
@@ -41,18 +48,22 @@ export function OfficePortalAdminPanel({
   pageId,
   contactLines,
   staff,
+  galleryItems,
   sidebarItems,
   showContacts = true,
   showStaff = true,
+  showGallery = true,
   showLeftSidebar = true,
   showRightSidebar = true,
 }: {
   pageId: string;
   contactLines: PageContactLine[];
   staff: PageStaff[];
+  galleryItems: PageGalleryItem[];
   sidebarItems: PageSidebarItem[];
   showContacts?: boolean;
   showStaff?: boolean;
+  showGallery?: boolean;
   showLeftSidebar?: boolean;
   showRightSidebar?: boolean;
 }) {
@@ -162,6 +173,107 @@ export function OfficePortalAdminPanel({
             <input name="sortOrder" type="number" defaultValue={staff.length + 1} className="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
             <button type="submit" disabled={isPending} className="rounded-lg bg-emerald-800 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">
               Add staff member
+            </button>
+          </form>
+        </section>
+      )}
+
+      {showGallery && (
+        <section className="rounded-xl border border-emerald-200 bg-white p-6 shadow-sm">
+          <h2 className="font-display text-lg font-bold text-slate-900">Photo gallery</h2>
+          <p className="mt-1 text-xs text-slate-500">
+            Images appear in a zoomable grid on the public page when Photo gallery is enabled in
+            Layout sections.
+          </p>
+          <ul className="mt-4 space-y-2">
+            {galleryItems.map((item) => (
+              <li
+                key={item.id}
+                className="flex items-center justify-between gap-4 rounded-lg border border-slate-100 px-3 py-2 text-sm"
+              >
+                <div className="flex min-w-0 items-center gap-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={galleryImagePreview(item.thumbnail_url ?? item.image_url)}
+                    alt=""
+                    className="h-14 w-14 shrink-0 rounded-md border border-slate-200 object-cover"
+                  />
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold text-slate-800">
+                      {item.title_en ?? `Image ${item.sort_order}`}
+                    </p>
+                    <p className="truncate text-xs text-slate-500">{item.image_url}</p>
+                  </div>
+                </div>
+                <DeleteButton
+                  label="gallery image"
+                  onConfirm={async () => {
+                    await deletePageGalleryItemAction(pageId, item.id);
+                  }}
+                />
+              </li>
+            ))}
+          </ul>
+          <form
+            className="mt-4 grid gap-3 border-t border-slate-100 pt-4 sm:grid-cols-2"
+            action={(formData) => runAction(() => createPageGalleryItemAction(pageId, formData))}
+          >
+            <label className="block text-sm sm:col-span-2">
+              <span className="mb-1 block font-medium text-slate-700">Upload image</span>
+              <input
+                name="galleryFile"
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                className="block w-full text-sm text-slate-600"
+              />
+              <span className="mt-1 block text-xs text-slate-500">
+                JPEG, PNG, WebP or GIF — max 5 MB
+              </span>
+            </label>
+            <label className="block text-sm sm:col-span-2">
+              <span className="mb-1 block font-medium text-slate-700">
+                Thumbnail upload (optional)
+              </span>
+              <input
+                name="thumbnailFile"
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                className="block w-full text-sm text-slate-600"
+              />
+            </label>
+            <p className="text-xs text-slate-500 sm:col-span-2">Or paste external URLs:</p>
+            <input
+              name="imageUrl"
+              placeholder="Full image URL (if not uploading)"
+              className="rounded-lg border border-slate-300 px-3 py-2 text-sm sm:col-span-2"
+            />
+            <input
+              name="thumbnailUrl"
+              placeholder="Thumbnail URL (optional)"
+              className="rounded-lg border border-slate-300 px-3 py-2 text-sm sm:col-span-2"
+            />
+            <input
+              name="titleEn"
+              placeholder="Caption (English)"
+              className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            />
+            <input
+              name="titleHi"
+              placeholder="Caption (Hindi)"
+              className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-hindi"
+            />
+            <input
+              name="sortOrder"
+              type="number"
+              defaultValue={galleryItems.length + 1}
+              className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            />
+            <button
+              type="submit"
+              disabled={isPending}
+              className="rounded-lg bg-emerald-800 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+            >
+              Add gallery image
             </button>
           </form>
         </section>

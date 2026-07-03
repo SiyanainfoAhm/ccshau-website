@@ -5,14 +5,16 @@ import { revalidatePath } from "next/cache";
 import { writeAuditLog } from "@/lib/auth/audit";
 import { requireAdminSession, requireAdminWithRoles } from "@/lib/auth/session";
 import { Tables } from "@/lib/database/names";
-import type { PageContactLine, PageSidebarItem, PageStaff } from "@/lib/database/types";
+import type { PageContactLine, PageGalleryItem, PageSidebarItem, PageStaff } from "@/lib/database/types";
 import { fail, ok, type ActionResult } from "@/lib/types/action-result";
 import {
   pageContactLineSchema,
+  pageGalleryItemSchema,
   pageSidebarItemSchema,
   pageStaffSchema,
 } from "@/lib/validations/office-portal";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { removeStorageObjects, uploadPageGalleryImage } from "@/lib/storage/upload";
 
 const OFFICE_ROLES = ["super_admin", "dept_admin", "editor"] as const;
 
@@ -349,5 +351,137 @@ export async function deletePageSidebarItemAction(
     return ok(undefined);
   } catch (e) {
     return fail(e instanceof Error ? e.message : "Failed to delete sidebar link.");
+  }
+}
+
+export async function listPageGalleryItemsForAdmin(pageId: string): Promise<PageGalleryItem[]> {
+  await requireAdminSession();
+  const admin = createAdminClient();
+  if (!admin) return [];
+  const { data } = await admin
+    .from(Tables.pageGalleryItems)
+    .select("*")
+    .eq("page_id", pageId)
+    .order("sort_order");
+  return (data ?? []) as PageGalleryItem[];
+}
+
+export async function createPageGalleryItemAction(
+  pageId: string,
+  formData: FormData,
+): Promise<ActionResult<{ id: string }>> {
+  try {
+    const session = await requireAdminWithRoles([...OFFICE_ROLES]);
+    const imageFile = formData.get("galleryFile");
+    const thumbnailFile = formData.get("thumbnailFile");
+    const uploadedImage = imageFile instanceof File && imageFile.size > 0 ? imageFile : null;
+    const uploadedThumbnail =
+      thumbnailFile instanceof File && thumbnailFile.size > 0 ? thumbnailFile : null;
+    const imageUrlInput = String(formData.get("imageUrl") ?? "").trim();
+    const thumbnailUrlInput = String(formData.get("thumbnailUrl") ?? "").trim();
+
+    if (!uploadedImage && !imageUrlInput) {
+      return fail("Upload an image file or enter an image URL.");
+    }
+
+    const parsed = pageGalleryItemSchema.safeParse({
+      imageUrl: imageUrlInput || undefined,
+      thumbnailUrl: thumbnailUrlInput || undefined,
+      titleEn: formData.get("titleEn") || undefined,
+      titleHi: formData.get("titleHi") || undefined,
+      sortOrder: formData.get("sortOrder") ?? 0,
+      isActive: formData.get("isActive") !== "off",
+    });
+    if (!parsed.success) return fail("Validation failed", parsed.error.flatten().fieldErrors);
+
+    const admin = createAdminClient();
+    if (!admin) return fail("Database not configured.");
+    const input = parsed.data;
+
+    let imageUrl = imageUrlInput;
+    let thumbnailUrl = thumbnailUrlInput || null;
+
+    if (uploadedImage) {
+      const upload = await uploadPageGalleryImage(admin, pageId, uploadedImage);
+      if (!upload.success) return upload;
+      imageUrl = upload.data;
+      if (!uploadedThumbnail && !thumbnailUrlInput) {
+        thumbnailUrl = upload.data;
+      }
+    }
+
+    if (uploadedThumbnail) {
+      const thumbUpload = await uploadPageGalleryImage(admin, pageId, uploadedThumbnail);
+      if (!thumbUpload.success) return thumbUpload;
+      thumbnailUrl = thumbUpload.data;
+    }
+
+    const { data, error } = await admin
+      .from(Tables.pageGalleryItems)
+      .insert({
+        page_id: pageId,
+        image_url: imageUrl,
+        thumbnail_url: thumbnailUrl,
+        title_en: input.titleEn?.trim() || null,
+        title_hi: input.titleHi?.trim() || null,
+        sort_order: input.sortOrder,
+        is_active: input.isActive ?? true,
+      })
+      .select("id")
+      .single();
+
+    if (error) return fail(error.message);
+    await writeAuditLog({
+      userId: session.userId,
+      action: "create",
+      entityType: "page_gallery_item",
+      entityId: data.id,
+    });
+    await revalidateOfficePage(pageId);
+    return ok({ id: data.id });
+  } catch (e) {
+    return fail(e instanceof Error ? e.message : "Failed to create gallery image.");
+  }
+}
+
+export async function deletePageGalleryItemAction(
+  pageId: string,
+  id: string,
+): Promise<ActionResult> {
+  try {
+    const session = await requireAdminWithRoles([...OFFICE_ROLES]);
+    const admin = createAdminClient();
+    if (!admin) return fail("Database not configured.");
+
+    const { data: row } = await admin
+      .from(Tables.pageGalleryItems)
+      .select("image_url, thumbnail_url")
+      .eq("id", id)
+      .eq("page_id", pageId)
+      .maybeSingle();
+
+    const { error } = await admin.from(Tables.pageGalleryItems).delete().eq("id", id);
+    if (error) return fail(error.message);
+
+    if (row) {
+      const storagePaths = [row.image_url, row.thumbnail_url].filter(
+        (path): path is string => Boolean(path) && !path.startsWith("http"),
+      );
+      const uniquePaths = [...new Set(storagePaths)];
+      if (uniquePaths.length > 0) {
+        await removeStorageObjects(admin, uniquePaths);
+      }
+    }
+
+    await writeAuditLog({
+      userId: session.userId,
+      action: "delete",
+      entityType: "page_gallery_item",
+      entityId: id,
+    });
+    await revalidateOfficePage(pageId);
+    return ok(undefined);
+  } catch (e) {
+    return fail(e instanceof Error ? e.message : "Failed to delete gallery image.");
   }
 }

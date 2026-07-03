@@ -399,6 +399,19 @@ export interface PageContactLine {
   updated_at: string;
 }
 
+export interface PageGalleryItem {
+  id: string;
+  page_id: string;
+  image_url: string;
+  thumbnail_url: string | null;
+  title_en: string | null;
+  title_hi: string | null;
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface PageStaff {
   id: string;
   page_id: string;
