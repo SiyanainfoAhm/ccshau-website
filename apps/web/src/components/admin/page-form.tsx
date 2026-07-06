@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { createPageAction, updatePageAction } from "@/actions/pages";
+import { translateFieldsEnToHiAction } from "@/actions/translate";
 import { LayoutConfigAdminPanel } from "@/components/admin/layout-config-admin-panel";
 import { OfficePortalAdminPanel } from "@/components/admin/office-portal-admin-panel";
 import type { Page, PageContactLine, PageGalleryItem, PageSidebarItem, PageStaff } from "@/lib/database/types";
@@ -59,7 +60,17 @@ export function PageForm({
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [titleEn, setTitleEn] = useState(page?.title_en ?? "");
+  const [titleHi, setTitleHi] = useState(page?.title_hi ?? "");
   const [slug, setSlug] = useState(page?.slug ?? "");
+  const [excerptEn, setExcerptEn] = useState(page?.excerpt_en ?? "");
+  const [excerptHi, setExcerptHi] = useState(page?.excerpt_hi ?? "");
+  const [contentEn, setContentEn] = useState(page?.content_en ?? "");
+  const [contentHi, setContentHi] = useState(page?.content_hi ?? "");
+  const [headNameEn, setHeadNameEn] = useState(page?.head_name_en ?? "");
+  const [headNameHi, setHeadNameHi] = useState(page?.head_name_hi ?? "");
+  const [headRoleEn, setHeadRoleEn] = useState(page?.head_role_en ?? "");
+  const [headRoleHi, setHeadRoleHi] = useState(page?.head_role_hi ?? "");
+  const [isTranslating, setIsTranslating] = useState(false);
   const initialLayoutTemplate =
     page?.layout_template && page.layout_template !== "standard"
       ? page.layout_template
@@ -82,6 +93,52 @@ export function PageForm({
     if (!page && titleEn && !slug) {
       setSlug(slugify(titleEn));
     }
+  }
+
+  async function handleAutoTranslate(
+    fields: { key: string; text: string; format?: "text" | "html" }[],
+    apply: (translated: Record<string, string>) => void,
+  ) {
+    setError(null);
+    setIsTranslating(true);
+    try {
+      const result = await translateFieldsEnToHiAction(fields);
+      if (!result.success) {
+        setError(result.error);
+        return;
+      }
+      apply(result.data);
+    } finally {
+      setIsTranslating(false);
+    }
+  }
+
+  function handleTranslatePageContent() {
+    return handleAutoTranslate(
+      [
+        { key: "titleHi", text: titleEn },
+        { key: "excerptHi", text: excerptEn },
+        { key: "contentHi", text: contentEn, format: "html" },
+      ],
+      (translated) => {
+        if (translated.titleHi) setTitleHi(translated.titleHi);
+        if (translated.excerptHi) setExcerptHi(translated.excerptHi);
+        if (translated.contentHi) setContentHi(translated.contentHi);
+      },
+    );
+  }
+
+  function handleTranslateHeadOfficer() {
+    return handleAutoTranslate(
+      [
+        { key: "headNameHi", text: headNameEn },
+        { key: "headRoleHi", text: headRoleEn },
+      ],
+      (translated) => {
+        if (translated.headNameHi) setHeadNameHi(translated.headNameHi);
+        if (translated.headRoleHi) setHeadRoleHi(translated.headRoleHi);
+      },
+    );
   }
 
   function handleSubmit(formData: FormData) {
@@ -239,7 +296,17 @@ export function PageForm({
       )}
 
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="mb-4 text-lg font-semibold text-slate-900">Page content</h2>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold text-slate-900">Page content</h2>
+          <button
+            type="button"
+            onClick={handleTranslatePageContent}
+            disabled={isPending || isTranslating}
+            className="rounded-lg border border-emerald-700 px-3 py-1.5 text-sm font-medium text-emerald-800 hover:bg-emerald-50 disabled:opacity-60"
+          >
+            {isTranslating ? "Translating…" : "Auto-translate to Hindi"}
+          </button>
+        </div>
         <div className="grid gap-4 md:grid-cols-2">
           <div>
             <label className="mb-1 block text-sm font-medium text-slate-700">Title (English)</label>
@@ -256,7 +323,8 @@ export function PageForm({
             <label className="mb-1 block text-sm font-medium text-slate-700">Title (Hindi)</label>
             <input
               name="titleHi"
-              defaultValue={page?.title_hi ?? ""}
+              value={titleHi}
+              onChange={(e) => setTitleHi(e.target.value)}
               className="w-full rounded-lg border border-slate-300 px-3 py-2 font-hindi"
             />
           </div>
@@ -276,7 +344,8 @@ export function PageForm({
             <textarea
               name="excerptEn"
               rows={2}
-              defaultValue={page?.excerpt_en ?? ""}
+              value={excerptEn}
+              onChange={(e) => setExcerptEn(e.target.value)}
               className="w-full rounded-lg border border-slate-300 px-3 py-2"
             />
           </div>
@@ -285,7 +354,8 @@ export function PageForm({
             <textarea
               name="excerptHi"
               rows={2}
-              defaultValue={page?.excerpt_hi ?? ""}
+              value={excerptHi}
+              onChange={(e) => setExcerptHi(e.target.value)}
               className="w-full rounded-lg border border-slate-300 px-3 py-2 font-hindi"
             />
           </div>
@@ -294,7 +364,8 @@ export function PageForm({
             <textarea
               name="contentEn"
               rows={8}
-              defaultValue={page?.content_en ?? ""}
+              value={contentEn}
+              onChange={(e) => setContentEn(e.target.value)}
               className="w-full rounded-lg border border-slate-300 px-3 py-2"
             />
           </div>
@@ -303,7 +374,8 @@ export function PageForm({
             <textarea
               name="contentHi"
               rows={8}
-              defaultValue={page?.content_hi ?? ""}
+              value={contentHi}
+              onChange={(e) => setContentHi(e.target.value)}
               className="w-full rounded-lg border border-slate-300 px-3 py-2 font-hindi"
             />
           </div>
@@ -341,13 +413,24 @@ export function PageForm({
 
       {showHeadOfficerFields && (
         <div className="rounded-xl border border-emerald-200 bg-emerald-50/40 p-6 shadow-sm">
-          <h2 className="mb-4 text-lg font-semibold text-slate-900">Head officer / Dean</h2>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-lg font-semibold text-slate-900">Head officer / Dean</h2>
+            <button
+              type="button"
+              onClick={handleTranslateHeadOfficer}
+              disabled={isPending || isTranslating}
+              className="rounded-lg border border-emerald-700 px-3 py-1.5 text-sm font-medium text-emerald-800 hover:bg-emerald-50 disabled:opacity-60"
+            >
+              {isTranslating ? "Translating…" : "Auto-translate to Hindi"}
+            </button>
+          </div>
           <div className="grid gap-4 md:grid-cols-2">
             <label className="block text-sm">
               <span className="font-medium text-slate-700">Name (English)</span>
               <input
                 name="headNameEn"
-                defaultValue={page?.head_name_en ?? ""}
+                value={headNameEn}
+                onChange={(e) => setHeadNameEn(e.target.value)}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
               />
             </label>
@@ -355,7 +438,8 @@ export function PageForm({
               <span className="font-medium text-slate-700">Name (Hindi)</span>
               <input
                 name="headNameHi"
-                defaultValue={page?.head_name_hi ?? ""}
+                value={headNameHi}
+                onChange={(e) => setHeadNameHi(e.target.value)}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-hindi"
               />
             </label>
@@ -364,7 +448,8 @@ export function PageForm({
               <textarea
                 name="headRoleEn"
                 rows={2}
-                defaultValue={page?.head_role_en ?? ""}
+                value={headRoleEn}
+                onChange={(e) => setHeadRoleEn(e.target.value)}
                 placeholder={"Registrar\nChief Vigilance Officer"}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
               />
@@ -374,7 +459,8 @@ export function PageForm({
               <textarea
                 name="headRoleHi"
                 rows={2}
-                defaultValue={page?.head_role_hi ?? ""}
+                value={headRoleHi}
+                onChange={(e) => setHeadRoleHi(e.target.value)}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-hindi"
               />
             </label>
