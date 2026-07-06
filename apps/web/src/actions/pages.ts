@@ -59,6 +59,7 @@ function parsePageForm(formData: FormData) {
     email: formData.get("email") || undefined,
     mapLat: formData.get("mapLat") || undefined,
     mapLng: formData.get("mapLng") || undefined,
+    contactLocationEnabled: formData.get("contactLocationEnabled") ?? undefined,
     officeCtaEnabled: formData.get("officeCtaEnabled") !== "off",
     status: formData.get("status"),
   });
@@ -84,7 +85,11 @@ async function persistCollegeContact(
   pageId: string,
   input: ReturnType<typeof pageFormSchema.parse>,
 ) {
-  if (input.pageType !== "college" || !input.addressEn || !input.phone || !input.email) {
+  if (input.pageType !== "college" || !input.contactLocationEnabled) {
+    return;
+  }
+
+  if (!input.addressEn || !input.phone || !input.email) {
     return;
   }
 
@@ -140,8 +145,8 @@ function toPageRow(
 
   return {
     ...base,
-    map_lat: input.mapLat ?? null,
-    map_lng: input.mapLng ?? null,
+    map_lat: input.contactLocationEnabled ? (input.mapLat ?? null) : null,
+    map_lng: input.contactLocationEnabled ? (input.mapLng ?? null) : null,
   };
 }
 

@@ -45,11 +45,16 @@ export const pageFormSchema = z
   email: z.string().email("Valid email is required").optional().or(z.literal("")),
   mapLat: optionalCoordinate(-90, 90, "Latitude"),
   mapLng: optionalCoordinate(-180, 180, "Longitude"),
+  contactLocationEnabled: z
+    .union([z.literal("on"), z.literal("off"), z.boolean()])
+    .optional()
+    .transform((value) => value === "on" || value === true)
+    .default(false),
   officeCtaEnabled: z.coerce.boolean().optional().default(true),
   status: z.enum(["draft", "pending_review", "published", "archived"]),
 })
   .superRefine((data, ctx) => {
-    if (data.pageType !== "college") return;
+    if (data.pageType !== "college" || !data.contactLocationEnabled) return;
 
     if (!data.addressEn?.trim()) {
       ctx.addIssue({

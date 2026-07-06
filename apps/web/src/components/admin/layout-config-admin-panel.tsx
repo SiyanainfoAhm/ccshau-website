@@ -6,13 +6,17 @@ import { LAYOUT_CONFIG_KEYS, LAYOUT_SECTION_LABELS } from "@/lib/pages/layout-co
 export function LayoutConfigAdminPanel({
   layoutConfig,
   onChange,
+  hiddenKeys = [],
 }: {
   layoutConfig: PageLayoutConfig;
   onChange: (next: PageLayoutConfig) => void;
+  hiddenKeys?: (keyof PageLayoutConfig)[];
 }) {
   function toggle(key: keyof PageLayoutConfig) {
     onChange({ ...layoutConfig, [key]: !layoutConfig[key] });
   }
+
+  const visibleKeys = LAYOUT_CONFIG_KEYS.filter((key) => !hiddenKeys.includes(key));
 
   return (
     <div className="rounded-xl border border-violet-200 bg-violet-50/40 p-6 shadow-sm">
@@ -23,7 +27,7 @@ export function LayoutConfigAdminPanel({
         apply changes on the live site.
       </p>
       <div className="grid gap-3 sm:grid-cols-2">
-        {LAYOUT_CONFIG_KEYS.map((key) => {
+        {visibleKeys.map((key) => {
           const label = LAYOUT_SECTION_LABELS[key];
           return (
             <label

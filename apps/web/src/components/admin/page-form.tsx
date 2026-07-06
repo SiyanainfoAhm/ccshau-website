@@ -95,6 +95,9 @@ export function PageForm({
   );
   const [parentId, setParentId] = useState(page?.parent_id ?? "");
   const collegeContact = parseCollegeContactFromLines(officePortalData?.contactLines ?? []);
+  const [contactLocationEnabled, setContactLocationEnabled] = useState(() =>
+    Boolean(collegeContact.addressEn || collegeContact.phone || collegeContact.email),
+  );
 
   function handleTitleBlur() {
     if (!page && titleEn && !slug) {
@@ -148,6 +151,11 @@ export function PageForm({
     );
   }
 
+  function handleContactLocationToggle(enabled: boolean) {
+    setContactLocationEnabled(enabled);
+    setLayoutConfig((prev) => ({ ...prev, contacts: enabled }));
+  }
+
   function handleSubmit(formData: FormData) {
     setError(null);
 
@@ -157,11 +165,15 @@ export function PageForm({
     const submittedPageType = isCollegeRoot ? "college" : parentId ? "standard" : pageType;
 
     formData.set("pageType", submittedPageType);
+    formData.set("contactLocationEnabled", contactLocationEnabled ? "on" : "off");
     if (showLayoutTemplate) {
       const template =
         layoutTemplate === "standard" ? "college_home" : layoutTemplate;
       formData.set("layoutTemplate", template);
-      applyLayoutConfigToFormData(formData, layoutConfig);
+      const configForSave = isCollegeRoot
+        ? { ...layoutConfig, contacts: contactLocationEnabled }
+        : layoutConfig;
+      applyLayoutConfigToFormData(formData, configForSave);
     }
 
     startTransition(async () => {
@@ -309,7 +321,11 @@ export function PageForm({
       </div>
 
       {showCollegeLayout && (
-        <LayoutConfigAdminPanel layoutConfig={layoutConfig} onChange={setLayoutConfig} />
+        <LayoutConfigAdminPanel
+          layoutConfig={layoutConfig}
+          onChange={setLayoutConfig}
+          hiddenKeys={isCollegeRoot ? ["contacts"] : []}
+        />
       )}
 
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -430,10 +446,28 @@ export function PageForm({
 
       {isCollegeRoot && (
         <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="mb-4 text-lg font-semibold text-slate-900">Contact & location</h2>
-          <p className="mb-4 text-sm text-slate-600">
-            Shown on the college contact page and home contact block.
-          </p>
+          <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-semibold text-slate-900">Contact & location</h2>
+              <p className="mt-1 text-sm text-slate-600">
+                Optional. Used on the college contact page and home contact block.
+              </p>
+            </div>
+            <label className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm">
+              <input
+                type="checkbox"
+                checked={contactLocationEnabled}
+                onChange={(e) => handleContactLocationToggle(e.target.checked)}
+              />
+              <span className="font-medium text-slate-700">Enable contact & location</span>
+            </label>
+          </div>
+          <input
+            type="hidden"
+            name="contactLocationEnabled"
+            value={contactLocationEnabled ? "on" : "off"}
+          />
+          {contactLocationEnabled && (
           <div className="grid gap-4">
             <label className="block text-sm">
               <span className="font-medium text-slate-700">Mailing address (English)</span>
@@ -501,6 +535,7 @@ export function PageForm({
               </label>
             </div>
           </div>
+          )}
         </div>
       )}
 
