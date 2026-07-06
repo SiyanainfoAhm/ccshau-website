@@ -20,6 +20,24 @@ export function isParentUnderCollege(parent: {
   );
 }
 
+export const COLLEGES_CONTAINER_SLUG = "colleges";
+
+export function isCollegesContainerSlug(slug: string | null | undefined): boolean {
+  return slug === COLLEGES_CONTAINER_SLUG;
+}
+
+/** College microsites live under the colleges container page but keep page_type college. */
+export function resolveCollegeRootPageType(
+  formPageType: "standard" | "college",
+  parentId: string | null | undefined,
+  parentSlug: string | null | undefined,
+): PageType {
+  if (formPageType === "college" && (!parentId || isCollegesContainerSlug(parentSlug))) {
+    return "college";
+  }
+  return "standard";
+}
+
 export function ancestorsForChildPage(parent: {
   slug: string;
   page_type: PageType;

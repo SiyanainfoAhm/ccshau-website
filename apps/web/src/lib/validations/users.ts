@@ -1,14 +1,34 @@
 import { z } from "zod";
 
 const userRoleEnum = z.enum(["super_admin", "dept_admin", "editor", "viewer"]);
+const collegeScopeRoleEnum = z.enum(["college_admin", "college_editor", "college_viewer"]);
 
-export const inviteUserSchema = z.object({
-  email: z.string().email("Enter a valid email address"),
-  displayName: z.string().min(2, "Display name is required"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  departmentId: z.string().uuid().optional().or(z.literal("")),
-  initialRole: userRoleEnum.optional().or(z.literal("")),
-});
+export const inviteUserSchema = z
+  .object({
+    email: z.string().email("Enter a valid email address"),
+    displayName: z.string().min(2, "Display name is required"),
+    password: z.string().min(8, "Password must be at least 8 characters"),
+    departmentId: z.string().uuid().optional().or(z.literal("")),
+    initialRole: userRoleEnum.optional().or(z.literal("")),
+    collegePageId: z.string().uuid().optional().or(z.literal("")),
+    collegeRole: collegeScopeRoleEnum.optional().or(z.literal("")),
+  })
+  .superRefine((data, ctx) => {
+    if (data.collegePageId && !data.collegeRole) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Select a college role",
+        path: ["collegeRole"],
+      });
+    }
+    if (data.collegeRole && !data.collegePageId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Select a college",
+        path: ["collegePageId"],
+      });
+    }
+  });
 
 export const updateUserSchema = z.object({
   displayName: z.string().min(2, "Display name is required"),
@@ -44,3 +64,14 @@ export const ROLE_LABELS: Record<z.infer<typeof userRoleEnum>, string> = {
   editor: "Content Editor",
   viewer: "Viewer",
 };
+
+export const COLLEGE_ROLE_LABELS: Record<z.infer<typeof collegeScopeRoleEnum>, string> = {
+  college_admin: "College Admin",
+  college_editor: "College Editor",
+  college_viewer: "College Viewer",
+};
+
+export const assignCollegeSchema = z.object({
+  collegePageId: z.string().uuid("Select a college"),
+  collegeRole: collegeScopeRoleEnum,
+});

@@ -1,0 +1,125 @@
+import Image from "next/image";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+
+import { SiteFooter } from "@/components/design/shared/site-footer";
+import { SiteHeader } from "@/components/design/shared/site-header";
+import { FacultyProfileContent } from "@/components/site/faculty-profile-content";
+import { getPublishedFacultyProfile } from "@/lib/data/public";
+import { pickBilingual } from "@/lib/i18n/pick-bilingual";
+
+export const dynamic = "force-dynamic";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string; section: string; subsection: string; facultySlug: string }>;
+}) {
+  const { slug, section, subsection, facultySlug } = await params;
+  const data = await getPublishedFacultyProfile(slug, section, subsection, facultySlug);
+  if (!data) return { title: "Faculty not found" };
+  return {
+    title: `${data.staff.nameEn} — ${data.department.titleEn}`,
+  };
+}
+
+export default async function FacultyDetailPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ slug: string; section: string; subsection: string; facultySlug: string }>;
+  searchParams: Promise<{ lang?: string }>;
+}) {
+  const { slug, section, subsection, facultySlug } = await params;
+  const { lang: langParam } = await searchParams;
+  const lang = langParam === "hi" ? "hi" : "en";
+
+  const data = await getPublishedFacultyProfile(slug, section, subsection, facultySlug);
+  if (!data) notFound();
+
+  const { staff, department, college, section: sectionData } = data;
+  const detailHtml =
+    lang === "hi" && staff.detailContentHi ? staff.detailContentHi : staff.detailContentEn;
+
+  return (
+    <>
+      <SiteHeader variant="future" homeHref={`/college/${slug}`} college={college} />
+      <main id="main-content" className="flex-1 bg-slate-50">
+        <div className="mx-auto max-w-4xl px-4 py-8">
+          <nav className="mb-6 text-sm text-emerald-800">
+            <Link href={`/college/${slug}`} className="hover:underline">
+              {college.titleEn}
+            </Link>
+            <span className="mx-2 text-slate-400">/</span>
+            <Link href={`/college/${slug}/${section}`} className="hover:underline">
+              {sectionData.titleEn}
+            </Link>
+            <span className="mx-2 text-slate-400">/</span>
+            <Link href={`/college/${slug}/${section}/${subsection}`} className="hover:underline">
+              {department.titleEn}
+            </Link>
+            <span className="mx-2 text-slate-400">/</span>
+            <span className="text-slate-600">{staff.nameEn}</span>
+          </nav>
+
+          <article className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div className="border-b border-slate-100 bg-emerald-50 px-6 py-8 md:flex md:items-center md:gap-6">
+              {staff.imageUrl ? (
+                <div className="relative mx-auto h-28 w-28 shrink-0 overflow-hidden rounded-full border-4 border-white shadow md:mx-0">
+                  <Image src={staff.imageUrl} alt="" fill className="object-cover" sizes="112px" />
+                </div>
+              ) : null}
+              <div className="mt-4 text-center md:mt-0 md:text-left">
+                <h1 className={`font-display text-2xl font-bold text-slate-900 ${lang === "hi" ? "font-hindi" : ""}`}>
+                  {pickBilingual(lang, staff.nameEn, staff.nameHi)}
+                </h1>
+                <p className={`mt-1 text-emerald-800 ${lang === "hi" ? "font-hindi" : ""}`}>
+                  {pickBilingual(lang, staff.designationEn, staff.designationHi)}
+                </p>
+                {staff.specializationEn && (
+                  <p className={`mt-2 text-sm text-slate-600 ${lang === "hi" ? "font-hindi" : ""}`}>
+                    {pickBilingual(lang, staff.specializationEn, staff.specializationHi)}
+                  </p>
+                )}
+                <dl className="mt-4 flex flex-wrap justify-center gap-4 text-sm text-slate-600 md:justify-start">
+                  {staff.experienceEn && (
+                    <div>
+                      <dt className="sr-only">Experience</dt>
+                      <dd>Experience: {pickBilingual(lang, staff.experienceEn, staff.experienceHi)}</dd>
+                    </div>
+                  )}
+                  {staff.mobile && (
+                    <div>
+                      <dt className="sr-only">Mobile</dt>
+                      <dd>Mobile: {staff.mobile}</dd>
+                    </div>
+                  )}
+                  {staff.email && (
+                    <div>
+                      <dt className="sr-only">Email</dt>
+                      <dd>
+                        <a href={`mailto:${staff.email}`} className="text-emerald-700 hover:underline">
+                          {staff.email}
+                        </a>
+                      </dd>
+                    </div>
+                  )}
+                </dl>
+              </div>
+            </div>
+
+            {detailHtml ? (
+              <FacultyProfileContent
+                html={detailHtml}
+                className={`px-6 py-8 ${lang === "hi" ? "font-hindi" : ""}`}
+              />
+            ) : (
+              <p className="px-6 py-8 text-sm text-slate-500">Full profile content is not available yet.</p>
+            )}
+          </article>
+        </div>
+      </main>
+      <SiteFooter variant="future" />
+    </>
+  );
+}

@@ -3,22 +3,33 @@
 import { revalidatePath } from "next/cache";
 
 import { writeAuditLog } from "@/lib/auth/audit";
+import {
+  assertPageAccess,
+  canCreateCollegeRoot,
+  canDeletePages,
+  canPublishPages,
+  getPageCollegeRootId,
+  isCollegeOnlyUser,
+  isSuperAdminSession,
+} from "@/lib/auth/college-scope";
 import { hasRole } from "@/lib/auth/rbac";
-import { requireAdminSession, requireAdminWithRoles } from "@/lib/auth/session";
+import {
+  requireAdminSession,
+  requirePageEditSession,
+} from "@/lib/auth/session";
 import { Tables } from "@/lib/database/names";
 import type { ContentStatus, Page, PageType } from "@/lib/database/types";
+import { syncPublishedCollegeToMenu, removeCollegeFromMenu } from "@/lib/pages/college-menu";
 import { fail, ok, type ActionResult } from "@/lib/types/action-result";
 import { slugify } from "@/lib/utils/slug";
 import {
   layoutConfigFromForm,
   resolveLayoutTemplateFromForm,
 } from "@/lib/pages/layout-config";
-import { resolvePagePublicPath, getPagePathAncestors } from "@/lib/pages/resolve-public-path";
+import { resolvePagePublicPath, getPagePathAncestors, resolveCollegeRootPageType, isCollegesContainerSlug } from "@/lib/pages/resolve-public-path";
+import { syncCollegeContactLines } from "@/lib/pages/college-contact-seed";
 import { pageFormSchema } from "@/lib/validations/pages";
 import { createAdminClient } from "@/lib/supabase/admin";
-
-const PAGE_ROLES = ["super_admin", "dept_admin", "editor"] as const;
-const PUBLISH_ROLES = ["super_admin", "dept_admin"] as const;
 
 function parsePageForm(formData: FormData) {
   return pageFormSchema.safeParse({
@@ -42,8 +53,46 @@ function parsePageForm(formData: FormData) {
     headRoleEn: formData.get("headRoleEn") || undefined,
     headRoleHi: formData.get("headRoleHi") || undefined,
     headImagePath: formData.get("headImagePath") || undefined,
+    addressEn: formData.get("addressEn") || undefined,
+    addressHi: formData.get("addressHi") || undefined,
+    phone: formData.get("phone") || undefined,
+    email: formData.get("email") || undefined,
+    mapLat: formData.get("mapLat") || undefined,
+    mapLng: formData.get("mapLng") || undefined,
     officeCtaEnabled: formData.get("officeCtaEnabled") !== "off",
     status: formData.get("status"),
+  });
+}
+
+async function resolveParentSlug(
+  admin: NonNullable<ReturnType<typeof createAdminClient>>,
+  parentId: string | null | undefined,
+) {
+  if (!parentId) return null;
+
+  const { data: parent } = await admin
+    .from(Tables.pages)
+    .select("slug")
+    .eq("id", parentId)
+    .maybeSingle();
+
+  return parent?.slug ?? null;
+}
+
+async function persistCollegeContact(
+  admin: NonNullable<ReturnType<typeof createAdminClient>>,
+  pageId: string,
+  input: ReturnType<typeof pageFormSchema.parse>,
+) {
+  if (input.pageType !== "college" || !input.addressEn || !input.phone || !input.email) {
+    return;
+  }
+
+  await syncCollegeContactLines(admin, pageId, {
+    addressEn: input.addressEn,
+    addressHi: input.addressHi,
+    phone: input.phone,
+    email: input.email,
   });
 }
 
@@ -51,18 +100,14 @@ function toPageRow(
   input: ReturnType<typeof pageFormSchema.parse>,
   userId: string,
   formData: FormData,
+  parentSlug: string | null | undefined,
 ) {
   const publishedAt = input.status === "published" ? new Date().toISOString() : null;
-  const hasParent = Boolean(input.parentId);
-  const pageType = hasParent
-    ? "standard"
-    : input.pageType === "college"
-      ? "college"
-      : "standard";
+  const pageType = resolveCollegeRootPageType(input.pageType, input.parentId || null, parentSlug);
   const layoutTemplate = resolveLayoutTemplateFromForm(formData);
   const layoutConfig = layoutConfigFromForm(formData, layoutTemplate);
 
-  return {
+  const base = {
     slug: input.slug,
     title_en: input.titleEn,
     title_hi: input.titleHi || null,
@@ -90,33 +135,104 @@ function toPageRow(
     content_owner_id: userId,
     updated_by: userId,
   };
+
+  if (pageType !== "college") return base;
+
+  return {
+    ...base,
+    map_lat: input.mapLat ?? null,
+    map_lng: input.mapLng ?? null,
+  };
+}
+
+async function assertParentInCollegeScope(
+  session: Awaited<ReturnType<typeof requirePageEditSession>>,
+  parentId: string | null | undefined,
+  pageType: PageType,
+): Promise<void> {
+  if (!parentId) {
+    if (pageType === "college" && !canCreateCollegeRoot(session)) {
+      throw new Error("Only super admins can create new college microsites.");
+    }
+    return;
+  }
+
+  const admin = createAdminClient();
+  if (!admin) throw new Error("Database not configured.");
+
+  const { data: parent } = await admin
+    .from(Tables.pages)
+    .select("id, college_root_id, page_type")
+    .eq("id", parentId)
+    .maybeSingle();
+
+  if (!parent) throw new Error("Parent page not found.");
+
+  if (isCollegeOnlyUser(session)) {
+    const collegeRootId =
+      parent.page_type === "college"
+        ? parent.id
+        : parent.college_root_id ??
+          (await getPageCollegeRootId({ id: parent.id, college_root_id: parent.college_root_id }));
+    if (!collegeRootId || collegeRootId !== session.collegeAssignment?.collegePageId) {
+      throw new Error("You can only create pages within your assigned college.");
+    }
+  }
 }
 
 export async function createPageAction(formData: FormData): Promise<ActionResult<{ id: string }>> {
   try {
-    const session = await requireAdminWithRoles([...PAGE_ROLES]);
+    const session = await requirePageEditSession();
     const parsed = parsePageForm(formData);
     if (!parsed.success) {
       return fail("Validation failed", parsed.error.flatten().fieldErrors);
     }
 
-    if (
-      parsed.data.status === "published" &&
-      !session.roles.some((r) => PUBLISH_ROLES.includes(r.role as (typeof PUBLISH_ROLES)[number]))
-    ) {
-      return fail("Only department admins can publish pages.");
+    if (parsed.data.status === "published" && !canPublishPages(session)) {
+      return fail("You do not have permission to publish pages.");
     }
+
+    const hasParent = Boolean(parsed.data.parentId);
 
     const admin = createAdminClient();
     if (!admin) return fail("Database not configured.");
 
+    const parentSlug = await resolveParentSlug(admin, parsed.data.parentId || null);
+    const pageType = resolveCollegeRootPageType(
+      parsed.data.pageType,
+      parsed.data.parentId || null,
+      parentSlug,
+    );
+
+    if (pageType === "college" && !canCreateCollegeRoot(session)) {
+      return fail("Only super admins can create new college microsites.");
+    }
+
+    await assertParentInCollegeScope(session, parsed.data.parentId || null, pageType);
+
     const row = {
-      ...toPageRow(parsed.data, session.userId, formData),
+      ...toPageRow(parsed.data, session.userId, formData, parentSlug),
       created_by: session.userId,
     };
 
     const { data, error } = await admin.from(Tables.pages).insert(row).select("id").single();
     if (error) return fail(error.message);
+
+    if (row.page_type === "college") {
+      try {
+        await persistCollegeContact(admin, data.id, parsed.data);
+      } catch (contactError) {
+        return fail(
+          contactError instanceof Error
+            ? contactError.message
+            : "Failed to save college contact information.",
+        );
+      }
+    }
+
+    if (row.status === "published" && row.page_type === "college") {
+      await syncPublishedCollegeToMenu(admin, data.id);
+    }
 
     await writeAuditLog({
       userId: session.userId,
@@ -128,6 +244,8 @@ export async function createPageAction(formData: FormData): Promise<ActionResult
 
     revalidatePath("/admin/pages");
     revalidatePath(`/college/${parsed.data.slug}`);
+    revalidatePath(`/college/contact-us/${parsed.data.slug}`);
+    revalidatePath("/");
     return ok({ id: data.id });
   } catch (e) {
     return fail(e instanceof Error ? e.message : "Failed to create page");
@@ -139,26 +257,64 @@ export async function updatePageAction(
   formData: FormData,
 ): Promise<ActionResult<{ id: string }>> {
   try {
-    const session = await requireAdminWithRoles([...PAGE_ROLES]);
+    const session = await requirePageEditSession();
+
     const parsed = parsePageForm(formData);
     if (!parsed.success) {
       return fail("Validation failed", parsed.error.flatten().fieldErrors);
     }
 
-    if (
-      parsed.data.status === "published" &&
-      !session.roles.some((r) => PUBLISH_ROLES.includes(r.role as (typeof PUBLISH_ROLES)[number]))
-    ) {
-      return fail("Only department admins can publish pages.");
+    if (parsed.data.status === "published" && !canPublishPages(session)) {
+      return fail("You do not have permission to publish pages.");
     }
 
     const admin = createAdminClient();
     if (!admin) return fail("Database not configured.");
 
-    const row = toPageRow(parsed.data, session.userId, formData);
+    const existing = await assertPageAccess(session, pageId);
+    const parentSlug = await resolveParentSlug(admin, parsed.data.parentId || null);
+    const row = toPageRow(parsed.data, session.userId, formData, parentSlug);
+
+    if (
+      isCollegesContainerSlug(parentSlug) &&
+      (existing.page_type === "college" || existing.layout_template === "college_home") &&
+      row.page_type !== "college"
+    ) {
+      row.page_type = "college";
+    }
+
+    if (
+      existing.page_type === "college" &&
+      row.page_type !== "college" &&
+      isCollegesContainerSlug(parentSlug)
+    ) {
+      row.page_type = "college";
+    }
+
+    if (existing.page_type === "college" && row.page_type !== "college" && !isSuperAdminSession(session)) {
+      return fail("Cannot change a college microsite to a standard page.");
+    }
 
     const { error } = await admin.from(Tables.pages).update(row).eq("id", pageId);
     if (error) return fail(error.message);
+
+    if (row.page_type === "college") {
+      try {
+        await persistCollegeContact(admin, pageId, parsed.data);
+      } catch (contactError) {
+        return fail(
+          contactError instanceof Error
+            ? contactError.message
+            : "Failed to save college contact information.",
+        );
+      }
+    }
+
+    if (row.page_type === "college") {
+      if (row.status === "published") {
+        await syncPublishedCollegeToMenu(admin, pageId);
+      }
+    }
 
     const { data: allPages } = await admin
       .from(Tables.pages)
@@ -182,10 +338,13 @@ export async function updatePageAction(
     });
 
     revalidatePath("/admin/pages");
+    revalidatePath("/admin/register");
     revalidatePath(`/admin/pages/${pageId}`);
     revalidatePath(`/pages/${parsed.data.slug}`);
     revalidatePath(`/college/${parsed.data.slug}`);
+    revalidatePath(`/college/contact-us/${parsed.data.slug}`);
     revalidatePath(publicPath);
+    revalidatePath("/");
     if (ancestors.grandparentSlug) {
       revalidatePath(`/college/${ancestors.grandparentSlug}`);
     } else if (ancestors.parentPageType === "college" && ancestors.parentSlug) {
@@ -199,18 +358,28 @@ export async function updatePageAction(
 
 export async function deletePageAction(pageId: string): Promise<ActionResult> {
   try {
-    const session = await requireAdminWithRoles(["super_admin", "dept_admin"]);
+    const session = await requirePageEditSession();
+    if (!canDeletePages(session)) {
+      return fail("You do not have permission to delete pages.");
+    }
+
+    await assertPageAccess(session, pageId);
+
     const admin = createAdminClient();
     if (!admin) return fail("Database not configured.");
 
     const { data: page } = await admin
       .from(Tables.pages)
-      .select("slug, parent_id")
+      .select("slug, parent_id, page_type")
       .eq("id", pageId)
       .maybeSingle();
 
     const { error } = await admin.from(Tables.pages).delete().eq("id", pageId);
     if (error) return fail(error.message);
+
+    if (page?.page_type === "college") {
+      await removeCollegeFromMenu(admin, pageId);
+    }
 
     await writeAuditLog({
       userId: session.userId,
@@ -220,6 +389,7 @@ export async function deletePageAction(pageId: string): Promise<ActionResult> {
     });
 
     revalidatePath("/admin/pages");
+    revalidatePath("/");
     if (page?.slug) {
       revalidatePath(`/pages/${page.slug}`);
       revalidatePath(`/college/${page.slug}`);
@@ -236,9 +406,11 @@ export async function suggestSlugAction(title: string): Promise<string> {
 
 export async function listPagesForAdmin(): Promise<Page[]> {
   const session = await requireAdminSession();
-  if (!hasRole(session.roles, ["super_admin", "dept_admin", "editor", "viewer"])) {
-    return [];
-  }
+  const canList =
+    hasRole(session.roles, ["super_admin", "dept_admin", "editor", "viewer"]) ||
+    Boolean(session.collegeAssignment);
+
+  if (!canList) return [];
 
   const admin = createAdminClient();
   if (!admin) return [];
@@ -248,8 +420,9 @@ export async function listPagesForAdmin(): Promise<Page[]> {
     .select("*")
     .order("updated_at", { ascending: false });
 
-  const isSuperAdmin = session.roles.some((r) => r.role === "super_admin");
-  if (!isSuperAdmin && session.departmentId) {
+  if (isCollegeOnlyUser(session) && session.collegeAssignment) {
+    query = query.eq("college_root_id", session.collegeAssignment.collegePageId);
+  } else if (!isSuperAdminSession(session) && session.departmentId) {
     query = query.eq("department_id", session.departmentId);
   }
 
@@ -259,15 +432,17 @@ export async function listPagesForAdmin(): Promise<Page[]> {
 
 export async function getPageById(pageId: string): Promise<Page | null> {
   const session = await requireAdminSession();
-  if (!hasRole(session.roles, ["super_admin", "dept_admin", "editor", "viewer"])) {
+  const canView =
+    hasRole(session.roles, ["super_admin", "dept_admin", "editor", "viewer"]) ||
+    Boolean(session.collegeAssignment);
+
+  if (!canView) return null;
+
+  try {
+    return await assertPageAccess(session, pageId);
+  } catch {
     return null;
   }
-
-  const admin = createAdminClient();
-  if (!admin) return null;
-
-  const { data } = await admin.from(Tables.pages).select("*").eq("id", pageId).maybeSingle();
-  return (data as Page) ?? null;
 }
 
 export async function listDepartments() {

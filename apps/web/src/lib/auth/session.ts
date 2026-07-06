@@ -1,10 +1,17 @@
 import { redirect } from "next/navigation";
 
+import {
+  canAccessAdmin,
+  getCollegeAssignmentForUser,
+  type CollegeAssignment,
+} from "@/lib/auth/college-scope";
 import { getUserRoles, highestRole, type UserRoleAssignment } from "@/lib/auth/rbac";
 import { Tables } from "@/lib/database/names";
 import type { UserRole } from "@/lib/database/types";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+
+export type { CollegeAssignment };
 
 export interface AdminSession {
   userId: string;
@@ -13,6 +20,7 @@ export interface AdminSession {
   roles: UserRoleAssignment[];
   primaryRole: UserRole | null;
   departmentId: string | null;
+  collegeAssignment: CollegeAssignment | null;
 }
 
 export async function getAdminSession(): Promise<AdminSession | null> {
@@ -24,6 +32,7 @@ export async function getAdminSession(): Promise<AdminSession | null> {
   if (!user?.email) return null;
 
   const roles = await getUserRoles(user.id);
+  const collegeAssignment = await getCollegeAssignmentForUser(user.id);
   const admin = createAdminClient();
 
   let displayName = user.email;
@@ -43,14 +52,19 @@ export async function getAdminSession(): Promise<AdminSession | null> {
     }
   }
 
-  return {
+  const session: AdminSession = {
     userId: user.id,
     email: user.email,
     displayName,
     roles,
     primaryRole: highestRole(roles),
     departmentId,
+    collegeAssignment,
   };
+
+  if (!canAccessAdmin(session)) return null;
+
+  return session;
 }
 
 export async function requireAdminSession(): Promise<AdminSession> {
@@ -72,5 +86,15 @@ export async function requireAdminWithRoles(allowed: UserRole[]): Promise<AdminS
     throw new Error("Insufficient permissions.");
   }
 
+  return session;
+}
+
+/** Page CMS: university roles or college staff with edit rights. */
+export async function requirePageEditSession(): Promise<AdminSession> {
+  const session = await requireAdminSession();
+  const { canEditPages } = await import("@/lib/auth/college-scope");
+  if (!canEditPages(session)) {
+    throw new Error("You do not have permission to edit pages.");
+  }
   return session;
 }

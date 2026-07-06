@@ -114,6 +114,18 @@ export interface PublicOfficeStaffMember {
   specializationHi: string | null;
   imageUrl: string | null;
   detailHref: string | null;
+  memberType?: "hod" | "faculty";
+  mobile?: string | null;
+  email?: string | null;
+  experienceEn?: string | null;
+  experienceHi?: string | null;
+  detailContentEn?: string | null;
+  detailContentHi?: string | null;
+}
+
+export interface PublicFacultyProfileStaff extends PublicOfficeStaffMember {
+  detailContentEn: string | null;
+  detailContentHi: string | null;
 }
 
 export interface PublicOfficeHeadOfficer {
@@ -165,6 +177,8 @@ export interface PublicCollegePage extends PublicPage {
   collegeSlug: string;
   layoutTemplate: LayoutTemplate;
   layoutConfig: PageLayoutConfig;
+  mapLat: number | null;
+  mapLng: number | null;
   sections: PublicCollegeSection[];
 }
 

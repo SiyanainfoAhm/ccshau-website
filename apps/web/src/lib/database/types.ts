@@ -13,6 +13,8 @@ export type SidebarSide = "left" | "right";
 
 export type UserRole = "super_admin" | "dept_admin" | "editor" | "viewer";
 
+export type CollegeScopeRole = "college_admin" | "college_editor" | "college_viewer";
+
 export type MenuLocation = "header" | "footer" | "quick_links";
 
 export type NoticeType = "news" | "notice" | "corrigendum" | "cancellation";
@@ -74,6 +76,14 @@ export interface UserRoleRow {
   created_at: string;
 }
 
+export interface UserCollegeRow {
+  user_id: string;
+  college_page_id: string;
+  role: CollegeScopeRole;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface SiteSettings {
   id: number;
   captcha_enabled: boolean;
@@ -96,6 +106,7 @@ export interface Page {
   department_id: string | null;
   content_owner_id: string | null;
   parent_id: string | null;
+  college_root_id: string | null;
   page_type: PageType;
   layout_template: LayoutTemplate;
   layout_config: Record<string, unknown> | null;
@@ -108,6 +119,8 @@ export interface Page {
   head_role_en: string | null;
   head_role_hi: string | null;
   head_image_path: string | null;
+  map_lat: number | null;
+  map_lng: number | null;
   office_cta_enabled: boolean;
   sort_order: number;
   created_by: string | null;
@@ -415,6 +428,8 @@ export interface PageGalleryItem {
 export interface PageStaff {
   id: string;
   page_id: string;
+  member_type?: "hod" | "faculty";
+  staff_slug: string | null;
   name_en: string;
   name_hi: string | null;
   designation_en: string;
@@ -422,6 +437,12 @@ export interface PageStaff {
   specialization_en: string | null;
   specialization_hi: string | null;
   image_path: string | null;
+  mobile: string | null;
+  email: string | null;
+  experience_en: string | null;
+  experience_hi: string | null;
+  detail_content_en: string | null;
+  detail_content_hi: string | null;
   detail_href: string | null;
   sort_order: number;
   is_active: boolean;

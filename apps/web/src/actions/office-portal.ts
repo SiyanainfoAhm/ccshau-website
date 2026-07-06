@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 
 import { writeAuditLog } from "@/lib/auth/audit";
-import { requireAdminSession, requireAdminWithRoles } from "@/lib/auth/session";
+import { assertPageAccess } from "@/lib/auth/college-scope";
+import { requireAdminSession, requirePageEditSession } from "@/lib/auth/session";
 import { Tables } from "@/lib/database/names";
 import type { PageContactLine, PageGalleryItem, PageSidebarItem, PageStaff } from "@/lib/database/types";
 import { fail, ok, type ActionResult } from "@/lib/types/action-result";
@@ -16,7 +17,11 @@ import {
 import { createAdminClient } from "@/lib/supabase/admin";
 import { removeStorageObjects, uploadPageGalleryImage } from "@/lib/storage/upload";
 
-const OFFICE_ROLES = ["super_admin", "dept_admin", "editor"] as const;
+async function requireOfficePageAccess(pageId: string, edit = false) {
+  const session = edit ? await requirePageEditSession() : await requireAdminSession();
+  await assertPageAccess(session, pageId);
+  return session;
+}
 
 async function revalidateOfficePage(pageId: string) {
   const admin = createAdminClient();
@@ -36,7 +41,7 @@ async function revalidateOfficePage(pageId: string) {
 }
 
 export async function listPageContactLinesForAdmin(pageId: string): Promise<PageContactLine[]> {
-  await requireAdminSession();
+  await requireOfficePageAccess(pageId);
   const admin = createAdminClient();
   if (!admin) return [];
   const { data } = await admin
@@ -53,7 +58,7 @@ export async function createPageContactLineAction(
   formData: FormData,
 ): Promise<ActionResult<{ id: string }>> {
   try {
-    const session = await requireAdminWithRoles([...OFFICE_ROLES]);
+    const session = await requireOfficePageAccess(pageId, true);
     const parsed = pageContactLineSchema.safeParse({
       labelEn: formData.get("labelEn"),
       labelHi: formData.get("labelHi") || undefined,
@@ -100,7 +105,7 @@ export async function deletePageContactLineAction(
   id: string,
 ): Promise<ActionResult> {
   try {
-    const session = await requireAdminWithRoles([...OFFICE_ROLES]);
+    const session = await requireOfficePageAccess(pageId, true);
     const admin = createAdminClient();
     if (!admin) return fail("Database not configured.");
     const { error } = await admin.from(Tables.pageContactLines).delete().eq("id", id);
@@ -119,7 +124,7 @@ export async function deletePageContactLineAction(
 }
 
 export async function listPageStaffForAdmin(pageId: string): Promise<PageStaff[]> {
-  await requireAdminSession();
+  await requireOfficePageAccess(pageId);
   const admin = createAdminClient();
   if (!admin) return [];
   const { data } = await admin
@@ -136,7 +141,7 @@ export async function createPageStaffAction(
   formData: FormData,
 ): Promise<ActionResult<{ id: string }>> {
   try {
-    const session = await requireAdminWithRoles([...OFFICE_ROLES]);
+    const session = await requireOfficePageAccess(pageId, true);
     const parsed = pageStaffSchema.safeParse({
       nameEn: formData.get("nameEn"),
       nameHi: formData.get("nameHi") || undefined,
@@ -189,7 +194,7 @@ export async function createPageStaffAction(
 
 export async function deletePageStaffAction(pageId: string, id: string): Promise<ActionResult> {
   try {
-    const session = await requireAdminWithRoles([...OFFICE_ROLES]);
+    const session = await requireOfficePageAccess(pageId, true);
     const admin = createAdminClient();
     if (!admin) return fail("Database not configured.");
     const { error } = await admin.from(Tables.pageStaff).delete().eq("id", id);
@@ -208,7 +213,7 @@ export async function deletePageStaffAction(pageId: string, id: string): Promise
 }
 
 export async function listPageSidebarItemsForAdmin(pageId: string): Promise<PageSidebarItem[]> {
-  await requireAdminSession();
+  await requireOfficePageAccess(pageId);
   const admin = createAdminClient();
   if (!admin) return [];
   const { data } = await admin
@@ -226,7 +231,7 @@ export async function createPageSidebarItemAction(
   formData: FormData,
 ): Promise<ActionResult<{ id: string }>> {
   try {
-    const session = await requireAdminWithRoles([...OFFICE_ROLES]);
+    const session = await requireOfficePageAccess(pageId, true);
     const parsed = pageSidebarItemSchema.safeParse({
       side: formData.get("side"),
       labelEn: formData.get("labelEn"),
@@ -282,7 +287,7 @@ export async function updatePageSidebarItemAction(
   formData: FormData,
 ): Promise<ActionResult> {
   try {
-    const session = await requireAdminWithRoles([...OFFICE_ROLES]);
+    const session = await requireOfficePageAccess(pageId, true);
     const parsed = pageSidebarItemSchema.safeParse({
       side: formData.get("side"),
       labelEn: formData.get("labelEn"),
@@ -336,7 +341,7 @@ export async function deletePageSidebarItemAction(
   id: string,
 ): Promise<ActionResult> {
   try {
-    const session = await requireAdminWithRoles([...OFFICE_ROLES]);
+    const session = await requireOfficePageAccess(pageId, true);
     const admin = createAdminClient();
     if (!admin) return fail("Database not configured.");
     const { error } = await admin.from(Tables.pageSidebarItems).delete().eq("id", id);
@@ -355,7 +360,7 @@ export async function deletePageSidebarItemAction(
 }
 
 export async function listPageGalleryItemsForAdmin(pageId: string): Promise<PageGalleryItem[]> {
-  await requireAdminSession();
+  await requireOfficePageAccess(pageId);
   const admin = createAdminClient();
   if (!admin) return [];
   const { data } = await admin
@@ -371,7 +376,7 @@ export async function createPageGalleryItemAction(
   formData: FormData,
 ): Promise<ActionResult<{ id: string }>> {
   try {
-    const session = await requireAdminWithRoles([...OFFICE_ROLES]);
+    const session = await requireOfficePageAccess(pageId, true);
     const imageFile = formData.get("galleryFile");
     const thumbnailFile = formData.get("thumbnailFile");
     const uploadedImage = imageFile instanceof File && imageFile.size > 0 ? imageFile : null;
@@ -449,7 +454,7 @@ export async function deletePageGalleryItemAction(
   id: string,
 ): Promise<ActionResult> {
   try {
-    const session = await requireAdminWithRoles([...OFFICE_ROLES]);
+    const session = await requireOfficePageAccess(pageId, true);
     const admin = createAdminClient();
     if (!admin) return fail("Database not configured.");
 

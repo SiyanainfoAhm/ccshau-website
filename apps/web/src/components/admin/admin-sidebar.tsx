@@ -1,9 +1,11 @@
 "use client";
 
 import Link, { useLinkStatus } from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect } from "react";
 import {
   ArrowRightLeft,
+  Building2,
   ClipboardList,
   Download,
   FileText,
@@ -49,13 +51,27 @@ const navItems: NavItem[] = [
 ];
 
 const superAdminNavItems: NavItem[] = [
+  { href: "/admin/register", label: "College setup", icon: Building2 },
   { href: "/admin/users", label: "Users & roles", icon: Users },
 ];
 
-function getSidebarNavItems(isSuperAdmin: boolean): NavItem[] {
+const collegeOnlyNavItems: NavItem[] = [
+  { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
+  { href: "/admin/register", label: "College setup", icon: Building2 },
+  { href: "/admin/pages", label: "College pages", icon: FileText },
+];
+
+function getSidebarNavItems(isSuperAdmin: boolean, isCollegeOnly: boolean): NavItem[] {
+  if (isCollegeOnly) return collegeOnlyNavItems;
   if (!isSuperAdmin) return navItems;
   const settings = navItems[navItems.length - 1];
   return [...navItems.slice(0, -1), ...superAdminNavItems, settings];
+}
+
+function isAllowedCollegeOnlyPath(pathname: string): boolean {
+  if (pathname === "/admin") return true;
+  if (pathname.startsWith("/admin/register")) return true;
+  return pathname.startsWith("/admin/pages");
 }
 
 function NavPendingIndicator() {
@@ -70,45 +86,71 @@ function NavPendingIndicator() {
   );
 }
 
-export function AdminSidebar({ isSuperAdmin = false }: { isSuperAdmin?: boolean }) {
+function CollegeRouteGuard({ isCollegeOnly }: { isCollegeOnly: boolean }) {
   const pathname = usePathname();
-  const items = getSidebarNavItems(isSuperAdmin);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isCollegeOnly && !isAllowedCollegeOnlyPath(pathname)) {
+      router.replace("/admin");
+    }
+  }, [isCollegeOnly, pathname, router]);
+
+  return null;
+}
+
+export function AdminSidebar({
+  isSuperAdmin = false,
+  isCollegeOnly = false,
+  collegeName,
+}: {
+  isSuperAdmin?: boolean;
+  isCollegeOnly?: boolean;
+  collegeName?: string | null;
+}) {
+  const pathname = usePathname();
+  const items = getSidebarNavItems(isSuperAdmin, isCollegeOnly);
 
   return (
-    <aside className="flex w-64 shrink-0 flex-col border-r border-emerald-900/10 bg-[#0b3d2e] text-emerald-50">
-      <div className="border-b border-white/10 px-5 py-6">
-        <Link href="/admin" className="block">
-          <p className="font-display text-xl font-bold text-gradient-gold">CCSHAU</p>
-          <p className="mt-1 text-xs text-emerald-200/80">Content Management</p>
-        </Link>
-      </div>
-      <nav className="flex-1 space-y-1 p-3">
-        {items.map((item) => {
-          const active = item.exact
-            ? pathname === item.href
-            : pathname === item.href || pathname.startsWith(`${item.href}/`);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
-                active
-                  ? "bg-amber-400/20 text-amber-200"
-                  : "text-emerald-100/85 hover:bg-white/10 hover:text-white"
-              }`}
-            >
-              <item.icon className="h-4 w-4 shrink-0" aria-hidden />
-              {item.label}
-              <NavPendingIndicator />
-            </Link>
-          );
-        })}
-      </nav>
-      <div className="border-t border-white/10 p-4 text-xs text-emerald-300/70">
-        <Link href="/" className="hover:text-amber-200">
-          ← View public site
-        </Link>
-      </div>
-    </aside>
+    <>
+      <CollegeRouteGuard isCollegeOnly={isCollegeOnly} />
+      <aside className="flex w-64 shrink-0 flex-col border-r border-emerald-900/10 bg-[#0b3d2e] text-emerald-50">
+        <div className="border-b border-white/10 px-5 py-6">
+          <Link href="/admin" className="block">
+            <p className="font-display text-xl font-bold text-gradient-gold">CCSHAU</p>
+            <p className="mt-1 text-xs text-emerald-200/80">
+              {isCollegeOnly && collegeName ? collegeName : "Content Management"}
+            </p>
+          </Link>
+        </div>
+        <nav className="flex-1 space-y-1 p-3">
+          {items.map((item) => {
+            const active = item.exact
+              ? pathname === item.href
+              : pathname === item.href || pathname.startsWith(`${item.href}/`);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
+                  active
+                    ? "bg-amber-400/20 text-amber-200"
+                    : "text-emerald-100/85 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                <item.icon className="h-4 w-4 shrink-0" aria-hidden />
+                {item.label}
+                <NavPendingIndicator />
+              </Link>
+            );
+          })}
+        </nav>
+        <div className="border-t border-white/10 p-4 text-xs text-emerald-300/70">
+          <Link href="/" className="hover:text-amber-200">
+            ← View public site
+          </Link>
+        </div>
+      </aside>
+    </>
   );
 }

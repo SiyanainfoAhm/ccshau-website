@@ -30,6 +30,7 @@ import type {
   PublicNavItem,
   PublicNewsItem,
   PublicOfficePortalData,
+  PublicFacultyProfileStaff,
   PublicPage,
   PublicPageSummary,
   PublicQuickLink,
@@ -705,6 +706,13 @@ export async function getOfficePortalDataForPage(
       specializationHi: row.specialization_hi,
       imageUrl: row.image_path ? getStoredFileUrl(row.image_path) : null,
       detailHref: row.detail_href,
+      memberType: row.member_type ?? "faculty",
+      mobile: row.mobile,
+      email: row.email,
+      experienceEn: row.experience_en,
+      experienceHi: row.experience_hi,
+      detailContentEn: row.detail_content_en,
+      detailContentHi: row.detail_content_hi,
     })),
     sidebarLeft,
     sidebarRight,
@@ -825,6 +833,8 @@ export async function getPublishedCollegeBySlug(slug: string): Promise<PublicCol
     collegeSlug: college.slug,
     layoutTemplate: college.layout_template ?? "college_home",
     layoutConfig: mapLayoutConfig(college),
+    mapLat: college.map_lat ?? null,
+    mapLng: college.map_lng ?? null,
     sections: sectionRows.map((section) =>
       mapCollegeSection(section, subsectionsBySection.get(section.id) ?? []),
     ),
@@ -850,6 +860,59 @@ export async function getPublishedCollegeSubsection(
   if (!subsection) return null;
 
   return { college, section, subsection };
+}
+
+export async function getPublishedFacultyProfile(
+  collegeSlug: string,
+  sectionSlug: string,
+  subsectionSlug: string,
+  facultySlug: string,
+): Promise<{
+  college: PublicCollegePage;
+  section: PublicCollegeSection;
+  department: PublicCollegeSubsection;
+  staff: PublicFacultyProfileStaff;
+} | null> {
+  const ctx = await getPublishedCollegeSubsection(collegeSlug, sectionSlug, subsectionSlug);
+  if (!ctx) return null;
+
+  const admin = createAdminClient();
+  if (!admin) return null;
+
+  const { data: row } = await admin
+    .from(Tables.pageStaff)
+    .select("*")
+    .eq("page_id", ctx.subsection.pageId)
+    .eq("staff_slug", facultySlug)
+    .eq("is_active", true)
+    .maybeSingle();
+
+  if (!row) return null;
+
+  const staffRow = row as PageStaff;
+
+  return {
+    college: ctx.college,
+    section: ctx.section,
+    department: ctx.subsection,
+    staff: {
+      nameEn: staffRow.name_en,
+      nameHi: staffRow.name_hi,
+      designationEn: staffRow.designation_en,
+      designationHi: staffRow.designation_hi,
+      specializationEn: staffRow.specialization_en,
+      specializationHi: staffRow.specialization_hi,
+      imageUrl: staffRow.image_path ? getStoredFileUrl(staffRow.image_path) : null,
+      detailHref: staffRow.detail_href,
+      memberType: staffRow.member_type ?? "faculty",
+      mobile: staffRow.mobile,
+      email: staffRow.email,
+      experienceEn: staffRow.experience_en,
+      experienceHi: staffRow.experience_hi,
+      detailContentEn: staffRow.detail_content_en,
+      detailContentHi: staffRow.detail_content_hi,
+    },
+  };
 }
 
 export async function getPublishedPagePublicPath(slug: string): Promise<string | null> {

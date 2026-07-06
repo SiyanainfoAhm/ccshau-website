@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { listCollegesForAdmin } from "@/lib/auth/college-scope";
 import { listDepartments } from "@/actions/pages";
 import { InviteUserForm } from "@/components/admin/invite-user-form";
 import { requireAdminSession } from "@/lib/auth/session";
@@ -11,7 +12,7 @@ export default async function AdminNewUserPage() {
     redirect("/admin");
   }
 
-  const departments = await listDepartments();
+  const [departments, colleges] = await Promise.all([listDepartments(), listCollegesForAdmin()]);
 
   return (
     <div className="space-y-6">
@@ -21,10 +22,10 @@ export default async function AdminNewUserPage() {
         </Link>
         <h1 className="mt-2 font-display text-2xl font-bold text-slate-900">New CMS user</h1>
         <p className="text-sm text-slate-500">
-          Creates an auth account, profile, and optional initial role
+          Creates an auth account, profile, and optional university or college access
         </p>
       </div>
-      <InviteUserForm departments={departments} />
+      <InviteUserForm departments={departments} colleges={colleges} />
     </div>
   );
 }

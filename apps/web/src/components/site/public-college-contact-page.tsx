@@ -20,8 +20,20 @@ function splitContactValues(value: string) {
     .filter(Boolean);
 }
 
-function buildMapQuery(collegeName: string, address: string | null) {
-  return [collegeName, address].filter(Boolean).join(", ");
+function buildMapEmbedSrc(
+  collegeName: string,
+  address: string | null,
+  mapLat: number | null,
+  mapLng: number | null,
+) {
+  if (mapLat != null && mapLng != null) {
+    return `https://maps.google.com/maps?q=${mapLat},${mapLng}&t=k&z=17&ie=UTF8&iwloc=&output=embed`;
+  }
+
+  const mapQuery = encodeURIComponent(
+    [collegeName, address].filter(Boolean).join(", ") || `${collegeName}, Hisar, Haryana`,
+  );
+  return `https://maps.google.com/maps?q=${mapQuery}&t=k&z=17&ie=UTF8&iwloc=&output=embed`;
 }
 
 export function PublicCollegeContactPage({
@@ -52,16 +64,14 @@ export function PublicCollegeContactPage({
     : "";
   const emails = splitContactValues(emailRaw.replace(/^e-?mail\s*(id)?\s*:\s*/i, ""));
 
-  const mapQuery = encodeURIComponent(
-    buildMapQuery(collegeName, address) || `${collegeName}, Hisar, Haryana`,
-  );
+  const mapSrc = buildMapEmbedSrc(collegeName, address, college.mapLat, college.mapLng);
 
   return (
     <div className="flex flex-col">
       <section className="relative h-[min(520px,70vh)] w-full bg-slate-200">
         <iframe
           title={t(`Map — ${collegeName}`, `मानचित्र — ${collegeName}`)}
-          src={`https://maps.google.com/maps?q=${mapQuery}&t=k&z=17&ie=UTF8&iwloc=&output=embed`}
+          src={mapSrc}
           className="absolute inset-0 h-full w-full border-0"
           loading="lazy"
           referrerPolicy="no-referrer-when-downgrade"

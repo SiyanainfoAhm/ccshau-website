@@ -7,6 +7,8 @@ import { useState } from "react";
 import { FarmersPortalSection } from "@/components/design/shared/home-sections";
 import { useLanguage } from "@/components/design/shared/language-context";
 import { CmsHtmlContent } from "@/components/site/cms-html-content";
+import { DepartmentAboutSection } from "@/components/site/department-about-section";
+import { FacultyProfileDialog } from "@/components/site/faculty-profile-dialog";
 import { PublicCollegeGallery } from "@/components/site/public-college-gallery";
 import type { HomepageCtaItem } from "@/lib/data/homepage";
 import type {
@@ -15,6 +17,7 @@ import type {
   PublicCollegeSubsection,
   PublicOfficePortalData,
   PublicGalleryImage,
+  PublicOfficeStaffMember,
   PublicSidebarLink,
 } from "@/lib/data/public-types";
 import { pickBilingual } from "@/lib/i18n/pick-bilingual";
@@ -76,6 +79,97 @@ function SidebarPanel({
 }
 
 
+function StaffDirectoryTable({
+  staff,
+  title,
+}: {
+  staff: PublicOfficeStaffMember[];
+  title?: string | null;
+}) {
+  const { lang, t } = useLanguage();
+  const [selectedMember, setSelectedMember] = useState<PublicOfficeStaffMember | null>(null);
+
+  return (
+    <>
+      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      {title && (
+        <h2
+          className={`border-b border-slate-100 px-6 py-4 font-display text-2xl font-bold text-slate-900 ${lang === "hi" ? "font-hindi" : ""}`}
+        >
+          {title}
+        </h2>
+      )}
+      <div className="overflow-x-auto">
+        <table className="min-w-full text-left text-sm">
+          <thead className="bg-emerald-50 text-xs font-bold uppercase tracking-wide text-emerald-900">
+            <tr>
+              <th className="px-4 py-3">#</th>
+              <th className="px-4 py-3">{t("Image", "छवि")}</th>
+              <th className="px-4 py-3">{t("Name", "नाम")}</th>
+              <th className="px-4 py-3">{t("Designation", "पदनाम")}</th>
+              <th className="px-4 py-3">{t("Specialization", "विशेषज्ञता")}</th>
+              <th className="px-4 py-3">{t("Details", "विवरण")}</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {staff.map((member, index) => (
+              <tr key={`${member.nameEn}-${index}`} className="text-slate-700">
+                <td className="px-4 py-3">{index + 1}</td>
+                <td className="px-4 py-3">
+                  {member.imageUrl ? (
+                    <div className="relative h-12 w-12 overflow-hidden rounded-full border border-slate-200">
+                      <Image src={member.imageUrl} alt="" fill className="object-cover" sizes="48px" />
+                    </div>
+                  ) : (
+                    <span className="text-slate-400">—</span>
+                  )}
+                </td>
+                <td className={`px-4 py-3 font-medium ${lang === "hi" ? "font-hindi" : ""}`}>
+                  {pickBilingual(lang, member.nameEn, member.nameHi)}
+                  {member.memberType === "hod" && (
+                    <span className="ml-2 inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
+                      HOD
+                    </span>
+                  )}
+                </td>
+                <td className={`px-4 py-3 ${lang === "hi" ? "font-hindi" : ""}`}>
+                  {pickBilingual(lang, member.designationEn, member.designationHi)}
+                </td>
+                <td className={`px-4 py-3 ${lang === "hi" ? "font-hindi" : ""}`}>
+                  {pickBilingual(lang, member.specializationEn ?? "—", member.specializationHi)}
+                </td>
+                <td className="px-4 py-3">
+                  {member.detailHref || member.detailContentEn || member.detailContentHi ? (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedMember(member)}
+                      className="font-semibold text-emerald-700 hover:underline"
+                    >
+                      {t("Details", "विवरण")}
+                    </button>
+                  ) : (
+                    "—"
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      </div>
+
+      {selectedMember && (
+        <FacultyProfileDialog
+          member={selectedMember}
+          open={Boolean(selectedMember)}
+          onClose={() => setSelectedMember(null)}
+        />
+      )}
+    </>
+  );
+}
+
+
 export function PublicConfigurablePage({
   college,
   layoutConfig,
@@ -114,7 +208,24 @@ export function PublicConfigurablePage({
     Boolean(selectedSidebar) &&
     (selectedSidebar!.labelEn.toLowerCase().includes("faculty") ||
       Boolean(selectedSidebar!.labelHi?.includes("संकाय")));
-  const bodyContent = isFacultySidebar ? null : sidebarContent || defaultBodyContent;
+  const isAboutSidebar =
+    Boolean(selectedSidebar) &&
+    (selectedSidebar!.labelEn.toLowerCase().includes("about") ||
+      Boolean(selectedSidebar!.labelHi?.includes("परिचय")));
+  const isHodSidebar =
+    Boolean(selectedSidebar) &&
+    (selectedSidebar!.labelEn.toLowerCase().includes("head of department") ||
+      Boolean(selectedSidebar!.labelHi?.includes("विभागाध्यक्ष")));
+
+  const hodMember = office?.staff.find((member) => member.memberType === "hod") ?? null;
+  const isDepartmentLanding = Boolean(subsection) && !selectedSidebar;
+  const aboutTitle = contentPage
+    ? `${t("About", "के बारे में")} ${title}`
+    : title;
+  const bodyContent =
+    isFacultySidebar || isHodSidebar || isAboutSidebar
+      ? null
+      : sidebarContent || defaultBodyContent;
   const bodyTitle = selectedSidebar
     ? pickBilingual(lang, selectedSidebar.labelEn, selectedSidebar.labelHi)
     : contentPage
@@ -134,14 +245,18 @@ export function PublicConfigurablePage({
   const showHeadOfficerContacts =
     showHeadOfficer && layoutConfig.contacts && hasContactLines;
   const showStaffTable =
-    (layoutConfig.staff || isFacultySidebar) &&
-    (office?.staff.length ?? 0) > 0 &&
-    (!selectedSidebar || isFacultySidebar);
+    isFacultySidebar && (office?.staff.length ?? 0) > 0;
+  const showDepartmentAbout =
+    (isDepartmentLanding || isAboutSidebar) && Boolean(hodMember || defaultBodyContent);
+  const showHodSidebarProfile = isHodSidebar;
+  const showMainContent =
+    layoutConfig.mainContent &&
+    Boolean(bodyContent) &&
+    !showDepartmentAbout;
   const showLeftSidebar =
     layoutConfig.leftSidebar && (office?.sidebarLeft.length ?? 0) > 0;
   const showRightSidebar =
     layoutConfig.rightSidebar && (office?.sidebarRight.length ?? 0) > 0;
-  const showMainContent = layoutConfig.mainContent && Boolean(bodyContent);
   const showFarmersCta =
     layoutConfig.farmersCta && (office?.officeCtaEnabled ?? false);
   const showGallery = layoutConfig.gallery && (galleryImages?.length ?? 0) > 0 && !selectedSidebar;
@@ -308,79 +423,31 @@ export function PublicConfigurablePage({
               </div>
             )}
 
+            {showDepartmentAbout && office && (
+              <DepartmentAboutSection
+                sectionTitle={aboutTitle}
+                member={hodMember}
+                contactLines={office.contactLines}
+                aboutHtml={defaultBodyContent}
+              />
+            )}
+
+            {showHodSidebarProfile && office && (
+              hodMember ? (
+                <DepartmentAboutSection
+                  sectionTitle={bodyTitle ?? t("Head of Department", "विभागाध्यक्ष")}
+                  member={hodMember}
+                  contactLines={office.contactLines}
+                />
+              ) : (
+                <p className="rounded-xl border border-slate-200 bg-white p-6 text-center text-slate-500 shadow-sm">
+                  {t("Head of Department has not been assigned yet.", "विभागाध्यक्ष अभी नियुक्त नहीं किया गया है।")}
+                </p>
+              )
+            )}
+
             {showStaffTable && office && (
-              <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-                {isFacultySidebar && bodyTitle && (
-                  <h2
-                    className={`border-b border-slate-100 px-6 py-4 font-display text-2xl font-bold text-slate-900 ${lang === "hi" ? "font-hindi" : ""}`}
-                  >
-                    {bodyTitle}
-                  </h2>
-                )}
-                <div className="overflow-x-auto">
-                  <table className="min-w-full text-left text-sm">
-                    <thead className="bg-emerald-50 text-xs font-bold uppercase tracking-wide text-emerald-900">
-                      <tr>
-                        <th className="px-4 py-3">#</th>
-                        <th className="px-4 py-3">{t("Image", "छवि")}</th>
-                        <th className="px-4 py-3">{t("Name", "नाम")}</th>
-                        <th className="px-4 py-3">{t("Designation", "पदनाम")}</th>
-                        <th className="px-4 py-3">{t("Specialization", "विशेषज्ञता")}</th>
-                        <th className="px-4 py-3">{t("Details", "विवरण")}</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {office.staff.map((member, index) => (
-                        <tr key={member.nameEn + index} className="text-slate-700">
-                          <td className="px-4 py-3">{index + 1}</td>
-                          <td className="px-4 py-3">
-                            {member.imageUrl ? (
-                              <div className="relative h-12 w-12 overflow-hidden rounded-full border border-slate-200">
-                                <Image
-                                  src={member.imageUrl}
-                                  alt=""
-                                  fill
-                                  className="object-cover"
-                                  sizes="48px"
-                                />
-                              </div>
-                            ) : (
-                              <span className="text-slate-400">—</span>
-                            )}
-                          </td>
-                          <td
-                            className={`px-4 py-3 font-medium ${lang === "hi" ? "font-hindi" : ""}`}
-                          >
-                            {pickBilingual(lang, member.nameEn, member.nameHi)}
-                          </td>
-                          <td className={`px-4 py-3 ${lang === "hi" ? "font-hindi" : ""}`}>
-                            {pickBilingual(lang, member.designationEn, member.designationHi)}
-                          </td>
-                          <td className={`px-4 py-3 ${lang === "hi" ? "font-hindi" : ""}`}>
-                            {pickBilingual(
-                              lang,
-                              member.specializationEn ?? "—",
-                              member.specializationHi,
-                            )}
-                          </td>
-                          <td className="px-4 py-3">
-                            {member.detailHref ? (
-                              <Link
-                                href={member.detailHref}
-                                className="font-semibold text-emerald-700 hover:underline"
-                              >
-                                {t("View", "देखें")}
-                              </Link>
-                            ) : (
-                              "—"
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+              <StaffDirectoryTable staff={office.staff} title={isFacultySidebar ? bodyTitle : null} />
             )}
 
             {showGallery && galleryImages && (
@@ -403,7 +470,7 @@ export function PublicConfigurablePage({
               </article>
             )}
 
-            {!showMainContent && !showHeadOfficer && !showContacts && !showStaffTable && !showGallery && !selectedSidebar && (
+            {!showMainContent && !showHeadOfficer && !showContacts && !showStaffTable && !showDepartmentAbout && !showHodSidebarProfile && !showGallery && !selectedSidebar && (
               <p className="text-center text-slate-500">{t("Content coming soon.", "सामग्री जल्द आ रही है।")}</p>
             )}
           </div>

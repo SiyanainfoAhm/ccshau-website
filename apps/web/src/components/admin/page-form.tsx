@@ -17,9 +17,11 @@ import {
   presetForLayoutTemplate,
   type PageLayoutConfig,
 } from "@/lib/pages/layout-config";
+import { parseCollegeContactFromLines } from "@/lib/pages/college-contact-seed";
 import type { PagePathAncestors } from "@/lib/pages/resolve-public-path";
 import {
   ancestorsForChildPage,
+  isCollegesContainerSlug,
   isParentUnderCollege,
   resolvePublicPagePath,
 } from "@/lib/pages/resolve-public-path";
@@ -45,6 +47,8 @@ export function PageForm({
   parentPages,
   page,
   officePortalData,
+  allowCollegeRoot = true,
+  canEdit = true,
 }: {
   departments: Department[];
   parentPages: ParentOption[];
@@ -55,6 +59,8 @@ export function PageForm({
     galleryItems: PageGalleryItem[];
     sidebarItems: PageSidebarItem[];
   };
+  allowCollegeRoot?: boolean;
+  canEdit?: boolean;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -88,6 +94,7 @@ export function PageForm({
       : presetForLayoutTemplate("college_home"),
   );
   const [parentId, setParentId] = useState(page?.parent_id ?? "");
+  const collegeContact = parseCollegeContactFromLines(officePortalData?.contactLines ?? []);
 
   function handleTitleBlur() {
     if (!page && titleEn && !slug) {
@@ -144,7 +151,12 @@ export function PageForm({
   function handleSubmit(formData: FormData) {
     setError(null);
 
-    formData.set("pageType", parentId ? "standard" : pageType);
+    const selected = parentPages.find((p) => p.id === parentId);
+    const isCollegeRoot =
+      pageType === "college" && (!parentId || isCollegesContainerSlug(selected?.slug));
+    const submittedPageType = isCollegeRoot ? "college" : parentId ? "standard" : pageType;
+
+    formData.set("pageType", submittedPageType);
     if (showLayoutTemplate) {
       const template =
         layoutTemplate === "standard" ? "college_home" : layoutTemplate;
@@ -168,10 +180,12 @@ export function PageForm({
   }
 
   const selectedParent = parentPages.find((p) => p.id === parentId);
+  const isCollegesContainerParent = isCollegesContainerSlug(selectedParent?.slug);
+  const isCollegeRoot = pageType === "college" && (!parentId || isCollegesContainerParent);
   const isCollegeHierarchyChild = Boolean(
     selectedParent && isParentUnderCollege(selectedParent),
   );
-  const effectivePageType = parentId ? "standard" : pageType;
+  const effectivePageType = isCollegeRoot ? "college" : parentId ? "standard" : pageType;
   const previewPath = slug
     ? selectedParent
       ? resolvePublicPagePath(slug, effectivePageType, ancestorsForChildPage(selectedParent))
@@ -193,7 +207,7 @@ export function PageForm({
   return (
     <div className="space-y-6">
     <form action={handleSubmit} className="mx-auto max-w-3xl space-y-6">
-      <input type="hidden" name="pageType" value={parentId ? "standard" : pageType} />
+      <input type="hidden" name="pageType" value={isCollegeRoot ? "college" : parentId ? "standard" : pageType} />
       <input
         type="hidden"
         name="layoutTemplate"
@@ -227,6 +241,7 @@ export function PageForm({
             <span className="font-medium text-slate-700">Template</span>
             <select
               value={pageType}
+              disabled={!canEdit}
               onChange={(e) => {
                 const next = e.target.value as Page["page_type"];
                 setPageType(next);
@@ -241,7 +256,9 @@ export function PageForm({
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
             >
               <option value="standard">Standard page (/pages/slug)</option>
-              <option value="college">College landing (/college/slug)</option>
+              {allowCollegeRoot && (
+                <option value="college">College landing (/college/slug)</option>
+              )}
             </select>
           </label>
           {showLayoutTemplate && (
@@ -382,7 +399,7 @@ export function PageForm({
         </div>
       </div>
 
-      {pageType === "college" && (
+      {isCollegeRoot && (
         <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-6 shadow-sm">
           <h2 className="mb-4 text-lg font-semibold text-slate-900">College images</h2>
           <p className="mb-4 text-sm text-slate-600">
@@ -407,6 +424,82 @@ export function PageForm({
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-xs"
               />
             </label>
+          </div>
+        </div>
+      )}
+
+      {isCollegeRoot && (
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 className="mb-4 text-lg font-semibold text-slate-900">Contact & location</h2>
+          <p className="mb-4 text-sm text-slate-600">
+            Shown on the college contact page and home contact block.
+          </p>
+          <div className="grid gap-4">
+            <label className="block text-sm">
+              <span className="font-medium text-slate-700">Mailing address (English)</span>
+              <textarea
+                name="addressEn"
+                required
+                rows={3}
+                defaultValue={collegeContact.addressEn}
+                placeholder="College name, CCS HAU, Hisar - 125004, Haryana, India"
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+              />
+            </label>
+            <label className="block text-sm">
+              <span className="font-medium text-slate-700">Mailing address (Hindi, optional)</span>
+              <textarea
+                name="addressHi"
+                rows={2}
+                defaultValue={collegeContact.addressHi}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-hindi"
+              />
+            </label>
+            <div className="grid gap-4 md:grid-cols-2">
+              <label className="block text-sm">
+                <span className="font-medium text-slate-700">Phone</span>
+                <input
+                  name="phone"
+                  required
+                  defaultValue={collegeContact.phone}
+                  placeholder="+91 01662255401"
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+                />
+              </label>
+              <label className="block text-sm">
+                <span className="font-medium text-slate-700">Email</span>
+                <input
+                  name="email"
+                  type="email"
+                  required
+                  defaultValue={collegeContact.email}
+                  placeholder="college@hau.ac.in"
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+                />
+              </label>
+              <label className="block text-sm">
+                <span className="font-medium text-slate-700">Latitude (optional)</span>
+                <input
+                  name="mapLat"
+                  type="number"
+                  step="any"
+                  defaultValue={page?.map_lat ?? ""}
+                  placeholder="29.1492"
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+                />
+              </label>
+              <label className="block text-sm">
+                <span className="font-medium text-slate-700">Longitude (optional)</span>
+                <input
+                  name="mapLng"
+                  type="number"
+                  step="any"
+                  defaultValue={page?.map_lng ?? ""}
+                  placeholder="75.7217"
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+                />
+              </label>
+            </div>
           </div>
         </div>
       )}
@@ -560,13 +653,18 @@ export function PageForm({
       </div>
 
       <div className="flex items-center gap-3">
-        <button
-          type="submit"
-          disabled={isPending}
-          className="rounded-lg bg-[#0b3d2e] px-5 py-2.5 font-semibold text-white hover:bg-[#0d4a38] disabled:opacity-60"
-        >
-          {isPending ? "Saving…" : page ? "Update page" : "Create page"}
-        </button>
+        {canEdit && (
+          <button
+            type="submit"
+            disabled={isPending}
+            className="rounded-lg bg-[#0b3d2e] px-5 py-2.5 font-semibold text-white hover:bg-[#0d4a38] disabled:opacity-60"
+          >
+            {isPending ? "Saving…" : page ? "Update page" : "Create page"}
+          </button>
+        )}
+        {!canEdit && (
+          <p className="text-sm text-slate-500">View-only access — you cannot save changes.</p>
+        )}
         <Link href="/admin/pages" className="text-sm text-slate-600 hover:text-emerald-800">
           Cancel
         </Link>
@@ -580,7 +678,7 @@ export function PageForm({
         staff={officePortalData.staff}
         galleryItems={officePortalData.galleryItems}
         sidebarItems={officePortalData.sidebarItems}
-        showContacts={layoutConfig.contacts}
+        showContacts={layoutConfig.contacts && !isCollegeRoot}
         showStaff={layoutConfig.staff}
         showGallery={layoutConfig.gallery}
         showLeftSidebar={layoutConfig.leftSidebar}

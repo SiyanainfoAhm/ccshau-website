@@ -5,10 +5,11 @@ import { revalidatePath } from "next/cache";
 import { writeAuditLog } from "@/lib/auth/audit";
 import { requireAdminWithRoles } from "@/lib/auth/session";
 import { Tables } from "@/lib/database/names";
-import type { Profile, UserRole, UserRoleRow } from "@/lib/database/types";
+import type { CollegeScopeRole, Profile, UserRole, UserRoleRow } from "@/lib/database/types";
 import { fail, ok, type ActionResult } from "@/lib/types/action-result";
 import {
   assignRoleSchema,
+  assignCollegeSchema,
   inviteUserSchema,
   updateUserSchema,
 } from "@/lib/validations/users";
@@ -23,9 +24,17 @@ export interface RoleAssignmentView {
   department_name: string | null;
 }
 
+export interface CollegeAssignmentView {
+  college_page_id: string;
+  college_name: string;
+  college_slug: string;
+  role: CollegeScopeRole;
+}
+
 export interface AdminUserListItem extends Profile {
   department_name: string | null;
   role_assignments: RoleAssignmentView[];
+  college_assignment: CollegeAssignmentView | null;
 }
 
 export interface AdminUserDetail extends AdminUserListItem {}
@@ -46,6 +55,7 @@ function mapUserWithRoles(
   profile: Profile,
   roles: UserRoleRow[],
   deptMap: Map<string, string>,
+  collegeAssignment: CollegeAssignmentView | null,
 ): AdminUserListItem {
   return {
     ...profile,
@@ -56,7 +66,30 @@ function mapUserWithRoles(
       department_id: r.department_id,
       department_name: r.department_id ? (deptMap.get(r.department_id) ?? null) : null,
     })),
+    college_assignment: collegeAssignment,
   };
+}
+
+async function getCollegeAssignmentsMap() {
+  const admin = createAdminClient();
+  if (!admin) return new Map<string, CollegeAssignmentView>();
+
+  const { data } = await admin
+    .from(Tables.userColleges)
+    .select("user_id, college_page_id, role, college:college_page_id (title_en, slug)");
+
+  const map = new Map<string, CollegeAssignmentView>();
+  for (const row of data ?? []) {
+    const college = row.college as unknown as { title_en: string; slug: string } | null;
+    if (!college) continue;
+    map.set(row.user_id, {
+      college_page_id: row.college_page_id,
+      college_name: college.title_en,
+      college_slug: college.slug,
+      role: row.role as CollegeScopeRole,
+    });
+  }
+  return map;
 }
 
 export async function listUsersForAdmin(): Promise<AdminUserListItem[]> {
@@ -64,10 +97,11 @@ export async function listUsersForAdmin(): Promise<AdminUserListItem[]> {
   const admin = createAdminClient();
   if (!admin) return [];
 
-  const [profilesRes, rolesRes, deptMap] = await Promise.all([
+  const [profilesRes, rolesRes, deptMap, collegeMap] = await Promise.all([
     admin.from(Tables.profiles).select("*").order("display_name"),
     admin.from(Tables.userRoles).select("*"),
     getDepartmentNameMap(),
+    getCollegeAssignmentsMap(),
   ]);
 
   const rolesByUser = new Map<string, UserRoleRow[]>();
@@ -78,7 +112,12 @@ export async function listUsersForAdmin(): Promise<AdminUserListItem[]> {
   }
 
   return ((profilesRes.data ?? []) as Profile[]).map((profile) =>
-    mapUserWithRoles(profile, rolesByUser.get(profile.id) ?? [], deptMap),
+    mapUserWithRoles(
+      profile,
+      rolesByUser.get(profile.id) ?? [],
+      deptMap,
+      collegeMap.get(profile.id) ?? null,
+    ),
   );
 }
 
@@ -87,10 +126,11 @@ export async function getUserById(id: string): Promise<AdminUserDetail | null> {
   const admin = createAdminClient();
   if (!admin) return null;
 
-  const [profileRes, rolesRes, deptMap] = await Promise.all([
+  const [profileRes, rolesRes, deptMap, collegeMap] = await Promise.all([
     admin.from(Tables.profiles).select("*").eq("id", id).maybeSingle(),
     admin.from(Tables.userRoles).select("*").eq("user_id", id),
     getDepartmentNameMap(),
+    getCollegeAssignmentsMap(),
   ]);
 
   if (!profileRes.data) return null;
@@ -99,6 +139,7 @@ export async function getUserById(id: string): Promise<AdminUserDetail | null> {
     profileRes.data as Profile,
     (rolesRes.data ?? []) as UserRoleRow[],
     deptMap,
+    collegeMap.get(id) ?? null,
   );
 }
 
@@ -109,6 +150,8 @@ function parseInviteForm(formData: FormData) {
     password: formData.get("password"),
     departmentId: formData.get("departmentId") || undefined,
     initialRole: formData.get("initialRole") || undefined,
+    collegePageId: formData.get("collegePageId") || undefined,
+    collegeRole: formData.get("collegeRole") || undefined,
   });
 }
 
@@ -185,12 +228,29 @@ export async function inviteUserAction(formData: FormData): Promise<ActionResult
       }
     }
 
+    if (input.collegePageId && input.collegeRole) {
+      const { error: collegeError } = await admin.from(Tables.userColleges).insert({
+        user_id: userId,
+        college_page_id: input.collegePageId,
+        role: input.collegeRole,
+      });
+
+      if (collegeError) {
+        return fail(collegeError.message);
+      }
+    }
+
     await writeAuditLog({
       userId: session.userId,
       action: "create",
       entityType: "user",
       entityId: userId,
-      details: { email: input.email, initialRole: input.initialRole ?? null },
+      details: {
+        email: input.email,
+        initialRole: input.initialRole ?? null,
+        collegePageId: input.collegePageId ?? null,
+        collegeRole: input.collegeRole ?? null,
+      },
     });
 
     revalidatePath("/admin/users");
@@ -345,5 +405,80 @@ export async function revokeRoleAction(roleId: string, userId: string): Promise<
     return ok(undefined);
   } catch (e) {
     return fail(e instanceof Error ? e.message : "Failed to revoke role.");
+  }
+}
+
+function parseAssignCollegeForm(formData: FormData) {
+  return assignCollegeSchema.safeParse({
+    collegePageId: formData.get("collegePageId"),
+    collegeRole: formData.get("collegeRole"),
+  });
+}
+
+export async function assignCollegeAction(
+  userId: string,
+  formData: FormData,
+): Promise<ActionResult> {
+  try {
+    const session = await requireSuperAdmin();
+    const parsed = parseAssignCollegeForm(formData);
+    if (!parsed.success) {
+      return fail("Validation failed", parsed.error.flatten().fieldErrors);
+    }
+
+    const admin = createAdminClient();
+    if (!admin) return fail("Database not configured.");
+
+    const { error } = await admin.from(Tables.userColleges).upsert(
+      {
+        user_id: userId,
+        college_page_id: parsed.data.collegePageId,
+        role: parsed.data.collegeRole,
+      },
+      { onConflict: "user_id" },
+    );
+
+    if (error) return fail(error.message);
+
+    await writeAuditLog({
+      userId: session.userId,
+      action: "update",
+      entityType: "user_college",
+      entityId: userId,
+      details: {
+        collegePageId: parsed.data.collegePageId,
+        collegeRole: parsed.data.collegeRole,
+      },
+    });
+
+    revalidatePath("/admin/users");
+    revalidatePath(`/admin/users/${userId}`);
+    return ok(undefined);
+  } catch (e) {
+    return fail(e instanceof Error ? e.message : "Failed to assign college.");
+  }
+}
+
+export async function revokeCollegeAction(userId: string): Promise<ActionResult> {
+  try {
+    const session = await requireSuperAdmin();
+    const admin = createAdminClient();
+    if (!admin) return fail("Database not configured.");
+
+    const { error } = await admin.from(Tables.userColleges).delete().eq("user_id", userId);
+    if (error) return fail(error.message);
+
+    await writeAuditLog({
+      userId: session.userId,
+      action: "delete",
+      entityType: "user_college",
+      entityId: userId,
+    });
+
+    revalidatePath("/admin/users");
+    revalidatePath(`/admin/users/${userId}`);
+    return ok(undefined);
+  } catch (e) {
+    return fail(e instanceof Error ? e.message : "Failed to revoke college assignment.");
   }
 }

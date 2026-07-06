@@ -2,7 +2,9 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { getUserById } from "@/actions/users";
+import { listCollegesForAdmin } from "@/lib/auth/college-scope";
 import { listDepartments } from "@/actions/pages";
+import { CollegeAssignmentPanel } from "@/components/admin/college-assignment-panel";
 import { UserProfileForm } from "@/components/admin/user-profile-form";
 import { UserRolesPanel } from "@/components/admin/user-roles-panel";
 import { requireAdminSession } from "@/lib/auth/session";
@@ -18,7 +20,11 @@ export default async function AdminEditUserPage({
   }
 
   const { id } = await params;
-  const [user, departments] = await Promise.all([getUserById(id), listDepartments()]);
+  const [user, departments, colleges] = await Promise.all([
+    getUserById(id),
+    listDepartments(),
+    listCollegesForAdmin(),
+  ]);
   if (!user) notFound();
 
   return (
@@ -39,6 +45,15 @@ export default async function AdminEditUserPage({
       <section className="space-y-4">
         <h2 className="text-lg font-semibold text-slate-900">CMS roles</h2>
         <UserRolesPanel userId={user.id} roles={user.role_assignments} departments={departments} />
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold text-slate-900">College assignment</h2>
+        <CollegeAssignmentPanel
+          userId={user.id}
+          assignment={user.college_assignment}
+          colleges={colleges}
+        />
       </section>
     </div>
   );

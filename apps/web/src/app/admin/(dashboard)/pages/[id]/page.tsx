@@ -9,12 +9,13 @@ import {
 } from "@/actions/office-portal";
 import { getPageById, listDepartments, listPagesForAdmin } from "@/actions/pages";
 import { PageForm } from "@/components/admin/page-form";
+import { canCreateCollegeRoot, canEditPages } from "@/lib/auth/college-scope";
 import { requireAdminSession } from "@/lib/auth/session";
 import { buildAdminParentPageOptions, resolvePagePublicPath } from "@/lib/pages/resolve-public-path";
 import { isCollegeLayoutPage } from "@/lib/pages/layout-config";
 
 export default async function EditPagePage({ params }: { params: Promise<{ id: string }> }) {
-  await requireAdminSession();
+  const session = await requireAdminSession();
   const { id } = await params;
   const [page, departments, allPages] = await Promise.all([
     getPageById(id),
@@ -56,6 +57,8 @@ export default async function EditPagePage({ params }: { params: Promise<{ id: s
         parentPages={parentPages}
         page={page}
         officePortalData={{ contactLines, staff, galleryItems, sidebarItems }}
+        allowCollegeRoot={canCreateCollegeRoot(session)}
+        canEdit={canEditPages(session)}
       />
     </div>
   );

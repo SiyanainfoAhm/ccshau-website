@@ -1,4 +1,4 @@
-import { sanitizeCmsHtml } from "@/lib/html/sanitize-cms-html";
+import { normalizeCmsHtml, sanitizeCmsHtml } from "@/lib/html/sanitize-cms-html";
 
 export function CmsHtmlContent({
   html,
@@ -10,7 +10,7 @@ export function CmsHtmlContent({
   return (
     <div
       className={className}
-      dangerouslySetInnerHTML={{ __html: sanitizeCmsHtml(html) }}
+      dangerouslySetInnerHTML={{ __html: sanitizeCmsHtml(normalizeCmsHtml(html)) }}
     />
   );
 }

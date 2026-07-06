@@ -6,13 +6,22 @@ import { useState, useTransition } from "react";
 
 import { inviteUserAction } from "@/actions/users";
 import type { DepartmentOption } from "@/lib/database/types";
-import { ROLE_LABELS } from "@/lib/validations/users";
+import { COLLEGE_ROLE_LABELS, ROLE_LABELS } from "@/lib/validations/users";
 
-export function InviteUserForm({ departments }: { departments: DepartmentOption[] }) {
+type CollegeOption = { id: string; title_en: string };
+
+export function InviteUserForm({
+  departments,
+  colleges,
+}: {
+  departments: DepartmentOption[];
+  colleges: CollegeOption[];
+}) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [initialRole, setInitialRole] = useState("");
+  const [collegeRole, setCollegeRole] = useState("");
 
   function handleSubmit(formData: FormData) {
     setError(null);
@@ -80,27 +89,62 @@ export function InviteUserForm({ departments }: { departments: DepartmentOption[
         </select>
       </label>
 
-      <label className="block text-sm">
-        <span className="font-medium text-slate-700">Initial CMS role (optional)</span>
-        <select
-          name="initialRole"
-          value={initialRole}
-          onChange={(e) => setInitialRole(e.target.value)}
-          className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-        >
-          <option value="">— Assign later —</option>
-          {Object.entries(ROLE_LABELS).map(([value, label]) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
-        </select>
-        {showDeptForRole && (
-          <span className="mt-1 block text-xs text-slate-500">
-            Department-scoped roles use the home department above when set.
-          </span>
-        )}
-      </label>
+      <fieldset className="space-y-4 rounded-xl border border-slate-200 p-4">
+        <legend className="px-1 text-sm font-semibold text-slate-800">University CMS role (optional)</legend>
+        <label className="block text-sm">
+          <span className="font-medium text-slate-700">Initial CMS role</span>
+          <select
+            name="initialRole"
+            value={initialRole}
+            onChange={(e) => setInitialRole(e.target.value)}
+            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+          >
+            <option value="">— Assign later —</option>
+            {Object.entries(ROLE_LABELS).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+          {showDeptForRole && (
+            <span className="mt-1 block text-xs text-slate-500">
+              Department-scoped roles use the home department above when set.
+            </span>
+          )}
+        </label>
+      </fieldset>
+
+      <fieldset className="space-y-4 rounded-xl border border-slate-200 p-4">
+        <legend className="px-1 text-sm font-semibold text-slate-800">College scope (optional)</legend>
+        <p className="text-xs text-slate-500">One user manages exactly one college microsite.</p>
+        <label className="block text-sm">
+          <span className="font-medium text-slate-700">College</span>
+          <select name="collegePageId" className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2">
+            <option value="">— None —</option>
+            {colleges.map((college) => (
+              <option key={college.id} value={college.id}>
+                {college.title_en}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="block text-sm">
+          <span className="font-medium text-slate-700">College role</span>
+          <select
+            name="collegeRole"
+            value={collegeRole}
+            onChange={(e) => setCollegeRole(e.target.value)}
+            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+          >
+            <option value="">— Select if college chosen —</option>
+            {Object.entries(COLLEGE_ROLE_LABELS).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </label>
+      </fieldset>
 
       <div className="flex gap-3">
         <button
