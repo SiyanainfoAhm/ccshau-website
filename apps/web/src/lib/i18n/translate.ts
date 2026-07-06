@@ -1,3 +1,5 @@
+import { getGoogleTranslateApiKey } from "@/lib/secrets/google-translate-credentials";
+
 const MYMEMORY_CHUNK_SIZE = 450;
 
 function chunkPlainText(text: string, maxLen: number): string[] {
@@ -21,7 +23,7 @@ function chunkPlainText(text: string, maxLen: number): string[] {
 }
 
 async function translateWithGoogle(text: string, format: "text" | "html"): Promise<string | null> {
-  const apiKey = process.env.GOOGLE_TRANSLATE_API_KEY;
+  const apiKey = await getGoogleTranslateApiKey();
   if (!apiKey) return null;
 
   const response = await fetch(
@@ -69,7 +71,9 @@ async function translateWithMyMemory(text: string): Promise<string> {
   const translated = data.responseData?.translatedText?.trim();
   if (!translated) throw new Error("Translation returned empty text.");
   if (translated.includes("MYMEMORY WARNING")) {
-    throw new Error("Daily translation limit reached. Try again tomorrow or add GOOGLE_TRANSLATE_API_KEY.");
+    throw new Error(
+      "Daily translation limit reached. Add GOOGLE_TRANSLATE_CREDENTIALS to Supabase Vault or set GOOGLE_TRANSLATE_CREDENTIALS in env.",
+    );
   }
 
   return translated;
