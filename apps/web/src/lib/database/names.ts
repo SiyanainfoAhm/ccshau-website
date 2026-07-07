@@ -74,7 +74,10 @@ export const Tables = {
   pageContactLines: ccshauTable("page_contact_lines"),
   pageStaff: ccshauTable("page_staff"),
   pageGalleryItems: ccshauTable("page_gallery_items"),
+  pageNewsTickerItems: ccshauTable("page_news_ticker_items"),
+  pageStudentCornerItems: ccshauTable("page_student_corner_items"),
   pageSidebarItems: ccshauTable("page_sidebar_items"),
+  pgSeminarRegistrations: ccshauTable("pg_seminar_registrations"),
 } as const;
 
 export const Functions = {

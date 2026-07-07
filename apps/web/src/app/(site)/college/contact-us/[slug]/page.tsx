@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
@@ -9,9 +9,13 @@ import {
   getOfficePortalDataByPageId,
   getPublishedCollegeBySlug,
 } from "@/lib/data/public";
+import { getPgStudiesSectionPath, PG_STUDIES_HUB_SLUG } from "@/lib/pages/routes";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+  if (slug === PG_STUDIES_HUB_SLUG) {
+    return { title: "Contact Us — PG Studies" };
+  }
   const college = await getPublishedCollegeBySlug(slug);
   if (!college) return { title: "College not found" };
   return {
@@ -22,6 +26,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function CollegeContactPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+  if (slug === PG_STUDIES_HUB_SLUG) {
+    redirect(getPgStudiesSectionPath("contact"));
+  }
+
   const college = await getPublishedCollegeBySlug(slug);
   if (!college) notFound();
 

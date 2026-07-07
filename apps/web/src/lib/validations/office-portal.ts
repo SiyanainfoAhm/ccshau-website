@@ -34,6 +34,18 @@ export const pageGalleryItemSchema = z.object({
   isActive,
 });
 
+export const pageNewsTickerItemSchema = z.object({
+  titleEn: z.string().min(1, "Headline is required"),
+  titleHi: z.string().optional(),
+  href: z.string().optional(),
+  expiresAt: z.string().optional(),
+  isNew: z.coerce.boolean().optional().default(true),
+  sortOrder,
+  isActive,
+});
+
+export const pageStudentCornerItemSchema = pageNewsTickerItemSchema;
+
 export const pageSidebarItemSchema = z
   .object({
     side: z.enum(["left", "right"]),

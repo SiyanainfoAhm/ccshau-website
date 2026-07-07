@@ -23,6 +23,8 @@ export type TenderStatus = "draft" | "open" | "closed" | "archived";
 
 export type FeedbackStatus = "new" | "in_progress" | "resolved" | "closed";
 
+export type PgSeminarRegistrationStatus = "submitted" | "under_review" | "approved" | "rejected";
+
 export type MediaAlbumType = "photo" | "video" | "press_release" | "event";
 
 export type AuditAction =
@@ -198,6 +200,43 @@ export interface Feedback {
   message: string;
   status: FeedbackStatus;
   admin_remarks: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PgSeminarRegistration {
+  id: string;
+  registration_number: string;
+  student_name: string;
+  admission_number: string;
+  department: string | null;
+  student_degree: string | null;
+  gender: "male" | "female" | null;
+  category: "SC" | "ST" | "OBC" | "PH" | "GEN" | null;
+  is_foreigner: boolean | null;
+  country_name: string | null;
+  seminar_title: string | null;
+  duration_from: string;
+  duration_to: string;
+  source_of_advertisement: string | null;
+  organizing_institute_address: string | null;
+  paper_status: string[];
+  last_submission_date: string | null;
+  seminars_attended_last_two_years: string | null;
+  is_relevant_to_subject: boolean | null;
+  funds_from_outside_agency: boolean | null;
+  registration_fee: number | null;
+  travel_grant: number | null;
+  total_liability: number | null;
+  outside_funding_full_payment: string | null;
+  outside_funding_partial_payment: string | null;
+  funding_agency_name: string | null;
+  combined_with_other_purpose: boolean | null;
+  other_relevant_info: string | null;
+  status: PgSeminarRegistrationStatus;
+  admin_remarks: string | null;
+  ip_address: string | null;
+  user_agent: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -419,6 +458,36 @@ export interface PageGalleryItem {
   thumbnail_url: string | null;
   title_en: string | null;
   title_hi: string | null;
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PageNewsTickerItem {
+  id: string;
+  page_id: string;
+  title_en: string;
+  title_hi: string | null;
+  href: string | null;
+  file_path: string | null;
+  expires_at: string | null;
+  is_new: boolean;
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PageStudentCornerItem {
+  id: string;
+  page_id: string;
+  title_en: string;
+  title_hi: string | null;
+  href: string | null;
+  file_path: string | null;
+  expires_at: string | null;
+  is_new: boolean;
   sort_order: number;
   is_active: boolean;
   created_at: string;

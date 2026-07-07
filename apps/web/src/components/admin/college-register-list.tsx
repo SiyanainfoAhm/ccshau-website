@@ -1,24 +1,68 @@
 "use client";
 
 import Link from "next/link";
-import { ExternalLink, Pencil } from "lucide-react";
+import { ExternalLink, Pencil, Search } from "lucide-react";
+import { useMemo, useState } from "react";
 
 import type { CollegeOption } from "@/lib/pages/college-register-helpers";
+import { MICROSITE_KIND_LABELS } from "@/lib/pages/microsite-kind";
+
+function matchesMicrositeQuery(college: CollegeOption, query: string) {
+  const haystack = [college.title_en, college.slug, MICROSITE_KIND_LABELS[college.kind].en]
+    .join(" ")
+    .toLowerCase();
+  return haystack.includes(query);
+}
 
 export function CollegeRegisterList({ colleges }: { colleges: CollegeOption[] }) {
+  const [query, setQuery] = useState("");
+  const normalizedQuery = query.trim().toLowerCase();
+
+  const filteredColleges = useMemo(() => {
+    if (!normalizedQuery) return colleges;
+    return colleges.filter((college) => matchesMicrositeQuery(college, normalizedQuery));
+  }, [colleges, normalizedQuery]);
+
+  const academicCount = colleges.filter((c) => c.kind === "academic").length;
+  const directorateCount = colleges.filter((c) => c.kind === "directorate").length;
+
   return (
     <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
       <div className="border-b border-slate-100 px-4 py-3">
-        <h2 className="font-display text-lg font-bold text-slate-900">Registered colleges</h2>
-        <p className="text-xs text-slate-500">
-          {colleges.length} college{colleges.length === 1 ? "" : "s"}
-        </p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="font-display text-lg font-bold text-slate-900">Registered microsites</h2>
+            <p className="text-xs text-slate-500">
+              {normalizedQuery
+                ? `${filteredColleges.length} of ${colleges.length} shown`
+                : `${colleges.length} total`}
+              {!normalizedQuery && academicCount > 0
+                ? ` · ${academicCount} college${academicCount === 1 ? "" : "s"}`
+                : ""}
+              {!normalizedQuery && directorateCount > 0
+                ? ` · ${directorateCount} directorate${directorateCount === 1 ? "" : "s"}`
+                : ""}
+            </p>
+          </div>
+          <div className="relative w-full sm:max-w-xs">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search by name…"
+              className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-4 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+              aria-label="Search microsites by name"
+            />
+          </div>
+        </div>
       </div>
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-slate-200 text-sm">
           <thead className="bg-slate-50">
             <tr>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">College</th>
+              <th className="px-4 py-3 text-left font-semibold text-slate-700">Name</th>
+              <th className="px-4 py-3 text-left font-semibold text-slate-700">Type</th>
               <th className="px-4 py-3 text-left font-semibold text-slate-700">Slug</th>
               <th className="px-4 py-3 text-right font-semibold text-slate-700">Actions</th>
             </tr>
@@ -26,12 +70,18 @@ export function CollegeRegisterList({ colleges }: { colleges: CollegeOption[] })
           <tbody className="divide-y divide-slate-100">
             {colleges.length === 0 ? (
               <tr>
-                <td colSpan={3} className="px-4 py-8 text-center text-slate-500">
-                  No colleges registered yet. Use Register college to add one.
+                <td colSpan={4} className="px-4 py-8 text-center text-slate-500">
+                  No microsites registered yet. Register a college or directorate to get started.
+                </td>
+              </tr>
+            ) : filteredColleges.length === 0 ? (
+              <tr>
+                <td colSpan={4} className="px-4 py-8 text-center text-slate-500">
+                  No microsites match &ldquo;{query.trim()}&rdquo;.
                 </td>
               </tr>
             ) : (
-              colleges.map((college) => (
+              filteredColleges.map((college) => (
                 <tr key={college.id} className="hover:bg-slate-50/80">
                   <td className="px-4 py-3">
                     <Link
@@ -41,6 +91,7 @@ export function CollegeRegisterList({ colleges }: { colleges: CollegeOption[] })
                       {college.title_en}
                     </Link>
                   </td>
+                  <td className="px-4 py-3 text-slate-600">{MICROSITE_KIND_LABELS[college.kind].en}</td>
                   <td className="px-4 py-3 font-mono text-xs text-slate-500">{college.slug}</td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-2">

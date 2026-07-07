@@ -4,12 +4,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
-import { FarmersPortalSection } from "@/components/design/shared/home-sections";
+import { FarmersPortalSection, NewsTicker } from "@/components/design/shared/home-sections";
 import { useLanguage } from "@/components/design/shared/language-context";
 import { CmsHtmlContent } from "@/components/site/cms-html-content";
 import { DepartmentAboutSection } from "@/components/site/department-about-section";
 import { FacultyProfileDialog } from "@/components/site/faculty-profile-dialog";
+import { PortraitPhoto } from "@/components/site/portrait-photo";
 import { PublicCollegeGallery } from "@/components/site/public-college-gallery";
+import { PublicStudentCornerSection } from "@/components/site/public-student-corner-section";
 import type { HomepageCtaItem } from "@/lib/data/homepage";
 import type {
   PublicCollegePage,
@@ -17,6 +19,8 @@ import type {
   PublicCollegeSubsection,
   PublicOfficePortalData,
   PublicGalleryImage,
+  PublicNewsTickerItem,
+  PublicStudentCornerItem,
   PublicOfficeStaffMember,
   PublicSidebarLink,
 } from "@/lib/data/public-types";
@@ -177,6 +181,8 @@ export function PublicConfigurablePage({
   section,
   subsection,
   galleryImages,
+  newsTickerItems,
+  studentCornerItems,
   cta,
 }: {
   college: PublicCollegePage;
@@ -185,6 +191,8 @@ export function PublicConfigurablePage({
   section?: PublicCollegeSection | null;
   subsection?: PublicCollegeSubsection | null;
   galleryImages?: PublicGalleryImage[];
+  newsTickerItems?: PublicNewsTickerItem[];
+  studentCornerItems?: PublicStudentCornerItem[];
   cta?: HomepageCtaItem | null;
 }) {
   const { lang, t } = useLanguage();
@@ -260,11 +268,27 @@ export function PublicConfigurablePage({
   const showFarmersCta =
     layoutConfig.farmersCta && (office?.officeCtaEnabled ?? false);
   const showGallery = layoutConfig.gallery && (galleryImages?.length ?? 0) > 0 && !selectedSidebar;
+  const showNewsTicker =
+    layoutConfig.newsTicker && (newsTickerItems?.length ?? 0) > 0 && !selectedSidebar;
+  const showStudentCorner =
+    layoutConfig.studentCorner && (studentCornerItems?.length ?? 0) > 0 && !selectedSidebar;
 
   const heroMinHeight = layoutConfig.heroContactButton || college.logoImageUrl ? "min-h-[420px]" : "min-h-[320px]";
 
   return (
     <>
+      {showNewsTicker && newsTickerItems && (
+        <NewsTicker
+          variant="future"
+          headlines={newsTickerItems.map((item) => ({
+            titleEn: item.titleEn,
+            titleHi: item.titleHi ?? item.titleEn,
+            href: item.href,
+            isNew: item.isNew,
+          }))}
+        />
+      )}
+
       {layoutConfig.hero && (
         <section className={`relative ${heroMinHeight} overflow-hidden`}>
           <Image src={heroImage} alt="" fill className="object-cover" priority sizes="100vw" />
@@ -323,6 +347,10 @@ export function PublicConfigurablePage({
         </div>
       )}
 
+      {showStudentCorner && studentCornerItems && (
+        <PublicStudentCornerSection items={studentCornerItems} />
+      )}
+
       <div
         className={`mx-auto max-w-7xl px-4 py-10 ${layoutConfig.hero ? "" : contentPage ? "" : "pt-6"}`}
       >
@@ -343,15 +371,7 @@ export function PublicConfigurablePage({
               <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
                 <div className="flex flex-col items-center gap-4 p-6 sm:flex-row sm:items-start">
                   {office.headOfficer.imageUrl && (
-                    <div className="relative h-40 w-32 shrink-0 overflow-hidden rounded-lg border border-slate-200">
-                      <Image
-                        src={office.headOfficer.imageUrl}
-                        alt=""
-                        fill
-                        className="object-cover object-top"
-                        sizes="128px"
-                      />
-                    </div>
+                    <PortraitPhoto src={office.headOfficer.imageUrl} />
                   )}
                   <div className="min-w-0 flex-1 text-center sm:text-left">
                     <p
@@ -363,16 +383,19 @@ export function PublicConfigurablePage({
                         office.headOfficer.nameHi,
                       )}
                     </p>
-                    {office.headOfficer.roleEn.split("\n").map((line, i) => (
+                    {office.headOfficer.roleEn.split("\n").map((line, i) => {
+                      if (!line.trim()) return null;
+                      return (
                       <p
-                        key={line}
+                        key={`head-officer-role-${i}`}
                         className={`mt-1 text-sm font-semibold text-slate-600 ${lang === "hi" ? "font-hindi" : ""}`}
                       >
                         {lang === "hi" && office.headOfficer?.roleHi
                           ? (office.headOfficer.roleHi.split("\n")[i] ?? line)
                           : line}
                       </p>
-                    ))}
+                    );
+                    })}
                     {showHeadOfficerContacts && (
                       <dl className="mt-4 space-y-3 border-t border-slate-100 pt-4 text-left">
                         {office.contactLines.map((line) => (
@@ -470,7 +493,7 @@ export function PublicConfigurablePage({
               </article>
             )}
 
-            {!showMainContent && !showHeadOfficer && !showContacts && !showStaffTable && !showDepartmentAbout && !showHodSidebarProfile && !showGallery && !selectedSidebar && (
+            {!showMainContent && !showHeadOfficer && !showContacts && !showStaffTable && !showDepartmentAbout && !showHodSidebarProfile && !showGallery && !showStudentCorner && !selectedSidebar && (
               <p className="text-center text-slate-500">{t("Content coming soon.", "सामग्री जल्द आ रही है।")}</p>
             )}
           </div>

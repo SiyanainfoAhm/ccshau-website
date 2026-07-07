@@ -1,6 +1,23 @@
 import type { PageLayoutConfig } from "@/lib/pages/layout-config";
 import { slugify } from "@/lib/utils/slug";
 
+/** College home preset with hero + top menu (Hisar / directorate style). */
+export const DIRECTORATE_HOME_LAYOUT_CONFIG: PageLayoutConfig = {
+  hero: true,
+  headOfficer: true,
+  contacts: true,
+  staff: false,
+  gallery: false,
+  newsTicker: false,
+  studentCorner: false,
+  mainContent: true,
+  leftSidebar: false,
+  rightSidebar: false,
+  collegeTopMenu: true,
+  farmersCta: false,
+  heroContactButton: true,
+};
+
 /** Matches migrated Hisar college home after legacy content import. */
 export const COLLEGE_HOME_LAYOUT_CONFIG: PageLayoutConfig = {
   hero: false,
@@ -8,6 +25,8 @@ export const COLLEGE_HOME_LAYOUT_CONFIG: PageLayoutConfig = {
   contacts: true,
   staff: false,
   gallery: false,
+  newsTicker: false,
+  studentCorner: false,
   mainContent: true,
   leftSidebar: false,
   rightSidebar: false,
@@ -22,6 +41,8 @@ export const GALLERY_SECTION_LAYOUT_CONFIG: PageLayoutConfig = {
   contacts: false,
   staff: false,
   gallery: true,
+  newsTicker: false,
+  studentCorner: false,
   mainContent: false,
   leftSidebar: false,
   rightSidebar: false,
@@ -36,6 +57,8 @@ export const DEPARTMENT_SUBSECTION_LAYOUT_CONFIG: PageLayoutConfig = {
   contacts: false,
   staff: true,
   gallery: false,
+  newsTicker: false,
+  studentCorner: false,
   mainContent: true,
   leftSidebar: true,
   rightSidebar: false,

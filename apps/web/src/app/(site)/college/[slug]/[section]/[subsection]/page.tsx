@@ -8,6 +8,8 @@ import { PublicConfigurablePage } from "@/components/site/public-configurable-pa
 import { getHomepageContent } from "@/lib/data/homepage";
 import {
   getOfficePortalDataByPageId,
+  getPageNewsTickerItemsByPageId,
+  getPageStudentCornerItemsByPageId,
   getPublishedCollegeSubsection,
 } from "@/lib/data/public";
 import { needsOfficeDataLoad } from "@/lib/pages/layout-config";
@@ -38,6 +40,12 @@ export default async function CollegeSubsectionPage({
   const office = needsOfficeDataLoad(layoutConfig)
     ? await getOfficePortalDataByPageId(data.subsection.pageId)
     : null;
+  const newsTickerItems = layoutConfig.newsTicker
+    ? await getPageNewsTickerItemsByPageId(data.subsection.pageId)
+    : [];
+  const studentCornerItems = layoutConfig.studentCorner
+    ? await getPageStudentCornerItemsByPageId(data.subsection.pageId)
+    : [];
   const homepage = layoutConfig.farmersCta ? await getHomepageContent() : null;
 
   return (
@@ -55,6 +63,8 @@ export default async function CollegeSubsectionPage({
           office={office}
           section={data.section}
           subsection={data.subsection}
+          newsTickerItems={newsTickerItems}
+          studentCornerItems={studentCornerItems}
           cta={layoutConfig.farmersCta && office?.officeCtaEnabled ? homepage?.cta ?? null : null}
         />
       </main>

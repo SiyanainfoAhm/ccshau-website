@@ -3,12 +3,14 @@ import type { AdminSession } from "@/lib/auth/session";
 import { Tables } from "@/lib/database/names";
 import type { Page } from "@/lib/database/types";
 import { DEPARTMENT_SUBSECTION_LAYOUT_CONFIG } from "@/lib/pages/college-wizard-defaults";
+import { inferMicrositeKind, isMicrositeRoot, type MicrositeKind } from "@/lib/pages/microsite-kind";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export interface CollegeOption {
   id: string;
   slug: string;
   title_en: string;
+  kind: MicrositeKind;
 }
 
 export interface DepartmentOption {
@@ -37,19 +39,11 @@ export async function listCollegesForRegister(session: AdminSession): Promise<Co
   const admin = createAdminClient();
   if (!admin) return [];
 
-  const { data: container } = await admin
-    .from(Tables.pages)
-    .select("id")
-    .eq("slug", "colleges")
-    .maybeSingle();
-
-  if (!container) return [];
-
   let query = admin
     .from(Tables.pages)
-    .select("id, slug, title_en")
-    .eq("parent_id", container.id)
+    .select("id, slug, title_en, parent_id, college_root_id, page_type")
     .eq("page_type", "college")
+    .not("college_root_id", "is", null)
     .order("title_en");
 
   if (!isSuperAdminSession(session) && session.collegeAssignment) {
@@ -57,7 +51,30 @@ export async function listCollegesForRegister(session: AdminSession): Promise<Co
   }
 
   const { data } = await query;
-  return (data ?? []) as CollegeOption[];
+  const roots = ((data ?? []) as Array<{
+    id: string;
+    slug: string;
+    title_en: string;
+    parent_id: string | null;
+    college_root_id: string | null;
+    page_type: string;
+  }>).filter(isMicrositeRoot);
+
+  const parentIds = [...new Set(roots.map((r) => r.parent_id).filter(Boolean))] as string[];
+  const parentSlugById = new Map<string, string>();
+  if (parentIds.length > 0) {
+    const { data: parents } = await admin.from(Tables.pages).select("id, slug").in("id", parentIds);
+    for (const parent of parents ?? []) {
+      parentSlugById.set(parent.id, parent.slug);
+    }
+  }
+
+  return roots.map((row) => ({
+    id: row.id,
+    slug: row.slug,
+    title_en: row.title_en,
+    kind: inferMicrositeKind(row, parentSlugById),
+  }));
 }
 
 export async function getCollegeForRegister(

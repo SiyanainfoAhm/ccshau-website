@@ -17,7 +17,7 @@ export default async function RegisterCollegePage() {
     <div className="space-y-6">
       <div>
         <Link href="/admin/register" className="text-sm text-emerald-700 hover:underline">
-          ← College setup
+          ← Microsite setup
         </Link>
         <h1 className="mt-2 font-display text-2xl font-bold text-slate-900">Register college</h1>
         <p className="text-sm text-slate-500">

@@ -17,6 +17,7 @@ function optionalCoordinate(min: number, max: number, label: string) {
 }
 
 export const collegeWizardSchema = z.object({
+  micrositeBlueprint: z.enum(["academic_college", "directorate"]).default("academic_college"),
   titleEn: z.string().min(2, "English title is required"),
   titleHi: z.string().optional(),
   slug: z

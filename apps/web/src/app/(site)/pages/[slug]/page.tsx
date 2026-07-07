@@ -1,11 +1,21 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-
 import { SiteFooter } from "@/components/design/shared/site-footer";
 import { SiteHeader } from "@/components/design/shared/site-header";
+import { PublicCmsOfficePageContent } from "@/components/site/public-cms-office-page-content";
 import { PublicCmsPageContent } from "@/components/site/public-cms-page-content";
-import { getPublishedPageBySlug, getPublishedPagePublicPath } from "@/lib/data/public";
+import {
+  getOfficePortalDataByPageId,
+  getPublishedPageBySlug,
+  getPublishedPagePublicPath,
+} from "@/lib/data/public";
+import { Tables } from "@/lib/database/names";
+import type { Page } from "@/lib/database/types";
 import { getPublicPagePath } from "@/lib/pages/routes";
+import { createAdminClient } from "@/lib/supabase/admin";
+
+function usesOfficeAboutLayout(page: Page) {
+  return page.layout_template === "office_portal" && page.page_type === "standard";
+}
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -31,11 +41,30 @@ export default async function CmsPage({ params }: { params: Promise<{ slug: stri
     redirect(canonicalPath);
   }
 
+  const admin = createAdminClient();
+  const { data: pageRow } = admin
+    ? await admin
+        .from(Tables.pages)
+        .select("*")
+        .eq("slug", slug)
+        .eq("status", "published")
+        .maybeSingle()
+    : { data: null };
+
+  const office =
+    pageRow && usesOfficeAboutLayout(pageRow as Page)
+      ? await getOfficePortalDataByPageId(pageRow.id)
+      : null;
+
   return (
     <>
       <SiteHeader variant="future" />
       <main id="main-content" className="flex-1">
-        <PublicCmsPageContent page={page} />
+        {office ? (
+          <PublicCmsOfficePageContent page={page} office={office} />
+        ) : (
+          <PublicCmsPageContent page={page} />
+        )}
       </main>
       <SiteFooter variant="future" />
     </>

@@ -63,6 +63,16 @@ export function pageGalleryImagePath(pageId: string, itemId: string, fileName: s
   return `pages/gallery/${pageId}/${itemId}/${safe}`;
 }
 
+export function pageNewsTickerFilePath(pageId: string, itemId: string, fileName: string): string {
+  const safe = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
+  return `pages/news-ticker/${pageId}/${itemId}/${safe}`;
+}
+
+export function pageStudentCornerFilePath(pageId: string, itemId: string, fileName: string): string {
+  const safe = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
+  return `pages/student-corner/${pageId}/${itemId}/${safe}`;
+}
+
 export function getMediaBucket(): string {
   return STORAGE_BUCKETS.media;
 }

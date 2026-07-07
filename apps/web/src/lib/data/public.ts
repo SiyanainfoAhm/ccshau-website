@@ -11,6 +11,8 @@ import type {
   Page,
   PageContactLine,
   PageGalleryItem,
+  PageNewsTickerItem,
+  PageStudentCornerItem,
   PageSidebarItem,
   PageStaff,
   RelatedLink,
@@ -24,6 +26,8 @@ import type {
   PublicCircularItem,
   PublicDownloadItem,
   PublicGalleryImage,
+  PublicNewsTickerItem,
+  PublicStudentCornerItem,
   PublicHeroSlide,
   PublicMediaAlbumDetail,
   PublicMediaAlbumItem,
@@ -32,6 +36,8 @@ import type {
   PublicOfficePortalData,
   PublicFacultyProfileStaff,
   PublicPage,
+  PublicPgStudiesHub,
+  PublicPgStudiesSection,
   PublicPageSummary,
   PublicQuickLink,
   PublicSidebarLink,
@@ -46,7 +52,12 @@ import {
   type PaginatedResult,
 } from "@/lib/data/pagination";
 import { navItems as mockNavItems, quickLinks as mockQuickLinks } from "@/lib/mock/site-content";
-import { getPublicPagePath } from "@/lib/pages/routes";
+import {
+  PG_STUDIES_HUB_SLUG,
+  getPublicPagePath,
+  pgStudiesSectionSlugFromUrl,
+  pgStudiesSectionUrlSegment,
+} from "@/lib/pages/routes";
 import { resolvePagePublicPath, getCollegePagePlacement } from "@/lib/pages/resolve-public-path";
 import {
   readStoredLayoutConfig,
@@ -751,6 +762,58 @@ export async function getPageGalleryItemsByPageId(pageId: string): Promise<Publi
   }));
 }
 
+export async function getPageNewsTickerItemsByPageId(
+  pageId: string,
+): Promise<PublicNewsTickerItem[]> {
+  const admin = createAdminClient();
+  if (!admin) return [];
+
+  const { data } = await admin
+    .from(Tables.pageNewsTickerItems)
+    .select("*")
+    .eq("page_id", pageId)
+    .eq("is_active", true)
+    .order("sort_order");
+
+  const now = Date.now();
+
+  return ((data ?? []) as PageNewsTickerItem[])
+    .filter((row) => !row.expires_at || new Date(row.expires_at).getTime() > now)
+    .map((row) => ({
+    id: row.id,
+    titleEn: row.title_en,
+    titleHi: row.title_hi,
+    href: row.href ?? (row.file_path ? getStoredFileUrl(row.file_path) : null),
+    isNew: row.is_new,
+  }));
+}
+
+export async function getPageStudentCornerItemsByPageId(
+  pageId: string,
+): Promise<PublicStudentCornerItem[]> {
+  const admin = createAdminClient();
+  if (!admin) return [];
+
+  const { data } = await admin
+    .from(Tables.pageStudentCornerItems)
+    .select("*")
+    .eq("page_id", pageId)
+    .eq("is_active", true)
+    .order("sort_order");
+
+  const now = Date.now();
+
+  return ((data ?? []) as PageStudentCornerItem[])
+    .filter((row) => !row.expires_at || new Date(row.expires_at).getTime() > now)
+    .map((row) => ({
+      id: row.id,
+      titleEn: row.title_en,
+      titleHi: row.title_hi,
+      href: row.href ?? (row.file_path ? getStoredFileUrl(row.file_path) : null),
+      isNew: row.is_new,
+    }));
+}
+
 export async function getPublishedCollegeBySlug(slug: string): Promise<PublicCollegePage | null> {
   const admin = createAdminClient();
   if (!admin) return null;
@@ -772,7 +835,7 @@ export async function getPublishedCollegeBySlug(slug: string): Promise<PublicCol
       .eq("status", "published")
       .maybeSingle();
 
-    if (officeFallback) {
+    if (officeFallback && slug !== PG_STUDIES_HUB_SLUG) {
       const { data: publishedPages } = await admin
         .from(Tables.pages)
         .select("id, slug, page_type, parent_id")
@@ -839,6 +902,81 @@ export async function getPublishedCollegeBySlug(slug: string): Promise<PublicCol
       mapCollegeSection(section, subsectionsBySection.get(section.id) ?? []),
     ),
   };
+}
+
+const PG_STUDIES_DROPDOWN_SLUGS = new Set([
+  "pg-course-catalogue",
+  "pg-proforma",
+  "seminar-registration",
+]);
+
+const PG_STUDIES_TOP_NAV_SLUGS = new Set(["pg-studies-gallery", "pg-studies-contact"]);
+
+function mapPgStudiesSection(page: Page): PublicPgStudiesSection {
+  return {
+    pageId: page.id,
+    slug: page.slug,
+    urlSegment: pgStudiesSectionUrlSegment(page.slug),
+    layoutConfig: mapLayoutConfig(page),
+    titleEn: page.title_en,
+    titleHi: page.title_hi,
+    excerptEn: page.excerpt_en,
+    excerptHi: page.excerpt_hi,
+    contentEn: page.content_en,
+    contentHi: page.content_hi,
+  };
+}
+
+export async function getPublishedPgStudiesHub(): Promise<PublicPgStudiesHub | null> {
+  const admin = createAdminClient();
+  if (!admin) return null;
+
+  const { data: hubRow } = await admin
+    .from(Tables.pages)
+    .select("*")
+    .eq("slug", PG_STUDIES_HUB_SLUG)
+    .eq("status", "published")
+    .maybeSingle();
+
+  if (!hubRow) return null;
+  const hub = hubRow as Page;
+
+  const { data: sections } = await admin
+    .from(Tables.pages)
+    .select("*")
+    .eq("parent_id", hub.id)
+    .eq("status", "published")
+    .order("sort_order")
+    .order("title_en");
+
+  const sectionRows = ((sections as Page[]) ?? []).map(mapPgStudiesSection);
+  const base = mapPublicPage(hub);
+
+  return {
+    ...base,
+    pageId: hub.id,
+    hubSlug: hub.slug,
+    layoutTemplate: hub.layout_template ?? "office_portal",
+    layoutConfig: mapLayoutConfig(hub),
+    featuredImageUrl: base.featuredImageUrl,
+    dropdownSections: sectionRows.filter((section) => PG_STUDIES_DROPDOWN_SLUGS.has(section.slug)),
+    topSections: sectionRows.filter((section) => PG_STUDIES_TOP_NAV_SLUGS.has(section.slug)),
+  };
+}
+
+export async function getPublishedPgStudiesSection(
+  urlSegment: string,
+): Promise<{ hub: PublicPgStudiesHub; section: PublicPgStudiesSection } | null> {
+  const hub = await getPublishedPgStudiesHub();
+  if (!hub) return null;
+
+  const slug = pgStudiesSectionSlugFromUrl(urlSegment);
+  const section = [...hub.dropdownSections, ...hub.topSections].find(
+    (item) => item.slug === slug || item.urlSegment === urlSegment,
+  );
+  if (!section) return null;
+
+  return { hub, section };
 }
 
 export async function getPublishedCollegeSubsection(

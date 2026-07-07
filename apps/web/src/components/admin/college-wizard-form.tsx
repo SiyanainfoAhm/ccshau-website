@@ -10,8 +10,16 @@ import { COLLEGE_ROLE_LABELS } from "@/lib/validations/users";
 import { slugify } from "@/lib/utils/slug";
 
 type UserOption = { id: string; display_name: string; email: string };
+type MicrositeBlueprint = "academic_college" | "directorate";
 
-export function CollegeWizardForm({ users }: { users: UserOption[] }) {
+export function CollegeWizardForm({
+  users,
+  defaultBlueprint = "academic_college",
+}: {
+  users: UserOption[];
+  defaultBlueprint?: MicrositeBlueprint;
+}) {
+  const isDirectorate = defaultBlueprint === "directorate";
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -56,6 +64,7 @@ export function CollegeWizardForm({ users }: { users: UserOption[] }) {
 
   return (
     <form action={handleSubmit} className="mx-auto max-w-3xl space-y-6">
+      <input type="hidden" name="micrositeBlueprint" value={defaultBlueprint} />
       {error && (
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
           {error}
@@ -63,7 +72,9 @@ export function CollegeWizardForm({ users }: { users: UserOption[] }) {
       )}
 
       <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="mb-4 text-lg font-semibold text-slate-900">College identity</h2>
+        <h2 className="mb-4 text-lg font-semibold text-slate-900">
+          {isDirectorate ? "Directorate identity" : "College identity"}
+        </h2>
         <div className="grid gap-4 md:grid-cols-2">
           <label className="block text-sm md:col-span-2">
             <span className="font-medium text-slate-700">English title</span>
@@ -255,7 +266,11 @@ export function CollegeWizardForm({ users }: { users: UserOption[] }) {
             <span className="font-medium text-slate-700">Status</span>
             <select name="status" defaultValue="draft" className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2">
               <option value="draft">Draft</option>
-              <option value="published">Published (adds to Academics → Colleges menu)</option>
+              <option value="published">
+                {isDirectorate
+                  ? "Published (live at /college/slug; header menu entry unchanged)"
+                  : "Published (adds to Academics → Colleges menu)"}
+              </option>
             </select>
           </label>
           <label className="block text-sm">
@@ -295,9 +310,18 @@ export function CollegeWizardForm({ users }: { users: UserOption[] }) {
           disabled={isPending}
           className="rounded-lg bg-[#0b3d2e] px-5 py-2.5 font-semibold text-white hover:bg-[#0d4a38] disabled:opacity-60"
         >
-          {isPending ? "Creating college…" : "Register college"}
+          {isPending
+            ? isDirectorate
+              ? "Creating directorate…"
+              : "Creating college…"
+            : isDirectorate
+              ? "Register directorate"
+              : "Register college"}
         </button>
-        <Link href="/admin/register" className="rounded-lg border border-slate-300 px-5 py-2.5 text-sm">
+        <Link
+          href="/admin/register"
+          className="rounded-lg border border-slate-300 px-5 py-2.5 text-sm"
+        >
           Cancel
         </Link>
       </div>

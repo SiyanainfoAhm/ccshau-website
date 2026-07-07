@@ -12,7 +12,7 @@ export function CollegeRegisterHub({ college }: { college: CollegeOption }) {
       href: `${base}/department`,
       icon: GraduationCap,
       title: "Departments",
-      desc: "List, add, edit, or delete academic departments under this college.",
+      desc: "List, add, edit, or delete departments or divisions under this microsite.",
     },
     {
       href: `${base}/faculty`,

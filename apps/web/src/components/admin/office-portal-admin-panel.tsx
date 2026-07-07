@@ -6,16 +6,28 @@ import { useState, useTransition } from "react";
 import {
   createPageContactLineAction,
   createPageGalleryItemAction,
+  createPageNewsTickerItemAction,
+  createPageStudentCornerItemAction,
   createPageSidebarItemAction,
   createPageStaffAction,
   deletePageContactLineAction,
   deletePageGalleryItemAction,
+  deletePageNewsTickerItemAction,
+  deletePageStudentCornerItemAction,
   deletePageSidebarItemAction,
   deletePageStaffAction,
   updatePageSidebarItemAction,
 } from "@/actions/office-portal";
-import type { PageContactLine, PageGalleryItem, PageSidebarItem, PageStaff } from "@/lib/database/types";
+import type {
+  PageContactLine,
+  PageGalleryItem,
+  PageNewsTickerItem,
+  PageStudentCornerItem,
+  PageSidebarItem,
+  PageStaff,
+} from "@/lib/database/types";
 import { getStoredFileUrl } from "@/lib/storage/upload";
+import { formatAdminDateTime, isExpiredAt } from "@/lib/utils/format-datetime";
 
 function galleryImagePreview(path: string): string {
   return getStoredFileUrl(path) ?? path;
@@ -44,15 +56,195 @@ function DeleteButton({
   );
 }
 
+function NewsTickerAddForm({
+  pageId,
+  defaultSortOrder,
+  onSuccess,
+  onError,
+}: {
+  pageId: string;
+  defaultSortOrder: number;
+  onSuccess: () => void;
+  onError: (message: string) => void;
+}) {
+  const [isPending, startTransition] = useTransition();
+
+  return (
+    <form
+      className="mt-4 grid gap-3 sm:grid-cols-2"
+      encType="multipart/form-data"
+      onSubmit={(e) => {
+        e.preventDefault();
+        const form = e.currentTarget;
+        onError("");
+        startTransition(async () => {
+          const result = await createPageNewsTickerItemAction(pageId, new FormData(form));
+          if (!result.success) {
+            onError(result.error ?? "Save failed.");
+            return;
+          }
+          onSuccess();
+        });
+      }}
+    >
+      <input
+        name="titleEn"
+        required
+        placeholder="Headline (English)"
+        className="rounded-lg border border-slate-300 px-3 py-2 text-sm sm:col-span-2"
+      />
+      <input
+        name="titleHi"
+        placeholder="Headline (Hindi)"
+        className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-hindi sm:col-span-2"
+      />
+      <input
+        name="href"
+        placeholder="Link URL (optional)"
+        className="rounded-lg border border-slate-300 px-3 py-2 text-sm sm:col-span-2"
+      />
+      <label className="text-sm font-medium text-slate-700 sm:col-span-2">
+        Expires at (optional)
+        <input
+          name="expiresAt"
+          type="datetime-local"
+          className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+        />
+      </label>
+      <label className="text-sm font-medium text-slate-700 sm:col-span-2">
+        File upload (optional)
+        <input
+          name="tickerFile"
+          type="file"
+          accept=".pdf,.doc,.docx,image/jpeg,image/png,image/webp,image/gif"
+          className="mt-1 w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-amber-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-amber-900"
+        />
+        <span className="mt-1 block text-xs text-slate-500">
+          PDF, Word, or image (max 25 MB). Used as the headline link when no URL is set.
+        </span>
+      </label>
+      <input
+        name="sortOrder"
+        type="number"
+        defaultValue={defaultSortOrder}
+        className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+      />
+      <label className="flex items-center gap-2 text-sm text-slate-700">
+        <input name="isNew" type="checkbox" defaultChecked className="rounded border-slate-300" />
+        Show &quot;NEW&quot; badge
+      </label>
+      <button
+        type="submit"
+        disabled={isPending}
+        className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60 sm:col-span-2 sm:justify-self-start"
+      >
+        {isPending ? "Adding…" : "Add news headline"}
+      </button>
+    </form>
+  );
+}
+
+function StudentCornerAddForm({
+  pageId,
+  defaultSortOrder,
+  onSuccess,
+  onError,
+}: {
+  pageId: string;
+  defaultSortOrder: number;
+  onSuccess: () => void;
+  onError: (message: string) => void;
+}) {
+  const [isPending, startTransition] = useTransition();
+
+  return (
+    <form
+      className="mt-4 grid gap-3 sm:grid-cols-2"
+      encType="multipart/form-data"
+      onSubmit={(e) => {
+        e.preventDefault();
+        const form = e.currentTarget;
+        onError("");
+        startTransition(async () => {
+          const result = await createPageStudentCornerItemAction(pageId, new FormData(form));
+          if (!result.success) {
+            onError(result.error ?? "Save failed.");
+            return;
+          }
+          onSuccess();
+        });
+      }}
+    >
+      <input
+        name="titleEn"
+        required
+        placeholder="Title (English)"
+        className="rounded-lg border border-slate-300 px-3 py-2 text-sm sm:col-span-2"
+      />
+      <input
+        name="titleHi"
+        placeholder="Title (Hindi)"
+        className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-hindi sm:col-span-2"
+      />
+      <input
+        name="href"
+        placeholder="Link URL (optional)"
+        className="rounded-lg border border-slate-300 px-3 py-2 text-sm sm:col-span-2"
+      />
+      <label className="text-sm font-medium text-slate-700 sm:col-span-2">
+        Expires at (optional)
+        <input
+          name="expiresAt"
+          type="datetime-local"
+          className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+        />
+      </label>
+      <label className="text-sm font-medium text-slate-700 sm:col-span-2">
+        File upload (optional)
+        <input
+          name="cornerFile"
+          type="file"
+          accept=".pdf,.doc,.docx,image/jpeg,image/png,image/webp,image/gif"
+          className="mt-1 w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-emerald-900"
+        />
+        <span className="mt-1 block text-xs text-slate-500">
+          PDF, Word, or image (max 25 MB). Used as the link when no URL is set.
+        </span>
+      </label>
+      <input
+        name="sortOrder"
+        type="number"
+        defaultValue={defaultSortOrder}
+        className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+      />
+      <label className="flex items-center gap-2 text-sm text-slate-700">
+        <input name="isNew" type="checkbox" defaultChecked className="rounded border-slate-300" />
+        Show &quot;NEW&quot; badge
+      </label>
+      <button
+        type="submit"
+        disabled={isPending}
+        className="rounded-lg bg-emerald-800 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60 sm:col-span-2 sm:justify-self-start"
+      >
+        {isPending ? "Adding…" : "Add student corner item"}
+      </button>
+    </form>
+  );
+}
+
 export function OfficePortalAdminPanel({
   pageId,
   contactLines,
   staff,
   galleryItems,
+  newsTickerItems,
+  studentCornerItems,
   sidebarItems,
   showContacts = true,
   showStaff = true,
   showGallery = true,
+  showNewsTicker = true,
+  showStudentCorner = true,
   showLeftSidebar = true,
   showRightSidebar = true,
 }: {
@@ -60,16 +252,22 @@ export function OfficePortalAdminPanel({
   contactLines: PageContactLine[];
   staff: PageStaff[];
   galleryItems: PageGalleryItem[];
+  newsTickerItems: PageNewsTickerItem[];
+  studentCornerItems: PageStudentCornerItem[];
   sidebarItems: PageSidebarItem[];
   showContacts?: boolean;
   showStaff?: boolean;
   showGallery?: boolean;
+  showNewsTicker?: boolean;
+  showStudentCorner?: boolean;
   showLeftSidebar?: boolean;
   showRightSidebar?: boolean;
 }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [newsTickerFormSeed, setNewsTickerFormSeed] = useState(0);
+  const [studentCornerFormSeed, setStudentCornerFormSeed] = useState(0);
 
   const leftItems = sidebarItems.filter((item) => item.side === "left");
   const rightItems = sidebarItems.filter((item) => item.side === "right");
@@ -276,6 +474,132 @@ export function OfficePortalAdminPanel({
               Add gallery image
             </button>
           </form>
+        </section>
+      )}
+
+      {showNewsTicker && (
+        <section className="rounded-xl border border-amber-200 bg-white p-6 shadow-sm">
+          <h2 className="font-display text-lg font-bold text-slate-900">News ticker</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Headlines shown in the yellow scrolling bar on the public page.
+          </p>
+          <ul className="mt-4 space-y-2">
+            {newsTickerItems.map((item) => {
+              const fileUrl = item.file_path ? getStoredFileUrl(item.file_path) : null;
+              const expiresLabel = item.expires_at ? formatAdminDateTime(item.expires_at) : null;
+              const isExpired = item.expires_at ? isExpiredAt(item.expires_at) : false;
+
+              return (
+              <li
+                key={item.id}
+                className="flex items-start justify-between gap-4 rounded-lg border border-slate-100 px-3 py-2 text-sm"
+              >
+                <div>
+                  <p className="font-semibold text-slate-800">{item.title_en}</p>
+                  {item.href && <p className="text-xs text-slate-500">Link: {item.href}</p>}
+                  {fileUrl && (
+                    <a
+                      href={fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-emerald-700 hover:underline"
+                    >
+                      Attached file
+                    </a>
+                  )}
+                  {expiresLabel && (
+                    <p className={`text-xs ${isExpired ? "font-medium text-red-600" : "text-slate-500"}`}>
+                      Expires: {expiresLabel}
+                      {isExpired ? " (expired)" : ""}
+                    </p>
+                  )}
+                  {!item.is_active && (
+                    <p className="text-xs font-medium text-amber-700">Hidden (inactive)</p>
+                  )}
+                </div>
+                <DeleteButton
+                  label="news headline"
+                  onConfirm={async () => {
+                    await deletePageNewsTickerItemAction(pageId, item.id);
+                  }}
+                />
+              </li>
+            );
+            })}
+          </ul>
+          <NewsTickerAddForm
+            key={`${newsTickerItems.length}-${newsTickerFormSeed}`}
+            pageId={pageId}
+            defaultSortOrder={newsTickerItems.length + 1}
+            onSuccess={() => {
+              setNewsTickerFormSeed((seed) => seed + 1);
+              refresh();
+            }}
+            onError={setError}
+          />
+        </section>
+      )}
+
+      {showStudentCorner && (
+        <section className="rounded-xl border border-emerald-200 bg-white p-6 shadow-sm">
+          <h2 className="font-display text-lg font-bold text-slate-900">Student Corner</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Notices and download links shown in the student corner panel on the public page.
+          </p>
+          <ul className="mt-4 space-y-2">
+            {studentCornerItems.map((item) => {
+              const fileUrl = item.file_path ? getStoredFileUrl(item.file_path) : null;
+              const expiresLabel = item.expires_at ? formatAdminDateTime(item.expires_at) : null;
+              const isExpired = item.expires_at ? isExpiredAt(item.expires_at) : false;
+
+              return (
+                <li
+                  key={item.id}
+                  className="flex items-start justify-between gap-4 rounded-lg border border-slate-100 px-3 py-2 text-sm"
+                >
+                  <div>
+                    <p className="font-semibold text-slate-800">{item.title_en}</p>
+                    {item.href && <p className="text-xs text-slate-500">Link: {item.href}</p>}
+                    {fileUrl && (
+                      <a
+                        href={fileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-emerald-700 hover:underline"
+                      >
+                        Attached file
+                      </a>
+                    )}
+                    {expiresLabel && (
+                      <p className={`text-xs ${isExpired ? "font-medium text-red-600" : "text-slate-500"}`}>
+                        Expires: {expiresLabel}
+                        {isExpired ? " (expired)" : ""}
+                      </p>
+                    )}
+                    {!item.is_active && (
+                      <p className="text-xs font-medium text-amber-700">Hidden (inactive)</p>
+                    )}
+                  </div>
+                  <DeleteButton
+                    label="student corner item"
+                    onConfirm={async () => {
+                      await deletePageStudentCornerItemAction(pageId, item.id);
+                    }}
+                  />
+                </li>
+              );
+            })}
+          </ul>
+          <StudentCornerAddForm
+            key={`${studentCornerItems.length}-${studentCornerFormSeed}`}
+            pageId={pageId}
+            defaultSortOrder={studentCornerItems.length + 1}
+            onSuccess={() => {
+              setStudentCornerFormSeed((seed) => seed + 1);
+              refresh();
+            }}
+            onError={setError}
+          />
         </section>
       )}
 

@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import {
   listPageContactLinesForAdmin,
   listPageGalleryItemsForAdmin,
+  listPageNewsTickerItemsForAdmin,
+  listPageStudentCornerItemsForAdmin,
   listPageSidebarItemsForAdmin,
   listPageStaffForAdmin,
 } from "@/actions/office-portal";
@@ -28,10 +30,13 @@ export default async function EditPagePage({ params }: { params: Promise<{ id: s
   const parentPages = buildAdminParentPageOptions(allPages);
   const pageById = new Map(allPages.map((p) => [p.id, p]));
   const publicPath = resolvePagePublicPath(page, pageById);
-  const [contactLines, staff, galleryItems, sidebarItems] = await Promise.all([
+  const [contactLines, staff, galleryItems, newsTickerItems, studentCornerItems, sidebarItems] =
+    await Promise.all([
     listPageContactLinesForAdmin(page.id),
     listPageStaffForAdmin(page.id),
     listPageGalleryItemsForAdmin(page.id),
+    listPageNewsTickerItemsForAdmin(page.id),
+    listPageStudentCornerItemsForAdmin(page.id),
     listPageSidebarItemsForAdmin(page.id),
   ]);
 
@@ -56,7 +61,7 @@ export default async function EditPagePage({ params }: { params: Promise<{ id: s
         departments={departments}
         parentPages={parentPages}
         page={page}
-        officePortalData={{ contactLines, staff, galleryItems, sidebarItems }}
+        officePortalData={{ contactLines, staff, galleryItems, newsTickerItems, studentCornerItems, sidebarItems }}
         allowCollegeRoot={canCreateCollegeRoot(session)}
         canEdit={canEditPages(session)}
       />

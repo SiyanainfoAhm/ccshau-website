@@ -7,6 +7,7 @@ import { useState } from "react";
 import { FarmersPortalSection } from "@/components/design/shared/home-sections";
 import { useLanguage } from "@/components/design/shared/language-context";
 import { CmsHtmlContent } from "@/components/site/cms-html-content";
+import { PortraitPhoto } from "@/components/site/portrait-photo";
 import type { HomepageCtaItem } from "@/lib/data/homepage";
 import type {
   PublicCollegePage,
@@ -144,15 +145,7 @@ export function PublicOfficePortal({
               <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
                 <div className="flex flex-col items-center gap-4 p-6 sm:flex-row sm:items-start">
                   {office.headOfficer.imageUrl && (
-                    <div className="relative h-40 w-32 shrink-0 overflow-hidden rounded-lg border border-slate-200">
-                      <Image
-                        src={office.headOfficer.imageUrl}
-                        alt=""
-                        fill
-                        className="object-cover object-top"
-                        sizes="128px"
-                      />
-                    </div>
+                    <PortraitPhoto src={office.headOfficer.imageUrl} />
                   )}
                   <div className="text-center sm:text-left">
                     <p
@@ -164,16 +157,19 @@ export function PublicOfficePortal({
                         office.headOfficer.nameHi,
                       )}
                     </p>
-                    {office.headOfficer.roleEn.split("\n").map((line, i) => (
+                    {office.headOfficer.roleEn.split("\n").map((line, i) => {
+                      if (!line.trim()) return null;
+                      return (
                       <p
-                        key={line}
+                        key={`head-officer-role-${i}`}
                         className={`mt-1 text-sm font-semibold text-emerald-800 ${lang === "hi" ? "font-hindi" : ""}`}
                       >
                         {lang === "hi" && office.headOfficer?.roleHi
                           ? (office.headOfficer.roleHi.split("\n")[i] ?? line)
                           : line}
                       </p>
-                    ))}
+                    );
+                    })}
                   </div>
                 </div>
               </div>

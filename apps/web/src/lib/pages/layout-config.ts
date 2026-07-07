@@ -6,6 +6,8 @@ export interface PageLayoutConfig {
   contacts: boolean;
   staff: boolean;
   gallery: boolean;
+  newsTicker: boolean;
+  studentCorner: boolean;
   mainContent: boolean;
   leftSidebar: boolean;
   rightSidebar: boolean;
@@ -20,6 +22,8 @@ export const LAYOUT_CONFIG_KEYS = [
   "contacts",
   "staff",
   "gallery",
+  "newsTicker",
+  "studentCorner",
   "mainContent",
   "leftSidebar",
   "rightSidebar",
@@ -35,6 +39,8 @@ export const LAYOUT_PRESETS: Record<"college_home" | "office_portal" | "minimal"
     contacts: true,
     staff: false,
     gallery: false,
+    newsTicker: false,
+    studentCorner: false,
     mainContent: true,
     leftSidebar: false,
     rightSidebar: false,
@@ -48,6 +54,8 @@ export const LAYOUT_PRESETS: Record<"college_home" | "office_portal" | "minimal"
     contacts: true,
     staff: true,
     gallery: false,
+    newsTicker: false,
+    studentCorner: false,
     mainContent: true,
     leftSidebar: true,
     rightSidebar: true,
@@ -61,6 +69,8 @@ export const LAYOUT_PRESETS: Record<"college_home" | "office_portal" | "minimal"
     contacts: false,
     staff: false,
     gallery: false,
+    newsTicker: false,
+    studentCorner: false,
     mainContent: true,
     leftSidebar: false,
     rightSidebar: false,
@@ -245,6 +255,16 @@ export const LAYOUT_SECTION_LABELS: Record<
     en: "Photo gallery",
     hi: "फोटो गैलरी",
     description: "Zoomable image grid with lightbox",
+  },
+  newsTicker: {
+    en: "News section",
+    hi: "समाचार अनुभाग",
+    description: "Yellow scrolling news ticker below the header",
+  },
+  studentCorner: {
+    en: "Student Corner",
+    hi: "छात्र कोना",
+    description: "Student notices and download links in a link panel",
   },
   mainContent: {
     en: "Main content",

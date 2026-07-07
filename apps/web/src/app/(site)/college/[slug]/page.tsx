@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
@@ -8,9 +8,12 @@ import { PublicConfigurablePage } from "@/components/site/public-configurable-pa
 import { getHomepageContent } from "@/lib/data/homepage";
 import {
   getOfficePortalDataByPageId,
+  getPageNewsTickerItemsByPageId,
+  getPageStudentCornerItemsByPageId,
   getPublishedCollegeBySlug,
 } from "@/lib/data/public";
 import { needsOfficeDataLoad } from "@/lib/pages/layout-config";
+import { getPgStudiesHubPath, PG_STUDIES_HUB_SLUG } from "@/lib/pages/routes";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -24,6 +27,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function CollegePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+  if (slug === PG_STUDIES_HUB_SLUG) {
+    redirect(getPgStudiesHubPath());
+  }
+
   const college = await getPublishedCollegeBySlug(slug);
   if (!college) notFound();
 
@@ -31,6 +38,12 @@ export default async function CollegePage({ params }: { params: Promise<{ slug: 
   const office = needsOfficeDataLoad(layoutConfig)
     ? await getOfficePortalDataByPageId(college.pageId)
     : null;
+  const newsTickerItems = layoutConfig.newsTicker
+    ? await getPageNewsTickerItemsByPageId(college.pageId)
+    : [];
+  const studentCornerItems = layoutConfig.studentCorner
+    ? await getPageStudentCornerItemsByPageId(college.pageId)
+    : [];
   const homepage = layoutConfig.farmersCta ? await getHomepageContent() : null;
 
   return (
@@ -46,6 +59,8 @@ export default async function CollegePage({ params }: { params: Promise<{ slug: 
           college={college}
           layoutConfig={layoutConfig}
           office={office}
+          newsTickerItems={newsTickerItems}
+          studentCornerItems={studentCornerItems}
           cta={layoutConfig.farmersCta && office?.officeCtaEnabled ? homepage?.cta ?? null : null}
         />
       </main>

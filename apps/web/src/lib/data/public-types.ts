@@ -98,6 +98,22 @@ export interface PublicGalleryImage {
   titleHi: string | null;
 }
 
+export interface PublicNewsTickerItem {
+  id: string;
+  titleEn: string;
+  titleHi: string | null;
+  href: string | null;
+  isNew: boolean;
+}
+
+export interface PublicStudentCornerItem {
+  id: string;
+  titleEn: string;
+  titleHi: string | null;
+  href: string | null;
+  isNew: boolean;
+}
+
 export interface PublicOfficeContactLine {
   labelEn: string;
   labelHi: string | null;
@@ -180,6 +196,29 @@ export interface PublicCollegePage extends PublicPage {
   mapLat: number | null;
   mapLng: number | null;
   sections: PublicCollegeSection[];
+}
+
+export interface PublicPgStudiesSection {
+  pageId: string;
+  slug: string;
+  urlSegment: string;
+  layoutConfig: PageLayoutConfig;
+  titleEn: string;
+  titleHi: string | null;
+  excerptEn: string | null;
+  excerptHi: string | null;
+  contentEn: string | null;
+  contentHi: string | null;
+}
+
+export interface PublicPgStudiesHub extends PublicPage {
+  pageId: string;
+  hubSlug: string;
+  layoutTemplate: LayoutTemplate;
+  layoutConfig: PageLayoutConfig;
+  featuredImageUrl?: string | null;
+  dropdownSections: PublicPgStudiesSection[];
+  topSections: PublicPgStudiesSection[];
 }
 
 export interface PublicSiteChrome {

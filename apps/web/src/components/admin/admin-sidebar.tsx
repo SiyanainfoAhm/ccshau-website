@@ -9,6 +9,7 @@ import {
   ClipboardList,
   Download,
   FileText,
+  GraduationCap,
   Home,
   Image,
   LayoutDashboard,
@@ -51,13 +52,14 @@ const navItems: NavItem[] = [
 ];
 
 const superAdminNavItems: NavItem[] = [
-  { href: "/admin/register", label: "College setup", icon: Building2 },
+  { href: "/admin/register", label: "Microsite setup", icon: Building2 },
+  { href: "/admin/pg-seminar-registrations", label: "PG registrations", icon: GraduationCap },
   { href: "/admin/users", label: "Users & roles", icon: Users },
 ];
 
 const collegeOnlyNavItems: NavItem[] = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { href: "/admin/register", label: "College setup", icon: Building2 },
+  { href: "/admin/register", label: "Microsite setup", icon: Building2 },
   { href: "/admin/pages", label: "College pages", icon: FileText },
 ];
 

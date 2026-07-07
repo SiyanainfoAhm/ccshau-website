@@ -13,6 +13,8 @@ import {
   mediaAlbumCoverPath,
   mediaItemPath,
   pageGalleryImagePath,
+  pageNewsTickerFilePath,
+  pageStudentCornerFilePath,
   newsAttachmentPath,
   STORAGE_BUCKETS,
   tenderAttachmentPath,
@@ -220,6 +222,50 @@ export async function uploadPageGalleryImage(
   const bucket = STORAGE_BUCKETS.public;
   const id = itemId ?? crypto.randomUUID();
   const path = pageGalleryImagePath(pageId, id, sanitizeFileName(file.name));
+  const buffer = Buffer.from(await file.arrayBuffer());
+
+  const { error } = await admin.storage.from(bucket).upload(path, buffer, {
+    contentType: file.type,
+    upsert: true,
+  });
+
+  if (error) return fail(`Upload failed: ${error.message}`);
+  return ok(`${bucket}/${path}`);
+}
+
+export async function uploadPageNewsTickerFile(
+  admin: SupabaseClient,
+  pageId: string,
+  itemId: string,
+  file: File,
+): Promise<ActionResult<string>> {
+  const validationError = validateUploadFile(file);
+  if (validationError) return fail(validationError);
+
+  const bucket = STORAGE_BUCKETS.public;
+  const path = pageNewsTickerFilePath(pageId, itemId, sanitizeFileName(file.name));
+  const buffer = Buffer.from(await file.arrayBuffer());
+
+  const { error } = await admin.storage.from(bucket).upload(path, buffer, {
+    contentType: file.type,
+    upsert: true,
+  });
+
+  if (error) return fail(`Upload failed: ${error.message}`);
+  return ok(`${bucket}/${path}`);
+}
+
+export async function uploadPageStudentCornerFile(
+  admin: SupabaseClient,
+  pageId: string,
+  itemId: string,
+  file: File,
+): Promise<ActionResult<string>> {
+  const validationError = validateUploadFile(file);
+  if (validationError) return fail(validationError);
+
+  const bucket = STORAGE_BUCKETS.public;
+  const path = pageStudentCornerFilePath(pageId, itemId, sanitizeFileName(file.name));
   const buffer = Buffer.from(await file.arrayBuffer());
 
   const { error } = await admin.storage.from(bucket).upload(path, buffer, {

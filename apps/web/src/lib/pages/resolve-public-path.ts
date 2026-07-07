@@ -1,6 +1,13 @@
 import type { PageType } from "@/lib/database/types";
 
-import { getCollegeSectionPath, getCollegeSubsectionPath, getPublicPagePath } from "./routes";
+import {
+  PG_STUDIES_HUB_SLUG,
+  getCollegeSectionPath,
+  getCollegeSubsectionPath,
+  getPgStudiesSectionPath,
+  getPublicPagePath,
+  pgStudiesSectionUrlSegment,
+} from "./routes";
 
 export interface PagePathAncestors {
   parentSlug?: string | null;
@@ -85,6 +92,10 @@ export function resolvePublicPagePath(
 
   if (parentSlug && parentPageType === "college") {
     return getCollegeSectionPath(parentSlug, slug);
+  }
+
+  if (parentSlug === PG_STUDIES_HUB_SLUG && parentPageType === "standard" && pageType === "standard") {
+    return getPgStudiesSectionPath(pgStudiesSectionUrlSegment(slug));
   }
 
   if (pageType === "college") {

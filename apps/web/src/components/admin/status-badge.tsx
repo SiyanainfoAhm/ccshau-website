@@ -8,6 +8,10 @@ const styles: Record<string, string> = {
   new: "bg-sky-100 text-sky-800",
   in_progress: "bg-violet-100 text-violet-800",
   resolved: "bg-emerald-100 text-emerald-800",
+  submitted: "bg-sky-100 text-sky-800",
+  under_review: "bg-violet-100 text-violet-800",
+  approved: "bg-emerald-100 text-emerald-800",
+  rejected: "bg-red-100 text-red-800",
 };
 
 export function StatusBadge({ status }: { status: string }) {

@@ -7,11 +7,12 @@ import { useState } from "react";
 
 import { AccessibilityToolbar } from "@/components/design/shared/accessibility-toolbar";
 import { CollegeNavigation } from "@/components/design/shared/college-navigation";
+import { PgStudiesNavigation } from "@/components/design/shared/pg-studies-navigation";
 import { MainNavigation } from "@/components/design/shared/main-navigation";
 import { useLanguage } from "@/components/design/shared/language-context";
 import { usePublicSiteChrome } from "@/components/site/public-site-context";
 import { SELECTED_LAYOUT } from "@/lib/design/selected-layout";
-import type { PublicCollegePage, PublicNavItem } from "@/lib/data/public-types";
+import type { PublicCollegePage, PublicNavItem, PublicPgStudiesHub } from "@/lib/data/public-types";
 import { navItems as mockNavItems, university } from "@/lib/mock/site-content";
 
 type HeaderVariant = "heritage" | "future" | "ministry";
@@ -30,6 +31,7 @@ export function SiteHeader({
   navItems: navItemsProp,
   showMainNav,
   college,
+  pgStudiesHub,
   pageLayoutConfig,
 }: {
   variant?: HeaderVariant;
@@ -39,17 +41,28 @@ export function SiteHeader({
   showMainNav?: boolean;
   /** When set, renders college navigation instead of the main site menu. */
   college?: PublicCollegePage;
+  /** When set, renders PG Studies microsite navigation. */
+  pgStudiesHub?: PublicPgStudiesHub;
   /** Nav toggles for the current page (overrides college root when set). */
   pageLayoutConfig?: { collegeTopMenu?: boolean };
 }) {
   const { lang, toggle, t } = useLanguage();
   const pathname = usePathname();
   const isCollegeRoute = pathname.startsWith("/college/");
+  const isPgStudiesRoute = pathname.startsWith("/pages/pg-studies");
   const isCollegeContext = Boolean(college) || isCollegeRoute;
+  const isPgStudiesContext = Boolean(pgStudiesHub) || isPgStudiesRoute;
   const collegeTopMenu =
     pageLayoutConfig?.collegeTopMenu ?? college?.layoutConfig?.collegeTopMenu ?? true;
-  const shouldShowMainNav = showMainNav ?? (!isCollegeContext || !collegeTopMenu);
+  const pgStudiesTopMenu =
+    pageLayoutConfig?.collegeTopMenu ?? pgStudiesHub?.layoutConfig?.collegeTopMenu ?? true;
+  const shouldShowMainNav =
+    showMainNav ??
+    ((!isCollegeContext && !isPgStudiesContext) ||
+      (isCollegeContext && !collegeTopMenu) ||
+      (isPgStudiesContext && !pgStudiesTopMenu));
   const shouldShowCollegeNav = Boolean(college) && collegeTopMenu;
+  const shouldShowPgStudiesNav = Boolean(pgStudiesHub) && pgStudiesTopMenu && !college;
   const chrome = usePublicSiteChrome();
   const navItems = navItemsProp ?? chrome?.headerNav ?? mockNavItems.map((item) => ({
     labelEn: item.labelEn,
@@ -107,7 +120,7 @@ export function SiteHeader({
               {lang === "en" ? "हिंदी" : "English"}
             </button>
             {(!isLight || isHeritage || isMinistry) && <AccessibilityToolbar />}
-            {isCollegeContext ? (
+            {isCollegeContext || isPgStudiesContext ? (
               <Link
                 href="/"
                 className={`hidden sm:inline ${isHeritage ? "text-[#9e4a5a] hover:underline" : isLight ? "text-emerald-700 hover:underline" : "text-amber-200 hover:text-white"}`}
@@ -210,6 +223,7 @@ export function SiteHeader({
       )}
 
       {shouldShowCollegeNav && college && <CollegeNavigation college={college} />}
+      {shouldShowPgStudiesNav && pgStudiesHub && <PgStudiesNavigation hub={pgStudiesHub} />}
     </header>
   );
 }

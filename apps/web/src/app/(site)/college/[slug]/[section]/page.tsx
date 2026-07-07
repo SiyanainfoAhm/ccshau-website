@@ -9,10 +9,17 @@ import { getHomepageContent } from "@/lib/data/homepage";
 import {
   getOfficePortalDataByPageId,
   getPageGalleryItemsByPageId,
+  getPageNewsTickerItemsByPageId,
+  getPageStudentCornerItemsByPageId,
   getPublishedCollegeSection,
 } from "@/lib/data/public";
 import { needsOfficeDataLoad } from "@/lib/pages/layout-config";
-import { getCollegeSubsectionPath } from "@/lib/pages/routes";
+import {
+  getCollegeSubsectionPath,
+  getPgStudiesSectionPath,
+  PG_STUDIES_HUB_SLUG,
+  pgStudiesSectionUrlSegment,
+} from "@/lib/pages/routes";
 
 export async function generateMetadata({
   params,
@@ -31,6 +38,10 @@ export default async function CollegeSectionPage({
   params: Promise<{ slug: string; section: string }>;
 }) {
   const { slug, section } = await params;
+  if (slug === PG_STUDIES_HUB_SLUG) {
+    redirect(getPgStudiesSectionPath(pgStudiesSectionUrlSegment(section)));
+  }
+
   const data = await getPublishedCollegeSection(slug, section);
   if (!data) notFound();
 
@@ -44,6 +55,12 @@ export default async function CollegeSectionPage({
     ? await getOfficePortalDataByPageId(data.section.pageId)
     : null;
   const galleryImages = await getPageGalleryItemsByPageId(data.section.pageId);
+  const newsTickerItems = layoutConfig.newsTicker
+    ? await getPageNewsTickerItemsByPageId(data.section.pageId)
+    : [];
+  const studentCornerItems = layoutConfig.studentCorner
+    ? await getPageStudentCornerItemsByPageId(data.section.pageId)
+    : [];
   const homepage = layoutConfig.farmersCta ? await getHomepageContent() : null;
 
   return (
@@ -61,6 +78,8 @@ export default async function CollegeSectionPage({
           office={office}
           section={data.section}
           galleryImages={galleryImages}
+          newsTickerItems={newsTickerItems}
+          studentCornerItems={studentCornerItems}
           cta={layoutConfig.farmersCta && office?.officeCtaEnabled ? homepage?.cta ?? null : null}
         />
       </main>

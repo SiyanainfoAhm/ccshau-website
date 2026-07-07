@@ -8,7 +8,7 @@ import { createPageAction, updatePageAction } from "@/actions/pages";
 import { translateFieldsEnToHiAction } from "@/actions/translate";
 import { LayoutConfigAdminPanel } from "@/components/admin/layout-config-admin-panel";
 import { OfficePortalAdminPanel } from "@/components/admin/office-portal-admin-panel";
-import type { Page, PageContactLine, PageGalleryItem, PageSidebarItem, PageStaff } from "@/lib/database/types";
+import type { Page, PageContactLine, PageGalleryItem, PageNewsTickerItem, PageStudentCornerItem, PageSidebarItem, PageStaff } from "@/lib/database/types";
 import {
   applyLayoutConfigToFormData,
   isCollegeLayoutPage,
@@ -57,6 +57,8 @@ export function PageForm({
     contactLines: PageContactLine[];
     staff: PageStaff[];
     galleryItems: PageGalleryItem[];
+    newsTickerItems: PageNewsTickerItem[];
+    studentCornerItems: PageStudentCornerItem[];
     sidebarItems: PageSidebarItem[];
   };
   allowCollegeRoot?: boolean;
@@ -212,6 +214,8 @@ export function PageForm({
     (layoutConfig.contacts ||
       layoutConfig.staff ||
       layoutConfig.gallery ||
+      layoutConfig.newsTicker ||
+      layoutConfig.studentCorner ||
       layoutConfig.leftSidebar ||
       layoutConfig.rightSidebar);
   const showFarmersCtaField = showCollegeLayout && layoutConfig.farmersCta;
@@ -712,10 +716,14 @@ export function PageForm({
         contactLines={officePortalData.contactLines}
         staff={officePortalData.staff}
         galleryItems={officePortalData.galleryItems}
+        newsTickerItems={officePortalData.newsTickerItems}
+        studentCornerItems={officePortalData.studentCornerItems}
         sidebarItems={officePortalData.sidebarItems}
         showContacts={layoutConfig.contacts && !isCollegeRoot}
         showStaff={layoutConfig.staff}
         showGallery={layoutConfig.gallery}
+        showNewsTicker={layoutConfig.newsTicker}
+        showStudentCorner={layoutConfig.studentCorner}
         showLeftSidebar={layoutConfig.leftSidebar}
         showRightSidebar={layoutConfig.rightSidebar}
       />
@@ -725,7 +733,7 @@ export function PageForm({
       <div className="mx-auto max-w-3xl rounded-xl border border-dashed border-emerald-200 bg-emerald-50/50 px-6 py-8 text-center text-sm text-emerald-900">
         <p className="font-medium">Office portal sections</p>
         <p className="mt-1 text-emerald-800">
-          Contact lines, staff directory, photo gallery, and sidebar quick links will appear here after you create
+          Contact lines, staff directory, photo gallery, news ticker, student corner, and sidebar quick links will appear here after you create
           and save this page.
         </p>
       </div>

@@ -6,16 +6,30 @@ import { writeAuditLog } from "@/lib/auth/audit";
 import { assertPageAccess } from "@/lib/auth/college-scope";
 import { requireAdminSession, requirePageEditSession } from "@/lib/auth/session";
 import { Tables } from "@/lib/database/names";
-import type { PageContactLine, PageGalleryItem, PageSidebarItem, PageStaff } from "@/lib/database/types";
+import type {
+  PageContactLine,
+  PageGalleryItem,
+  PageNewsTickerItem,
+  PageStudentCornerItem,
+  PageSidebarItem,
+  PageStaff,
+} from "@/lib/database/types";
 import { fail, ok, type ActionResult } from "@/lib/types/action-result";
 import {
   pageContactLineSchema,
   pageGalleryItemSchema,
+  pageNewsTickerItemSchema,
+  pageStudentCornerItemSchema,
   pageSidebarItemSchema,
   pageStaffSchema,
 } from "@/lib/validations/office-portal";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { removeStorageObjects, uploadPageGalleryImage } from "@/lib/storage/upload";
+import {
+  removeStorageObjects,
+  uploadPageGalleryImage,
+  uploadPageNewsTickerFile,
+  uploadPageStudentCornerFile,
+} from "@/lib/storage/upload";
 
 async function requireOfficePageAccess(pageId: string, edit = false) {
   const session = edit ? await requirePageEditSession() : await requireAdminSession();
@@ -488,5 +502,253 @@ export async function deletePageGalleryItemAction(
     return ok(undefined);
   } catch (e) {
     return fail(e instanceof Error ? e.message : "Failed to delete gallery image.");
+  }
+}
+
+export async function listPageNewsTickerItemsForAdmin(
+  pageId: string,
+): Promise<PageNewsTickerItem[]> {
+  await requireOfficePageAccess(pageId);
+  const admin = createAdminClient();
+  if (!admin) return [];
+  const { data } = await admin
+    .from(Tables.pageNewsTickerItems)
+    .select("*")
+    .eq("page_id", pageId)
+    .order("sort_order");
+  return (data ?? []) as PageNewsTickerItem[];
+}
+
+export async function createPageNewsTickerItemAction(
+  pageId: string,
+  formData: FormData,
+): Promise<ActionResult<{ id: string }>> {
+  try {
+    const session = await requireOfficePageAccess(pageId, true);
+    const tickerFile = formData.get("tickerFile");
+    const uploadedFile = tickerFile instanceof File && tickerFile.size > 0 ? tickerFile : null;
+    const expiresAtRaw = String(formData.get("expiresAt") ?? "").trim();
+
+    const parsed = pageNewsTickerItemSchema.safeParse({
+      titleEn: formData.get("titleEn"),
+      titleHi: formData.get("titleHi") || undefined,
+      href: formData.get("href") || undefined,
+      expiresAt: expiresAtRaw || undefined,
+      isNew: formData.get("isNew") !== "off",
+      sortOrder: formData.get("sortOrder") ?? 0,
+      isActive: formData.get("isActive") !== "off",
+    });
+    if (!parsed.success) return fail("Validation failed", parsed.error.flatten().fieldErrors);
+
+    const admin = createAdminClient();
+    if (!admin) return fail("Database not configured.");
+    const input = parsed.data;
+    const itemId = crypto.randomUUID();
+
+    let filePath: string | null = null;
+    if (uploadedFile) {
+      const upload = await uploadPageNewsTickerFile(admin, pageId, itemId, uploadedFile);
+      if (!upload.success) return upload;
+      filePath = upload.data;
+    }
+
+    const expiresAt = input.expiresAt ? new Date(input.expiresAt).toISOString() : null;
+
+    const { data, error } = await admin
+      .from(Tables.pageNewsTickerItems)
+      .insert({
+        id: itemId,
+        page_id: pageId,
+        title_en: input.titleEn,
+        title_hi: input.titleHi || null,
+        href: input.href?.trim() || null,
+        file_path: filePath,
+        expires_at: expiresAt,
+        is_new: input.isNew ?? true,
+        sort_order: input.sortOrder,
+        is_active: input.isActive ?? true,
+      })
+      .select("id")
+      .single();
+
+    if (error) return fail(error.message);
+    await writeAuditLog({
+      userId: session.userId,
+      action: "create",
+      entityType: "page_news_ticker_item",
+      entityId: data.id,
+    });
+    await revalidateOfficePage(pageId);
+    return ok({ id: data.id });
+  } catch (e) {
+    return fail(e instanceof Error ? e.message : "Failed to create news ticker item.");
+  }
+}
+
+export async function deletePageNewsTickerItemAction(
+  pageId: string,
+  id: string,
+): Promise<ActionResult> {
+  try {
+    const session = await requireOfficePageAccess(pageId, true);
+    const admin = createAdminClient();
+    if (!admin) return fail("Database not configured.");
+
+    const { data: row } = await admin
+      .from(Tables.pageNewsTickerItems)
+      .select("file_path")
+      .eq("id", id)
+      .eq("page_id", pageId)
+      .maybeSingle();
+
+    const { error } = await admin.from(Tables.pageNewsTickerItems).delete().eq("id", id);
+    if (error) return fail(error.message);
+
+    if (row?.file_path && !row.file_path.startsWith("http")) {
+      await removeStorageObjects(admin, [row.file_path]);
+    }
+
+    await writeAuditLog({
+      userId: session.userId,
+      action: "delete",
+      entityType: "page_news_ticker_item",
+      entityId: id,
+    });
+    await revalidateOfficePage(pageId);
+    return ok(undefined);
+  } catch (e) {
+    return fail(e instanceof Error ? e.message : "Failed to delete news ticker item.");
+  }
+}
+
+export async function listPageStudentCornerItemsForAdmin(
+  pageId: string,
+): Promise<PageStudentCornerItem[]> {
+  await requireOfficePageAccess(pageId);
+  const admin = createAdminClient();
+  if (!admin) return [];
+  const { data } = await admin
+    .from(Tables.pageStudentCornerItems)
+    .select("*")
+    .eq("page_id", pageId)
+    .order("sort_order");
+  return (data ?? []) as PageStudentCornerItem[];
+}
+
+export async function createPageStudentCornerItemAction(
+  pageId: string,
+  formData: FormData,
+): Promise<ActionResult<{ id: string }>> {
+  try {
+    const session = await requireOfficePageAccess(pageId, true);
+    const cornerFile = formData.get("cornerFile");
+    const uploadedFile = cornerFile instanceof File && cornerFile.size > 0 ? cornerFile : null;
+    const expiresAtRaw = String(formData.get("expiresAt") ?? "").trim();
+
+    const parsed = pageStudentCornerItemSchema.safeParse({
+      titleEn: formData.get("titleEn"),
+      titleHi: formData.get("titleHi") || undefined,
+      href: formData.get("href") || undefined,
+      expiresAt: expiresAtRaw || undefined,
+      isNew: formData.get("isNew") !== "off",
+      sortOrder: formData.get("sortOrder") ?? 0,
+      isActive: formData.get("isActive") !== "off",
+    });
+    if (!parsed.success) {
+      const fieldErrors = parsed.error.flatten().fieldErrors;
+      const firstFieldError = Object.values(fieldErrors).flat().find(Boolean);
+      return fail(firstFieldError ?? "Validation failed.", fieldErrors);
+    }
+
+    const admin = createAdminClient();
+    if (!admin) return fail("Database not configured.");
+    const input = parsed.data;
+    const itemId = crypto.randomUUID();
+
+    let filePath: string | null = null;
+    if (uploadedFile) {
+      const upload = await uploadPageStudentCornerFile(admin, pageId, itemId, uploadedFile);
+      if (!upload.success) return fail(upload.error ?? "File upload failed.");
+      filePath = upload.data;
+    }
+
+    let expiresAt: string | null = null;
+    if (input.expiresAt) {
+      const expiresDate = new Date(input.expiresAt);
+      if (Number.isNaN(expiresDate.getTime())) {
+        return fail("Invalid expiry date.");
+      }
+      expiresAt = expiresDate.toISOString();
+    }
+
+    const { data, error } = await admin
+      .from(Tables.pageStudentCornerItems)
+      .insert({
+        id: itemId,
+        page_id: pageId,
+        title_en: input.titleEn,
+        title_hi: input.titleHi || null,
+        href: input.href?.trim() || null,
+        file_path: filePath,
+        expires_at: expiresAt,
+        is_new: input.isNew ?? true,
+        sort_order: input.sortOrder,
+        is_active: input.isActive ?? true,
+      })
+      .select("id")
+      .single();
+
+    if (error) {
+      return fail(
+        error.message ||
+          "Could not save student corner item. Ensure the database migration for student corner is applied.",
+      );
+    }
+    await writeAuditLog({
+      userId: session.userId,
+      action: "create",
+      entityType: "page_student_corner_item",
+      entityId: data.id,
+    });
+    await revalidateOfficePage(pageId);
+    return ok({ id: data.id });
+  } catch (e) {
+    return fail(e instanceof Error ? e.message : "Failed to create student corner item.");
+  }
+}
+
+export async function deletePageStudentCornerItemAction(
+  pageId: string,
+  id: string,
+): Promise<ActionResult> {
+  try {
+    const session = await requireOfficePageAccess(pageId, true);
+    const admin = createAdminClient();
+    if (!admin) return fail("Database not configured.");
+
+    const { data: row } = await admin
+      .from(Tables.pageStudentCornerItems)
+      .select("file_path")
+      .eq("id", id)
+      .eq("page_id", pageId)
+      .maybeSingle();
+
+    const { error } = await admin.from(Tables.pageStudentCornerItems).delete().eq("id", id);
+    if (error) return fail(error.message);
+
+    if (row?.file_path && !row.file_path.startsWith("http")) {
+      await removeStorageObjects(admin, [row.file_path]);
+    }
+
+    await writeAuditLog({
+      userId: session.userId,
+      action: "delete",
+      entityType: "page_student_corner_item",
+      entityId: id,
+    });
+    await revalidateOfficePage(pageId);
+    return ok(undefined);
+  } catch (e) {
+    return fail(e instanceof Error ? e.message : "Failed to delete student corner item.");
   }
 }
