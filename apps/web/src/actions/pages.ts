@@ -199,8 +199,6 @@ export async function createPageAction(formData: FormData): Promise<ActionResult
       return fail("You do not have permission to publish pages.");
     }
 
-    const hasParent = Boolean(parsed.data.parentId);
-
     const admin = createAdminClient();
     if (!admin) return fail("Database not configured.");
 

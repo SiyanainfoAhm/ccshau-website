@@ -12,7 +12,6 @@ import {
   legacyFlagships,
   legacyQuotes,
   type LegacyDignitary,
-  type LegacyFlagship,
 } from "@/lib/legacy/homepage-content";
 import { getPublicPagePath } from "@/lib/pages/routes";
 import { getStoredFileUrl } from "@/lib/storage/upload";

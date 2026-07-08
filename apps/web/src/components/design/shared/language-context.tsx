@@ -4,9 +4,8 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
-  useState,
+  useSyncExternalStore,
   type ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
@@ -26,34 +25,53 @@ type LanguageContextValue = {
 
 const LanguageContext = createContext<LanguageContextValue | null>(null);
 
+let languageRevision = 0;
+const languageSubscribers = new Set<() => void>();
+
+function subscribeLanguage(onStoreChange: () => void) {
+  languageSubscribers.add(onStoreChange);
+  return () => {
+    languageSubscribers.delete(onStoreChange);
+  };
+}
+
+function bumpLanguageStore() {
+  languageRevision += 1;
+  languageSubscribers.forEach((listener) => listener());
+}
+
+function getLanguageSnapshot(): Lang {
+  void languageRevision;
+  return readStoredLang() ?? "en";
+}
+
+function getServerLanguageSnapshot(): Lang {
+  return "en";
+}
+
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
-  const [lang, setLangState] = useState<Lang>("en");
-  const [hydrated, setHydrated] = useState(false);
-
-  useEffect(() => {
-    const stored = readStoredLang();
-    if (stored) setLangState(stored);
-    setHydrated(true);
-  }, []);
+  const lang = useSyncExternalStore(
+    subscribeLanguage,
+    getLanguageSnapshot,
+    getServerLanguageSnapshot,
+  );
 
   const setLang = useCallback(
     (next: Lang) => {
-      setLangState(next);
       persistLang(next);
+      bumpLanguageStore();
       router.refresh();
     },
     [router],
   );
 
   const toggle = useCallback(() => {
-    setLangState((current) => {
-      const next = current === "en" ? "hi" : "en";
-      persistLang(next);
-      return next;
-    });
+    const next = lang === "en" ? "hi" : "en";
+    persistLang(next);
+    bumpLanguageStore();
     router.refresh();
-  }, [router]);
+  }, [lang, router]);
 
   const t = useCallback(
     (en: string, hi: string) => (lang === "hi" ? hi : en),
@@ -67,7 +85,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   return (
     <LanguageContext.Provider value={value}>
-      <div lang={hydrated ? lang : "en"}>{children}</div>
+      <div lang={lang}>{children}</div>
     </LanguageContext.Provider>
   );
 }

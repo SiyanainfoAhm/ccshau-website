@@ -16,6 +16,11 @@ function matchesMicrositeQuery(college: CollegeOption, query: string) {
   return haystack.includes(query);
 }
 
+function typeFilterLabel(typeFilter: TypeFilter): string | null {
+  if (typeFilter === "all") return null;
+  return MICROSITE_KIND_LABELS[typeFilter].en.toLowerCase();
+}
+
 export function CollegeRegisterList({ colleges }: { colleges: CollegeOption[] }) {
   const [query, setQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
@@ -96,11 +101,19 @@ export function CollegeRegisterList({ colleges }: { colleges: CollegeOption[] })
             ) : filteredColleges.length === 0 ? (
               <tr>
                 <td colSpan={4} className="px-4 py-8 text-center text-slate-500">
-                  {normalizedQuery && typeFilter !== "all"
-                    ? `No ${MICROSITE_KIND_LABELS[typeFilter].en.toLowerCase()} microsites match "${query.trim()}".`
-                    : normalizedQuery
-                      ? `No microsites match "${query.trim()}".`
-                      : `No ${MICROSITE_KIND_LABELS[typeFilter].en.toLowerCase()} microsites found.`}
+                  {(() => {
+                    const typeLabel = typeFilterLabel(typeFilter);
+                    if (normalizedQuery && typeLabel) {
+                      return `No ${typeLabel} microsites match "${query.trim()}".`;
+                    }
+                    if (normalizedQuery) {
+                      return `No microsites match "${query.trim()}".`;
+                    }
+                    if (typeLabel) {
+                      return `No ${typeLabel} microsites found.`;
+                    }
+                    return "No microsites match your filters.";
+                  })()}
                 </td>
               </tr>
             ) : (
