@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { createBannerAction, updateBannerAction } from "@/actions/banners";
+import { AdminFileUploadField } from "@/components/admin/admin-file-upload-field";
 import type { Banner } from "@/lib/database/types";
 import { getStoredFileUrl } from "@/lib/storage/upload";
 
@@ -13,10 +14,9 @@ export function BannerForm({ banner }: { banner?: Banner }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const [removeImage, setRemoveImage] = useState(false);
 
-  const imageUrl =
-    banner && banner.image_path !== "pending" ? getStoredFileUrl(banner.image_path) : null;
+  const hasImage = Boolean(banner?.image_path && banner.image_path !== "pending");
+  const imageUrl = hasImage ? getStoredFileUrl(banner!.image_path!) : null;
 
   const startValue = banner?.start_date
     ? new Date(banner.start_date).toISOString().slice(0, 16)
@@ -25,7 +25,6 @@ export function BannerForm({ banner }: { banner?: Banner }) {
 
   function handleSubmit(formData: FormData) {
     setError(null);
-    if (removeImage) formData.set("removeImage", "on");
 
     startTransition(async () => {
       if (banner) {
@@ -48,7 +47,7 @@ export function BannerForm({ banner }: { banner?: Banner }) {
   }
 
   return (
-    <form action={handleSubmit} className="max-w-2xl space-y-5">
+    <form action={handleSubmit} encType="multipart/form-data" className="max-w-2xl space-y-5">
       {error && (
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
       )}
@@ -67,30 +66,19 @@ export function BannerForm({ banner }: { banner?: Banner }) {
         <span className="text-sm font-medium text-slate-700">
           Banner image {!banner && <span className="text-red-600">*</span>}
         </span>
-        {imageUrl && !removeImage && (
-          <div className="relative h-40 w-full max-w-md overflow-hidden rounded-lg border border-slate-200">
+        {hasImage && imageUrl && (
+          <div className="relative h-32 w-full max-w-md overflow-hidden rounded-lg border border-slate-200">
             <Image src={imageUrl} alt={banner?.alt_text ?? banner?.title ?? ""} fill className="object-cover" />
           </div>
         )}
-        {banner && imageUrl && (
-          <label className="flex items-center gap-2 text-sm text-slate-600">
-            <input
-              type="checkbox"
-              checked={removeImage}
-              onChange={(e) => setRemoveImage(e.target.checked)}
-            />
-            Replace current image
-          </label>
-        )}
-        {(!banner || removeImage) && (
-          <input
-            name="image"
-            type="file"
-            accept="image/jpeg,image/png,image/webp,image/gif"
-            required={!banner}
-            className="block w-full text-sm text-slate-600"
-          />
-        )}
+        <AdminFileUploadField
+          name="image"
+          accept="image/jpeg,image/png,image/webp,image/gif"
+          required={!banner}
+          kind="image"
+          label={hasImage ? "Replace banner image" : "Upload banner image"}
+          hint="JPEG, PNG, WebP or GIF"
+        />
       </div>
 
       <label className="block text-sm">

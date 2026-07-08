@@ -23,7 +23,15 @@ function matchesQuery(page: Page, query: string) {
   return haystack.includes(query);
 }
 
-export function PagesList({ pages }: { pages: Page[] }) {
+export function PagesList({
+  pages,
+  canDelete = false,
+  canCreate = false,
+}: {
+  pages: Page[];
+  canDelete?: boolean;
+  canCreate?: boolean;
+}) {
   const [query, setQuery] = useState("");
   const normalizedQuery = query.trim().toLowerCase();
 
@@ -59,22 +67,29 @@ export function PagesList({ pages }: { pages: Page[] }) {
               <th className="px-4 py-3 text-left font-semibold text-slate-700">Slug</th>
               <th className="px-4 py-3 text-left font-semibold text-slate-700">Status</th>
               <th className="px-4 py-3 text-left font-semibold text-slate-700">Updated</th>
-              <th className="px-4 py-3 text-right font-semibold text-slate-700">Actions</th>
+              {canDelete && (
+                <th className="px-4 py-3 text-right font-semibold text-slate-700">Actions</th>
+              )}
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {pages.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-4 py-10 text-center text-slate-500">
-                  No pages yet.{" "}
-                  <Link href="/admin/pages/new" className="text-emerald-700 hover:underline">
-                    Create your first page
-                  </Link>
+                <td colSpan={canDelete ? 5 : 4} className="px-4 py-10 text-center text-slate-500">
+                  No pages yet.
+                  {canCreate && (
+                    <>
+                      {" "}
+                      <Link href="/admin/pages/new" className="text-emerald-700 hover:underline">
+                        Create your first page
+                      </Link>
+                    </>
+                  )}
                 </td>
               </tr>
             ) : filteredPages.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-4 py-10 text-center text-slate-500">
+                <td colSpan={canDelete ? 5 : 4} className="px-4 py-10 text-center text-slate-500">
                   No pages match &ldquo;{query.trim()}&rdquo;.
                 </td>
               </tr>
@@ -96,13 +111,15 @@ export function PagesList({ pages }: { pages: Page[] }) {
                   <td className="px-4 py-3 text-slate-500">
                     {new Date(page.updated_at).toLocaleDateString("en-IN")}
                   </td>
-                  <td className="px-4 py-3 text-right">
-                    <DeletePageButton
-                      pageId={page.id}
-                      pageTitle={page.title_en}
-                      variant="list"
-                    />
-                  </td>
+                  {canDelete && (
+                    <td className="px-4 py-3 text-right">
+                      <DeletePageButton
+                        pageId={page.id}
+                        pageTitle={page.title_en}
+                        variant="list"
+                      />
+                    </td>
+                  )}
                 </tr>
               ))
             )}

@@ -3,12 +3,14 @@ import { Plus } from "lucide-react";
 
 import { listCircularsForAdmin } from "@/actions/circulars";
 import { StatusBadge } from "@/components/admin/status-badge";
+import { canManageUniversityContent } from "@/lib/auth/college-scope";
 import { requireAdminSession } from "@/lib/auth/session";
 import { getStoredFileUrl } from "@/lib/storage/upload";
 
 export default async function AdminCircularsPage() {
-  await requireAdminSession();
+  const session = await requireAdminSession();
   const items = await listCircularsForAdmin();
+  const canCreate = canManageUniversityContent(session);
 
   return (
     <div className="space-y-6">
@@ -17,6 +19,7 @@ export default async function AdminCircularsPage() {
           <h1 className="font-display text-2xl font-bold text-slate-900">Circulars</h1>
           <p className="text-sm text-slate-500">Official university circulars and orders</p>
         </div>
+        {canCreate && (
         <Link
           href="/admin/circulars/new"
           className="inline-flex items-center gap-2 rounded-lg bg-[#0b3d2e] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#0d4a38]"
@@ -24,6 +27,7 @@ export default async function AdminCircularsPage() {
           <Plus className="h-4 w-4" aria-hidden />
           New circular
         </Link>
+        )}
       </div>
 
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -41,10 +45,15 @@ export default async function AdminCircularsPage() {
             {items.length === 0 ? (
               <tr>
                 <td colSpan={5} className="px-4 py-10 text-center text-slate-500">
-                  No circulars yet.{" "}
-                  <Link href="/admin/circulars/new" className="text-emerald-700 hover:underline">
-                    Create your first circular
-                  </Link>
+                  No circulars yet.
+                  {canCreate && (
+                    <>
+                      {" "}
+                      <Link href="/admin/circulars/new" className="text-emerald-700 hover:underline">
+                        Create your first circular
+                      </Link>
+                    </>
+                  )}
                 </td>
               </tr>
             ) : (

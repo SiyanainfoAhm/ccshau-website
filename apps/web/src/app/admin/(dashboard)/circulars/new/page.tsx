@@ -2,10 +2,10 @@ import Link from "next/link";
 
 import { listDepartments } from "@/actions/circulars";
 import { CircularForm } from "@/components/admin/circular-form";
-import { requireAdminSession } from "@/lib/auth/session";
+import { requireAdminWithRolesOrRedirect } from "@/lib/auth/session";
 
 export default async function AdminNewCircularPage() {
-  await requireAdminSession();
+  await requireAdminWithRolesOrRedirect(["super_admin", "dept_admin", "editor"]);
   const departments = await listDepartments();
 
   return (

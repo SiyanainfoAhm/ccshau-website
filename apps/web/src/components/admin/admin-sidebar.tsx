@@ -26,14 +26,20 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-type NavItem = {
+import {
+  canAccessAdminPath,
+  canSeeAdminNavHref,
+  type AdminNavAccess,
+} from "@/lib/auth/admin-nav-access";
+
+export type AdminNavItem = {
   href: string;
   label: string;
   icon: LucideIcon;
   exact?: boolean;
 };
 
-const navItems: NavItem[] = [
+const baseNavItems: AdminNavItem[] = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/admin/pages", label: "Pages", icon: FileText },
   { href: "/admin/news", label: "News & Notices", icon: Newspaper },
@@ -51,29 +57,28 @@ const navItems: NavItem[] = [
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
-const superAdminNavItems: NavItem[] = [
+const superAdminNavItems: AdminNavItem[] = [
   { href: "/admin/register", label: "Microsite setup", icon: Building2 },
   { href: "/admin/pg-seminar-registrations", label: "PG registrations", icon: GraduationCap },
   { href: "/admin/users", label: "Users & roles", icon: Users },
 ];
 
-const collegeOnlyNavItems: NavItem[] = [
+const collegeOnlyNavItems: AdminNavItem[] = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/admin/register", label: "Microsite setup", icon: Building2 },
   { href: "/admin/pages", label: "College pages", icon: FileText },
 ];
 
-function getSidebarNavItems(isSuperAdmin: boolean, isCollegeOnly: boolean): NavItem[] {
-  if (isCollegeOnly) return collegeOnlyNavItems;
-  if (!isSuperAdmin) return navItems;
-  const settings = navItems[navItems.length - 1];
-  return [...navItems.slice(0, -1), ...superAdminNavItems, settings];
-}
+export function getSidebarNavItems(access: AdminNavAccess): AdminNavItem[] {
+  if (access.isCollegeOnly) return collegeOnlyNavItems;
 
-function isAllowedCollegeOnlyPath(pathname: string): boolean {
-  if (pathname === "/admin") return true;
-  if (pathname.startsWith("/admin/register")) return true;
-  return pathname.startsWith("/admin/pages");
+  const visibleBase = baseNavItems.filter((item) => canSeeAdminNavHref(access, item.href));
+
+  if (!access.isSuperAdmin) return visibleBase;
+
+  const settings = visibleBase.find((item) => item.href === "/admin/settings");
+  const withoutSettings = visibleBase.filter((item) => item.href !== "/admin/settings");
+  return [...withoutSettings, ...superAdminNavItems, ...(settings ? [settings] : [])];
 }
 
 function NavPendingIndicator() {
@@ -88,40 +93,38 @@ function NavPendingIndicator() {
   );
 }
 
-function CollegeRouteGuard({ isCollegeOnly }: { isCollegeOnly: boolean }) {
+function AdminRouteGuard({ access }: { access: AdminNavAccess }) {
   const pathname = usePathname();
   const router = useRouter();
 
   useEffect(() => {
-    if (isCollegeOnly && !isAllowedCollegeOnlyPath(pathname)) {
+    if (!canAccessAdminPath(access, pathname)) {
       router.replace("/admin");
     }
-  }, [isCollegeOnly, pathname, router]);
+  }, [access, pathname, router]);
 
   return null;
 }
 
 export function AdminSidebar({
-  isSuperAdmin = false,
-  isCollegeOnly = false,
+  access,
   collegeName,
 }: {
-  isSuperAdmin?: boolean;
-  isCollegeOnly?: boolean;
+  access: AdminNavAccess;
   collegeName?: string | null;
 }) {
   const pathname = usePathname();
-  const items = getSidebarNavItems(isSuperAdmin, isCollegeOnly);
+  const items = getSidebarNavItems(access);
 
   return (
     <>
-      <CollegeRouteGuard isCollegeOnly={isCollegeOnly} />
+      <AdminRouteGuard access={access} />
       <aside className="flex w-64 shrink-0 flex-col border-r border-emerald-900/10 bg-[#0b3d2e] text-emerald-50">
         <div className="border-b border-white/10 px-5 py-6">
           <Link href="/admin" className="block">
             <p className="font-display text-xl font-bold text-gradient-gold">CCSHAU</p>
             <p className="mt-1 text-xs text-emerald-200/80">
-              {isCollegeOnly && collegeName ? collegeName : "Content Management"}
+              {access.isCollegeOnly && collegeName ? collegeName : "Content Management"}
             </p>
           </Link>
         </div>

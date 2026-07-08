@@ -3,13 +3,14 @@ import { Plus } from "lucide-react";
 
 import { listPagesForAdmin } from "@/actions/pages";
 import { PagesList } from "@/components/admin/pages-list";
-import { canEditPages } from "@/lib/auth/college-scope";
+import { canDeletePages, canEditPages } from "@/lib/auth/college-scope";
 import { requireAdminSession } from "@/lib/auth/session";
 
 export default async function AdminPagesListPage() {
   const session = await requireAdminSession();
   const pages = await listPagesForAdmin();
   const canCreate = canEditPages(session);
+  const canDelete = canDeletePages(session);
 
   return (
     <div className="space-y-6">
@@ -35,7 +36,7 @@ export default async function AdminPagesListPage() {
         )}
       </div>
 
-      <PagesList pages={pages} />
+      <PagesList pages={pages} canDelete={canDelete} canCreate={canCreate} />
     </div>
   );
 }

@@ -1,9 +1,9 @@
 import { listDepartments } from "@/actions/tenders";
 import { TenderForm } from "@/components/admin/tender-form";
-import { requireAdminSession } from "@/lib/auth/session";
+import { requireAdminWithRolesOrRedirect } from "@/lib/auth/session";
 
 export default async function NewTenderPage() {
-  await requireAdminSession();
+  await requireAdminWithRolesOrRedirect(["super_admin", "dept_admin", "editor"]);
   const departments = await listDepartments();
 
   return (

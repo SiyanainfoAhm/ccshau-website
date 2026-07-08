@@ -4,14 +4,14 @@ import { notFound } from "next/navigation";
 import { getDownloadById, listDepartments } from "@/actions/downloads";
 import { DeleteDownloadButton } from "@/components/admin/delete-download-button";
 import { DownloadForm } from "@/components/admin/download-form";
-import { requireAdminSession } from "@/lib/auth/session";
+import { requireAdminWithRolesOrRedirect } from "@/lib/auth/session";
 
 export default async function AdminEditDownloadPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireAdminSession();
+  await requireAdminWithRolesOrRedirect(["super_admin", "dept_admin", "editor"]);
   const { id } = await params;
   const [download, departments] = await Promise.all([
     getDownloadById(id),

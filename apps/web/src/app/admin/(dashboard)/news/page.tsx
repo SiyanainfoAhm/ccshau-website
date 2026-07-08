@@ -3,11 +3,13 @@ import { Plus } from "lucide-react";
 
 import { listNewsForAdmin } from "@/actions/news";
 import { StatusBadge } from "@/components/admin/status-badge";
+import { canManageUniversityContent } from "@/lib/auth/college-scope";
 import { requireAdminSession } from "@/lib/auth/session";
 
 export default async function AdminNewsListPage() {
-  await requireAdminSession();
+  const session = await requireAdminSession();
   const items = await listNewsForAdmin();
+  const canCreate = canManageUniversityContent(session);
 
   return (
     <div className="space-y-6">
@@ -16,6 +18,7 @@ export default async function AdminNewsListPage() {
           <h1 className="font-display text-2xl font-bold text-slate-900">News & Notices</h1>
           <p className="text-sm text-slate-500">Manage news, notices, corrigenda, and cancellations</p>
         </div>
+        {canCreate && (
         <Link
           href="/admin/news/new"
           className="inline-flex items-center gap-2 rounded-lg bg-[#0b3d2e] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#0d4a38]"
@@ -23,6 +26,7 @@ export default async function AdminNewsListPage() {
           <Plus className="h-4 w-4" aria-hidden />
           New item
         </Link>
+        )}
       </div>
 
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -41,10 +45,15 @@ export default async function AdminNewsListPage() {
             {items.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-4 py-10 text-center text-slate-500">
-                  No news yet.{" "}
-                  <Link href="/admin/news/new" className="text-emerald-700 hover:underline">
-                    Create your first item
-                  </Link>
+                  No news yet.
+                  {canCreate && (
+                    <>
+                      {" "}
+                      <Link href="/admin/news/new" className="text-emerald-700 hover:underline">
+                        Create your first item
+                      </Link>
+                    </>
+                  )}
                 </td>
               </tr>
             ) : (

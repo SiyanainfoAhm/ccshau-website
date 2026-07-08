@@ -4,14 +4,14 @@ import { notFound } from "next/navigation";
 import { getRedirectById } from "@/actions/redirects";
 import { DeleteRedirectButton } from "@/components/admin/delete-redirect-button";
 import { RedirectForm } from "@/components/admin/redirect-form";
-import { requireAdminWithRoles } from "@/lib/auth/session";
+import { requireAdminWithRolesOrRedirect } from "@/lib/auth/session";
 
 export default async function AdminEditRedirectPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireAdminWithRoles(["super_admin", "dept_admin"]);
+  await requireAdminWithRolesOrRedirect(["super_admin", "dept_admin"]);
   const { id } = await params;
   const redirect = await getRedirectById(id);
   if (!redirect) notFound();

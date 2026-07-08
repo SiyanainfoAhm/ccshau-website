@@ -104,6 +104,7 @@ export function SiteFooter({
               {[
                 { label: "RTI", href: "#" },
                 { label: "NIRF", href: "#" },
+                { label: t("Circulars", "परिपत्र"), href: SELECTED_LAYOUT.routes.circulars },
                 { label: t("Tenders", "निविदाएं"), href: SELECTED_LAYOUT.routes.tenders },
                 { label: t("Contact", "संपर्क"), href: SELECTED_LAYOUT.routes.contact },
                 { label: t("Design Gallery", "डिज़ाइन गैलरी"), href: SELECTED_LAYOUT.galleryPath },

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { createNewsAction, updateNewsAction } from "@/actions/news";
+import { AdminFileUploadField } from "@/components/admin/admin-file-upload-field";
 import { AttachmentList, useAttachmentRemovals } from "@/components/admin/attachment-list";
 import type { NewsItem } from "@/lib/database/types";
 import { NEWS_CATEGORIES } from "@/lib/validations/news";
@@ -60,7 +61,7 @@ export function NewsForm({
     : "";
 
   return (
-    <form action={handleSubmit} className="mx-auto max-w-3xl space-y-6">
+    <form action={handleSubmit} encType="multipart/form-data" className="mx-auto max-w-3xl space-y-6">
       {error && (
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
           {error}
@@ -163,12 +164,13 @@ export function NewsForm({
           </div>
         )}
 
-        <input
-          type="file"
+        <AdminFileUploadField
           name="attachments"
           multiple
           accept=".pdf,.jpg,.jpeg,.png,.webp,.gif,.doc,.docx,application/pdf,image/*"
-          className="block w-full text-sm text-slate-600 file:mr-4 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-emerald-800 hover:file:bg-emerald-100"
+          label="Upload attachments"
+          hint="PDF or images — max 25 MB PDF / 5 MB image"
+          chooseLabel="Choose files"
         />
       </div>
 

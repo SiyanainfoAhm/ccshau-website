@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import {
   getDepartmentsForRegisterForm,
   getFacultyForEdit,
-  requireCollegeRegisterAdmin,
+  requireCollegeRegisterAdminOrRedirect,
 } from "@/actions/college-register";
 import { RegisterFacultyForm } from "@/components/admin/register-faculty-form";
 
@@ -13,7 +13,7 @@ export default async function EditFacultyPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireCollegeRegisterAdmin();
+  await requireCollegeRegisterAdminOrRedirect();
   const { id } = await params;
   const [facultyData, departments] = await Promise.all([
     getFacultyForEdit(id),

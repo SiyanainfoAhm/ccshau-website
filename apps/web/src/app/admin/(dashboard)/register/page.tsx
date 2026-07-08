@@ -4,13 +4,13 @@ import { redirect } from "next/navigation";
 
 import {
   getCollegesForRegisterForm,
-  requireCollegeRegisterAdmin,
+  requireCollegeRegisterAdminOrRedirect,
 } from "@/actions/college-register";
 import { CollegeRegisterList } from "@/components/admin/college-register-list";
 import { isSuperAdminSession } from "@/lib/auth/college-scope";
 
 export default async function CollegeRegisterHubPage() {
-  const session = await requireCollegeRegisterAdmin();
+  const session = await requireCollegeRegisterAdminOrRedirect();
   const colleges = await getCollegesForRegisterForm();
   const canRegisterMicrosite = isSuperAdminSession(session);
 

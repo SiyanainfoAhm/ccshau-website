@@ -7,12 +7,15 @@ export function LayoutConfigAdminPanel({
   layoutConfig,
   onChange,
   hiddenKeys = [],
+  readOnly = false,
 }: {
   layoutConfig: PageLayoutConfig;
   onChange: (next: PageLayoutConfig) => void;
   hiddenKeys?: (keyof PageLayoutConfig)[];
+  readOnly?: boolean;
 }) {
   function toggle(key: keyof PageLayoutConfig) {
+    if (readOnly) return;
     onChange({ ...layoutConfig, [key]: !layoutConfig[key] });
   }
 
@@ -22,9 +25,9 @@ export function LayoutConfigAdminPanel({
     <div className="rounded-xl border border-violet-200 bg-violet-50/40 p-6 shadow-sm">
       <h2 className="mb-1 text-lg font-semibold text-slate-900">Layout sections</h2>
       <p className="mb-4 text-sm text-slate-600">
-        Toggle which blocks appear on the public page. Changing the layout template above resets
-        these to a preset — you can adjust them afterward. Click <strong>Update page</strong> to
-        apply changes on the live site.
+        {readOnly
+          ? "These sections are shown for reference. View-only users cannot change layout settings."
+          : "Toggle which blocks appear on the public page. Changing the layout template above resets these to a preset — you can adjust them afterward. Click Update page to apply changes on the live site."}
       </p>
       <div className="grid gap-3 sm:grid-cols-2">
         {visibleKeys.map((key) => {
@@ -32,12 +35,15 @@ export function LayoutConfigAdminPanel({
           return (
             <label
               key={key}
-              className="flex cursor-pointer items-start gap-3 rounded-lg border border-violet-100 bg-white p-3 shadow-sm transition hover:border-violet-200"
+              className={`flex items-start gap-3 rounded-lg border border-violet-100 bg-white p-3 shadow-sm ${
+                readOnly ? "cursor-default opacity-80" : "cursor-pointer transition hover:border-violet-200"
+              }`}
             >
               <input
                 type="checkbox"
                 checked={layoutConfig[key]}
                 onChange={() => toggle(key)}
+                disabled={readOnly}
                 className="mt-1"
               />
               <span className="text-sm">

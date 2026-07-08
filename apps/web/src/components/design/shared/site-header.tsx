@@ -82,8 +82,10 @@ export function SiteHeader({
   const isMinistry = variant === "ministry";
 
   const resolveHref = (href: string) => {
-    if (!isMinistry || !href.includes("/design/option-")) return href;
-    return href.replace(/\/design\/option-[abc]/, homeHref.replace(/\/$/, ""));
+    if (href.includes("/design/option-")) {
+      return href.replace(/\/design\/option-[abc]/, homeHref.replace(/\/$/, ""));
+    }
+    return href;
   };
 
   function handleSearchSubmit(e: React.FormEvent) {

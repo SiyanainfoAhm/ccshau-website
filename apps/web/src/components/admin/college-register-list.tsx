@@ -5,7 +5,9 @@ import { ExternalLink, Pencil, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import type { CollegeOption } from "@/lib/pages/college-register-helpers";
-import { MICROSITE_KIND_LABELS } from "@/lib/pages/microsite-kind";
+import { MICROSITE_KIND_LABELS, type MicrositeKind } from "@/lib/pages/microsite-kind";
+
+type TypeFilter = "all" | MicrositeKind;
 
 function matchesMicrositeQuery(college: CollegeOption, query: string) {
   const haystack = [college.title_en, college.slug, MICROSITE_KIND_LABELS[college.kind].en]
@@ -16,12 +18,17 @@ function matchesMicrositeQuery(college: CollegeOption, query: string) {
 
 export function CollegeRegisterList({ colleges }: { colleges: CollegeOption[] }) {
   const [query, setQuery] = useState("");
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const normalizedQuery = query.trim().toLowerCase();
+  const hasActiveFilters = Boolean(normalizedQuery) || typeFilter !== "all";
 
   const filteredColleges = useMemo(() => {
-    if (!normalizedQuery) return colleges;
-    return colleges.filter((college) => matchesMicrositeQuery(college, normalizedQuery));
-  }, [colleges, normalizedQuery]);
+    return colleges.filter((college) => {
+      if (typeFilter !== "all" && college.kind !== typeFilter) return false;
+      if (normalizedQuery && !matchesMicrositeQuery(college, normalizedQuery)) return false;
+      return true;
+    });
+  }, [colleges, normalizedQuery, typeFilter]);
 
   const academicCount = colleges.filter((c) => c.kind === "academic").length;
   const directorateCount = colleges.filter((c) => c.kind === "directorate").length;
@@ -33,27 +40,39 @@ export function CollegeRegisterList({ colleges }: { colleges: CollegeOption[] })
           <div>
             <h2 className="font-display text-lg font-bold text-slate-900">Registered microsites</h2>
             <p className="text-xs text-slate-500">
-              {normalizedQuery
+              {hasActiveFilters
                 ? `${filteredColleges.length} of ${colleges.length} shown`
                 : `${colleges.length} total`}
-              {!normalizedQuery && academicCount > 0
+              {!hasActiveFilters && academicCount > 0
                 ? ` · ${academicCount} college${academicCount === 1 ? "" : "s"}`
                 : ""}
-              {!normalizedQuery && directorateCount > 0
+              {!hasActiveFilters && directorateCount > 0
                 ? ` · ${directorateCount} directorate${directorateCount === 1 ? "" : "s"}`
                 : ""}
             </p>
           </div>
-          <div className="relative w-full sm:max-w-xs">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search by name…"
-              className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-4 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
-              aria-label="Search microsites by name"
-            />
+          <div className="flex w-full flex-col gap-2 sm:max-w-md sm:flex-row">
+            <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value as TypeFilter)}
+              className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+              aria-label="Filter microsites by type"
+            >
+              <option value="all">All types</option>
+              <option value="academic">{MICROSITE_KIND_LABELS.academic.en}</option>
+              <option value="directorate">{MICROSITE_KIND_LABELS.directorate.en}</option>
+            </select>
+            <div className="relative min-w-0 flex-1">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search by name…"
+                className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-4 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                aria-label="Search microsites by name"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -77,7 +96,11 @@ export function CollegeRegisterList({ colleges }: { colleges: CollegeOption[] })
             ) : filteredColleges.length === 0 ? (
               <tr>
                 <td colSpan={4} className="px-4 py-8 text-center text-slate-500">
-                  No microsites match &ldquo;{query.trim()}&rdquo;.
+                  {normalizedQuery && typeFilter !== "all"
+                    ? `No ${MICROSITE_KIND_LABELS[typeFilter].en.toLowerCase()} microsites match "${query.trim()}".`
+                    : normalizedQuery
+                      ? `No microsites match "${query.trim()}".`
+                      : `No ${MICROSITE_KIND_LABELS[typeFilter].en.toLowerCase()} microsites found.`}
                 </td>
               </tr>
             ) : (

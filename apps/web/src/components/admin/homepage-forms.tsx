@@ -17,6 +17,7 @@ import {
   updateHomepageInitiativeAction,
   updateHomepageQuoteAction,
 } from "@/actions/homepage";
+import { AdminFileUploadField } from "@/components/admin/admin-file-upload-field";
 import type {
   HomepageCta,
   HomepageDignitary,
@@ -63,52 +64,36 @@ function HomepageImageField({
   required?: boolean;
   urlPlaceholder?: string;
 }) {
-  const [replaceImage, setReplaceImage] = useState(false);
   const previewUrl =
     imagePath && imagePath !== "pending" ? getStoredFileUrl(imagePath) : null;
-  const showUpload = !previewUrl || replaceImage;
+  const hasStoredImage = Boolean(previewUrl);
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       <span className="text-sm font-medium text-slate-700">
-        {label} {required && <span className="text-red-600">*</span>}
+        {label} {required && !hasStoredImage && <span className="text-red-600">*</span>}
       </span>
-      {previewUrl && !replaceImage && (
+      {previewUrl && (
         <div className="relative h-48 w-40 overflow-hidden rounded-lg border border-slate-200">
           <Image src={previewUrl} alt="" fill className="object-cover object-top" />
         </div>
       )}
-      {previewUrl && (
-        <label className="flex items-center gap-2 text-sm text-slate-600">
-          <input
-            type="checkbox"
-            checked={replaceImage}
-            onChange={(e) => setReplaceImage(e.target.checked)}
-          />
-          Replace current photo
-        </label>
-      )}
-      {replaceImage && <input type="hidden" name="removeImage" value="on" />}
-      {showUpload && (
-        <>
-          <input
-            name="image"
-            type="file"
-            accept="image/jpeg,image/png,image/webp,image/gif"
-            className="block w-full text-sm text-slate-600"
-          />
-          <p className="text-xs text-slate-500">Or paste an external image URL:</p>
-          <input
-            name="imagePath"
-            type="url"
-            defaultValue={
-              replaceImage && imagePath?.startsWith("http") ? imagePath : ""
-            }
-            placeholder={urlPlaceholder}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-          />
-        </>
-      )}
+      <AdminFileUploadField
+        name="image"
+        accept="image/jpeg,image/png,image/webp,image/gif"
+        required={required && !hasStoredImage}
+        kind="image"
+        label={hasStoredImage ? "Replace photo" : "Upload photo"}
+        hint="JPEG, PNG, WebP or GIF"
+      />
+      <p className="text-xs text-slate-500">Or paste an external image URL:</p>
+      <input
+        name="imagePath"
+        type="url"
+        defaultValue={imagePath?.startsWith("http") ? imagePath : ""}
+        placeholder={urlPlaceholder}
+        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+      />
     </div>
   );
 }
@@ -140,7 +125,7 @@ export function HomepageQuoteForm({ quote }: { quote?: HomepageQuote }) {
   }
 
   return (
-    <form action={handleSubmit} className="max-w-2xl space-y-5">
+    <form action={handleSubmit} encType="multipart/form-data" className="max-w-2xl space-y-5">
       {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
       <label className="block text-sm">
         <span className="font-medium text-slate-700">Author (English)</span>
@@ -198,7 +183,7 @@ export function HomepageDignitaryForm({ dignitary }: { dignitary?: HomepageDigni
   }
 
   return (
-    <form action={handleSubmit} className="max-w-2xl space-y-5">
+    <form action={handleSubmit} encType="multipart/form-data" className="max-w-2xl space-y-5">
       {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
       <label className="block text-sm">
         <span className="font-medium text-slate-700">Name (English)</span>
@@ -261,7 +246,7 @@ export function HomepageInitiativeForm({ initiative }: { initiative?: HomepageIn
   }
 
   return (
-    <form action={handleSubmit} className="max-w-2xl space-y-5">
+    <form action={handleSubmit} encType="multipart/form-data" className="max-w-2xl space-y-5">
       {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
       <label className="block text-sm">
         <span className="font-medium text-slate-700">Title (English)</span>
@@ -325,7 +310,7 @@ export function HomepageCtaForm({ cta }: { cta?: HomepageCta | null }) {
   }
 
   return (
-    <form action={handleSubmit} className="max-w-2xl space-y-5">
+    <form action={handleSubmit} encType="multipart/form-data" className="max-w-2xl space-y-5">
       {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
       <label className="block text-sm">
         <span className="font-medium text-slate-700">Title (English)</span>

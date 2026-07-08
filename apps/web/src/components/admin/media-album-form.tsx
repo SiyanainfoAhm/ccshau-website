@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { createMediaAlbumAction, updateMediaAlbumAction } from "@/actions/media";
+import { AdminFileUploadField } from "@/components/admin/admin-file-upload-field";
 import type { MediaAlbum } from "@/lib/database/types";
 import { getStoredFileUrl } from "@/lib/storage/upload";
 import { slugify } from "@/lib/utils/slug";
@@ -27,9 +28,9 @@ export function MediaAlbumForm({
   const [error, setError] = useState<string | null>(null);
   const [titleEn, setTitleEn] = useState(album?.title_en ?? "");
   const [slug, setSlug] = useState(album?.slug ?? "");
-  const [removeCover, setRemoveCover] = useState(false);
 
-  const coverUrl = album?.cover_image_path ? getStoredFileUrl(album.cover_image_path) : null;
+  const hasCover = Boolean(album?.cover_image_path);
+  const coverUrl = hasCover ? getStoredFileUrl(album!.cover_image_path!) : null;
   const eventValue = album?.event_date ?? "";
 
   function handleTitleBlur() {
@@ -38,7 +39,6 @@ export function MediaAlbumForm({
 
   function handleSubmit(formData: FormData) {
     setError(null);
-    if (removeCover) formData.set("removeCover", "on");
 
     startTransition(async () => {
       if (album) {
@@ -61,7 +61,7 @@ export function MediaAlbumForm({
   }
 
   return (
-    <form action={handleSubmit} className="max-w-2xl space-y-5">
+    <form action={handleSubmit} encType="multipart/form-data" className="max-w-2xl space-y-5">
       {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
 
       <label className="block text-sm">
@@ -154,24 +154,18 @@ export function MediaAlbumForm({
 
       <div className="space-y-2">
         <span className="text-sm font-medium text-slate-700">Cover image</span>
-        {coverUrl && !removeCover && (
+        {hasCover && coverUrl && (
           <div className="relative h-32 w-48 overflow-hidden rounded-lg border border-slate-200">
             <Image src={coverUrl} alt="" fill className="object-cover" />
           </div>
         )}
-        {album && coverUrl && (
-          <label className="flex items-center gap-2 text-sm text-slate-600">
-            <input
-              type="checkbox"
-              checked={removeCover}
-              onChange={(e) => setRemoveCover(e.target.checked)}
-            />
-            Replace cover image
-          </label>
-        )}
-        {(!album || removeCover || !coverUrl) && (
-          <input name="cover" type="file" accept="image/*" className="block w-full text-sm" />
-        )}
+        <AdminFileUploadField
+          name="cover"
+          accept="image/*"
+          kind="image"
+          label={hasCover ? "Replace cover image" : "Upload cover image"}
+          hint="JPEG, PNG, WebP or GIF"
+        />
       </div>
 
       <div className="flex gap-3">

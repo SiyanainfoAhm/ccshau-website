@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 
 import { AdminShell } from "@/components/admin/admin-shell";
-import { requireAdminSession } from "@/lib/auth/session";
+import { requireAdminPathOrRedirect } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
   title: "Admin",
@@ -13,7 +14,8 @@ export default async function AdminDashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await requireAdminSession();
+  const pathname = (await headers()).get("x-admin-pathname") ?? "/admin";
+  const session = await requireAdminPathOrRedirect(pathname);
 
   return <AdminShell session={session}>{children}</AdminShell>;
 }
