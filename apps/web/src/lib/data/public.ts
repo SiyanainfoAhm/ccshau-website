@@ -54,7 +54,6 @@ import {
 import { navItems as mockNavItems, quickLinks as mockQuickLinks } from "@/lib/mock/site-content";
 import {
   PG_STUDIES_HUB_SLUG,
-  getPublicPagePath,
   pgStudiesSectionSlugFromUrl,
   pgStudiesSectionUrlSegment,
 } from "@/lib/pages/routes";
@@ -63,7 +62,6 @@ import {
   readStoredLayoutConfig,
   type PageLayoutConfig,
 } from "@/lib/pages/layout-config";
-import type { PageType } from "@/lib/database/types";
 import { getStoredFileUrl } from "@/lib/storage/upload";
 import { createAdminClient } from "@/lib/supabase/admin";
 

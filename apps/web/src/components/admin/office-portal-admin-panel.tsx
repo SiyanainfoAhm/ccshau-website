@@ -637,7 +637,6 @@ export function OfficePortalAdminPanel({
           items={leftItems}
           pageId={pageId}
           isPending={isPending}
-          error={error}
           setError={setError}
           canEdit={canEdit}
           onAdd={(formData) => runAction(() => createPageSidebarItemAction(pageId, formData))}
@@ -652,7 +651,6 @@ export function OfficePortalAdminPanel({
           items={rightItems}
           pageId={pageId}
           isPending={isPending}
-          error={error}
           setError={setError}
           canEdit={canEdit}
           onAdd={(formData) => runAction(() => createPageSidebarItemAction(pageId, formData))}
@@ -762,7 +760,6 @@ function SidebarEditor({
   items,
   pageId,
   isPending,
-  error,
   setError,
   canEdit = true,
   onAdd,
@@ -773,7 +770,6 @@ function SidebarEditor({
   items: PageSidebarItem[];
   pageId: string;
   isPending: boolean;
-  error: string | null;
   setError: (value: string | null) => void;
   canEdit?: boolean;
   onAdd: (formData: FormData) => void;

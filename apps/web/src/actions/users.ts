@@ -37,7 +37,7 @@ export interface AdminUserListItem extends Profile {
   college_assignment: CollegeAssignmentView | null;
 }
 
-export interface AdminUserDetail extends AdminUserListItem {}
+export type AdminUserDetail = AdminUserListItem;
 
 async function requireSuperAdmin() {
   return requireAdminWithRoles([...USER_ADMIN_ROLES]);

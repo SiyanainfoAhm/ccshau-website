@@ -7,6 +7,7 @@ import { ChevronDown, ChevronRight, ChevronUp, GraduationCap, Search } from "luc
 import { useLanguage } from "@/components/design/shared/language-context";
 import type { PublicStudentCornerItem } from "@/lib/data/public-types";
 import { pickBilingual } from "@/lib/i18n/pick-bilingual";
+import type { Lang } from "@/lib/i18n/language-storage";
 
 const INITIAL_VISIBLE_COUNT = 9;
 const SEARCH_THRESHOLD = 20;
@@ -17,7 +18,7 @@ function StudentCornerItemCard({
   t,
 }: {
   item: PublicStudentCornerItem;
-  lang: string;
+  lang: Lang;
   t: (en: string, hi: string) => string;
 }) {
   const label = pickBilingual(lang, item.titleEn, item.titleHi);
