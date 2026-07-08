@@ -15,10 +15,14 @@ export function HeroCarousel({
   variant = "future",
   slides: slidesProp,
   tendersPath = SELECTED_LAYOUT.routes.tenders,
+  primaryCtaHref,
+  secondaryCtaHref,
 }: {
   variant?: "heritage" | "future" | "ministry";
   slides?: PublicHeroSlide[];
   tendersPath?: string;
+  primaryCtaHref?: string;
+  secondaryCtaHref?: string;
 }) {
   const { t } = useLanguage();
   const heroSlides =
@@ -100,17 +104,17 @@ export function HeroCarousel({
             <p className="mt-5 text-lg leading-relaxed text-slate-600">{slide.subtitleEn}</p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
-                href="#"
+                href={primaryCtaHref ?? "#"}
                 className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-500 px-6 py-3 font-semibold text-white shadow-lg shadow-rose-200 transition hover:from-rose-600 hover:to-pink-600"
               >
-                {t("Online Admission 2026-27", "ऑनलाइन प्रवेश 2026-27")}
+                {t("Latest News", "नवीनतम समाचार")}
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
-                href="#"
+                href={secondaryCtaHref ?? "#"}
                 className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-100 to-orange-100 px-6 py-3 font-semibold text-amber-800 ring-2 ring-amber-200 transition hover:from-amber-200 hover:to-orange-200"
               >
-                {t("Farmers' Portal", "किसान पोर्टल")}
+                {t("Contact Us", "संपर्क करें")}
               </Link>
             </div>
             <div className="mt-10 flex gap-2">

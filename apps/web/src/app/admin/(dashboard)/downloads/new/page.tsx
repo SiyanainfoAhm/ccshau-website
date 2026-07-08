@@ -2,10 +2,10 @@ import Link from "next/link";
 
 import { listDepartments } from "@/actions/downloads";
 import { DownloadForm } from "@/components/admin/download-form";
-import { requireAdminSession } from "@/lib/auth/session";
+import { requireAdminWithRolesOrRedirect } from "@/lib/auth/session";
 
 export default async function AdminNewDownloadPage() {
-  await requireAdminSession();
+  await requireAdminWithRolesOrRedirect(["super_admin", "dept_admin", "editor"]);
   const departments = await listDepartments();
 
   return (

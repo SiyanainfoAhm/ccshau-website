@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { getCollegesForRegisterForm, getDepartmentForEdit, requireCollegeRegisterAdmin } from "@/actions/college-register";
+import { getCollegesForRegisterForm, getDepartmentForEdit, requireCollegeRegisterAdminOrRedirect } from "@/actions/college-register";
 import { RegisterDepartmentForm } from "@/components/admin/register-forms";
 
 export default async function EditDepartmentPage({
@@ -9,7 +9,7 @@ export default async function EditDepartmentPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireCollegeRegisterAdmin();
+  await requireCollegeRegisterAdminOrRedirect();
   const { id } = await params;
   const [department, colleges] = await Promise.all([
     getDepartmentForEdit(id),

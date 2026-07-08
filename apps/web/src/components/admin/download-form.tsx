@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { createDownloadAction, updateDownloadAction } from "@/actions/downloads";
+import { AdminFileUploadField } from "@/components/admin/admin-file-upload-field";
 import type { Download } from "@/lib/database/types";
 import { getStoredFileUrl } from "@/lib/storage/upload";
 import { DOWNLOAD_CATEGORIES } from "@/lib/validations/downloads";
@@ -24,16 +25,12 @@ export function DownloadForm({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const [removeFile, setRemoveFile] = useState(false);
 
-  const fileUrl =
-    download?.file_path && download.file_path !== "pending"
-      ? getStoredFileUrl(download.file_path)
-      : null;
+  const hasFile = Boolean(download?.file_path && download.file_path !== "pending");
+  const fileUrl = hasFile ? getStoredFileUrl(download!.file_path!) : null;
 
   function handleSubmit(formData: FormData) {
     setError(null);
-    if (removeFile) formData.set("removeFile", "on");
 
     startTransition(async () => {
       if (download) {
@@ -56,7 +53,7 @@ export function DownloadForm({
   }
 
   return (
-    <form action={handleSubmit} className="max-w-2xl space-y-5">
+    <form action={handleSubmit} encType="multipart/form-data" className="max-w-2xl space-y-5">
       {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
 
       <label className="block text-sm">
@@ -139,29 +136,35 @@ export function DownloadForm({
         <span className="text-sm font-medium text-slate-700">
           File {!download && <span className="text-red-600">*</span>}
         </span>
-        {fileUrl && !removeFile && (
-          <a
-            href={fileUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block text-sm text-emerald-700 hover:underline"
-          >
-            {download?.file_name}
-          </a>
+        {hasFile && (
+          <div className="flex items-center gap-2.5 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-emerald-100 text-[10px] font-bold uppercase text-emerald-800">
+              FILE
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium text-slate-900">{download?.file_name}</p>
+              {fileUrl ? (
+                <a
+                  href={fileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-medium text-emerald-700 hover:underline"
+                >
+                  View document
+                </a>
+              ) : null}
+            </div>
+          </div>
         )}
-        {download && fileUrl && (
-          <label className="flex items-center gap-2 text-sm text-slate-600">
-            <input
-              type="checkbox"
-              checked={removeFile}
-              onChange={(e) => setRemoveFile(e.target.checked)}
-            />
-            Replace current file
-          </label>
+        {!hasFile && (
+          <p className="text-xs text-amber-800">No file attached yet — upload below.</p>
         )}
-        {(!download || removeFile) && (
-          <input name="file" type="file" required={!download} className="block w-full text-sm" />
-        )}
+        <AdminFileUploadField
+          name="file"
+          required={!download}
+          label={hasFile ? "Replace download file" : "Upload download file"}
+          hint="PDF, Word, Excel, or other document formats"
+        />
       </div>
 
       <div className="flex gap-3">

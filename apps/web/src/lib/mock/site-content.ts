@@ -177,6 +177,12 @@ export const heritageNotifications = {
     "Tender Notice KVK Yamunanagar — 18-06-2026",
     "Tender Notice NCRS Gokalpura — 12-06-2026",
   ],
+  circulars: [
+    "Office Order — Academic Calendar 2026-27",
+    "Circular regarding examination schedule — May 2026",
+    "Administrative order on leave policy revision",
+    "Circular for faculty development programme",
+  ],
 };
 
 export const dignitaries = legacyDignitaries.map(

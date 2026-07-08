@@ -4,10 +4,10 @@ import { getTenderById, listCorrigendaForTender, listDepartments } from "@/actio
 import { CorrigendumPanel } from "@/components/admin/corrigendum-panel";
 import { DeleteTenderButton } from "@/components/admin/delete-tender-button";
 import { TenderForm } from "@/components/admin/tender-form";
-import { requireAdminSession } from "@/lib/auth/session";
+import { requireAdminWithRolesOrRedirect } from "@/lib/auth/session";
 
 export default async function EditTenderPage({ params }: { params: Promise<{ id: string }> }) {
-  await requireAdminSession();
+  await requireAdminWithRolesOrRedirect(["super_admin", "dept_admin", "editor"]);
   const { id } = await params;
   const [tender, departments, corrigenda] = await Promise.all([
     getTenderById(id),

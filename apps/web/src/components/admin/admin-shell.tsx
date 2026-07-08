@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 
 import { AdminHeader } from "@/components/admin/admin-header";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
-import { isCollegeOnlyUser } from "@/lib/auth/college-scope";
+import { getAdminNavAccess } from "@/lib/auth/admin-nav-access";
 import type { AdminSession } from "@/lib/auth/session";
 
 export function AdminShell({
@@ -12,16 +12,11 @@ export function AdminShell({
   session: AdminSession;
   children: ReactNode;
 }) {
-  const isSuperAdmin = session.roles.some((r) => r.role === "super_admin");
-  const collegeOnly = isCollegeOnlyUser(session);
+  const access = getAdminNavAccess(session);
 
   return (
     <div className="flex min-h-screen bg-slate-50">
-      <AdminSidebar
-        isSuperAdmin={isSuperAdmin}
-        isCollegeOnly={collegeOnly}
-        collegeName={session.collegeAssignment?.collegeName}
-      />
+      <AdminSidebar access={access} collegeName={session.collegeAssignment?.collegeName} />
       <div className="flex min-w-0 flex-1 flex-col">
         <AdminHeader session={session} />
         <main className="flex-1 p-6">{children}</main>

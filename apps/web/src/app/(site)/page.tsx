@@ -19,6 +19,7 @@ import {
   getActiveBanners,
   getActiveRelatedLinks,
   getPublishedChildPagesByParentSlug,
+  getPublishedCirculars,
   getPublishedMediaAlbums,
   getPublishedNews,
   getPublishedPageBySlug,
@@ -38,6 +39,7 @@ export default async function HomePage() {
     news,
     recruitmentNews,
     tenders,
+    circulars,
     mediaAlbums,
     relatedLinks,
     aboutPage,
@@ -49,6 +51,7 @@ export default async function HomePage() {
     getPublishedNews({ limit: 8 }),
     getPublishedNews({ limit: 5, category: "recruitment" }),
     getPublicTenders({ status: "open", limit: 5 }),
+    getPublishedCirculars(),
     getPublishedMediaAlbums({ limit: 4 }),
     getActiveRelatedLinks(),
     getPublishedPageBySlug("about"),
@@ -65,6 +68,8 @@ export default async function HomePage() {
   const notificationNews = news
     .filter((item) => item.category !== "recruitment")
     .slice(0, 5);
+
+  const notificationCirculars = circulars.slice(0, 5);
 
   const homepageColleges = resolveHomepageColleges(collegePages);
 
@@ -85,6 +90,7 @@ export default async function HomePage() {
           newsItems={notificationNews}
           recruitmentItems={recruitmentNews}
           tenderItems={tenders}
+          circularItems={notificationCirculars}
         />
         <FlagshipsSection variant="future" items={homepage.flagships} />
         <PartnersSection links={relatedLinks.length > 0 ? relatedLinks : undefined} />

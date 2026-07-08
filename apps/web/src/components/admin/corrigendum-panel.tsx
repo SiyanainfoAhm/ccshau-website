@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { addCorrigendumAction, deleteCorrigendumAction } from "@/actions/tenders";
+import { AdminFileUploadField } from "@/components/admin/admin-file-upload-field";
 import type { TenderCorrigendum } from "@/lib/database/types";
 import { getPublicFileUrl } from "@/lib/storage/upload";
 
@@ -103,7 +104,7 @@ export function CorrigendumPanel({
         <p className="mb-6 text-sm text-slate-500">No corrigenda yet.</p>
       )}
 
-      <form key={corrigenda.length} action={handleAdd} className="space-y-4 border-t border-slate-100 pt-4">
+      <form key={corrigenda.length} action={handleAdd} encType="multipart/form-data" className="space-y-4 border-t border-slate-100 pt-4">
         <p className="text-sm font-medium text-slate-700">Add corrigendum</p>
         <input
           name="title"
@@ -117,11 +118,11 @@ export function CorrigendumPanel({
           placeholder="Description (optional)"
           className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
         />
-        <input
-          type="file"
+        <AdminFileUploadField
           name="corrigendumFile"
           accept=".pdf,.doc,.docx,application/pdf"
-          className="block w-full text-sm text-slate-600 file:mr-4 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-emerald-800"
+          label="Upload corrigendum document"
+          hint="PDF or Word document (optional)"
         />
         <button
           type="submit"

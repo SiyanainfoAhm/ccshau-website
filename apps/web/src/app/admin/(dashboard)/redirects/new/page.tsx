@@ -1,10 +1,10 @@
 import Link from "next/link";
 
 import { RedirectForm } from "@/components/admin/redirect-form";
-import { requireAdminWithRoles } from "@/lib/auth/session";
+import { requireAdminWithRolesOrRedirect } from "@/lib/auth/session";
 
 export default async function AdminNewRedirectPage() {
-  await requireAdminWithRoles(["super_admin", "dept_admin"]);
+  await requireAdminWithRolesOrRedirect(["super_admin", "dept_admin"]);
 
   return (
     <div className="space-y-6">

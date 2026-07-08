@@ -16,10 +16,16 @@ const options = [
     icon: Leaf,
     gradient: "from-rose-200 to-amber-100",
     accent: "border-amber-300",
-    tag: "Colorful light heritage",
+    tag: "Colorful light heritage · demo pages ready",
     description:
-      "Vibrant pastel UI — rose, amber, sky & violet — with real HAU.ac.in content in a bright, welcoming layout.",
+      "Vibrant pastel UI — rose, amber, sky & violet — with dedicated demo pages for News, Circulars, Tenders and Contact.",
     selected: false,
+    demoLinks: [
+      { label: "News", href: "/design/option-a/news" },
+      { label: "Circulars", href: "/design/option-a/circulars" },
+      { label: "Tenders", href: "/design/option-a/tenders" },
+      { label: "Contact", href: "/design/option-a/contact" },
+    ],
   },
   {
     id: "b",
@@ -77,9 +83,8 @@ export function DesignGallery() {
 
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-16 md:grid-cols-3">
         {options.map((opt) => (
-          <Link
+          <div
             key={opt.id}
-            href={opt.href}
             className={`group relative flex flex-col overflow-hidden rounded-3xl border-2 bg-white shadow-xl transition hover:-translate-y-2 hover:shadow-2xl ${opt.accent} ${opt.selected ? "md:scale-105 md:-translate-y-2" : "opacity-95"}`}
           >
             {opt.selected && (
@@ -88,27 +93,61 @@ export function DesignGallery() {
                 Approved
               </span>
             )}
-            <div className={`bg-gradient-to-br ${opt.gradient} p-8 text-white`}>
+            <Link href={opt.href} className={`bg-gradient-to-br ${opt.gradient} block p-8 text-white`}>
               <opt.icon className="h-10 w-10 text-amber-300" />
               <h2 className="mt-4 font-display text-2xl font-bold">{opt.name}</h2>
               <p className="font-hindi text-sm text-white/80">{opt.nameHi}</p>
               <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-amber-200">
                 {opt.tag}
               </p>
-            </div>
+            </Link>
             <div className="flex flex-1 flex-col p-6">
               <p className="flex-1 text-sm leading-relaxed text-slate-600">{opt.description}</p>
-              <span className="mt-6 inline-flex items-center gap-2 font-semibold text-emerald-700 group-hover:gap-3">
-                {opt.selected ? "View approved layout" : "Preview alternate"}
+              {"demoLinks" in opt && opt.demoLinks ? (
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {opt.demoLinks.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className="rounded-full bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-700 ring-1 ring-rose-200 hover:bg-rose-100"
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
+              ) : null}
+              <Link
+                href={opt.href}
+                className="mt-6 inline-flex items-center gap-2 font-semibold text-emerald-700 group-hover:gap-3"
+              >
+                {opt.selected ? "View approved layout" : "Preview homepage"}
                 <ArrowRight className="h-4 w-4" />
-              </span>
+              </Link>
             </div>
-          </Link>
+          </div>
         ))}
       </div>
 
       <div className="mx-auto max-w-3xl px-4 pb-16 text-center text-sm text-slate-500">
         <p>
+          Heritage Premium demos:{" "}
+          <Link href="/design/option-a/news" className="text-rose-700 underline">
+            News
+          </Link>
+          ,{" "}
+          <Link href="/design/option-a/circulars" className="text-rose-700 underline">
+            Circulars
+          </Link>
+          ,{" "}
+          <Link href="/design/option-a/tenders" className="text-rose-700 underline">
+            Tenders
+          </Link>
+          ,{" "}
+          <Link href="/design/option-a/contact" className="text-rose-700 underline">
+            Contact
+          </Link>
+        </p>
+        <p className="mt-3">
           Approved site pages:{" "}
           <Link href={SELECTED_LAYOUT.routes.news} className="text-emerald-700 underline">
             News
@@ -120,10 +159,6 @@ export function DesignGallery() {
           ,{" "}
           <Link href={SELECTED_LAYOUT.routes.contact} className="text-emerald-700 underline">
             Contact
-          </Link>
-          ,{" "}
-          <Link href={SELECTED_LAYOUT.routes.newsSample} className="text-emerald-700 underline">
-            News detail
           </Link>
         </p>
         <p className="mt-4 text-xs text-slate-400">

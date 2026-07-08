@@ -24,6 +24,7 @@ import { usePublicSiteChrome } from "@/components/site/public-site-context";
 import { SELECTED_LAYOUT } from "@/lib/design/selected-layout";
 import type { HomepageCollege, HomepageCtaItem, HomepageFlagshipItem, HomepageQuoteItem } from "@/lib/data/homepage";
 import type {
+  PublicCircularItem,
   PublicMediaAlbumItem,
   PublicNewsItem,
   PublicPage,
@@ -125,7 +126,9 @@ export function NewsSection({
     variant === "ministry"
       ? "/design/option-c/news"
       : variant === "heritage"
-        ? "/design/option-b/news"
+        ? newsPath === SELECTED_LAYOUT.routes.news
+          ? "/design/option-a/news"
+          : newsPath
         : newsPath;
 
   const displayItems =
@@ -1013,15 +1016,18 @@ export function NotificationsSection({
   newsItems,
   recruitmentItems,
   tenderItems,
+  circularItems,
 }: {
   variant?: "heritage" | "future" | "ministry";
   newsItems?: PublicNewsItem[];
   recruitmentItems?: PublicNewsItem[];
   tenderItems?: PublicTenderItem[];
+  circularItems?: PublicCircularItem[];
 }) {
   const { t } = useLanguage();
   const newsPath = SELECTED_LAYOUT.routes.news;
   const tendersPath = SELECTED_LAYOUT.routes.tenders;
+  const circularsPath = SELECTED_LAYOUT.routes.circulars;
 
   const columns = [
     {
@@ -1059,6 +1065,18 @@ export function NotificationsSection({
             ? "bg-gradient-to-r from-violet-500 to-indigo-500"
             : "bg-gradient-to-r from-slate-700 to-slate-800",
       readMoreHref: tendersPath,
+    },
+    {
+      key: "circulars" as const,
+      titleEn: "Circulars & Orders",
+      titleHi: "परिपत्र और आदेश",
+      accent:
+        variant === "ministry"
+          ? "bg-rose-700"
+          : variant === "heritage"
+            ? "bg-gradient-to-r from-rose-500 to-red-500"
+            : "bg-gradient-to-r from-rose-600 to-red-600",
+      readMoreHref: circularsPath,
     },
   ];
 
@@ -1105,6 +1123,22 @@ export function NotificationsSection({
             href: "#",
             date: "",
           })),
+    circulars:
+      circularItems && circularItems.length > 0
+        ? circularItems.map((item) => ({
+            key: item.id,
+            label: t(item.titleEn, item.titleHi ?? item.titleEn),
+            href: item.fileUrl ?? circularsPath,
+            date: formatNoticeDate(item.publishedAt),
+            meta: item.circularNumber,
+          }))
+        : heritageNotifications.circulars.map((item) => ({
+            key: item,
+            label: item,
+            href: circularsPath,
+            date: "",
+            meta: null as string | null,
+          })),
   };
 
   return (
@@ -1130,7 +1164,7 @@ export function NotificationsSection({
           >
             {t("Notifications", "सूचनाएं")}
           </h2>
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
+          <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
             {columns.map((col) => (
               <div
                 key={col.key}
@@ -1159,6 +1193,11 @@ export function NotificationsSection({
                         }`}
                       >
                         {item.label}
+                        {"meta" in item && item.meta ? (
+                          <span className="mt-0.5 block text-xs font-medium text-rose-600/80 dark:text-rose-300/80">
+                            {item.meta}
+                          </span>
+                        ) : null}
                         {item.date ? (
                           <span className="mt-0.5 block text-xs text-slate-400">{item.date}</span>
                         ) : null}

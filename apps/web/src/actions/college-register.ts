@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 import { writeAuditLog } from "@/lib/auth/audit";
 import { isSuperAdminSession } from "@/lib/auth/college-scope";
@@ -571,11 +572,19 @@ export async function deleteFacultyAction(staffId: string): Promise<ActionResult
   }
 }
 
-/** Super admin only — college staff use register forms scoped to their college */
+/** Super admin or college staff — register / microsite setup. */
 export async function requireCollegeRegisterAdmin() {
   const session = await requireAdminSession();
   if (!isSuperAdminSession(session) && !session.collegeAssignment) {
     throw new Error("Insufficient permissions.");
+  }
+  return session;
+}
+
+export async function requireCollegeRegisterAdminOrRedirect() {
+  const session = await requireAdminSession();
+  if (!isSuperAdminSession(session) && !session.collegeAssignment) {
+    redirect("/admin");
   }
   return session;
 }

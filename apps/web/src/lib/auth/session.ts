@@ -5,6 +5,7 @@ import {
   getCollegeAssignmentForUser,
   type CollegeAssignment,
 } from "@/lib/auth/college-scope";
+import { getAdminNavAccess, canAccessAdminPath } from "@/lib/auth/admin-nav-access";
 import { getUserRoles, highestRole, type UserRoleAssignment } from "@/lib/auth/rbac";
 import { Tables } from "@/lib/database/names";
 import type { UserRole } from "@/lib/database/types";
@@ -75,17 +76,40 @@ export async function requireAdminSession(): Promise<AdminSession> {
   return session;
 }
 
+/** Server-side admin route guard — redirects to dashboard when the path is not allowed. */
+export async function requireAdminPathOrRedirect(pathname: string): Promise<AdminSession> {
+  const session = await requireAdminSession();
+  const access = getAdminNavAccess(session);
+  if (!canAccessAdminPath(access, pathname)) {
+    redirect("/admin");
+  }
+  return session;
+}
+
+function sessionHasAllowedRole(session: AdminSession, allowed: UserRole[]): boolean {
+  const allowedSet = new Set(allowed);
+  return (
+    session.roles.some((r) => r.role === "super_admin" && allowedSet.has("super_admin")) ||
+    session.roles.some((r) => allowedSet.has(r.role))
+  );
+}
+
 export async function requireAdminWithRoles(allowed: UserRole[]): Promise<AdminSession> {
   const session = await requireAdminSession();
-  const allowedSet = new Set(allowed);
-  const isAllowed =
-    session.roles.some((r) => r.role === "super_admin" && allowedSet.has("super_admin")) ||
-    session.roles.some((r) => allowedSet.has(r.role));
-
-  if (!isAllowed) {
+  if (!sessionHasAllowedRole(session, allowed)) {
     throw new Error("Insufficient permissions.");
   }
+  return session;
+}
 
+/** For admin pages — redirects to dashboard instead of throwing a runtime error. */
+export async function requireAdminWithRolesOrRedirect(
+  allowed: UserRole[],
+): Promise<AdminSession> {
+  const session = await requireAdminSession();
+  if (!sessionHasAllowedRole(session, allowed)) {
+    redirect("/admin");
+  }
   return session;
 }
 

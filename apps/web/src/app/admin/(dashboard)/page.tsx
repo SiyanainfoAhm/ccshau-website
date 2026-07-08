@@ -2,7 +2,7 @@ import Link from "next/link";
 import { FileText, Plus } from "lucide-react";
 
 import { AdminCard, StatCard } from "@/components/admin/admin-ui";
-import { isCollegeOnlyUser } from "@/lib/auth/college-scope";
+import { canManageUniversityContent, isCollegeOnlyUser } from "@/lib/auth/college-scope";
 import { requireAdminSession } from "@/lib/auth/session";
 import { Tables } from "@/lib/database/names";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -42,6 +42,7 @@ async function getDashboardStats(collegeRootId?: string) {
 export default async function AdminDashboardPage() {
   const session = await requireAdminSession();
   const collegeOnly = isCollegeOnlyUser(session);
+  const canCreateContent = canManageUniversityContent(session);
   const stats = await getDashboardStats(session.collegeAssignment?.collegePageId);
   const noAccess = session.roles.length === 0 && !session.collegeAssignment;
 
@@ -55,7 +56,7 @@ export default async function AdminDashboardPage() {
             {session.collegeAssignment ? ` — ${session.collegeAssignment.collegeName}` : ""}
           </p>
         </div>
-        {!collegeOnly && (
+        {!collegeOnly && canCreateContent && (
           <div className="flex flex-wrap gap-2">
             <Link
               href="/admin/tenders/new"
@@ -112,7 +113,7 @@ export default async function AdminDashboardPage() {
                 {collegeOnly ? "Manage college pages" : "Manage pages"}
               </Link>
             </li>
-            {!collegeOnly && (
+            {!collegeOnly && canCreateContent && (
               <>
                 <li>
                   <Link

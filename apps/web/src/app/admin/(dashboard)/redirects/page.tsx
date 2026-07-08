@@ -2,10 +2,10 @@ import Link from "next/link";
 import { Plus } from "lucide-react";
 
 import { listRedirectsForAdmin } from "@/actions/redirects";
-import { requireAdminWithRoles } from "@/lib/auth/session";
+import { requireAdminWithRolesOrRedirect } from "@/lib/auth/session";
 
 export default async function AdminRedirectsPage() {
-  await requireAdminWithRoles(["super_admin", "dept_admin"]);
+  await requireAdminWithRolesOrRedirect(["super_admin", "dept_admin"]);
   const items = await listRedirectsForAdmin();
 
   return (

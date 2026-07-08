@@ -9,8 +9,10 @@ import {
   canDeletePages,
   canPublishPages,
   getPageCollegeRootId,
+  hasUniversityCmsRole,
   isCollegeOnlyUser,
   isSuperAdminSession,
+  universityCmsPageListOrFilter,
 } from "@/lib/auth/college-scope";
 import { hasRole } from "@/lib/auth/rbac";
 import {
@@ -427,8 +429,13 @@ export async function listPagesForAdmin(): Promise<Page[]> {
 
   if (isCollegeOnlyUser(session) && session.collegeAssignment) {
     query = query.eq("college_root_id", session.collegeAssignment.collegePageId);
-  } else if (!isSuperAdminSession(session) && session.departmentId) {
-    query = query.eq("department_id", session.departmentId);
+  } else if (
+    !isSuperAdminSession(session) &&
+    hasUniversityCmsRole(session) &&
+    !isCollegeOnlyUser(session) &&
+    session.departmentId
+  ) {
+    query = query.or(universityCmsPageListOrFilter(session.departmentId));
   }
 
   const { data } = await query;

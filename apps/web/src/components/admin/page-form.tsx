@@ -329,6 +329,7 @@ export function PageForm({
           layoutConfig={layoutConfig}
           onChange={setLayoutConfig}
           hiddenKeys={isCollegeRoot ? ["contacts"] : []}
+          readOnly={!canEdit}
         />
       )}
 
@@ -726,6 +727,7 @@ export function PageForm({
         showStudentCorner={layoutConfig.studentCorner}
         showLeftSidebar={layoutConfig.leftSidebar}
         showRightSidebar={layoutConfig.rightSidebar}
+        canEdit={canEdit}
       />
     )}
 

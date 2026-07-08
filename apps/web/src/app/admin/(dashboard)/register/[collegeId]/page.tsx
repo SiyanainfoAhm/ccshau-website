@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { getCollegeForRegisterHub, requireCollegeRegisterAdmin } from "@/actions/college-register";
+import { getCollegeForRegisterHub, requireCollegeRegisterAdminOrRedirect } from "@/actions/college-register";
 import { CollegeRegisterHub } from "@/components/admin/college-register-hub";
 import { MICROSITE_KIND_LABELS } from "@/lib/pages/microsite-kind";
 
@@ -10,7 +10,7 @@ export default async function CollegeRegisterDetailPage({
 }: {
   params: Promise<{ collegeId: string }>;
 }) {
-  await requireCollegeRegisterAdmin();
+  await requireCollegeRegisterAdminOrRedirect();
   const { collegeId } = await params;
   const college = await getCollegeForRegisterHub(collegeId);
   if (!college) notFound();

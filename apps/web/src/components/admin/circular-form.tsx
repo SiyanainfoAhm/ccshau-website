@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { createCircularAction, updateCircularAction } from "@/actions/circulars";
+import { AdminFileUploadField } from "@/components/admin/admin-file-upload-field";
 import type { Circular } from "@/lib/database/types";
 import { getStoredFileUrl } from "@/lib/storage/upload";
 
@@ -16,20 +17,22 @@ interface Department {
 export function CircularForm({
   departments,
   circular,
+  canEdit = true,
 }: {
   departments: Department[];
   circular?: Circular;
+  canEdit?: boolean;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const [removeFile, setRemoveFile] = useState(false);
 
-  const fileUrl = circular?.file_path ? getStoredFileUrl(circular.file_path) : null;
+  const hasFile = Boolean(circular?.file_path);
+  const fileUrl = hasFile ? getStoredFileUrl(circular!.file_path!) : null;
+  const showUpload = canEdit;
 
   function handleSubmit(formData: FormData) {
     setError(null);
-    if (removeFile) formData.set("removeFile", "on");
 
     startTransition(async () => {
       if (circular) {
@@ -52,15 +55,25 @@ export function CircularForm({
   }
 
   return (
-    <form action={handleSubmit} className="max-w-2xl space-y-5">
+    <form
+      action={canEdit ? handleSubmit : undefined}
+      encType="multipart/form-data"
+      className="max-w-2xl space-y-5"
+    >
       {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+      {!canEdit && (
+        <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          View-only access — you cannot edit or save this circular.
+        </p>
+      )}
 
       <label className="block text-sm">
         <span className="font-medium text-slate-700">Circular number</span>
         <input
           name="circularNumber"
           defaultValue={circular?.circular_number ?? ""}
-          className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
+          disabled={!canEdit}
+          className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 disabled:bg-slate-50"
         />
       </label>
 
@@ -68,9 +81,10 @@ export function CircularForm({
         <span className="font-medium text-slate-700">Title (English)</span>
         <input
           name="titleEn"
-          required
+          required={canEdit}
           defaultValue={circular?.title_en ?? ""}
-          className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
+          disabled={!canEdit}
+          className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 disabled:bg-slate-50"
         />
       </label>
 
@@ -79,7 +93,8 @@ export function CircularForm({
         <input
           name="titleHi"
           defaultValue={circular?.title_hi ?? ""}
-          className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 font-hindi"
+          disabled={!canEdit}
+          className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 font-hindi disabled:bg-slate-50"
         />
       </label>
 
@@ -88,7 +103,8 @@ export function CircularForm({
         <select
           name="departmentId"
           defaultValue={circular?.department_id ?? ""}
-          className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
+          disabled={!canEdit}
+          className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 disabled:bg-slate-50"
         >
           <option value="">Unassigned</option>
           {departments.map((d) => (
@@ -104,7 +120,8 @@ export function CircularForm({
         <select
           name="status"
           defaultValue={circular?.status ?? "draft"}
-          className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
+          disabled={!canEdit}
+          className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 disabled:bg-slate-50"
         >
           <option value="draft">Draft</option>
           <option value="pending_review">Pending review</option>
@@ -114,41 +131,55 @@ export function CircularForm({
       </label>
 
       <div className="space-y-2">
-        <span className="text-sm font-medium text-slate-700">
-          PDF document {!circular && <span className="text-red-600">*</span>}
-        </span>
-        {fileUrl && !removeFile && (
-          <a
-            href={fileUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block text-sm text-emerald-700 hover:underline"
-          >
-            {circular?.file_name ?? "Current file"}
-          </a>
+        <div>
+          <span className="text-sm font-medium text-slate-700">
+            PDF document {!circular && !hasFile && <span className="text-red-600">*</span>}
+          </span>
+          <p className="mt-0.5 text-xs text-slate-500">
+            Official circular or office order for public download.
+          </p>
+        </div>
+
+        {hasFile && (
+          <div className="flex items-center gap-2.5 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-rose-100 text-[10px] font-bold uppercase text-rose-700">
+              PDF
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium text-slate-900">{circular?.file_name ?? "Current file"}</p>
+              {fileUrl ? (
+                <a
+                  href={fileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-medium text-emerald-700 hover:underline"
+                >
+                  View document
+                </a>
+              ) : (
+                <p className="text-xs text-slate-500">Document attached</p>
+              )}
+            </div>
+          </div>
         )}
-        {circular && fileUrl && (
-          <label className="flex items-center gap-2 text-sm text-slate-600">
-            <input
-              type="checkbox"
-              checked={removeFile}
-              onChange={(e) => setRemoveFile(e.target.checked)}
-            />
-            Replace current file
-          </label>
+
+        {canEdit && !hasFile && (
+          <p className="text-xs text-amber-800">No document attached yet — upload a PDF below.</p>
         )}
-        {(!circular || removeFile) && (
-          <input
+
+        {showUpload && (
+          <AdminFileUploadField
             name="file"
-            type="file"
             accept="application/pdf,.doc,.docx,image/*"
             required={!circular}
-            className="block w-full text-sm"
+            label={hasFile ? "Replace circular document" : "Upload circular document"}
+            hint="Accepted: PDF, Word (.doc, .docx), or image (JPG, PNG)"
           />
         )}
       </div>
 
       <div className="flex gap-3">
+        {canEdit && (
         <button
           type="submit"
           disabled={isPending}
@@ -156,11 +187,12 @@ export function CircularForm({
         >
           {isPending ? "Saving…" : circular ? "Save circular" : "Create circular"}
         </button>
+        )}
         <Link
           href="/admin/circulars"
           className="rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700"
         >
-          Cancel
+          {canEdit ? "Cancel" : "Back to list"}
         </Link>
       </div>
     </form>

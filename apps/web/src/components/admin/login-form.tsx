@@ -8,15 +8,15 @@ import {
   RecaptchaWidget,
   resetRecaptcha,
 } from "@/components/shared/recaptcha-widget";
-import { DEV_SUPER_ADMIN, isDevLoginPrefillEnabled } from "@/lib/auth/dev-credentials";
+import { getDevLoginPrefill, isDevLoginPrefillEnabled } from "@/lib/auth/dev-credentials";
 import type { CaptchaClientConfig } from "@/lib/auth/captcha";
 
-const devPrefill = isDevLoginPrefillEnabled();
+const devPrefill = isDevLoginPrefillEnabled() ? getDevLoginPrefill() : null;
 
 export function LoginForm({ captcha }: { captcha: CaptchaClientConfig }) {
   const router = useRouter();
-  const [email, setEmail] = useState(devPrefill ? DEV_SUPER_ADMIN.email : "");
-  const [password, setPassword] = useState(devPrefill ? DEV_SUPER_ADMIN.password : "");
+  const [email, setEmail] = useState(devPrefill?.email ?? "");
+  const [password, setPassword] = useState(devPrefill?.password ?? "");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -107,7 +107,7 @@ export function LoginForm({ captcha }: { captcha: CaptchaClientConfig }) {
 
       {devPrefill && (
         <p className="text-center text-xs text-slate-500">
-          Dev mode: super admin credentials pre-filled in the fields above.
+          Dev mode: credentials pre-filled in the fields above.
         </p>
       )}
     </form>

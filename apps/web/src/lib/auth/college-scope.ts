@@ -34,6 +34,11 @@ export function canAccessAdmin(session: AdminSession): boolean {
   return isSuperAdminSession(session) || hasUniversityCmsRole(session) || isCollegeScopedUser(session);
 }
 
+/** PostgREST `.or()` filter — mirrors `assertPageAccess` for university CMS page lists. */
+export function universityCmsPageListOrFilter(departmentId: string): string {
+  return `department_id.eq.${departmentId},department_id.is.null,college_root_id.not.is.null`;
+}
+
 export function canEditPages(session: AdminSession): boolean {
   if (isSuperAdminSession(session)) return true;
   if (session.roles.some((r) => ["dept_admin", "editor"].includes(r.role))) return true;
@@ -41,6 +46,11 @@ export function canEditPages(session: AdminSession): boolean {
     return true;
   }
   return false;
+}
+
+/** Create/edit university-wide CMS content (news, tenders, circulars, downloads, etc.). */
+export function canManageUniversityContent(session: AdminSession): boolean {
+  return session.roles.some((r) => ["super_admin", "dept_admin", "editor"].includes(r.role));
 }
 
 export function canPublishPages(session: AdminSession): boolean {

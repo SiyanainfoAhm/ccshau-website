@@ -18,6 +18,7 @@ import {
   deletePageStaffAction,
   updatePageSidebarItemAction,
 } from "@/actions/office-portal";
+import { AdminFileUploadField } from "@/components/admin/admin-file-upload-field";
 import type {
   PageContactLine,
   PageGalleryItem,
@@ -113,15 +114,14 @@ function NewsTickerAddForm({
       </label>
       <label className="text-sm font-medium text-slate-700 sm:col-span-2">
         File upload (optional)
-        <input
-          name="tickerFile"
-          type="file"
-          accept=".pdf,.doc,.docx,image/jpeg,image/png,image/webp,image/gif"
-          className="mt-1 w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-amber-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-amber-900"
-        />
-        <span className="mt-1 block text-xs text-slate-500">
-          PDF, Word, or image (max 25 MB). Used as the headline link when no URL is set.
-        </span>
+        <div className="mt-1">
+          <AdminFileUploadField
+            name="tickerFile"
+            accept=".pdf,.doc,.docx,image/jpeg,image/png,image/webp,image/gif"
+            label="Upload headline file"
+            hint="PDF, Word, or image (max 25 MB)"
+          />
+        </div>
       </label>
       <input
         name="sortOrder"
@@ -201,15 +201,14 @@ function StudentCornerAddForm({
       </label>
       <label className="text-sm font-medium text-slate-700 sm:col-span-2">
         File upload (optional)
-        <input
-          name="cornerFile"
-          type="file"
-          accept=".pdf,.doc,.docx,image/jpeg,image/png,image/webp,image/gif"
-          className="mt-1 w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-emerald-900"
-        />
-        <span className="mt-1 block text-xs text-slate-500">
-          PDF, Word, or image (max 25 MB). Used as the link when no URL is set.
-        </span>
+        <div className="mt-1">
+          <AdminFileUploadField
+            name="cornerFile"
+            accept=".pdf,.doc,.docx,image/jpeg,image/png,image/webp,image/gif"
+            label="Upload student corner file"
+            hint="PDF, Word, or image (max 25 MB)"
+          />
+        </div>
       </label>
       <input
         name="sortOrder"
@@ -247,6 +246,7 @@ export function OfficePortalAdminPanel({
   showStudentCorner = true,
   showLeftSidebar = true,
   showRightSidebar = true,
+  canEdit = true,
 }: {
   pageId: string;
   contactLines: PageContactLine[];
@@ -262,6 +262,7 @@ export function OfficePortalAdminPanel({
   showStudentCorner?: boolean;
   showLeftSidebar?: boolean;
   showRightSidebar?: boolean;
+  canEdit?: boolean;
 }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -290,6 +291,12 @@ export function OfficePortalAdminPanel({
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
+      {!canEdit && (
+        <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          View-only access — you can review page sections below but cannot add, edit, or delete
+          items.
+        </p>
+      )}
       {error && (
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
       )}
@@ -307,15 +314,18 @@ export function OfficePortalAdminPanel({
                   <p className="font-semibold text-slate-800">{line.label_en}</p>
                   <p className="text-slate-600">{line.value_en}</p>
                 </div>
+                {canEdit && (
                 <DeleteButton
                   label="contact line"
                   onConfirm={async () => {
                     await deletePageContactLineAction(pageId, line.id);
                   }}
                 />
+                )}
               </li>
             ))}
           </ul>
+          {canEdit && (
           <form
             className="mt-4 grid gap-3 border-t border-slate-100 pt-4 sm:grid-cols-2"
             action={(formData) =>
@@ -331,6 +341,7 @@ export function OfficePortalAdminPanel({
               Add contact line
             </button>
           </form>
+          )}
         </section>
       )}
 
@@ -347,15 +358,18 @@ export function OfficePortalAdminPanel({
                   <p className="font-semibold text-slate-800">{row.name_en}</p>
                   <p className="text-slate-600">{row.designation_en}</p>
                 </div>
+                {canEdit && (
                 <DeleteButton
                   label="staff row"
                   onConfirm={async () => {
                     await deletePageStaffAction(pageId, row.id);
                   }}
                 />
+                )}
               </li>
             ))}
           </ul>
+          {canEdit && (
           <form
             className="mt-4 grid gap-3 border-t border-slate-100 pt-4 sm:grid-cols-2"
             action={(formData) => runAction(() => createPageStaffAction(pageId, formData))}
@@ -373,6 +387,7 @@ export function OfficePortalAdminPanel({
               Add staff member
             </button>
           </form>
+          )}
         </section>
       )}
 
@@ -403,42 +418,45 @@ export function OfficePortalAdminPanel({
                     <p className="truncate text-xs text-slate-500">{item.image_url}</p>
                   </div>
                 </div>
+                {canEdit && (
                 <DeleteButton
                   label="gallery image"
                   onConfirm={async () => {
                     await deletePageGalleryItemAction(pageId, item.id);
                   }}
                 />
+                )}
               </li>
             ))}
           </ul>
+          {canEdit && (
           <form
             className="mt-4 grid gap-3 border-t border-slate-100 pt-4 sm:grid-cols-2"
+            encType="multipart/form-data"
             action={(formData) => runAction(() => createPageGalleryItemAction(pageId, formData))}
           >
-            <label className="block text-sm sm:col-span-2">
-              <span className="mb-1 block font-medium text-slate-700">Upload image</span>
-              <input
+            <div className="sm:col-span-2">
+              <span className="mb-1 block text-sm font-medium text-slate-700">Upload image</span>
+              <AdminFileUploadField
                 name="galleryFile"
-                type="file"
                 accept="image/jpeg,image/png,image/webp,image/gif"
-                className="block w-full text-sm text-slate-600"
+                kind="image"
+                label="Upload gallery image"
+                hint="JPEG, PNG, WebP or GIF — max 5 MB"
               />
-              <span className="mt-1 block text-xs text-slate-500">
-                JPEG, PNG, WebP or GIF — max 5 MB
-              </span>
-            </label>
-            <label className="block text-sm sm:col-span-2">
-              <span className="mb-1 block font-medium text-slate-700">
+            </div>
+            <div className="sm:col-span-2">
+              <span className="mb-1 block text-sm font-medium text-slate-700">
                 Thumbnail upload (optional)
               </span>
-              <input
+              <AdminFileUploadField
                 name="thumbnailFile"
-                type="file"
                 accept="image/jpeg,image/png,image/webp,image/gif"
-                className="block w-full text-sm text-slate-600"
+                kind="image"
+                label="Upload thumbnail"
+                hint="Optional smaller preview image"
               />
-            </label>
+            </div>
             <p className="text-xs text-slate-500 sm:col-span-2">Or paste external URLs:</p>
             <input
               name="imageUrl"
@@ -474,6 +492,7 @@ export function OfficePortalAdminPanel({
               Add gallery image
             </button>
           </form>
+          )}
         </section>
       )}
 
@@ -517,16 +536,19 @@ export function OfficePortalAdminPanel({
                     <p className="text-xs font-medium text-amber-700">Hidden (inactive)</p>
                   )}
                 </div>
+                {canEdit && (
                 <DeleteButton
                   label="news headline"
                   onConfirm={async () => {
                     await deletePageNewsTickerItemAction(pageId, item.id);
                   }}
                 />
+                )}
               </li>
             );
             })}
           </ul>
+          {canEdit && (
           <NewsTickerAddForm
             key={`${newsTickerItems.length}-${newsTickerFormSeed}`}
             pageId={pageId}
@@ -537,6 +559,7 @@ export function OfficePortalAdminPanel({
             }}
             onError={setError}
           />
+          )}
         </section>
       )}
 
@@ -580,16 +603,19 @@ export function OfficePortalAdminPanel({
                       <p className="text-xs font-medium text-amber-700">Hidden (inactive)</p>
                     )}
                   </div>
+                  {canEdit && (
                   <DeleteButton
                     label="student corner item"
                     onConfirm={async () => {
                       await deletePageStudentCornerItemAction(pageId, item.id);
                     }}
                   />
+                  )}
                 </li>
               );
             })}
           </ul>
+          {canEdit && (
           <StudentCornerAddForm
             key={`${studentCornerItems.length}-${studentCornerFormSeed}`}
             pageId={pageId}
@@ -600,6 +626,7 @@ export function OfficePortalAdminPanel({
             }}
             onError={setError}
           />
+          )}
         </section>
       )}
 
@@ -612,6 +639,7 @@ export function OfficePortalAdminPanel({
           isPending={isPending}
           error={error}
           setError={setError}
+          canEdit={canEdit}
           onAdd={(formData) => runAction(() => createPageSidebarItemAction(pageId, formData))}
           onDelete={(id) => runAction(() => deletePageSidebarItemAction(pageId, id))}
         />
@@ -626,6 +654,7 @@ export function OfficePortalAdminPanel({
           isPending={isPending}
           error={error}
           setError={setError}
+          canEdit={canEdit}
           onAdd={(formData) => runAction(() => createPageSidebarItemAction(pageId, formData))}
           onDelete={(id) => runAction(() => deletePageSidebarItemAction(pageId, id))}
         />
@@ -735,6 +764,7 @@ function SidebarEditor({
   isPending,
   error,
   setError,
+  canEdit = true,
   onAdd,
   onDelete,
 }: {
@@ -745,6 +775,7 @@ function SidebarEditor({
   isPending: boolean;
   error: string | null;
   setError: (value: string | null) => void;
+  canEdit?: boolean;
   onAdd: (formData: FormData) => void;
   onDelete: (id: string) => void;
 }) {
@@ -801,28 +832,33 @@ function SidebarEditor({
                   </p>
                 </div>
                 <div className="flex shrink-0 items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setEditingId(item.id)}
-                    className="text-sm font-medium text-emerald-700 hover:underline"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (confirm("Delete this sidebar link?")) onDelete(item.id);
-                    }}
-                    className="text-sm text-red-600 hover:underline"
-                  >
-                    Delete
-                  </button>
+                  {canEdit && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => setEditingId(item.id)}
+                        className="text-sm font-medium text-emerald-700 hover:underline"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (confirm("Delete this sidebar link?")) onDelete(item.id);
+                        }}
+                        className="text-sm text-red-600 hover:underline"
+                      >
+                        Delete
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             )}
           </li>
         ))}
       </ul>
+      {canEdit && (
       <SidebarItemForm
         side={side}
         defaultSortOrder={items.length + 1}
@@ -830,6 +866,7 @@ function SidebarEditor({
         submitLabel={`Add ${side} link`}
         onSubmit={onAdd}
       />
+      )}
     </section>
   );
 }

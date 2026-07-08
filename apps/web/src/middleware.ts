@@ -31,15 +31,17 @@ async function handleLegacyRedirect(request: NextRequest): Promise<NextResponse 
 async function handleAdminAuth(request: NextRequest): Promise<NextResponse> {
   const env = getPublicSupabaseEnv();
   const { pathname } = request.nextUrl;
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-admin-pathname", pathname);
 
   if (!env) {
     if (pathname !== "/admin/login") {
       return NextResponse.redirect(new URL("/admin/login", request.url));
     }
-    return NextResponse.next();
+    return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
-  let response = NextResponse.next({ request });
+  let response = NextResponse.next({ request: { headers: requestHeaders } });
 
   const supabase = createServerClient(env.url, env.anonKey, {
     cookies: {
@@ -50,7 +52,7 @@ async function handleAdminAuth(request: NextRequest): Promise<NextResponse> {
         cookiesToSet.forEach(({ name, value }) => {
           request.cookies.set(name, value);
         });
-        response = NextResponse.next({ request });
+        response = NextResponse.next({ request: { headers: requestHeaders } });
         cookiesToSet.forEach(({ name, value, options }) => {
           response.cookies.set(name, value, options);
         });

@@ -4,7 +4,7 @@ import {
   getCollegeForRegisterHub,
   getCollegesForRegisterForm,
   getDepartmentsForRegisterForm,
-  requireCollegeRegisterAdmin,
+  requireCollegeRegisterAdminOrRedirect,
 } from "@/actions/college-register";
 import { DepartmentRegisterPage } from "@/components/admin/department-register-page";
 
@@ -13,7 +13,7 @@ export default async function CollegeDepartmentRegisterPage({
 }: {
   params: Promise<{ collegeId: string }>;
 }) {
-  await requireCollegeRegisterAdmin();
+  await requireCollegeRegisterAdminOrRedirect();
   const { collegeId } = await params;
   const [college, colleges, departments] = await Promise.all([
     getCollegeForRegisterHub(collegeId),
