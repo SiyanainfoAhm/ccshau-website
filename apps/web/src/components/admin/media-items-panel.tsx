@@ -39,7 +39,7 @@ export function MediaItemsPanel({ albumId, items }: { albumId: string; items: Me
     <div className="space-y-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
       <h2 className="font-semibold text-slate-900">Album media ({items.length})</h2>
 
-      <form action={handleAdd} encType="multipart/form-data" className="space-y-3 rounded-lg border border-dashed border-slate-200 bg-slate-50 p-4">
+      <form action={handleAdd} className="space-y-3 rounded-lg border border-dashed border-slate-200 bg-slate-50 p-4">
         {error && <p className="text-sm text-red-600">{error}</p>}
         <p className="text-sm font-medium text-slate-700">Add photo or video</p>
         <div className="grid gap-3 sm:grid-cols-2">
@@ -49,13 +49,37 @@ export function MediaItemsPanel({ albumId, items }: { albumId: string; items: Me
             className="rounded border border-slate-200 px-2 py-1.5 text-sm"
           />
           <input
-            name="sortOrder"
-            type="number"
-            min={0}
-            defaultValue={items.length}
-            className="rounded border border-slate-200 px-2 py-1.5 text-sm"
+            name="titleHi"
+            placeholder="Title (Hindi)"
+            className="rounded border border-slate-200 px-2 py-1.5 text-sm font-hindi"
           />
         </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <label className="block text-sm">
+            <span className="font-medium text-slate-700">Alt text (English)</span>
+            <input
+              name="captionEn"
+              placeholder="Describe image for screen readers"
+              className="mt-1 w-full rounded border border-slate-200 px-2 py-1.5 text-sm"
+            />
+          </label>
+          <label className="block text-sm">
+            <span className="font-medium text-slate-700">Alt text (Hindi)</span>
+            <input
+              name="captionHi"
+              placeholder="स्क्रीन रीडर के लिए विवरण"
+              className="mt-1 w-full rounded border border-slate-200 px-2 py-1.5 text-sm font-hindi"
+            />
+          </label>
+        </div>
+        <input
+          name="sortOrder"
+          type="number"
+          min={0}
+          defaultValue={items.length}
+          className="rounded border border-slate-200 px-2 py-1.5 text-sm"
+          aria-label="Sort order"
+        />
         <select name="mediaType" className="rounded border border-slate-200 px-2 py-1.5 text-sm">
           <option value="image">Image</option>
           <option value="video">Video</option>

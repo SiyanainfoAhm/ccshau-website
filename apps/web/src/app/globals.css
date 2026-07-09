@@ -46,6 +46,58 @@ html.dark {
   --foreground: #ecfdf5;
 }
 
+body.high-contrast {
+  --background: #ffffff;
+  --foreground: #000000;
+  --hc-border: #000000;
+  --hc-link: #0000ee;
+}
+
+html.dark body.high-contrast {
+  --background: #000000;
+  --foreground: #ffffff;
+  --hc-border: #ffffff;
+  --hc-link: #ffff00;
+}
+
+body.high-contrast {
+  background: var(--background) !important;
+  color: var(--foreground) !important;
+}
+
+body.high-contrast :where(a, button, input, select, textarea):focus-visible {
+  outline: 3px solid var(--ccshau-gold-500) !important;
+  outline-offset: 2px;
+}
+
+body.high-contrast :where(a:not(.skip-link)) {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+body.high-contrast :where(
+  header,
+  footer,
+  main,
+  section,
+  article,
+  nav,
+  aside,
+  .rounded-xl,
+  .rounded-2xl,
+  .rounded-3xl
+) {
+  border-color: var(--hc-border) !important;
+}
+
+body.high-contrast :where(h1, h2, h3, h4, h5, h6, strong, b) {
+  color: var(--foreground) !important;
+}
+
+body.high-contrast :where(p, li, span, label, td, th) {
+  color: var(--foreground);
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
@@ -465,11 +517,47 @@ body {
 .skip-link {
   position: absolute;
   left: -9999px;
+  top: 0;
   z-index: 999;
   padding: 0.75rem 1rem;
   background: var(--ccshau-gold-500);
   color: #000;
   font-weight: 600;
+}
+
+.skip-link:focus,
+.skip-link:focus-visible {
+  left: 1rem;
+  top: 1rem;
+  outline: 3px solid var(--foreground);
+  outline-offset: 2px;
+}
+
+/* Visible keyboard focus for interactive controls (overridden in high-contrast mode) */
+body:not(.high-contrast) :where(a, button, input, select, textarea, [tabindex]:not([tabindex="-1"])):focus-visible {
+  outline: 2px solid var(--ccshau-gold-500);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .animate-marquee,
+  .animate-ken-burns,
+  .animate-fade-up,
+  .animate-pulse-glow {
+    animation: none !important;
+  }
 }
 
 @keyframes marquee {
@@ -591,6 +679,31 @@ body {
 html.dark .bento-card {
   background: linear-gradient(145deg, rgba(6, 40, 30, 0.9), rgba(11, 61, 46, 0.6));
   border-color: rgba(34, 160, 107, 0.2);
+}
+
+/* Dark-mode fallbacks for public inner pages not yet using shared page classes */
+html.dark #main-content {
+  color: #ecfdf5;
+}
+
+html.dark #main-content :where(.text-slate-900, .text-slate-800, .text-slate-700) {
+  color: #ecfdf5;
+}
+
+html.dark #main-content :where(.text-slate-600, .text-slate-500) {
+  color: rgba(167, 243, 208, 0.85);
+}
+
+html.dark #main-content :where(.text-slate-400, .text-slate-300) {
+  color: rgba(167, 243, 208, 0.55);
+}
+
+html.dark #main-content :where(.bg-slate-50, .bg-emerald-50, .bg-emerald-50\/80) {
+  background-color: #0a1210;
+}
+
+html.dark #main-content :where(.border-slate-200, .border-emerald-100) {
+  border-color: rgba(6, 78, 59, 0.45);
 }
 
 .homepage-carousel-track {

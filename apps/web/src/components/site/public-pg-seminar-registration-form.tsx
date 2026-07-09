@@ -8,6 +8,7 @@ import { ArrowLeft } from "lucide-react";
 import { submitPgSeminarRegistrationAction } from "@/actions/public/pg-seminar-registration";
 import { useLanguage } from "@/components/design/shared/language-context";
 import type { PublicPgStudiesHub } from "@/lib/data/public-types";
+import { buildImageAlt } from "@/lib/a11y/image-alt";
 import { getPgStudiesHubPath } from "@/lib/pages/routes";
 
 const inputClass =
@@ -84,7 +85,18 @@ export function PublicPgSeminarRegistrationForm({ hub }: { hub: PublicPgStudiesH
   return (
     <>
       <section className="relative min-h-[220px] overflow-hidden">
-        <Image src={heroImage} alt="" fill className="object-cover" priority sizes="100vw" />
+        <Image
+          src={heroImage}
+          alt={buildImageAlt({
+            contextEn: "PG Studies seminar registration",
+            altHi: "पीजी अध्ययन सेमिनार पंजीकरण",
+            lang,
+          })}
+          fill
+          className="object-cover"
+          priority
+          sizes="100vw"
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/40 to-black/25" />
         <div className="relative mx-auto max-w-4xl px-4 py-10 text-center text-white md:py-12">
           <Link

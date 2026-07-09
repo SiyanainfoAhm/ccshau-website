@@ -3,12 +3,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Sparkles } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { useLanguage } from "@/components/design/shared/language-context";
 import { FloatingOrbs } from "@/components/design/shared/floating-orbs";
-import { SELECTED_LAYOUT } from "@/lib/design/selected-layout";
+import { heroSlideAlt } from "@/lib/a11y/image-alt";
 import type { PublicHeroSlide } from "@/lib/data/public-types";
+import { SELECTED_LAYOUT } from "@/lib/design/selected-layout";
 import { heroSlides as mockHeroSlides, university } from "@/lib/mock/site-content";
 
 export function HeroCarousel({
@@ -24,7 +25,7 @@ export function HeroCarousel({
   primaryCtaHref?: string;
   secondaryCtaHref?: string;
 }) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const heroSlides =
     slidesProp && slidesProp.length > 0
       ? slidesProp
@@ -32,15 +33,36 @@ export function HeroCarousel({
           titleEn: s.titleEn,
           titleHi: s.titleHi,
           subtitleEn: s.subtitleEn,
+          imageAltEn: s.subtitleEn ?? s.titleEn,
+          imageAltHi: s.titleHi,
           image: s.image,
           targetUrl: null,
         }));
   const [index, setIndex] = useState(0);
 
+  const showPrev = useCallback(() => {
+    setIndex((i) => (i - 1 + heroSlides.length) % heroSlides.length);
+  }, [heroSlides.length]);
+
+  const showNext = useCallback(() => {
+    setIndex((i) => (i + 1) % heroSlides.length);
+  }, [heroSlides.length]);
+
   useEffect(() => {
     const id = setInterval(() => setIndex((i) => (i + 1) % heroSlides.length), 6000);
     return () => clearInterval(id);
   }, [heroSlides.length]);
+
+  function onCarouselKeyDown(event: React.KeyboardEvent) {
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      showPrev();
+    }
+    if (event.key === "ArrowRight") {
+      event.preventDefault();
+      showNext();
+    }
+  }
 
   const slide = heroSlides[index];
 
@@ -78,7 +100,7 @@ export function HeroCarousel({
             </div>
           </div>
           <div className="relative aspect-[16/10] overflow-hidden rounded-md border-2 border-slate-300 bg-white shadow-md ring-1 ring-slate-200">
-            <Image src={slide.image} alt="" fill className="object-cover" priority />
+            <Image src={slide.image} alt={heroSlideAlt(slide, lang)} fill className="object-cover" priority />
             <div className="absolute bottom-0 left-0 right-0 bg-[#146c43] px-4 py-2 text-center text-sm font-semibold text-white">
               {t(university.taglineEn, university.taglineHi)}
             </div>
@@ -133,7 +155,7 @@ export function HeroCarousel({
           <div className="relative lg:col-span-7">
             <div className="relative h-[320px] p-4 lg:absolute lg:inset-0 lg:h-auto lg:p-6">
               <div className="relative h-full overflow-hidden rounded-3xl shadow-2xl ring-4 ring-white/80">
-                <Image src={slide.image} alt="" fill className="object-cover" priority />
+                <Image src={slide.image} alt={heroSlideAlt(slide, lang)} fill className="object-cover" priority />
                 <div className="absolute inset-0 bg-gradient-to-tr from-rose-200/20 via-transparent to-sky-200/25" />
               </div>
               <div className="absolute -bottom-2 left-8 right-8 hidden rounded-2xl bg-gradient-to-r from-amber-100 via-rose-50 to-sky-100 p-4 shadow-lg ring-1 ring-white lg:block lg:left-10 lg:right-10">
@@ -161,7 +183,14 @@ export function HeroCarousel({
 
   // Option B — Future (most exciting)
   return (
-    <section className="relative min-h-[90vh] overflow-hidden">
+    <section
+      className="relative min-h-[90vh] overflow-hidden"
+      role="region"
+      aria-roledescription="carousel"
+      aria-label={t("Homepage banner", "मुखपृष्ठ बैनर")}
+      onKeyDown={onCarouselKeyDown}
+      tabIndex={0}
+    >
       <FloatingOrbs />
       {heroSlides.map((s, i) => (
         <div
@@ -170,7 +199,7 @@ export function HeroCarousel({
         >
           <Image
             src={s.image}
-            alt=""
+            alt={heroSlideAlt(s, lang)}
             fill
             className={`object-cover ${i === index ? "animate-ken-burns" : "scale-105"}`}
             priority={i === 0}
@@ -212,14 +241,16 @@ export function HeroCarousel({
           </div>
         </div>
 
-        <div className="absolute bottom-8 left-4 right-4 flex justify-center gap-2 md:left-auto md:right-8">
+        <div className="absolute bottom-8 left-4 right-4 flex justify-center gap-2 md:left-auto md:right-8" role="tablist" aria-label={t("Banner slides", "बैनर स्लाइड")}>
           {heroSlides.map((_, i) => (
             <button
               key={i}
               type="button"
+              role="tab"
               onClick={() => setIndex(i)}
               className={`h-2 rounded-full transition-all ${i === index ? "w-10 bg-amber-400" : "w-2 bg-white/40"}`}
-              aria-label={`Slide ${i + 1}`}
+              aria-label={t(`Slide ${i + 1}`, `स्लाइड ${i + 1}`)}
+              aria-selected={i === index}
             />
           ))}
         </div>

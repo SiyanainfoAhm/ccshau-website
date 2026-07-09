@@ -5,6 +5,8 @@ import Link from "next/link";
 
 import { useLanguage } from "@/components/design/shared/language-context";
 import { CmsHtmlContent } from "@/components/site/cms-html-content";
+import { buildImageAlt } from "@/lib/a11y/image-alt";
+import { publicHeadingClass, publicProseClass } from "@/lib/design/public-page-classes";
 import { pickBilingual } from "@/lib/i18n/pick-bilingual";
 import { getCollegeContactPath } from "@/lib/pages/routes";
 import type {
@@ -24,13 +26,13 @@ function SectionContent({
 
   return (
     <article className="mx-auto max-w-4xl px-4 py-12">
-      <h1 className={`font-display text-3xl font-bold text-slate-900 ${lang === "hi" ? "font-hindi" : ""}`}>
+      <h1 className={`font-display text-3xl font-bold ${publicHeadingClass} ${lang === "hi" ? "font-hindi" : ""}`}>
         {title}
       </h1>
       {content ? (
         <CmsHtmlContent
           html={content}
-          className={`prose prose-emerald mt-6 max-w-none ${lang === "hi" ? "font-hindi" : ""}`}
+          className={`${publicProseClass} mt-6 max-w-none ${lang === "hi" ? "font-hindi" : ""}`}
         />
       ) : (
         <p className="mt-6 text-slate-500">Content coming soon.</p>
@@ -51,14 +53,21 @@ export function PublicCollegeHome({ college }: { college: PublicCollegePage }) {
   return (
     <>
       <section className="relative min-h-[420px] overflow-hidden">
-        <Image src={heroImage} alt="" fill className="object-cover" priority sizes="100vw" />
+        <Image
+          src={heroImage}
+          alt={buildImageAlt({ titleEn: `${title} — campus`, titleHi: college.titleHi ? `${college.titleHi} — परिसर` : null, lang })}
+          fill
+          className="object-cover"
+          priority
+          sizes="100vw"
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/35 to-black/20" />
         <div className="relative mx-auto flex max-w-4xl flex-col items-center px-4 py-16 text-center text-white">
           {college.logoImageUrl ? (
             <div className="mb-4 overflow-hidden rounded-xl bg-white p-2 shadow-xl">
               <Image
                 src={college.logoImageUrl}
-                alt=""
+                alt={buildImageAlt({ titleEn: `${title} logo`, titleHi: college.titleHi ? `${college.titleHi} लोगो` : null, lang })}
                 width={96}
                 height={96}
                 className="h-20 w-20 object-contain"

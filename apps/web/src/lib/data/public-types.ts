@@ -2,6 +2,8 @@ export interface PublicHeroSlide {
   titleEn: string;
   titleHi?: string | null;
   subtitleEn?: string | null;
+  imageAltEn?: string | null;
+  imageAltHi?: string | null;
   image: string;
   targetUrl?: string | null;
 }

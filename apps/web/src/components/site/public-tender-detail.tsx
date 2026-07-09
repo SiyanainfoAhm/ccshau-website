@@ -7,6 +7,12 @@ import { useLanguage } from "@/components/design/shared/language-context";
 import { CmsHtmlContent } from "@/components/site/cms-html-content";
 import { pickBilingual } from "@/lib/i18n/pick-bilingual";
 import type { PublicTenderItem } from "@/lib/data/public-types";
+import {
+  publicCardSoftClass,
+  publicHeadingClass,
+  publicListItemClass,
+  publicProseClass,
+} from "@/lib/design/public-page-classes";
 
 export function PublicTenderDetail({ tender }: { tender: PublicTenderItem }) {
   const { lang, t } = useLanguage();
@@ -50,13 +56,13 @@ export function PublicTenderDetail({ tender }: { tender: PublicTenderItem }) {
         {description ? (
           <CmsHtmlContent
             html={description}
-            className={`prose prose-emerald max-w-none text-lg leading-relaxed text-slate-600 ${lang === "hi" ? "font-hindi" : ""}`}
+            className={`${publicProseClass} ${lang === "hi" ? "font-hindi" : ""}`}
           />
         ) : null}
 
         {tender.documents.length > 0 && (
           <div className="mt-10 space-y-3">
-            <h2 className="font-display text-xl font-bold text-slate-900">
+            <h2 className={`font-display text-xl font-bold ${publicHeadingClass}`}>
               {t("Documents", "दस्तावेज़")}
             </h2>
             {tender.documents.map((doc) => (
@@ -65,7 +71,7 @@ export function PublicTenderDetail({ tender }: { tender: PublicTenderItem }) {
                 href={doc.url ?? "#"}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-white px-4 py-3 text-sm font-semibold text-emerald-800 hover:bg-emerald-50"
+                className={`flex items-center gap-2 ${publicListItemClass} px-4 py-3 text-sm font-semibold text-emerald-800 dark:text-emerald-200`}
               >
                 <Download className="h-4 w-4" />
                 {doc.name}
@@ -76,13 +82,13 @@ export function PublicTenderDetail({ tender }: { tender: PublicTenderItem }) {
 
         {tender.corrigenda.length > 0 && (
           <div className="mt-10 space-y-4">
-            <h2 className="font-display text-xl font-bold text-slate-900">
+            <h2 className={`font-display text-xl font-bold ${publicHeadingClass}`}>
               {t("Corrigenda", "शुद्धिपत्र")}
             </h2>
             {tender.corrigenda.map((c) => (
-              <div key={c.id} className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-                <p className="font-semibold text-slate-900">{c.title}</p>
-                {c.description && <p className="mt-2 text-sm text-slate-600">{c.description}</p>}
+              <div key={c.id} className={`${publicCardSoftClass} border-amber-200 bg-amber-50 dark:border-amber-800/50 dark:bg-amber-950/30`}>
+                <p className={`font-semibold ${publicHeadingClass}`}>{c.title}</p>
+                {c.description && <p className="mt-2 text-sm text-slate-600 dark:text-emerald-100/80">{c.description}</p>}
                 {c.fileUrl && (
                   <a
                     href={c.fileUrl}

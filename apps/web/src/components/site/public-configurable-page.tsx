@@ -9,6 +9,7 @@ import { useLanguage } from "@/components/design/shared/language-context";
 import { CmsHtmlContent } from "@/components/site/cms-html-content";
 import { DepartmentAboutSection } from "@/components/site/department-about-section";
 import { FacultyProfileDialog } from "@/components/site/faculty-profile-dialog";
+import { buildImageAlt, staffPhotoAlt } from "@/lib/a11y/image-alt";
 import { PortraitPhoto } from "@/components/site/portrait-photo";
 import { PublicCollegeGallery } from "@/components/site/public-college-gallery";
 import { PublicStudentCornerSection } from "@/components/site/public-student-corner-section";
@@ -24,6 +25,7 @@ import type {
   PublicOfficeStaffMember,
   PublicSidebarLink,
 } from "@/lib/data/public-types";
+import { publicEmptyStateClass, publicSectionCardClass, publicSidebarClass } from "@/lib/design/public-page-classes";
 import { pickBilingual } from "@/lib/i18n/pick-bilingual";
 import type { PageLayoutConfig } from "@/lib/pages/layout-config";
 import { getCollegeContactPath } from "@/lib/pages/routes";
@@ -43,7 +45,7 @@ function SidebarPanel({
   if (links.length === 0) return null;
 
   return (
-    <aside className="rounded-xl border border-emerald-100 bg-white shadow-sm">
+    <aside className={publicSidebarClass}>
       <h2 className="border-b border-emerald-100 bg-emerald-50 px-4 py-3 font-display text-lg font-bold text-emerald-900">
         {title}
       </h2>
@@ -95,7 +97,7 @@ function StaffDirectoryTable({
 
   return (
     <>
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div className={`overflow-hidden ${publicSectionCardClass}`}>
       {title && (
         <h2
           className={`border-b border-slate-100 px-6 py-4 font-display text-2xl font-bold text-slate-900 ${lang === "hi" ? "font-hindi" : ""}`}
@@ -122,7 +124,7 @@ function StaffDirectoryTable({
                 <td className="px-4 py-3">
                   {member.imageUrl ? (
                     <div className="relative h-12 w-12 overflow-hidden rounded-full border border-slate-200">
-                      <Image src={member.imageUrl} alt="" fill className="object-cover" sizes="48px" />
+                      <Image src={member.imageUrl} alt={staffPhotoAlt(member, lang)} fill className="object-cover" sizes="48px" />
                     </div>
                   ) : (
                     <span className="text-slate-400">—</span>
@@ -291,14 +293,21 @@ export function PublicConfigurablePage({
 
       {layoutConfig.hero && (
         <section className={`relative ${heroMinHeight} overflow-hidden`}>
-          <Image src={heroImage} alt="" fill className="object-cover" priority sizes="100vw" />
+          <Image
+            src={heroImage}
+            alt={buildImageAlt({ titleEn: `${title} — campus`, titleHi: college.titleHi, lang })}
+            fill
+            className="object-cover"
+            priority
+            sizes="100vw"
+          />
           <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/40 to-black/25" />
           <div className="relative mx-auto flex max-w-4xl flex-col items-center px-4 py-14 text-center text-white md:py-16">
             {college.logoImageUrl && (
-              <div className="mb-4 overflow-hidden rounded-xl bg-white p-2 shadow-xl">
+              <div className="mb-4 overflow-hidden rounded-xl bg-white p-2 shadow-xl dark:bg-emerald-950/40">
                 <Image
                   src={college.logoImageUrl}
-                  alt=""
+                  alt={buildImageAlt({ titleEn: `${title} logo`, titleHi: college.titleHi ? `${college.titleHi} लोगो` : null, lang })}
                   width={96}
                   height={96}
                   className="h-20 w-20 object-contain"
@@ -333,7 +342,7 @@ export function PublicConfigurablePage({
       )}
 
       {!layoutConfig.hero && contentPage && (
-        <div className="border-b border-slate-200 bg-white">
+        <div className="border-b border-slate-200 bg-white dark:border-emerald-900/50 dark:bg-emerald-950/30">
           <div className="mx-auto max-w-7xl px-4 py-8">
             <h1
               className={`font-display text-3xl font-bold text-slate-900 ${lang === "hi" ? "font-hindi" : ""}`}
@@ -368,10 +377,21 @@ export function PublicConfigurablePage({
 
           <div className="min-w-0 flex-1 space-y-8">
             {showHeadOfficer && office?.headOfficer && (
-              <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+              <div className={`overflow-hidden ${publicSectionCardClass}`}>
                 <div className="flex flex-col items-center gap-4 p-6 sm:flex-row sm:items-start">
                   {office.headOfficer.imageUrl && (
-                    <PortraitPhoto src={office.headOfficer.imageUrl} />
+                    <PortraitPhoto
+                      src={office.headOfficer.imageUrl}
+                      alt={staffPhotoAlt(
+                        {
+                          nameEn: office.headOfficer.nameEn,
+                          nameHi: office.headOfficer.nameHi,
+                          designationEn: office.headOfficer.roleEn,
+                          designationHi: office.headOfficer.roleHi,
+                        },
+                        lang,
+                      )}
+                    />
                   )}
                   <div className="min-w-0 flex-1 text-center sm:text-left">
                     <p
@@ -420,7 +440,7 @@ export function PublicConfigurablePage({
             )}
 
             {showContacts && office && (
-              <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div className={`${publicSectionCardClass} p-6`}>
                 <h2 className="font-display text-lg font-bold text-slate-900">
                   {t("Telephone", "टेलीफोन")}
                 </h2>
@@ -463,7 +483,7 @@ export function PublicConfigurablePage({
                   contactLines={office.contactLines}
                 />
               ) : (
-                <p className="rounded-xl border border-slate-200 bg-white p-6 text-center text-slate-500 shadow-sm">
+                <p className={`${publicEmptyStateClass} p-6 shadow-sm`}>
                   {t("Head of Department has not been assigned yet.", "विभागाध्यक्ष अभी नियुक्त नहीं किया गया है।")}
                 </p>
               )
@@ -478,7 +498,7 @@ export function PublicConfigurablePage({
             )}
 
             {showMainContent && (
-              <article className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+              <article className={`${publicSectionCardClass} p-6`}>
                 {bodyTitle && (
                   <h2
                     className={`mb-4 font-display text-2xl font-bold text-slate-900 ${lang === "hi" ? "font-hindi" : ""}`}

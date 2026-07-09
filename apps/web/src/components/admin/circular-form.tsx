@@ -57,7 +57,6 @@ export function CircularForm({
   return (
     <form
       action={canEdit ? handleSubmit : undefined}
-      encType="multipart/form-data"
       className="max-w-2xl space-y-5"
     >
       {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}

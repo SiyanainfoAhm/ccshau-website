@@ -125,7 +125,7 @@ export function HomepageQuoteForm({ quote }: { quote?: HomepageQuote }) {
   }
 
   return (
-    <form action={handleSubmit} encType="multipart/form-data" className="max-w-2xl space-y-5">
+    <form action={handleSubmit} className="max-w-2xl space-y-5">
       {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
       <label className="block text-sm">
         <span className="font-medium text-slate-700">Author (English)</span>
@@ -183,7 +183,7 @@ export function HomepageDignitaryForm({ dignitary }: { dignitary?: HomepageDigni
   }
 
   return (
-    <form action={handleSubmit} encType="multipart/form-data" className="max-w-2xl space-y-5">
+    <form action={handleSubmit} className="max-w-2xl space-y-5">
       {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
       <label className="block text-sm">
         <span className="font-medium text-slate-700">Name (English)</span>
@@ -246,7 +246,7 @@ export function HomepageInitiativeForm({ initiative }: { initiative?: HomepageIn
   }
 
   return (
-    <form action={handleSubmit} encType="multipart/form-data" className="max-w-2xl space-y-5">
+    <form action={handleSubmit} className="max-w-2xl space-y-5">
       {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
       <label className="block text-sm">
         <span className="font-medium text-slate-700">Title (English)</span>
@@ -310,7 +310,7 @@ export function HomepageCtaForm({ cta }: { cta?: HomepageCta | null }) {
   }
 
   return (
-    <form action={handleSubmit} encType="multipart/form-data" className="max-w-2xl space-y-5">
+    <form action={handleSubmit} className="max-w-2xl space-y-5">
       {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
       <label className="block text-sm">
         <span className="font-medium text-slate-700">Title (English)</span>

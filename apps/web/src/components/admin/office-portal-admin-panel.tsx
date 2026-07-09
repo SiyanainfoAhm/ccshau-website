@@ -432,7 +432,6 @@ export function OfficePortalAdminPanel({
           {canEdit && (
           <form
             className="mt-4 grid gap-3 border-t border-slate-100 pt-4 sm:grid-cols-2"
-            encType="multipart/form-data"
             action={(formData) => runAction(() => createPageGalleryItemAction(pageId, formData))}
           >
             <div className="sm:col-span-2">

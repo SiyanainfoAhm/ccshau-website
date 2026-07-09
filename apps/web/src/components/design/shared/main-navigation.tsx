@@ -6,6 +6,7 @@ import { useState } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 
 import { useLanguage } from "@/components/design/shared/language-context";
+import { useEscapeKey } from "@/lib/a11y/use-escape-key";
 import type { PublicNavItem } from "@/lib/data/public-types";
 
 type NavTone = "future" | "heritage" | "ministry" | "light";
@@ -254,6 +255,8 @@ export function MainNavigation({
   const openItem = items.find((item) => item.labelEn === openLabel);
   const openMegaItem = openItem && hasGrandchildren(openItem) ? openItem : null;
 
+  useEscapeKey(openLabel != null, () => setOpenLabel(null));
+
   return (
     <nav
       aria-label="Main navigation"
@@ -292,7 +295,7 @@ export function MainNavigation({
                   <ChevronDown className={`h-4 w-4 opacity-70 transition ${isOpen ? "rotate-180" : ""}`} />
                 </button>
               ) : (
-                <Link href={href} className={triggerClass}>
+                <Link href={href} className={triggerClass} aria-current={isActive ? "page" : undefined}>
                   {t(item.labelEn, item.labelHi ?? item.labelEn)}
                   {hasChildren && (
                     <ChevronDown className={`h-4 w-4 opacity-70 transition ${isOpen ? "rotate-180" : ""}`} />
@@ -317,7 +320,7 @@ export function MainNavigation({
       )}
 
       {mobileOpen && (
-        <div className="border-t border-amber-400/20 lg:hidden">
+        <div className="border-t border-amber-400/20 lg:hidden" data-mobile-nav>
           <MobileNavTree items={items} resolveHref={resolveHref} onNavigate={onMobileClose} />
         </div>
       )}

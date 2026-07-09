@@ -16,10 +16,15 @@ export function AdminShell({
 
   return (
     <div className="flex min-h-screen bg-slate-50">
+      <a href="#admin-main-content" className="skip-link">
+        Skip to admin content
+      </a>
       <AdminSidebar access={access} collegeName={session.collegeAssignment?.collegeName} />
       <div className="flex min-w-0 flex-1 flex-col">
         <AdminHeader session={session} />
-        <main className="flex-1 p-6">{children}</main>
+        <main id="admin-main-content" className="flex-1 p-6" tabIndex={-1}>
+          {children}
+        </main>
       </div>
     </div>
   );

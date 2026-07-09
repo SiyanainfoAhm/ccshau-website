@@ -1,9 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useId } from "react";
+import { useId, useRef } from "react";
 import { X } from "lucide-react";
 
+import { staffPhotoAlt } from "@/lib/a11y/image-alt";
+import { useModalA11y } from "@/lib/a11y/use-modal-a11y";
 import { useLanguage } from "@/components/design/shared/language-context";
 import { FacultyProfileContent } from "@/components/site/faculty-profile-content";
 import type { PublicOfficeStaffMember } from "@/lib/data/public-types";
@@ -20,19 +22,9 @@ export function FacultyProfileDialog({
 }) {
   const { lang, t } = useLanguage();
   const titleId = useId();
+  const panelRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!open) return;
-    function onKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
-    }
-    document.addEventListener("keydown", onKeyDown);
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKeyDown);
-      document.body.style.overflow = "";
-    };
-  }, [open, onClose]);
+  useModalA11y({ open, onClose, panelRef });
 
   if (!open) return null;
 
@@ -48,10 +40,12 @@ export function FacultyProfileDialog({
         onClick={onClose}
       />
       <div
+        ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="relative z-10 flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl"
+        tabIndex={-1}
+        className="relative z-10 flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl outline-none"
       >
         <div className="flex shrink-0 items-start justify-between gap-4 border-b border-emerald-100 bg-emerald-50 px-6 py-4">
           <h2 id={titleId} className={`font-display text-lg font-bold text-slate-900 ${lang === "hi" ? "font-hindi" : ""}`}>
@@ -71,7 +65,7 @@ export function FacultyProfileDialog({
           <div className="border-b border-slate-100 bg-white px-6 py-6 md:flex md:items-center md:gap-6">
             {member.imageUrl ? (
               <div className="relative mx-auto h-28 w-28 shrink-0 overflow-hidden rounded-full border-4 border-emerald-50 md:mx-0">
-                <Image src={member.imageUrl} alt="" fill className="object-cover" sizes="112px" />
+                <Image src={member.imageUrl} alt={staffPhotoAlt(member, lang)} fill className="object-cover" sizes="112px" />
               </div>
             ) : null}
             <div className="mt-4 text-center md:mt-0 md:text-left">

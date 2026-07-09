@@ -2,9 +2,10 @@
 
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, X, ZoomIn } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useLanguage } from "@/components/design/shared/language-context";
+import { useModalA11y } from "@/lib/a11y/use-modal-a11y";
 import { pickBilingual } from "@/lib/i18n/pick-bilingual";
 import type { PublicGalleryImage } from "@/lib/data/public-types";
 
@@ -19,6 +20,7 @@ export function PublicCollegeGallery({
 }) {
   const { lang, t } = useLanguage();
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const lightboxRef = useRef<HTMLDivElement>(null);
 
   const close = useCallback(() => setActiveIndex(null), []);
   const showPrev = useCallback(() => {
@@ -28,22 +30,23 @@ export function PublicCollegeGallery({
     setActiveIndex((index) => (index == null ? null : (index + 1) % images.length));
   }, [images.length]);
 
+  useModalA11y({
+    open: activeIndex != null,
+    onClose: close,
+    panelRef: lightboxRef,
+  });
+
   useEffect(() => {
     if (activeIndex == null) return;
 
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") close();
       if (event.key === "ArrowLeft") showPrev();
       if (event.key === "ArrowRight") showNext();
     }
 
-    document.body.style.overflow = "hidden";
     window.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.body.style.overflow = "";
-      window.removeEventListener("keydown", onKeyDown);
-    };
-  }, [activeIndex, close, showNext, showPrev]);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [activeIndex, showNext, showPrev]);
 
   if (images.length === 0) {
     return (
@@ -91,52 +94,50 @@ export function PublicCollegeGallery({
       </div>
 
       {activeImage && activeIndex != null && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
-          role="dialog"
-          aria-modal="true"
-          aria-label={t("Image viewer", "छवि दर्शक")}
-          onClick={close}
-        >
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4">
+          <button
+            type="button"
+            aria-label={t("Close image viewer", "छवि दर्शक बंद करें")}
+            className="absolute inset-0 cursor-default"
+            onClick={close}
+          />
           <button
             type="button"
             onClick={close}
-            className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white transition hover:bg-white/20"
+            className="absolute right-4 top-4 z-10 rounded-full bg-white/10 p-2 text-white transition hover:bg-white/20"
             aria-label={t("Close", "बंद करें")}
           >
-            <X className="h-6 w-6" />
+            <X className="h-6 w-6" aria-hidden />
           </button>
 
           {images.length > 1 && (
             <>
               <button
                 type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  showPrev();
-                }}
-                className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white transition hover:bg-white/20"
+                onClick={showPrev}
+                className="absolute left-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white transition hover:bg-white/20"
                 aria-label={t("Previous image", "पिछली छवि")}
               >
-                <ChevronLeft className="h-7 w-7" />
+                <ChevronLeft className="h-7 w-7" aria-hidden />
               </button>
               <button
                 type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  showNext();
-                }}
-                className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white transition hover:bg-white/20"
+                onClick={showNext}
+                className="absolute right-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white transition hover:bg-white/20"
                 aria-label={t("Next image", "अगली छवि")}
               >
-                <ChevronRight className="h-7 w-7" />
+                <ChevronRight className="h-7 w-7" aria-hidden />
               </button>
             </>
           )}
 
           <div
-            className="relative max-h-[90vh] w-full max-w-6xl"
-            onClick={(event) => event.stopPropagation()}
+            ref={lightboxRef}
+            className="relative z-10 flex max-h-[90vh] w-full max-w-6xl flex-col items-center outline-none"
+            role="dialog"
+            aria-modal="true"
+            aria-label={t("Image viewer", "छवि दर्शक")}
+            tabIndex={-1}
           >
             <Image
               src={activeImage.imageUrl}
@@ -147,7 +148,7 @@ export function PublicCollegeGallery({
               sizes="100vw"
               priority
             />
-            <p className="mt-3 text-center text-sm text-white/80">
+            <p className="mt-3 text-center text-sm text-white/80" aria-live="polite">
               {activeIndex + 1} / {images.length}
             </p>
           </div>

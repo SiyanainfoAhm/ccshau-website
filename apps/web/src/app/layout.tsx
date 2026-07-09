@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Playfair_Display, Noto_Sans, Noto_Sans_Devanagari } from "next/font/google";
 
 import { NavigationProgress } from "@/components/navigation/navigation-progress";
+import { A11Y_BOOTSTRAP_SCRIPT } from "@/lib/a11y/accessibility-storage";
 
 import "./globals.css";
 
@@ -41,7 +42,11 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${playfair.variable} ${notoSans.variable} ${notoDevanagari.variable} h-full`}
+      suppressHydrationWarning
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: A11Y_BOOTSTRAP_SCRIPT }} />
+      </head>
       <body className="min-h-full flex flex-col antialiased">
         <NavigationProgress />
         {children}

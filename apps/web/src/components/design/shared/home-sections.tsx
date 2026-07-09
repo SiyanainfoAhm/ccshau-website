@@ -306,7 +306,7 @@ export function CollegesGrid({
                 <div className="relative mx-auto mb-4 flex h-[120px] w-[120px] items-center justify-center">
                   <Image
                     src={college.logoUrl}
-                    alt=""
+                    alt={t(college.nameEn, college.nameHi)}
                     width={120}
                     height={120}
                     className="max-h-[120px] max-w-[120px] object-contain"
@@ -611,7 +611,7 @@ export function SpotlightSection({ variant = "future" }: { variant?: "heritage" 
             <div className="relative aspect-[4/3]">
               <Image
                 src="https://images.unsplash.com/photo-1625246333195-78d9c38ad449?auto=format&fit=crop&w=1200&q=80"
-                alt=""
+                alt={t("Climate-Resilient Wheat Varieties — research spotlight", "जलवायु-सहनशील गेहूं किस्में — अनुसंधान स्पॉटलाइट")}
                 fill
                 className="object-cover"
               />
@@ -688,7 +688,7 @@ export function DignitariesStrip({
               }`}>
                 <Image
                   src={person.imageUrl}
-                  alt=""
+                  alt={t(`${person.nameEn}, ${person.roleEn}`, `${person.nameHi ?? person.nameEn}, ${person.roleHi ?? person.roleEn}`)}
                   fill
                   className="object-cover"
                   sizes="96px"
@@ -889,7 +889,7 @@ export function AboutSection({
           <div className={`relative min-h-[240px] overflow-hidden ${variant === "ministry" ? "rounded-md border-2 border-slate-300" : "rounded-2xl ring-2 ring-amber-200/50"}`}>
             <Image
               src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=900&q=80"
-              alt=""
+              alt={t("Agricultural fields at CCSHAU Hisar", "CCSHAU हिसार में कृषि क्षेत्र")}
               fill
               className="object-cover"
             />
@@ -1391,7 +1391,7 @@ export function MediaGallerySection({
                 {item.image ? (
                   <Image
                     src={item.image}
-                    alt=""
+                    alt={t(item.titleEn, item.titleHi ?? item.titleEn)}
                     fill
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                     className="object-cover transition duration-500 group-hover:scale-105"
@@ -1471,7 +1471,7 @@ export function FlagshipsSection({
               <div className="relative aspect-[16/10] min-h-[180px] overflow-hidden">
                 <Image
                   src={item.imageUrl}
-                  alt=""
+                  alt={t(item.titleEn, item.titleHi)}
                   fill
                   sizes="320px"
                   className="object-cover transition duration-500 group-hover:scale-105"

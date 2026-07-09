@@ -10,6 +10,7 @@ import { PublicPagination } from "@/components/site/public-pagination";
 import type { PaginatedResult } from "@/lib/data/pagination";
 import type { PublicTenderItem } from "@/lib/data/public-types";
 import { SELECTED_LAYOUT } from "@/lib/design/selected-layout";
+import { publicCardClass, publicFilterChipActiveClass, publicFilterChipInactiveClass, publicMainClass } from "@/lib/design/public-page-classes";
 
 export function PublicTendersListing({
   data,
@@ -32,7 +33,7 @@ export function PublicTendersListing({
   return (
     <>
       <SiteHeader variant="future" />
-      <main id="main-content" className="flex-1 bg-slate-50">
+      <main id="main-content" className={publicMainClass}>
         <div className="gradient-hero px-4 py-14 text-white">
           <div className="mx-auto max-w-7xl">
             <Link
@@ -60,8 +61,8 @@ export function PublicTendersListing({
                 onClick={() => setStatus(tab.value)}
                 className={`rounded-full px-4 py-1.5 text-sm font-medium capitalize ${
                   activeStatus === tab.value
-                    ? "bg-[#0b3d2e] text-white"
-                    : "bg-white text-slate-600 ring-1 ring-slate-200"
+                    ? publicFilterChipActiveClass
+                    : publicFilterChipInactiveClass
                 }`}
               >
                 {tab.label}
@@ -69,7 +70,7 @@ export function PublicTendersListing({
             ))}
           </div>
 
-          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg">
+          <div className={`overflow-hidden ${publicCardClass}`}>
             <table className="w-full text-left text-sm">
               <thead className="bg-emerald-900 text-white">
                 <tr>

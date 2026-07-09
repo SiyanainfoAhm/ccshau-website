@@ -9,6 +9,7 @@ import { useLanguage } from "@/components/design/shared/language-context";
 import { DepartmentAboutSection } from "@/components/site/department-about-section";
 import type { PublicCmsPageData } from "@/components/site/public-cms-page-content";
 import type { PublicOfficePortalData, PublicOfficeStaffMember } from "@/lib/data/public-types";
+import { buildImageAlt } from "@/lib/a11y/image-alt";
 import { pickBilingual } from "@/lib/i18n/pick-bilingual";
 import { getPgStudiesSectionPath } from "@/lib/pages/routes";
 
@@ -62,7 +63,14 @@ export function PublicCmsOfficePageContent({
   return (
     <>
       <section className="relative min-h-[320px] overflow-hidden">
-        <Image src={heroImage} alt="" fill className="object-cover" priority sizes="100vw" />
+        <Image
+          src={heroImage}
+          alt={buildImageAlt({ titleEn: `${title} — ${page.titleEn}`, titleHi: page.titleHi, lang })}
+          fill
+          className="object-cover"
+          priority
+          sizes="100vw"
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/40 to-black/25" />
         <div className="relative mx-auto max-w-4xl px-4 py-14 text-center text-white md:py-16">
           <Link

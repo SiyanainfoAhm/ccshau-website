@@ -10,6 +10,7 @@ import { SiteHeader } from "@/components/design/shared/site-header";
 import { useLanguage } from "@/components/design/shared/language-context";
 import type { PaginatedResult } from "@/lib/data/pagination";
 import type { PublicMediaAlbumItem } from "@/lib/data/public-types";
+import { buildImageAlt } from "@/lib/a11y/image-alt";
 import { SELECTED_LAYOUT } from "@/lib/design/selected-layout";
 import { PublicPagination } from "@/components/site/public-pagination";
 
@@ -95,7 +96,11 @@ export function PublicMediaListing({
                     {album.coverUrl ? (
                       <Image
                         src={album.coverUrl}
-                        alt=""
+                        alt={buildImageAlt({
+                          titleEn: album.titleEn,
+                          titleHi: album.titleHi,
+                          contextEn: "Media album cover",
+                        })}
                         fill
                         className="object-cover transition duration-500 group-hover:scale-105"
                         sizes="(max-width: 768px) 100vw, 33vw"
