@@ -63,14 +63,28 @@ export function applyAccessibilityPreferences(prefs: AccessibilityPreferences): 
 }
 
 export function resetAccessibilityPreferences(): AccessibilityPreferences {
-  applyAccessibilityPreferences(DEFAULT_A11Y_PREFERENCES);
-  persistAccessibilityPreferences(DEFAULT_A11Y_PREFERENCES);
+  cachedSnapshot = { ...DEFAULT_A11Y_PREFERENCES };
+  applyAccessibilityPreferences(cachedSnapshot);
+  persistAccessibilityPreferences(cachedSnapshot);
   notifyAccessibilityStore();
-  return { ...DEFAULT_A11Y_PREFERENCES };
+  return cachedSnapshot;
 }
 
 let accessibilityRevision = 0;
 const accessibilitySubscribers = new Set<() => void>();
+let cachedSnapshot: AccessibilityPreferences = DEFAULT_A11Y_PREFERENCES;
+
+function preferencesEqual(a: AccessibilityPreferences, b: AccessibilityPreferences): boolean {
+  return a.theme === b.theme && a.fontScale === b.fontScale && a.highContrast === b.highContrast;
+}
+
+function refreshCachedSnapshot(): AccessibilityPreferences {
+  const next = readAccessibilityPreferences();
+  if (!preferencesEqual(cachedSnapshot, next)) {
+    cachedSnapshot = next;
+  }
+  return cachedSnapshot;
+}
 
 export function subscribeAccessibility(onStoreChange: () => void): () => void {
   accessibilitySubscribers.add(onStoreChange);
@@ -86,7 +100,7 @@ export function notifyAccessibilityStore(): void {
 
 export function getAccessibilitySnapshot(): AccessibilityPreferences {
   void accessibilityRevision;
-  return readAccessibilityPreferences();
+  return refreshCachedSnapshot();
 }
 
 export function getServerAccessibilitySnapshot(): AccessibilityPreferences {
@@ -96,7 +110,8 @@ export function getServerAccessibilitySnapshot(): AccessibilityPreferences {
 export function updateAccessibilityPreferences(
   updater: (current: AccessibilityPreferences) => AccessibilityPreferences,
 ): AccessibilityPreferences {
-  const next = updater(readAccessibilityPreferences());
+  const next = updater(refreshCachedSnapshot());
+  cachedSnapshot = next;
   applyAccessibilityPreferences(next);
   persistAccessibilityPreferences(next);
   notifyAccessibilityStore();
