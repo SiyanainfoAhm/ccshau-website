@@ -7,13 +7,16 @@ import {
   requireCollegeRegisterAdminOrRedirect,
 } from "@/actions/college-register";
 import { FacultyRegisterPage } from "@/components/admin/faculty-register-page";
+import { canDeletePages, canEditPages } from "@/lib/auth/college-scope";
 
 export default async function CollegeFacultyRegisterPage({
   params,
 }: {
   params: Promise<{ collegeId: string }>;
 }) {
-  await requireCollegeRegisterAdminOrRedirect();
+  const session = await requireCollegeRegisterAdminOrRedirect();
+  const canEdit = canEditPages(session);
+  const canDelete = canDeletePages(session);
   const { collegeId } = await params;
   const [college, departments, faculty] = await Promise.all([
     getCollegeForRegisterHub(collegeId),
@@ -28,6 +31,8 @@ export default async function CollegeFacultyRegisterPage({
       college={college}
       departments={departments}
       faculty={faculty}
+      canEdit={canEdit}
+      canDelete={canDelete}
     />
   );
 }

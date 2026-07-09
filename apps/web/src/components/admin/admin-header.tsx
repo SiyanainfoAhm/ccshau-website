@@ -5,6 +5,17 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import type { AdminSession } from "@/lib/auth/session";
+import { COLLEGE_ROLE_LABELS, ROLE_LABELS } from "@/lib/validations/users";
+
+function formatSessionRole(session: AdminSession): string {
+  if (session.primaryRole) {
+    return ROLE_LABELS[session.primaryRole];
+  }
+  if (session.collegeAssignment) {
+    return COLLEGE_ROLE_LABELS[session.collegeAssignment.role];
+  }
+  return "no role";
+}
 
 export function AdminHeader({ session }: { session: AdminSession }) {
   const router = useRouter();
@@ -22,7 +33,7 @@ export function AdminHeader({ session }: { session: AdminSession }) {
       <div>
         <p className="text-sm font-semibold text-slate-900">Admin Dashboard</p>
         <p className="text-xs text-slate-500">
-          {session.displayName} · {session.primaryRole?.replace("_", " ") ?? "no role"}
+          {session.displayName} · {formatSessionRole(session)}
         </p>
       </div>
       <button

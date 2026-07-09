@@ -31,6 +31,8 @@ import {
 import { resolvePagePublicPath, getPagePathAncestors, resolveCollegeRootPageType, isCollegesContainerSlug } from "@/lib/pages/resolve-public-path";
 import { syncCollegeContactLines } from "@/lib/pages/college-contact-seed";
 import { pageFormSchema } from "@/lib/validations/pages";
+import { emptyPaginatedResult, mergeAdminListOptions, runPaginatedQuery } from "@/lib/data/admin-list";
+import type { PaginatedResult } from "@/lib/data/pagination";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 function parsePageForm(formData: FormData) {
@@ -409,21 +411,28 @@ export async function suggestSlugAction(title: string): Promise<string> {
   return slugify(title);
 }
 
-export async function listPagesForAdmin(): Promise<Page[]> {
+const PAGES_LIST_SORTS = ["title_en", "slug", "status", "page_type", "updated_at", "created_at"] as const;
+
+export async function listPagesForAdmin(
+  options: import("@/lib/data/admin-list").AdminListOptions = {},
+): Promise<PaginatedResult<Page>> {
+  const opts = mergeAdminListOptions(options, {
+    sortBy: "updated_at",
+    sortOrder: "desc",
+    allowedSorts: PAGES_LIST_SORTS,
+  });
+
   const session = await requireAdminSession();
   const canList =
     hasRole(session.roles, ["super_admin", "dept_admin", "editor", "viewer"]) ||
     Boolean(session.collegeAssignment);
 
-  if (!canList) return [];
+  if (!canList) return emptyPaginatedResult(opts);
 
   const admin = createAdminClient();
-  if (!admin) return [];
+  if (!admin) return emptyPaginatedResult(opts);
 
-  let query = admin
-    .from(Tables.pages)
-    .select("*")
-    .order("updated_at", { ascending: false });
+  let query = admin.from(Tables.pages).select("*", { count: "exact" });
 
   if (isCollegeOnlyUser(session) && session.collegeAssignment) {
     query = query.eq("college_root_id", session.collegeAssignment.collegePageId);
@@ -436,8 +445,17 @@ export async function listPagesForAdmin(): Promise<Page[]> {
     query = query.or(universityCmsPageListOrFilter(session.departmentId));
   }
 
-  const { data } = await query;
-  return (data ?? []) as Page[];
+  if (opts.search) {
+    const term = `%${opts.search}%`;
+    query = query.or(`title_en.ilike.${term},title_hi.ilike.${term},slug.ilike.${term}`);
+  }
+
+  return runPaginatedQuery<Page>(query, opts);
+}
+
+export async function listAllPagesForAdmin(): Promise<Page[]> {
+  const result = await listPagesForAdmin({ page: 1, pageSize: 5000 });
+  return result.items;
 }
 
 export async function getPageById(pageId: string): Promise<Page | null> {

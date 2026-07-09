@@ -23,6 +23,11 @@ export function corrigendumAttachmentPath(
   return `tenders/${tenderId}/corrigenda/${corrigendumId}/${safe}`;
 }
 
+export function tenderCancellationPath(tenderId: string, fileName: string): string {
+  const safe = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
+  return `tenders/${tenderId}/cancellation/${safe}`;
+}
+
 export function bannerImagePath(bannerId: string, fileName: string): string {
   const safe = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
   return `banners/${bannerId}/${safe}`;

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { listUsersForAdmin } from "@/actions/users";
+import { listAllUsersForAdmin } from "@/actions/users";
 import { CollegeWizardForm } from "@/components/admin/college-wizard-form";
 import { requireAdminSession } from "@/lib/auth/session";
 
@@ -11,7 +11,7 @@ export default async function RegisterDirectoratePage() {
     redirect("/admin");
   }
 
-  const users = await listUsersForAdmin();
+  const users = await listAllUsersForAdmin();
 
   return (
     <div className="space-y-6">

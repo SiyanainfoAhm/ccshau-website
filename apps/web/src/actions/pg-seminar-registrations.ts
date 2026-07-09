@@ -9,6 +9,8 @@ import { Tables } from "@/lib/database/names";
 import type { PgSeminarRegistration, PgSeminarRegistrationStatus } from "@/lib/database/types";
 import { fail, ok, type ActionResult } from "@/lib/types/action-result";
 import { pgSeminarRegistrationUpdateSchema } from "@/lib/validations/pg-seminar-registration-admin";
+import { emptyPaginatedResult, mergeAdminListOptions, runPaginatedQuery, type AdminListOptions } from "@/lib/data/admin-list";
+import type { PaginatedResult } from "@/lib/data/pagination";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 async function requireSuperAdminSession() {
@@ -19,24 +21,35 @@ async function requireSuperAdminSession() {
   return session;
 }
 
+const PG_SEMINAR_LIST_SORTS = [
+  "registration_number",
+  "student_name",
+  "admission_number",
+  "seminar_title",
+  "status",
+  "created_at",
+] as const;
+
 export async function listPgSeminarRegistrationsForAdmin(
   status?: PgSeminarRegistrationStatus,
-): Promise<PgSeminarRegistration[]> {
+  options: AdminListOptions = {},
+): Promise<PaginatedResult<PgSeminarRegistration>> {
+  const opts = mergeAdminListOptions(options, {
+    sortBy: "created_at",
+    sortOrder: "desc",
+    allowedSorts: PG_SEMINAR_LIST_SORTS,
+  });
+
   await requireSuperAdminSession();
   const admin = createAdminClient();
-  if (!admin) return [];
+  if (!admin) return emptyPaginatedResult(opts);
 
-  let query = admin
-    .from(Tables.pgSeminarRegistrations)
-    .select("*")
-    .order("created_at", { ascending: false });
-
+  let query = admin.from(Tables.pgSeminarRegistrations).select("*", { count: "exact" });
   if (status) {
     query = query.eq("status", status);
   }
 
-  const { data } = await query;
-  return (data ?? []) as PgSeminarRegistration[];
+  return runPaginatedQuery<PgSeminarRegistration>(query, opts);
 }
 
 export async function getPgSeminarRegistrationById(

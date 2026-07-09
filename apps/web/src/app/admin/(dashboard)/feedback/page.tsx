@@ -1,8 +1,13 @@
+import { Suspense } from "react";
+
 import Link from "next/link";
 
 import { listFeedbackForAdmin } from "@/actions/feedback";
+import { AdminListFooter } from "@/components/admin/admin-list-footer";
+import { AdminSortableTh } from "@/components/admin/admin-sortable-th";
 import { StatusBadge } from "@/components/admin/status-badge";
 import { requireAdminSession } from "@/lib/auth/session";
+import { parseAdminListParams } from "@/lib/data/admin-list";
 import type { FeedbackStatus } from "@/lib/database/types";
 
 const STATUS_TABS: { label: string; value?: FeedbackStatus }[] = [
@@ -13,15 +18,23 @@ const STATUS_TABS: { label: string; value?: FeedbackStatus }[] = [
   { label: "Closed", value: "closed" },
 ];
 
+const FEEDBACK_SORTS = ["ticket_number", "subject", "submitter_name", "category", "status", "created_at"] as const;
+
 export default async function AdminFeedbackPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<Record<string, string | undefined>>;
 }) {
   await requireAdminSession();
   const params = await searchParams;
   const status = params.status as FeedbackStatus | undefined;
-  const items = await listFeedbackForAdmin(status);
+  const listParams = parseAdminListParams(params, {
+    sortBy: "created_at",
+    sortOrder: "desc",
+    allowedSorts: FEEDBACK_SORTS,
+  });
+  const data = await listFeedbackForAdmin(status, listParams);
+  const items = data.items;
 
   return (
     <div className="space-y-6">
@@ -32,7 +45,12 @@ export default async function AdminFeedbackPage({
 
       <div className="flex flex-wrap gap-2">
         {STATUS_TABS.map((tab) => {
-          const href = tab.value ? `/admin/feedback?status=${tab.value}` : "/admin/feedback";
+          const tabParams = new URLSearchParams();
+          if (tab.value) tabParams.set("status", tab.value);
+          if (listParams.sortBy !== "created_at") tabParams.set("sort", listParams.sortBy);
+          if (listParams.sortOrder !== "desc") tabParams.set("order", listParams.sortOrder);
+          const qs = tabParams.toString();
+          const href = qs ? `/admin/feedback?${qs}` : "/admin/feedback";
           const active = status === tab.value || (!status && !tab.value);
           return (
             <Link
@@ -53,14 +71,16 @@ export default async function AdminFeedbackPage({
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         <table className="min-w-full divide-y divide-slate-200 text-sm">
           <thead className="bg-slate-50">
-            <tr>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Ticket</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Subject</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">From</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Category</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Status</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Received</th>
-            </tr>
+            <Suspense fallback={<tr><th className="px-4 py-3">Ticket</th></tr>}>
+              <tr>
+                <AdminSortableTh label="Ticket" column="ticket_number" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
+                <AdminSortableTh label="Subject" column="subject" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
+                <AdminSortableTh label="From" column="submitter_name" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
+                <AdminSortableTh label="Category" column="category" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
+                <AdminSortableTh label="Status" column="status" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
+                <AdminSortableTh label="Received" column="created_at" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
+              </tr>
+            </Suspense>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {items.length === 0 ? (
@@ -94,6 +114,7 @@ export default async function AdminFeedbackPage({
             )}
           </tbody>
         </table>
+        <AdminListFooter data={data} />
       </div>
     </div>
   );

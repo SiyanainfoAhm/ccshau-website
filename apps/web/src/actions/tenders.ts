@@ -11,10 +11,13 @@ import type { AttachmentPath, Tender, TenderCorrigendum, TenderStatus } from "@/
 import {
   removeStorageObjects,
   uploadCorrigendumDocument,
+  uploadTenderCancellationDocument,
   uploadTenderDocuments,
 } from "@/lib/storage/upload";
 import { fail, ok, type ActionResult } from "@/lib/types/action-result";
 import { corrigendumFormSchema, tenderFormSchema } from "@/lib/validations/tenders";
+import { emptyPaginatedResult, mergeAdminListOptions, runPaginatedQuery } from "@/lib/data/admin-list";
+import type { PaginatedResult } from "@/lib/data/pagination";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const TENDER_ROLES = ["super_admin", "dept_admin", "editor"] as const;
@@ -33,7 +36,11 @@ function parseTenderForm(formData: FormData) {
     category: formData.get("category") || undefined,
     departmentId: formData.get("departmentId") || "",
     status: formData.get("status"),
+    publishedAt: formData.get("publishedAt") || undefined,
     closingDate: formData.get("closingDate") || undefined,
+    cancellationNoticeEn: formData.get("cancellationNoticeEn") || undefined,
+    cancellationNoticeHi: formData.get("cancellationNoticeHi") || undefined,
+    removeCancellationDocument: formData.get("removeCancellationDocument") || undefined,
     removedDocuments: formData.get("removedDocuments") || undefined,
   });
 }
@@ -55,23 +62,35 @@ function parseRemovedPaths(raw?: string): string[] {
 }
 
 function isPublicTenderStatus(status: TenderStatus): boolean {
-  return status === "open" || status === "closed" || status === "archived";
+  return status === "open" || status === "closed" || status === "archived" || status === "cancelled";
+}
+
+function resolvePublishedAt(
+  input: ReturnType<typeof tenderFormSchema.parse>,
+  existing?: { published_at?: string | null },
+): string | null {
+  const now = new Date().toISOString();
+  if (input.status === "draft") return null;
+  if (input.publishedAt) return new Date(input.publishedAt).toISOString();
+  if (existing?.published_at) return existing.published_at;
+  return now;
 }
 
 function toTenderRow(
   input: ReturnType<typeof tenderFormSchema.parse>,
   userId: string,
-  existing?: { published_at?: string | null; archived_at?: string | null },
+  existing?: {
+    published_at?: string | null;
+    archived_at?: string | null;
+    cancelled_at?: string | null;
+  },
 ) {
   const now = new Date().toISOString();
-  const publishedAt =
-    input.status === "open"
-      ? existing?.published_at ?? now
-      : input.status === "draft"
-        ? null
-        : existing?.published_at ?? null;
+  const publishedAt = resolvePublishedAt(input, existing);
   const archivedAt =
     input.status === "archived" ? existing?.archived_at ?? now : null;
+  const cancelledAt =
+    input.status === "cancelled" ? existing?.cancelled_at ?? now : null;
 
   return {
     tender_number: input.tenderNumber || null,
@@ -86,6 +105,9 @@ function toTenderRow(
     published_at: publishedAt,
     closing_date: input.closingDate ? new Date(input.closingDate).toISOString() : null,
     archived_at: archivedAt,
+    cancelled_at: cancelledAt,
+    cancellation_notice_en: input.cancellationNoticeEn || null,
+    cancellation_notice_hi: input.cancellationNoticeHi || null,
     content_owner_id: userId,
     updated_by: userId,
   };
@@ -119,6 +141,39 @@ async function mergeDocuments(
   return ok([...kept, ...upload.data]);
 }
 
+async function mergeCancellationDocument(
+  admin: NonNullable<ReturnType<typeof createAdminClient>>,
+  tenderId: string,
+  formData: FormData,
+  parsed: ReturnType<typeof tenderFormSchema.parse>,
+  existing?: { path: string | null; name: string | null },
+): Promise<ActionResult<{ path: string | null; name: string | null }>> {
+  const remove = parsed.removeCancellationDocument === "true";
+  if (remove && existing?.path) {
+    await removeStorageObjects(admin, [existing.path]);
+    return ok({ path: null, name: null });
+  }
+
+  const file = formData.get("cancellationDocument");
+  if (!(file instanceof File) || file.size === 0) {
+    return ok({ path: existing?.path ?? null, name: existing?.name ?? null });
+  }
+
+  if (existing?.path) {
+    await removeStorageObjects(admin, [existing.path]);
+  }
+
+  const upload = await uploadTenderCancellationDocument(
+    admin,
+    tenderId,
+    file,
+    isPublicTenderStatus(parsed.status as TenderStatus),
+  );
+  if (!upload.success) return upload;
+
+  return ok({ path: upload.data.path, name: upload.data.name });
+}
+
 export async function createTenderAction(formData: FormData): Promise<ActionResult<{ id: string }>> {
   try {
     const session = await requireAdminWithRoles([...TENDER_ROLES]);
@@ -149,9 +204,16 @@ export async function createTenderAction(formData: FormData): Promise<ActionResu
     const documents = await mergeDocuments(admin, data.id, formData, parsed.data);
     if (!documents.success) return fail(documents.error);
 
+    const cancellation = await mergeCancellationDocument(admin, data.id, formData, parsed.data);
+    if (!cancellation.success) return fail(cancellation.error);
+
     await admin
       .from(Tables.tenders)
-      .update({ document_paths: documents.data })
+      .update({
+        document_paths: documents.data,
+        cancellation_document_path: cancellation.data.path,
+        cancellation_document_name: cancellation.data.name,
+      })
       .eq("id", data.id);
 
     await writeAuditLog({
@@ -192,20 +254,36 @@ export async function updateTenderAction(
 
     const { data: existing } = await admin
       .from(Tables.tenders)
-      .select("document_paths, published_at, archived_at, status")
+      .select("document_paths, published_at, archived_at, cancelled_at, status, department_id, cancellation_document_path, cancellation_document_name")
       .eq("id", tenderId)
       .maybeSingle();
 
-    const currentDocs = (existing?.document_paths ?? []) as AttachmentPath[];
+    if (!existing) return fail("Tender not found.");
+
+    const isSuperAdmin = session.roles.some((r) => r.role === "super_admin");
+    if (!isSuperAdmin && session.departmentId && existing.department_id !== session.departmentId) {
+      return fail("You do not have access to this tender.");
+    }
+
+    const currentDocs = (existing.document_paths ?? []) as AttachmentPath[];
     const documents = await mergeDocuments(admin, tenderId, formData, parsed.data, currentDocs);
     if (!documents.success) return fail(documents.error);
 
+    const cancellation = await mergeCancellationDocument(admin, tenderId, formData, parsed.data, {
+      path: existing.cancellation_document_path,
+      name: existing.cancellation_document_name,
+    });
+    if (!cancellation.success) return fail(cancellation.error);
+
     const row = {
       ...toTenderRow(parsed.data, session.userId, {
-        published_at: existing?.published_at,
-        archived_at: existing?.archived_at,
+        published_at: existing.published_at,
+        archived_at: existing.archived_at,
+        cancelled_at: existing.cancelled_at,
       }),
       document_paths: documents.data,
+      cancellation_document_path: cancellation.data.path,
+      cancellation_document_name: cancellation.data.name,
     };
 
     const { error } = await admin.from(Tables.tenders).update(row).eq("id", tenderId);
@@ -235,11 +313,12 @@ export async function deleteTenderAction(tenderId: string): Promise<ActionResult
 
     const { data: tender } = await admin
       .from(Tables.tenders)
-      .select("document_paths")
+      .select("document_paths, cancellation_document_path")
       .eq("id", tenderId)
       .maybeSingle();
 
     const docPaths = ((tender?.document_paths ?? []) as AttachmentPath[]).map((a) => a.path);
+    const cancellationPath = tender?.cancellation_document_path;
 
     const { data: corrigenda } = await admin
       .from(Tables.tenderCorrigenda)
@@ -250,8 +329,12 @@ export async function deleteTenderAction(tenderId: string): Promise<ActionResult
       .map((c) => c.file_path)
       .filter((p): p is string => Boolean(p));
 
-    if (docPaths.length > 0 || corrPaths.length > 0) {
-      await removeStorageObjects(admin, [...docPaths, ...corrPaths]);
+    if (docPaths.length > 0 || corrPaths.length > 0 || cancellationPath) {
+      await removeStorageObjects(admin, [
+        ...docPaths,
+        ...corrPaths,
+        ...(cancellationPath ? [cancellationPath] : []),
+      ]);
     }
 
     const { error } = await admin.from(Tables.tenders).delete().eq("id", tenderId);
@@ -382,24 +465,40 @@ export async function deleteCorrigendumAction(
   }
 }
 
-export async function listTendersForAdmin(): Promise<Tender[]> {
+const TENDERS_LIST_SORTS = [
+  "title_en",
+  "tender_number",
+  "category",
+  "status",
+  "closing_date",
+  "updated_at",
+] as const;
+
+export async function listTendersForAdmin(
+  options: import("@/lib/data/admin-list").AdminListOptions = {},
+): Promise<PaginatedResult<Tender>> {
+  const opts = mergeAdminListOptions(options, {
+    sortBy: "updated_at",
+    sortOrder: "desc",
+    allowedSorts: TENDERS_LIST_SORTS,
+  });
+
   const session = await requireAdminSession();
   if (!hasRole(session.roles, ["super_admin", "dept_admin", "editor", "viewer"])) {
-    return [];
+    return emptyPaginatedResult(opts);
   }
 
   const admin = createAdminClient();
-  if (!admin) return [];
+  if (!admin) return emptyPaginatedResult(opts);
 
-  let query = admin.from(Tables.tenders).select("*").order("updated_at", { ascending: false });
+  let query = admin.from(Tables.tenders).select("*", { count: "exact" });
 
   const isSuperAdmin = session.roles.some((r) => r.role === "super_admin");
   if (!isSuperAdmin && session.departmentId) {
     query = query.eq("department_id", session.departmentId);
   }
 
-  const { data } = await query;
-  return (data ?? []) as Tender[];
+  return runPaginatedQuery<Tender>(query, opts);
 }
 
 export async function getTenderById(tenderId: string): Promise<Tender | null> {
@@ -412,7 +511,14 @@ export async function getTenderById(tenderId: string): Promise<Tender | null> {
   if (!admin) return null;
 
   const { data } = await admin.from(Tables.tenders).select("*").eq("id", tenderId).maybeSingle();
-  return (data as Tender) ?? null;
+  if (!data) return null;
+
+  const isSuperAdmin = session.roles.some((r) => r.role === "super_admin");
+  if (!isSuperAdmin && session.departmentId && data.department_id !== session.departmentId) {
+    return null;
+  }
+
+  return data as Tender;
 }
 
 export async function listCorrigendaForTender(tenderId: string): Promise<TenderCorrigendum[]> {

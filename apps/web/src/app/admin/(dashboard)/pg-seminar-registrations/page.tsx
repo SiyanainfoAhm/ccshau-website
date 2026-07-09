@@ -1,9 +1,14 @@
+import { Suspense } from "react";
+
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { listPgSeminarRegistrationsForAdmin } from "@/actions/pg-seminar-registrations";
+import { AdminListFooter } from "@/components/admin/admin-list-footer";
+import { AdminSortableTh } from "@/components/admin/admin-sortable-th";
 import { StatusBadge } from "@/components/admin/status-badge";
 import { requireAdminSession } from "@/lib/auth/session";
+import { parseAdminListParams } from "@/lib/data/admin-list";
 import type { PgSeminarRegistrationStatus } from "@/lib/database/types";
 
 const STATUS_TABS: { label: string; value?: PgSeminarRegistrationStatus }[] = [
@@ -14,10 +19,18 @@ const STATUS_TABS: { label: string; value?: PgSeminarRegistrationStatus }[] = [
   { label: "Rejected", value: "rejected" },
 ];
 
+const PG_SEMINAR_SORTS = [
+  "registration_number",
+  "student_name",
+  "admission_number",
+  "status",
+  "created_at",
+] as const;
+
 export default async function AdminPgSeminarRegistrationsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<Record<string, string | undefined>>;
 }) {
   const session = await requireAdminSession();
   if (!session.roles.some((r) => r.role === "super_admin")) {
@@ -26,7 +39,13 @@ export default async function AdminPgSeminarRegistrationsPage({
 
   const params = await searchParams;
   const status = params.status as PgSeminarRegistrationStatus | undefined;
-  const items = await listPgSeminarRegistrationsForAdmin(status);
+  const listParams = parseAdminListParams(params, {
+    sortBy: "created_at",
+    sortOrder: "desc",
+    allowedSorts: PG_SEMINAR_SORTS,
+  });
+  const data = await listPgSeminarRegistrationsForAdmin(status, listParams);
+  const items = data.items;
 
   return (
     <div className="space-y-6">
@@ -39,8 +58,11 @@ export default async function AdminPgSeminarRegistrationsPage({
 
       <div className="flex flex-wrap gap-2">
         {STATUS_TABS.map((tab) => {
-          const href = tab.value
-            ? `/admin/pg-seminar-registrations?status=${tab.value}`
+          const tabParams = new URLSearchParams();
+          if (tab.value) tabParams.set("status", tab.value);
+          const qs = tabParams.toString();
+          const href = qs
+            ? `/admin/pg-seminar-registrations?${qs}`
             : "/admin/pg-seminar-registrations";
           const active = status === tab.value || (!status && !tab.value);
           return (
@@ -62,15 +84,17 @@ export default async function AdminPgSeminarRegistrationsPage({
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         <table className="min-w-full divide-y divide-slate-200 text-sm">
           <thead className="bg-slate-50">
-            <tr>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Registration #</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Student</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Admission #</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Seminar</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Duration</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Status</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Submitted</th>
-            </tr>
+            <Suspense fallback={<tr><th className="px-4 py-3">Registration #</th></tr>}>
+              <tr>
+                <AdminSortableTh label="Registration #" column="registration_number" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
+                <AdminSortableTh label="Student" column="student_name" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
+                <AdminSortableTh label="Admission #" column="admission_number" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
+                <th className="px-4 py-3 text-left font-semibold text-slate-700">Seminar</th>
+                <th className="px-4 py-3 text-left font-semibold text-slate-700">Duration</th>
+                <AdminSortableTh label="Status" column="status" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
+                <AdminSortableTh label="Submitted" column="created_at" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
+              </tr>
+            </Suspense>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {items.length === 0 ? (
@@ -113,6 +137,7 @@ export default async function AdminPgSeminarRegistrationsPage({
             )}
           </tbody>
         </table>
+        <AdminListFooter data={data} />
       </div>
     </div>
   );

@@ -1,14 +1,38 @@
+import { Suspense } from "react";
+
 import Link from "next/link";
 import { Plus } from "lucide-react";
 
 import { listNewsForAdmin } from "@/actions/news";
+import { AdminListFooter } from "@/components/admin/admin-list-footer";
+import { AdminSortableTh } from "@/components/admin/admin-sortable-th";
 import { StatusBadge } from "@/components/admin/status-badge";
 import { canManageUniversityContent } from "@/lib/auth/college-scope";
 import { requireAdminSession } from "@/lib/auth/session";
+import { parseAdminListParams } from "@/lib/data/admin-list";
 
-export default async function AdminNewsListPage() {
+const NEWS_SORTS = [
+  "title_en",
+  "notice_type",
+  "category",
+  "status",
+  "updated_at",
+] as const;
+
+export default async function AdminNewsListPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>;
+}) {
   const session = await requireAdminSession();
-  const items = await listNewsForAdmin();
+  const params = await searchParams;
+  const listParams = parseAdminListParams(params, {
+    sortBy: "updated_at",
+    sortOrder: "desc",
+    allowedSorts: NEWS_SORTS,
+  });
+  const data = await listNewsForAdmin(listParams);
+  const items = data.items;
   const canCreate = canManageUniversityContent(session);
 
   return (
@@ -19,13 +43,13 @@ export default async function AdminNewsListPage() {
           <p className="text-sm text-slate-500">Manage news, notices, corrigenda, and cancellations</p>
         </div>
         {canCreate && (
-        <Link
-          href="/admin/news/new"
-          className="inline-flex items-center gap-2 rounded-lg bg-[#0b3d2e] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#0d4a38]"
-        >
-          <Plus className="h-4 w-4" aria-hidden />
-          New item
-        </Link>
+          <Link
+            href="/admin/news/new"
+            className="inline-flex items-center gap-2 rounded-lg bg-[#0b3d2e] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#0d4a38]"
+          >
+            <Plus className="h-4 w-4" aria-hidden />
+            New item
+          </Link>
         )}
       </div>
 
@@ -33,12 +57,47 @@ export default async function AdminNewsListPage() {
         <table className="min-w-full divide-y divide-slate-200 text-sm">
           <thead className="bg-slate-50">
             <tr>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Title</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Type</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Category</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Status</th>
+              <Suspense fallback={<th className="px-4 py-3 text-left font-semibold text-slate-700">Title</th>}>
+                <AdminSortableTh
+                  label="Title"
+                  column="title_en"
+                  currentSort={listParams.sortBy}
+                  currentOrder={listParams.sortOrder}
+                />
+              </Suspense>
+              <Suspense fallback={<th className="px-4 py-3 text-left font-semibold text-slate-700">Type</th>}>
+                <AdminSortableTh
+                  label="Type"
+                  column="notice_type"
+                  currentSort={listParams.sortBy}
+                  currentOrder={listParams.sortOrder}
+                />
+              </Suspense>
+              <Suspense fallback={<th className="px-4 py-3 text-left font-semibold text-slate-700">Category</th>}>
+                <AdminSortableTh
+                  label="Category"
+                  column="category"
+                  currentSort={listParams.sortBy}
+                  currentOrder={listParams.sortOrder}
+                />
+              </Suspense>
+              <Suspense fallback={<th className="px-4 py-3 text-left font-semibold text-slate-700">Status</th>}>
+                <AdminSortableTh
+                  label="Status"
+                  column="status"
+                  currentSort={listParams.sortBy}
+                  currentOrder={listParams.sortOrder}
+                />
+              </Suspense>
               <th className="px-4 py-3 text-left font-semibold text-slate-700">Files</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Updated</th>
+              <Suspense fallback={<th className="px-4 py-3 text-left font-semibold text-slate-700">Updated</th>}>
+                <AdminSortableTh
+                  label="Updated"
+                  column="updated_at"
+                  currentSort={listParams.sortBy}
+                  currentOrder={listParams.sortOrder}
+                />
+              </Suspense>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -84,6 +143,7 @@ export default async function AdminNewsListPage() {
             )}
           </tbody>
         </table>
+        <AdminListFooter data={data} />
       </div>
     </div>
   );

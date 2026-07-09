@@ -19,7 +19,7 @@ export type MenuLocation = "header" | "footer" | "quick_links";
 
 export type NoticeType = "news" | "notice" | "corrigendum" | "cancellation";
 
-export type TenderStatus = "draft" | "open" | "closed" | "archived";
+export type TenderStatus = "draft" | "open" | "closed" | "cancelled" | "archived";
 
 export type FeedbackStatus = "new" | "in_progress" | "resolved" | "closed";
 
@@ -169,6 +169,11 @@ export interface Tender {
   published_at: string | null;
   closing_date: string | null;
   archived_at: string | null;
+  cancelled_at: string | null;
+  cancellation_notice_en: string | null;
+  cancellation_notice_hi: string | null;
+  cancellation_document_path: string | null;
+  cancellation_document_name: string | null;
   document_paths: AttachmentPath[];
   created_by: string | null;
   updated_by: string | null;

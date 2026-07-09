@@ -9,6 +9,8 @@ import type { Banner } from "@/lib/database/types";
 import { removeStorageObjects, uploadBannerImage } from "@/lib/storage/upload";
 import { fail, ok, type ActionResult } from "@/lib/types/action-result";
 import { bannerFormSchema } from "@/lib/validations/banners";
+import { emptyPaginatedResult, mergeAdminListOptions, runPaginatedQuery, type AdminListOptions } from "@/lib/data/admin-list";
+import type { PaginatedResult } from "@/lib/data/pagination";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const BANNER_ROLES = ["super_admin", "dept_admin", "editor"] as const;
@@ -44,18 +46,23 @@ function toBannerRow(input: ReturnType<typeof bannerFormSchema.parse>, userId: s
   };
 }
 
-export async function listBannersForAdmin(): Promise<Banner[]> {
+const BANNERS_LIST_SORTS = ["title", "priority", "is_active", "created_at", "start_date"] as const;
+
+export async function listBannersForAdmin(
+  options: AdminListOptions = {},
+): Promise<PaginatedResult<Banner>> {
+  const opts = mergeAdminListOptions(options, {
+    sortBy: "priority",
+    sortOrder: "desc",
+    allowedSorts: BANNERS_LIST_SORTS,
+  });
+
   await requireAdminSession();
   const admin = createAdminClient();
-  if (!admin) return [];
+  if (!admin) return emptyPaginatedResult(opts);
 
-  const { data } = await admin
-    .from(Tables.banners)
-    .select("*")
-    .order("priority", { ascending: false })
-    .order("created_at", { ascending: false });
-
-  return (data ?? []) as Banner[];
+  const query = admin.from(Tables.banners).select("*", { count: "exact" });
+  return runPaginatedQuery<Banner>(query, opts);
 }
 
 export async function getBannerById(id: string): Promise<Banner | null> {

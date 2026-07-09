@@ -10,6 +10,8 @@ import type { ContentStatus, Download } from "@/lib/database/types";
 import { removeStorageObjects, uploadDownloadFile } from "@/lib/storage/upload";
 import { fail, ok, type ActionResult } from "@/lib/types/action-result";
 import { downloadFormSchema } from "@/lib/validations/downloads";
+import { emptyPaginatedResult, mergeAdminListOptions, runPaginatedQuery } from "@/lib/data/admin-list";
+import type { PaginatedResult } from "@/lib/data/pagination";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const CONTENT_ROLES = ["super_admin", "dept_admin", "editor"] as const;
@@ -46,16 +48,23 @@ function toRow(input: ReturnType<typeof downloadFormSchema.parse>, userId: strin
   };
 }
 
-export async function listDownloadsForAdmin(): Promise<Download[]> {
+const DOWNLOADS_LIST_SORTS = ["title_en", "category", "version", "status", "updated_at"] as const;
+
+export async function listDownloadsForAdmin(
+  options: import("@/lib/data/admin-list").AdminListOptions = {},
+): Promise<PaginatedResult<Download>> {
+  const opts = mergeAdminListOptions(options, {
+    sortBy: "title_en",
+    sortOrder: "asc",
+    allowedSorts: DOWNLOADS_LIST_SORTS,
+  });
+
   await requireAdminSession();
   const admin = createAdminClient();
-  if (!admin) return [];
-  const { data } = await admin
-    .from(Tables.downloads)
-    .select("*")
-    .order("category")
-    .order("title_en");
-  return (data ?? []) as Download[];
+  if (!admin) return emptyPaginatedResult(opts);
+
+  const query = admin.from(Tables.downloads).select("*", { count: "exact" });
+  return runPaginatedQuery<Download>(query, opts);
 }
 
 export async function getDownloadById(id: string): Promise<Download | null> {

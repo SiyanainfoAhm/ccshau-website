@@ -1,15 +1,33 @@
+import { Suspense } from "react";
+
 import Link from "next/link";
 import { Plus } from "lucide-react";
 
 import { listCircularsForAdmin } from "@/actions/circulars";
+import { AdminListFooter } from "@/components/admin/admin-list-footer";
+import { AdminSortableTh } from "@/components/admin/admin-sortable-th";
 import { StatusBadge } from "@/components/admin/status-badge";
 import { canManageUniversityContent } from "@/lib/auth/college-scope";
 import { requireAdminSession } from "@/lib/auth/session";
+import { parseAdminListParams } from "@/lib/data/admin-list";
 import { getStoredFileUrl } from "@/lib/storage/upload";
 
-export default async function AdminCircularsPage() {
+const CIRCULARS_SORTS = ["title_en", "circular_number", "status", "published_at"] as const;
+
+export default async function AdminCircularsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>;
+}) {
   const session = await requireAdminSession();
-  const items = await listCircularsForAdmin();
+  const params = await searchParams;
+  const listParams = parseAdminListParams(params, {
+    sortBy: "published_at",
+    sortOrder: "desc",
+    allowedSorts: CIRCULARS_SORTS,
+  });
+  const data = await listCircularsForAdmin(listParams);
+  const items = data.items;
   const canCreate = canManageUniversityContent(session);
 
   return (
@@ -20,26 +38,28 @@ export default async function AdminCircularsPage() {
           <p className="text-sm text-slate-500">Official university circulars and orders</p>
         </div>
         {canCreate && (
-        <Link
-          href="/admin/circulars/new"
-          className="inline-flex items-center gap-2 rounded-lg bg-[#0b3d2e] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#0d4a38]"
-        >
-          <Plus className="h-4 w-4" aria-hidden />
-          New circular
-        </Link>
+          <Link
+            href="/admin/circulars/new"
+            className="inline-flex items-center gap-2 rounded-lg bg-[#0b3d2e] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#0d4a38]"
+          >
+            <Plus className="h-4 w-4" aria-hidden />
+            New circular
+          </Link>
         )}
       </div>
 
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         <table className="min-w-full divide-y divide-slate-200 text-sm">
           <thead className="bg-slate-50">
-            <tr>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Title</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Number</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Status</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Published</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">File</th>
-            </tr>
+            <Suspense fallback={<tr><th className="px-4 py-3">Title</th></tr>}>
+              <tr>
+                <AdminSortableTh label="Title" column="title_en" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
+                <AdminSortableTh label="Number" column="circular_number" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
+                <AdminSortableTh label="Status" column="status" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
+                <AdminSortableTh label="Published" column="published_at" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
+                <th className="px-4 py-3 text-left font-semibold text-slate-700">File</th>
+              </tr>
+            </Suspense>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {items.length === 0 ? (
@@ -95,6 +115,7 @@ export default async function AdminCircularsPage() {
             )}
           </tbody>
         </table>
+        <AdminListFooter data={data} />
       </div>
     </div>
   );

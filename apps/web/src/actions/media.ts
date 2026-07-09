@@ -14,6 +14,16 @@ import {
 } from "@/lib/storage/upload";
 import { fail, ok, type ActionResult } from "@/lib/types/action-result";
 import { mediaAlbumFormSchema, mediaItemFormSchema } from "@/lib/validations/media";
+import {
+  buildPaginatedResult,
+  paginationRange,
+} from "@/lib/data/pagination";
+import {
+  emptyPaginatedResult,
+  mergeAdminListOptions,
+  type AdminListOptions,
+} from "@/lib/data/admin-list";
+import type { PaginatedResult } from "@/lib/data/pagination";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const CONTENT_ROLES = ["super_admin", "dept_admin", "editor"] as const;
@@ -63,28 +73,62 @@ function toAlbumRow(input: ReturnType<typeof mediaAlbumFormSchema.parse>, userId
   };
 }
 
-export async function listMediaAlbumsForAdmin(): Promise<MediaAlbumWithCount[]> {
-  await requireAdminSession();
+const MEDIA_LIST_SORTS = ["title_en", "album_type", "status", "created_at", "event_date"] as const;
+
+async function attachMediaItemCounts(
+  albums: MediaAlbum[],
+): Promise<MediaAlbumWithCount[]> {
+  if (!albums.length) return [];
+
   const admin = createAdminClient();
-  if (!admin) return [];
+  if (!admin) {
+    return albums.map((album) => ({ ...album, item_count: 0 }));
+  }
 
-  const { data: albums } = await admin
-    .from(Tables.mediaAlbums)
-    .select("*")
-    .order("created_at", { ascending: false });
+  const albumIds = albums.map((a) => a.id);
+  const { data: counts } = await admin
+    .from(Tables.mediaItems)
+    .select("album_id")
+    .in("album_id", albumIds);
 
-  if (!albums?.length) return [];
-
-  const { data: counts } = await admin.from(Tables.mediaItems).select("album_id");
   const countMap = new Map<string, number>();
   for (const row of counts ?? []) {
     countMap.set(row.album_id, (countMap.get(row.album_id) ?? 0) + 1);
   }
 
-  return (albums as MediaAlbum[]).map((album) => ({
+  return albums.map((album) => ({
     ...album,
     item_count: countMap.get(album.id) ?? 0,
   }));
+}
+
+export async function listMediaAlbumsForAdmin(
+  options: AdminListOptions = {},
+): Promise<PaginatedResult<MediaAlbumWithCount>> {
+  const opts = mergeAdminListOptions(options, {
+    sortBy: "created_at",
+    sortOrder: "desc",
+    allowedSorts: MEDIA_LIST_SORTS,
+  });
+
+  await requireAdminSession();
+  const admin = createAdminClient();
+  if (!admin) return emptyPaginatedResult(opts);
+
+  const { from, to } = paginationRange(opts.page, opts.pageSize);
+  const { data, count, error } = await admin
+    .from(Tables.mediaAlbums)
+    .select("*", { count: "exact" })
+    .order(opts.sortBy, { ascending: opts.sortOrder === "asc" })
+    .range(from, to);
+
+  if (error) {
+    console.error("Media albums list failed:", error.message);
+    return emptyPaginatedResult(opts);
+  }
+
+  const items = await attachMediaItemCounts((data ?? []) as MediaAlbum[]);
+  return buildPaginatedResult(items, count ?? 0, opts.page, opts.pageSize);
 }
 
 export async function getMediaAlbumById(id: string): Promise<MediaAlbum | null> {

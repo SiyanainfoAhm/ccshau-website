@@ -11,6 +11,8 @@ import type { AttachmentPath, ContentStatus, NewsItem, NoticeType } from "@/lib/
 import { removeStorageObjects, uploadNewsAttachments } from "@/lib/storage/upload";
 import { fail, ok, type ActionResult } from "@/lib/types/action-result";
 import { newsFormSchema } from "@/lib/validations/news";
+import { emptyPaginatedResult, mergeAdminListOptions, runPaginatedQuery } from "@/lib/data/admin-list";
+import type { PaginatedResult } from "@/lib/data/pagination";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const NEWS_ROLES = ["super_admin", "dept_admin", "editor"] as const;
@@ -244,24 +246,40 @@ export async function deleteNewsAction(newsId: string): Promise<ActionResult> {
   }
 }
 
-export async function listNewsForAdmin(): Promise<NewsItem[]> {
+const NEWS_LIST_SORTS = [
+  "title_en",
+  "notice_type",
+  "category",
+  "status",
+  "updated_at",
+  "created_at",
+] as const;
+
+export async function listNewsForAdmin(
+  options: import("@/lib/data/admin-list").AdminListOptions = {},
+): Promise<PaginatedResult<NewsItem>> {
+  const opts = mergeAdminListOptions(options, {
+    sortBy: "updated_at",
+    sortOrder: "desc",
+    allowedSorts: NEWS_LIST_SORTS,
+  });
+
   const session = await requireAdminSession();
   if (!hasRole(session.roles, ["super_admin", "dept_admin", "editor", "viewer"])) {
-    return [];
+    return emptyPaginatedResult(opts);
   }
 
   const admin = createAdminClient();
-  if (!admin) return [];
+  if (!admin) return emptyPaginatedResult(opts);
 
-  let query = admin.from(Tables.news).select("*").order("updated_at", { ascending: false });
+  let query = admin.from(Tables.news).select("*", { count: "exact" });
 
   const isSuperAdmin = session.roles.some((r) => r.role === "super_admin");
   if (!isSuperAdmin && session.departmentId) {
     query = query.eq("department_id", session.departmentId);
   }
 
-  const { data } = await query;
-  return (data ?? []) as NewsItem[];
+  return runPaginatedQuery<NewsItem>(query, opts);
 }
 
 export async function getNewsById(newsId: string): Promise<NewsItem | null> {

@@ -1,14 +1,32 @@
+import { Suspense } from "react";
+
 import Link from "next/link";
 import { Plus } from "lucide-react";
 
 import { listDownloadsForAdmin } from "@/actions/downloads";
+import { AdminListFooter } from "@/components/admin/admin-list-footer";
+import { AdminSortableTh } from "@/components/admin/admin-sortable-th";
 import { StatusBadge } from "@/components/admin/status-badge";
 import { canManageUniversityContent } from "@/lib/auth/college-scope";
 import { requireAdminSession } from "@/lib/auth/session";
+import { parseAdminListParams } from "@/lib/data/admin-list";
 
-export default async function AdminDownloadsPage() {
+const DOWNLOADS_SORTS = ["title_en", "category", "version", "status"] as const;
+
+export default async function AdminDownloadsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>;
+}) {
   const session = await requireAdminSession();
-  const items = await listDownloadsForAdmin();
+  const params = await searchParams;
+  const listParams = parseAdminListParams(params, {
+    sortBy: "title_en",
+    sortOrder: "asc",
+    allowedSorts: DOWNLOADS_SORTS,
+  });
+  const data = await listDownloadsForAdmin(listParams);
+  const items = data.items;
   const canCreate = canManageUniversityContent(session);
 
   return (
@@ -19,25 +37,27 @@ export default async function AdminDownloadsPage() {
           <p className="text-sm text-slate-500">Forms, prospectus, reports, and document repository</p>
         </div>
         {canCreate && (
-        <Link
-          href="/admin/downloads/new"
-          className="inline-flex items-center gap-2 rounded-lg bg-[#0b3d2e] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#0d4a38]"
-        >
-          <Plus className="h-4 w-4" aria-hidden />
-          New download
-        </Link>
+          <Link
+            href="/admin/downloads/new"
+            className="inline-flex items-center gap-2 rounded-lg bg-[#0b3d2e] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#0d4a38]"
+          >
+            <Plus className="h-4 w-4" aria-hidden />
+            New download
+          </Link>
         )}
       </div>
 
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         <table className="min-w-full divide-y divide-slate-200 text-sm">
           <thead className="bg-slate-50">
-            <tr>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Title</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Category</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Version</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Status</th>
-            </tr>
+            <Suspense fallback={<tr><th className="px-4 py-3">Title</th></tr>}>
+              <tr>
+                <AdminSortableTh label="Title" column="title_en" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
+                <AdminSortableTh label="Category" column="category" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
+                <AdminSortableTh label="Version" column="version" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
+                <AdminSortableTh label="Status" column="status" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
+              </tr>
+            </Suspense>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {items.length === 0 ? (
@@ -75,6 +95,7 @@ export default async function AdminDownloadsPage() {
             )}
           </tbody>
         </table>
+        <AdminListFooter data={data} />
       </div>
     </div>
   );

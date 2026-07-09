@@ -13,6 +13,16 @@ import {
   inviteUserSchema,
   updateUserSchema,
 } from "@/lib/validations/users";
+import {
+  buildPaginatedResult,
+  paginationRange,
+  type PaginatedResult,
+} from "@/lib/data/pagination";
+import {
+  emptyPaginatedResult,
+  mergeAdminListOptions,
+  type AdminListOptions,
+} from "@/lib/data/admin-list";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const USER_ADMIN_ROLES = ["super_admin"] as const;
@@ -92,26 +102,51 @@ async function getCollegeAssignmentsMap() {
   return map;
 }
 
-export async function listUsersForAdmin(): Promise<AdminUserListItem[]> {
+const USERS_LIST_SORTS = ["display_name", "email", "created_at", "is_active"] as const;
+
+export async function listUsersForAdmin(
+  options: AdminListOptions = {},
+): Promise<PaginatedResult<AdminUserListItem>> {
+  const opts = mergeAdminListOptions(options, {
+    sortBy: "display_name",
+    sortOrder: "asc",
+    allowedSorts: USERS_LIST_SORTS,
+  });
+
   await requireSuperAdmin();
   const admin = createAdminClient();
-  if (!admin) return [];
+  if (!admin) return emptyPaginatedResult(opts);
 
-  const [profilesRes, rolesRes, deptMap, collegeMap] = await Promise.all([
-    admin.from(Tables.profiles).select("*").order("display_name"),
-    admin.from(Tables.userRoles).select("*"),
+  const { from, to } = paginationRange(opts.page, opts.pageSize);
+  const [profilesRes, deptMap, collegeMap] = await Promise.all([
+    admin
+      .from(Tables.profiles)
+      .select("*", { count: "exact" })
+      .order(opts.sortBy, { ascending: opts.sortOrder === "asc" })
+      .range(from, to),
     getDepartmentNameMap(),
     getCollegeAssignmentsMap(),
   ]);
 
+  const profiles = (profilesRes.data ?? []) as Profile[];
+  if (!profiles.length) {
+    return buildPaginatedResult([], profilesRes.count ?? 0, opts.page, opts.pageSize);
+  }
+
+  const profileIds = profiles.map((p) => p.id);
+  const { data: rolesData } = await admin
+    .from(Tables.userRoles)
+    .select("*")
+    .in("user_id", profileIds);
+
   const rolesByUser = new Map<string, UserRoleRow[]>();
-  for (const row of (rolesRes.data ?? []) as UserRoleRow[]) {
+  for (const row of (rolesData ?? []) as UserRoleRow[]) {
     const list = rolesByUser.get(row.user_id) ?? [];
     list.push(row);
     rolesByUser.set(row.user_id, list);
   }
 
-  return ((profilesRes.data ?? []) as Profile[]).map((profile) =>
+  const items = profiles.map((profile) =>
     mapUserWithRoles(
       profile,
       rolesByUser.get(profile.id) ?? [],
@@ -119,6 +154,13 @@ export async function listUsersForAdmin(): Promise<AdminUserListItem[]> {
       collegeMap.get(profile.id) ?? null,
     ),
   );
+
+  return buildPaginatedResult(items, profilesRes.count ?? 0, opts.page, opts.pageSize);
+}
+
+export async function listAllUsersForAdmin(): Promise<AdminUserListItem[]> {
+  const result = await listUsersForAdmin({ page: 1, pageSize: 5000 });
+  return result.items;
 }
 
 export async function getUserById(id: string): Promise<AdminUserDetail | null> {

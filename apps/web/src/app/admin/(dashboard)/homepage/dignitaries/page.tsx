@@ -1,12 +1,30 @@
+import { Suspense } from "react";
+
 import Link from "next/link";
 import { Plus } from "lucide-react";
 
 import { listHomepageDignitariesForAdmin } from "@/actions/homepage";
+import { AdminListFooter } from "@/components/admin/admin-list-footer";
+import { AdminSortableTh } from "@/components/admin/admin-sortable-th";
 import { requireAdminSession } from "@/lib/auth/session";
+import { parseAdminListParams } from "@/lib/data/admin-list";
 
-export default async function AdminHomepageDignitariesPage() {
+const DIGNITARIES_SORTS = ["name_en", "role_en", "sort_order", "is_active"] as const;
+
+export default async function AdminHomepageDignitariesPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>;
+}) {
   await requireAdminSession();
-  const items = await listHomepageDignitariesForAdmin();
+  const params = await searchParams;
+  const listParams = parseAdminListParams(params, {
+    sortBy: "sort_order",
+    sortOrder: "asc",
+    allowedSorts: DIGNITARIES_SORTS,
+  });
+  const data = await listHomepageDignitariesForAdmin(listParams);
+  const items = data.items;
 
   return (
     <div className="space-y-6">
@@ -27,28 +45,42 @@ export default async function AdminHomepageDignitariesPage() {
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         <table className="min-w-full divide-y divide-slate-200 text-sm">
           <thead className="bg-slate-50">
-            <tr>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Name</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Role</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Order</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Active</th>
-            </tr>
+            <Suspense fallback={<tr><th className="px-4 py-3">Name</th></tr>}>
+              <tr>
+                <AdminSortableTh label="Name" column="name_en" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
+                <AdminSortableTh label="Role" column="role_en" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
+                <AdminSortableTh label="Order" column="sort_order" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
+                <AdminSortableTh label="Active" column="is_active" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
+              </tr>
+            </Suspense>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {items.map((item) => (
-              <tr key={item.id} className="hover:bg-slate-50">
-                <td className="px-4 py-3">
-                  <Link href={`/admin/homepage/dignitaries/${item.id}`} className="font-medium text-slate-900 hover:text-emerald-800">
-                    {item.name_en}
+            {items.length === 0 ? (
+              <tr>
+                <td colSpan={4} className="px-4 py-10 text-center text-slate-500">
+                  No dignitaries yet.{" "}
+                  <Link href="/admin/homepage/dignitaries/new" className="text-emerald-700 hover:underline">
+                    Add your first dignitary
                   </Link>
                 </td>
-                <td className="px-4 py-3 text-slate-600">{item.role_en}</td>
-                <td className="px-4 py-3">{item.sort_order}</td>
-                <td className="px-4 py-3">{item.is_active ? "Yes" : "No"}</td>
               </tr>
-            ))}
+            ) : (
+              items.map((item) => (
+                <tr key={item.id} className="hover:bg-slate-50">
+                  <td className="px-4 py-3">
+                    <Link href={`/admin/homepage/dignitaries/${item.id}`} className="font-medium text-slate-900 hover:text-emerald-800">
+                      {item.name_en}
+                    </Link>
+                  </td>
+                  <td className="px-4 py-3 text-slate-600">{item.role_en}</td>
+                  <td className="px-4 py-3">{item.sort_order}</td>
+                  <td className="px-4 py-3">{item.is_active ? "Yes" : "No"}</td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
+        <AdminListFooter data={data} />
       </div>
 
       <Link href="/admin/homepage" className="text-sm text-emerald-700 hover:underline">

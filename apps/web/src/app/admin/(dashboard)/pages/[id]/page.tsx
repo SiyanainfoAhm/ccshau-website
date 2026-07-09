@@ -9,7 +9,7 @@ import {
   listPageSidebarItemsForAdmin,
   listPageStaffForAdmin,
 } from "@/actions/office-portal";
-import { getPageById, listDepartments, listPagesForAdmin } from "@/actions/pages";
+import { getPageById, listAllPagesForAdmin, listDepartments } from "@/actions/pages";
 import { PageForm } from "@/components/admin/page-form";
 import { canCreateCollegeRoot, canEditPages } from "@/lib/auth/college-scope";
 import { requireAdminSession } from "@/lib/auth/session";
@@ -22,7 +22,7 @@ export default async function EditPagePage({ params }: { params: Promise<{ id: s
   const [page, departments, allPages] = await Promise.all([
     getPageById(id),
     listDepartments(),
-    listPagesForAdmin(),
+    listAllPagesForAdmin(),
   ]);
 
   if (!page) notFound();

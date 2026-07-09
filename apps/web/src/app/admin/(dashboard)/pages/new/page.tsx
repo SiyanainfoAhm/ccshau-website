@@ -1,4 +1,4 @@
-import { listDepartments, listPagesForAdmin } from "@/actions/pages";
+import { listAllPagesForAdmin, listDepartments } from "@/actions/pages";
 import { PageForm } from "@/components/admin/page-form";
 import { canCreateCollegeRoot, canEditPages } from "@/lib/auth/college-scope";
 import { requireAdminSession } from "@/lib/auth/session";
@@ -14,7 +14,7 @@ export default async function NewPagePage() {
     );
   }
 
-  const [departments, allPages] = await Promise.all([listDepartments(), listPagesForAdmin()]);
+  const [departments, allPages] = await Promise.all([listDepartments(), listAllPagesForAdmin()]);
   const parentPages = buildAdminParentPageOptions(allPages);
 
   return (

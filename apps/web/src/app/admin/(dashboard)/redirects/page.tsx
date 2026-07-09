@@ -1,12 +1,30 @@
+import { Suspense } from "react";
+
 import Link from "next/link";
 import { Plus } from "lucide-react";
 
 import { listRedirectsForAdmin } from "@/actions/redirects";
+import { AdminListFooter } from "@/components/admin/admin-list-footer";
+import { AdminSortableTh } from "@/components/admin/admin-sortable-th";
 import { requireAdminWithRolesOrRedirect } from "@/lib/auth/session";
+import { parseAdminListParams } from "@/lib/data/admin-list";
 
-export default async function AdminRedirectsPage() {
+const REDIRECTS_SORTS = ["legacy_path", "new_path", "redirect_type", "is_active"] as const;
+
+export default async function AdminRedirectsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>;
+}) {
   await requireAdminWithRolesOrRedirect(["super_admin", "dept_admin"]);
-  const items = await listRedirectsForAdmin();
+  const params = await searchParams;
+  const listParams = parseAdminListParams(params, {
+    sortBy: "legacy_path",
+    sortOrder: "asc",
+    allowedSorts: REDIRECTS_SORTS,
+  });
+  const data = await listRedirectsForAdmin(listParams);
+  const items = data.items;
 
   return (
     <div className="space-y-6">
@@ -27,12 +45,14 @@ export default async function AdminRedirectsPage() {
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         <table className="min-w-full divide-y divide-slate-200 text-sm">
           <thead className="bg-slate-50">
-            <tr>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Legacy path</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">New path</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Type</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Active</th>
-            </tr>
+            <Suspense fallback={<tr><th className="px-4 py-3">Legacy path</th></tr>}>
+              <tr>
+                <AdminSortableTh label="Legacy path" column="legacy_path" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
+                <AdminSortableTh label="New path" column="new_path" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
+                <AdminSortableTh label="Type" column="redirect_type" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
+                <AdminSortableTh label="Active" column="is_active" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
+              </tr>
+            </Suspense>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {items.length === 0 ? (
@@ -63,6 +83,7 @@ export default async function AdminRedirectsPage() {
             )}
           </tbody>
         </table>
+        <AdminListFooter data={data} />
       </div>
     </div>
   );

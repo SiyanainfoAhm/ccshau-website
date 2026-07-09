@@ -8,6 +8,8 @@ import { Tables } from "@/lib/database/names";
 import type { UrlRedirect } from "@/lib/database/types";
 import { fail, ok, type ActionResult } from "@/lib/types/action-result";
 import { redirectFormSchema } from "@/lib/validations/redirects";
+import { emptyPaginatedResult, mergeAdminListOptions, runPaginatedQuery, type AdminListOptions } from "@/lib/data/admin-list";
+import type { PaginatedResult } from "@/lib/data/pagination";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const REDIRECT_ROLES = ["super_admin", "dept_admin"] as const;
@@ -22,17 +24,23 @@ function parseRedirectForm(formData: FormData) {
   });
 }
 
-export async function listRedirectsForAdmin(): Promise<UrlRedirect[]> {
+const REDIRECTS_LIST_SORTS = ["legacy_path", "new_path", "redirect_type", "is_active", "created_at"] as const;
+
+export async function listRedirectsForAdmin(
+  options: AdminListOptions = {},
+): Promise<PaginatedResult<UrlRedirect>> {
+  const opts = mergeAdminListOptions(options, {
+    sortBy: "legacy_path",
+    sortOrder: "asc",
+    allowedSorts: REDIRECTS_LIST_SORTS,
+  });
+
   await requireAdminWithRoles([...REDIRECT_ROLES]);
   const admin = createAdminClient();
-  if (!admin) return [];
+  if (!admin) return emptyPaginatedResult(opts);
 
-  const { data } = await admin
-    .from(Tables.urlRedirects)
-    .select("*")
-    .order("legacy_path");
-
-  return (data ?? []) as UrlRedirect[];
+  const query = admin.from(Tables.urlRedirects).select("*", { count: "exact" });
+  return runPaginatedQuery<UrlRedirect>(query, opts);
 }
 
 export async function getRedirectById(id: string): Promise<UrlRedirect | null> {

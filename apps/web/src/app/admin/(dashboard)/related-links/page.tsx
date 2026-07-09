@@ -1,12 +1,30 @@
+import { Suspense } from "react";
+
 import Link from "next/link";
 import { Plus } from "lucide-react";
 
 import { listRelatedLinksForAdmin } from "@/actions/related-links";
+import { AdminListFooter } from "@/components/admin/admin-list-footer";
+import { AdminSortableTh } from "@/components/admin/admin-sortable-th";
 import { requireAdminSession } from "@/lib/auth/session";
+import { parseAdminListParams } from "@/lib/data/admin-list";
 
-export default async function AdminRelatedLinksPage() {
+const RELATED_LINKS_SORTS = ["title_en", "category", "sort_order", "is_active"] as const;
+
+export default async function AdminRelatedLinksPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>;
+}) {
   await requireAdminSession();
-  const items = await listRelatedLinksForAdmin();
+  const params = await searchParams;
+  const listParams = parseAdminListParams(params, {
+    sortBy: "sort_order",
+    sortOrder: "asc",
+    allowedSorts: RELATED_LINKS_SORTS,
+  });
+  const data = await listRelatedLinksForAdmin(listParams);
+  const items = data.items;
 
   return (
     <div className="space-y-6">
@@ -27,12 +45,14 @@ export default async function AdminRelatedLinksPage() {
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         <table className="min-w-full divide-y divide-slate-200 text-sm">
           <thead className="bg-slate-50">
-            <tr>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Title</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">URL</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Category</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Active</th>
-            </tr>
+            <Suspense fallback={<tr><th className="px-4 py-3">Title</th></tr>}>
+              <tr>
+                <AdminSortableTh label="Title" column="title_en" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
+                <th className="px-4 py-3 text-left font-semibold text-slate-700">URL</th>
+                <AdminSortableTh label="Category" column="category" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
+                <AdminSortableTh label="Active" column="is_active" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
+              </tr>
+            </Suspense>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {items.length === 0 ? (
@@ -63,6 +83,7 @@ export default async function AdminRelatedLinksPage() {
             )}
           </tbody>
         </table>
+        <AdminListFooter data={data} />
       </div>
     </div>
   );

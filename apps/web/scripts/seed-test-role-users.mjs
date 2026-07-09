@@ -1,5 +1,5 @@
 /**
- * One-time seed: test users for each CMS role and college role.
+ * Seed test users for CMS roles, college roles, and one dept_admin per university department.
  * Run: node scripts/seed-test-role-users.mjs
  */
 import { createClient } from "@supabase/supabase-js";
@@ -35,7 +35,8 @@ const DEPT_REGISTRAR = "365a33a8-1009-4192-afb4-f99bd8349fb9";
 const DEPT_ACADEMICS = "e234bb53-66a9-4929-88b6-1c7f3a409eda";
 const COLLEGE_HISAR = "555239b2-bc8f-468b-82da-4592879e865b";
 
-const USERS = [
+/** Core role-matrix accounts (kept for automated tests). */
+const ROLE_MATRIX_USERS = [
   {
     email: "test.superadmin@ccshau.test",
     displayName: "Test Super Admin",
@@ -93,6 +94,28 @@ const USERS = [
     collegeRole: "college_viewer",
   },
 ];
+
+async function loadDepartments() {
+  const { data, error } = await admin
+    .from("ccshau_departments")
+    .select("id, slug, name_en")
+    .eq("is_active", true)
+    .order("sort_order");
+
+  if (error) throw new Error(`Failed to load departments: ${error.message}`);
+  return data ?? [];
+}
+
+function departmentTestUsers(departments) {
+  return departments.map((dept) => ({
+    email: `test.dept.${dept.slug}@ccshau.test`,
+    displayName: `Test Dept Admin — ${dept.name_en}`,
+    cmsRole: "dept_admin",
+    departmentId: dept.id,
+    collegePageId: null,
+    collegeRole: null,
+  }));
+}
 
 async function findUserByEmail(email) {
   let page = 1;
@@ -164,7 +187,24 @@ async function ensureUser(config) {
 }
 
 console.log("Seeding test role users…\n");
-for (const config of USERS) {
+
+console.log("— Role matrix accounts —");
+for (const config of ROLE_MATRIX_USERS) {
   await ensureUser(config);
 }
+
+console.log("\n— One department admin per university department —");
+const departments = await loadDepartments();
+if (departments.length === 0) {
+  console.warn("No active departments found in ccshau_departments.");
+} else {
+  for (const config of departmentTestUsers(departments)) {
+    await ensureUser(config);
+  }
+  console.log("\nDepartment test logins (all passwords: Admin@123):");
+  for (const dept of departments) {
+    console.log(`  ${dept.name_en.padEnd(36)} test.dept.${dept.slug}@ccshau.test`);
+  }
+}
+
 console.log("\nDone. Password for all accounts:", PASSWORD);
