@@ -188,6 +188,8 @@ export async function getActiveBanners(): Promise<PublicHeroSlide[]> {
       titleEn: banner.title,
       titleHi: null,
       subtitleEn: banner.alt_text,
+      imageAltEn: banner.alt_text ?? banner.title,
+      imageAltHi: null,
       image,
       targetUrl: banner.target_url,
     });

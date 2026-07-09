@@ -7,6 +7,7 @@ import { useLanguage } from "@/components/design/shared/language-context";
 import { CmsHtmlContent } from "@/components/site/cms-html-content";
 import { pickBilingual } from "@/lib/i18n/pick-bilingual";
 import type { PublicNewsItem } from "@/lib/data/public-types";
+import { publicHeadingClass, publicProseClass } from "@/lib/design/public-page-classes";
 
 export function PublicNewsDetail({ item }: { item: PublicNewsItem }) {
   const { lang, t } = useLanguage();
@@ -51,7 +52,7 @@ export function PublicNewsDetail({ item }: { item: PublicNewsItem }) {
         {body ? (
           <CmsHtmlContent
             html={body}
-            className={`prose prose-emerald max-w-none text-lg leading-relaxed text-slate-600 ${lang === "hi" ? "font-hindi" : ""}`}
+            className={`${publicProseClass} ${lang === "hi" ? "font-hindi" : ""}`}
           />
         ) : (
           <p className="text-slate-500">{t("No additional content.", "कोई अतिरिक्त सामग्री नहीं।")}</p>
@@ -59,7 +60,7 @@ export function PublicNewsDetail({ item }: { item: PublicNewsItem }) {
 
         {item.attachmentPaths.length > 0 && (
           <div className="not-prose mt-10 space-y-3">
-            <h2 className="font-display text-xl font-bold text-slate-900">
+            <h2 className={`font-display text-xl font-bold ${publicHeadingClass}`}>
               {t("Attachments", "संलग्नक")}
             </h2>
             {item.attachmentPaths.map((file) => (
@@ -68,7 +69,7 @@ export function PublicNewsDetail({ item }: { item: PublicNewsItem }) {
                 href={file.url ?? "#"}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800 hover:bg-emerald-100"
+                className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-100 dark:hover:bg-emerald-900/50"
               >
                 <Download className="h-4 w-4" />
                 {file.name}

@@ -11,6 +11,16 @@ import { useLanguage } from "@/components/design/shared/language-context";
 import type { PaginatedResult } from "@/lib/data/pagination";
 import type { PublicSearchContentType, PublicSearchResult } from "@/lib/data/public-types";
 import { SELECTED_LAYOUT } from "@/lib/design/selected-layout";
+import {
+  publicEmptyStateClass,
+  publicFilterChipActiveClass,
+  publicFilterChipInactiveClass,
+  publicListItemClass,
+  publicMainClass,
+  publicMutedTextClass,
+  publicHeadingClass,
+  publicSearchInputClass,
+} from "@/lib/design/public-page-classes";
 import { PublicPagination } from "@/components/site/public-pagination";
 
 const TYPE_FILTERS: { value: "all" | PublicSearchContentType; labelEn: string; labelHi: string }[] = [
@@ -66,7 +76,7 @@ export function PublicSearchPage({
   return (
     <>
       <SiteHeader variant="future" />
-      <main id="main-content" className="flex-1 bg-slate-50">
+      <main id="main-content" className={publicMainClass}>
         <div className="gradient-hero px-4 py-14 text-white">
           <div className="mx-auto max-w-7xl">
             <Link
@@ -91,7 +101,7 @@ export function PublicSearchPage({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={t("Search university website…", "विश्वविद्यालय वेबसाइट खोजें…")}
-              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+              className={publicSearchInputClass}
               autoFocus
             />
           </form>
@@ -105,8 +115,8 @@ export function PublicSearchPage({
                   onClick={() => setType(tab.value)}
                   className={`rounded-full px-4 py-1.5 text-sm font-medium capitalize ${
                     activeType === tab.value
-                      ? "bg-[#0b3d2e] text-white"
-                      : "bg-white text-slate-600 ring-1 ring-slate-200"
+                      ? publicFilterChipActiveClass
+                      : publicFilterChipInactiveClass
                   }`}
                 >
                   {t(tab.labelEn, tab.labelHi)}
@@ -116,29 +126,29 @@ export function PublicSearchPage({
           )}
 
           {initialQuery.trim().length < 2 ? (
-            <p className="rounded-2xl border border-dashed border-slate-200 bg-white p-10 text-center text-slate-500">
+            <p className={publicEmptyStateClass}>
               {t("Enter at least 2 characters to search.", "खोजने के लिए कम से कम 2 अक्षर दर्ज करें।")}
             </p>
           ) : data.items.length === 0 ? (
-            <p className="rounded-2xl border border-dashed border-slate-200 bg-white p-10 text-center text-slate-500">
+            <p className={publicEmptyStateClass}>
               {t("No results found.", "कोई परिणाम नहीं मिला।")}
             </p>
           ) : (
             <div className="space-y-3">
-              <p className="text-sm text-slate-500">
+              <p className={`text-sm ${publicMutedTextClass}`}>
                 {data.total} {t("results", "परिणाम")}
               </p>
               {data.items.map((item) => {
                 const Icon = TYPE_ICONS[item.type];
                 const isExternal = item.url.startsWith("http");
                 const content = (
-                  <article className="flex items-start gap-4 rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm transition hover:border-emerald-300 hover:shadow-md">
+                  <article className={`flex items-start gap-4 ${publicListItemClass}`}>
                     <Icon className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
                     <div className="min-w-0 flex-1">
                       <p className="text-xs font-bold uppercase tracking-wider text-emerald-700">
                         {item.type}
                       </p>
-                      <h2 className="font-semibold text-slate-900">
+                      <h2 className={`font-semibold ${publicHeadingClass}`}>
                         {t(item.titleEn, item.titleHi ?? item.titleEn)}
                       </h2>
                       {item.excerpt && (

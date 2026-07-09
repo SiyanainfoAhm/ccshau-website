@@ -5,6 +5,8 @@ import { ArrowLeft, Calendar, Play } from "lucide-react";
 
 import { SiteFooter } from "@/components/design/shared/site-footer";
 import { SiteHeader } from "@/components/design/shared/site-header";
+import { buildImageAlt } from "@/lib/a11y/image-alt";
+import { publicCardClass, publicEmptyStateClass, publicMainClass } from "@/lib/design/public-page-classes";
 import { getMediaAlbumBySlug } from "@/lib/data/public";
 import { SELECTED_LAYOUT } from "@/lib/design/selected-layout";
 
@@ -34,7 +36,7 @@ export default async function MediaAlbumPage({
   return (
     <>
       <SiteHeader variant="future" />
-      <main id="main-content" className="flex-1 bg-slate-50">
+      <main id="main-content" className={publicMainClass}>
         <div className="gradient-hero px-4 py-12 text-white">
           <div className="mx-auto max-w-7xl">
             <Link
@@ -63,7 +65,7 @@ export default async function MediaAlbumPage({
 
         <div className="mx-auto max-w-7xl px-4 py-10">
           {album.items.length === 0 ? (
-            <p className="rounded-2xl border border-dashed border-slate-200 bg-white p-12 text-center text-slate-500">
+            <p className={publicEmptyStateClass}>
               No media items in this album yet.
             </p>
           ) : (
@@ -71,7 +73,7 @@ export default async function MediaAlbumPage({
               {album.items.map((item) => (
                 <figure
                   key={item.id}
-                  className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
+                  className={`overflow-hidden ${publicCardClass} shadow-sm`}
                 >
                   <div className="relative aspect-[4/3] bg-slate-100">
                     {item.mediaType === "video" ? (
@@ -90,7 +92,13 @@ export default async function MediaAlbumPage({
                     ) : item.url ? (
                       <Image
                         src={item.url}
-                        alt={item.titleEn ?? ""}
+                        alt={buildImageAlt({
+                          altEn: item.captionEn,
+                          altHi: item.captionHi,
+                          titleEn: item.titleEn,
+                          titleHi: item.titleHi,
+                          contextEn: `${album.titleEn} media`,
+                        })}
                         fill
                         className="object-cover"
                         sizes="(max-width: 768px) 100vw, 33vw"

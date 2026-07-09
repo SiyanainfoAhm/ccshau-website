@@ -5,7 +5,9 @@ import { notFound } from "next/navigation";
 import { SiteFooter } from "@/components/design/shared/site-footer";
 import { SiteHeader } from "@/components/design/shared/site-header";
 import { FacultyProfileContent } from "@/components/site/faculty-profile-content";
+import { staffPhotoAlt } from "@/lib/a11y/image-alt";
 import { getPublishedFacultyProfile } from "@/lib/data/public";
+import { publicMainClass } from "@/lib/design/public-page-classes";
 import { pickBilingual } from "@/lib/i18n/pick-bilingual";
 
 export const dynamic = "force-dynamic";
@@ -44,7 +46,7 @@ export default async function FacultyDetailPage({
   return (
     <>
       <SiteHeader variant="future" homeHref={`/college/${slug}`} college={college} />
-      <main id="main-content" className="flex-1 bg-slate-50">
+      <main id="main-content" className={publicMainClass}>
         <div className="mx-auto max-w-4xl px-4 py-8">
           <nav className="mb-6 text-sm text-emerald-800">
             <Link href={`/college/${slug}`} className="hover:underline">
@@ -66,7 +68,7 @@ export default async function FacultyDetailPage({
             <div className="border-b border-slate-100 bg-emerald-50 px-6 py-8 md:flex md:items-center md:gap-6">
               {staff.imageUrl ? (
                 <div className="relative mx-auto h-28 w-28 shrink-0 overflow-hidden rounded-full border-4 border-white shadow md:mx-0">
-                  <Image src={staff.imageUrl} alt="" fill className="object-cover" sizes="112px" />
+                  <Image src={staff.imageUrl} alt={staffPhotoAlt(staff, lang)} fill className="object-cover" sizes="112px" />
                 </div>
               ) : null}
               <div className="mt-4 text-center md:mt-0 md:text-left">

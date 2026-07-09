@@ -12,6 +12,13 @@ import { PublicPagination } from "@/components/site/public-pagination";
 import type { PaginatedResult } from "@/lib/data/pagination";
 import type { PublicDownloadItem } from "@/lib/data/public-types";
 import { SELECTED_LAYOUT } from "@/lib/design/selected-layout";
+import {
+  publicEmptyStateClass,
+  publicFilterChipActiveClass,
+  publicFilterChipInactiveClass,
+  publicMainClass,
+  publicSearchInputClass,
+} from "@/lib/design/public-page-classes";
 import { DOWNLOAD_CATEGORIES } from "@/lib/validations/downloads";
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -57,7 +64,7 @@ export function PublicDownloadsListing({
   return (
     <>
       <SiteHeader variant="future" />
-      <main id="main-content" className="flex-1 bg-slate-50">
+      <main id="main-content" className={publicMainClass}>
         <div className="gradient-hero px-4 py-14 text-white">
           <div className="mx-auto max-w-7xl">
             <Link
@@ -84,7 +91,7 @@ export function PublicDownloadsListing({
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder={t("Search documents…", "दस्तावेज़ खोजें…")}
-                className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                className={publicSearchInputClass}
               />
             </div>
             <button
@@ -101,8 +108,8 @@ export function PublicDownloadsListing({
               onClick={() => setCategory("all")}
               className={`rounded-full px-4 py-1.5 text-sm font-medium ${
                 activeCategory === "all"
-                  ? "bg-[#0b3d2e] text-white"
-                  : "bg-white text-slate-600 ring-1 ring-slate-200"
+                  ? publicFilterChipActiveClass
+                  : publicFilterChipInactiveClass
               }`}
             >
               {t("All", "सभी")}
@@ -114,8 +121,8 @@ export function PublicDownloadsListing({
                 onClick={() => setCategory(cat)}
                 className={`rounded-full px-4 py-1.5 text-sm font-medium capitalize ${
                   activeCategory === cat
-                    ? "bg-[#0b3d2e] text-white"
-                    : "bg-white text-slate-600 ring-1 ring-slate-200"
+                    ? publicFilterChipActiveClass
+                    : publicFilterChipInactiveClass
                 }`}
               >
                 {CATEGORY_LABELS[cat] ?? cat}
@@ -125,7 +132,7 @@ export function PublicDownloadsListing({
 
           <div className="space-y-3">
             {data.items.length === 0 ? (
-              <p className="rounded-2xl border border-dashed border-emerald-200 bg-white p-10 text-center text-slate-500">
+              <p className={publicEmptyStateClass}>
                 {t("No downloads published yet.", "अभी कोई दस्तावेज़ प्रकाशित नहीं है।")}
               </p>
             ) : (

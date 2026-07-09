@@ -654,6 +654,31 @@ html.dark .bento-card {
   border-color: rgba(34, 160, 107, 0.2);
 }
 
+/* Dark-mode fallbacks for public inner pages not yet using shared page classes */
+html.dark #main-content {
+  color: #ecfdf5;
+}
+
+html.dark #main-content :where(.text-slate-900, .text-slate-800, .text-slate-700) {
+  color: #ecfdf5;
+}
+
+html.dark #main-content :where(.text-slate-600, .text-slate-500) {
+  color: rgba(167, 243, 208, 0.85);
+}
+
+html.dark #main-content :where(.text-slate-400, .text-slate-300) {
+  color: rgba(167, 243, 208, 0.55);
+}
+
+html.dark #main-content :where(.bg-slate-50, .bg-emerald-50, .bg-emerald-50\/80) {
+  background-color: #0a1210;
+}
+
+html.dark #main-content :where(.border-slate-200, .border-emerald-100) {
+  border-color: rgba(6, 78, 59, 0.45);
+}
+
 .homepage-carousel-track {
   scrollbar-width: thin;
   scrollbar-color: rgba(20, 108, 67, 0.45) transparent;

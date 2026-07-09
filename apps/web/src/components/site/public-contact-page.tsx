@@ -16,6 +16,13 @@ import type { CaptchaClientConfig } from "@/lib/auth/captcha";
 import { FEEDBACK_CATEGORIES } from "@/lib/validations/feedback";
 import { university } from "@/lib/mock/site-content";
 import { SELECTED_LAYOUT } from "@/lib/design/selected-layout";
+import {
+  publicCardSoftClass,
+  publicHeadingClass,
+  publicInputClass,
+  publicMainClass,
+  publicMutedTextClass,
+} from "@/lib/design/public-page-classes";
 
 const offices = [
   { name: "Registrar Office", phone: "01662-255200", email: "registrar@hau.ac.in" },
@@ -58,7 +65,7 @@ export function PublicContactPage({
   return (
     <>
       <SiteHeader variant="future" />
-      <main id="main-content" className="flex-1">
+      <main id="main-content" className={publicMainClass}>
         <div className="gradient-hero pattern-dots px-4 py-14 text-white">
           <div className="mx-auto max-w-7xl">
             <Link
@@ -74,44 +81,41 @@ export function PublicContactPage({
 
         <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 lg:grid-cols-2">
           <div>
-            <h2 className="font-display text-2xl font-bold text-slate-900">Get in Touch</h2>
+            <h2 className={`font-display text-2xl font-bold ${publicHeadingClass}`}>Get in Touch</h2>
             <div className="mt-6 space-y-4">
               {offices.map((o) => (
-                <div
-                  key={o.name}
-                  className="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm"
-                >
-                  <h3 className="font-semibold text-emerald-900">{o.name}</h3>
-                  <p className="mt-2 flex items-center gap-2 text-sm text-slate-600">
+                <div key={o.name} className={publicCardSoftClass}>
+                  <h3 className="font-semibold text-emerald-900 dark:text-emerald-100">{o.name}</h3>
+                  <p className={`mt-2 flex items-center gap-2 text-sm ${publicMutedTextClass}`}>
                     <Phone className="h-4 w-4 text-emerald-600" /> {o.phone}
                   </p>
-                  <p className="mt-1 flex items-center gap-2 text-sm text-slate-600">
+                  <p className={`mt-1 flex items-center gap-2 text-sm ${publicMutedTextClass}`}>
                     <Mail className="h-4 w-4 text-emerald-600" /> {o.email}
                   </p>
                 </div>
               ))}
             </div>
-            <div className="mt-6 flex items-start gap-3 rounded-2xl bg-emerald-50 p-5">
+            <div className="mt-6 flex items-start gap-3 rounded-2xl bg-emerald-50 p-5 dark:bg-emerald-950/30">
               <MapPin className="mt-1 h-5 w-5 text-emerald-700" />
               <div>
-                <p className="font-semibold text-emerald-900">{university.nameEn}</p>
-                <p className="text-sm text-slate-600">{university.location}</p>
+                <p className="font-semibold text-emerald-900 dark:text-emerald-100">{university.nameEn}</p>
+                <p className={`text-sm ${publicMutedTextClass}`}>{university.location}</p>
                 <p className="mt-1 text-sm font-medium text-emerald-700">{university.phone}</p>
               </div>
             </div>
           </div>
 
           {ticketNumber ? (
-            <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-8 text-center">
-              <h2 className="font-display text-2xl font-bold text-emerald-900">Thank you</h2>
-              <p className="mt-3 text-slate-600">Your feedback has been submitted.</p>
+            <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-8 text-center dark:border-emerald-800 dark:bg-emerald-950/30">
+              <h2 className={`font-display text-2xl font-bold ${publicHeadingClass}`}>Thank you</h2>
+              <p className={`mt-3 ${publicMutedTextClass}`}>Your feedback has been submitted.</p>
               <p className="mt-4 font-mono text-lg font-bold text-[#0b3d2e]">{ticketNumber}</p>
               <p className="mt-2 text-sm text-slate-500">Save this ticket number for follow-up.</p>
             </div>
           ) : (
-            <form action={handleSubmit} className="rounded-3xl border border-emerald-100 bg-white p-8 shadow-xl">
-              <h2 className="font-display text-2xl font-bold text-slate-900">Send Feedback</h2>
-              <p className="mt-1 text-sm text-slate-500">Department-wise enquiry form</p>
+            <form action={handleSubmit} className={`${publicCardSoftClass} p-8 shadow-xl`}>
+              <h2 className={`font-display text-2xl font-bold ${publicHeadingClass}`}>Send Feedback</h2>
+              <p className={`mt-1 text-sm ${publicMutedTextClass}`}>Department-wise enquiry form</p>
               {error && (
                 <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
               )}
@@ -121,22 +125,22 @@ export function PublicContactPage({
                   type="text"
                   required
                   placeholder="Your name"
-                  className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                  className={publicInputClass}
                 />
                 <input
                   name="email"
                   type="email"
                   required
                   placeholder="Email address"
-                  className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                  className={publicInputClass}
                 />
                 <input
                   name="phone"
                   type="tel"
                   placeholder="Phone (optional)"
-                  className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-emerald-500"
+                  className={publicInputClass}
                 />
-                <select name="category" className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-emerald-500">
+                <select name="category" className={publicInputClass}>
                   <option value="">Category (optional)</option>
                   {FEEDBACK_CATEGORIES.map((cat) => (
                     <option key={cat} value={cat}>
@@ -144,7 +148,7 @@ export function PublicContactPage({
                     </option>
                   ))}
                 </select>
-                <select name="departmentId" className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-emerald-500">
+                <select name="departmentId" className={publicInputClass}>
                   <option value="">Select department (optional)</option>
                   {departments.map((dept) => (
                     <option key={dept.id} value={dept.id}>
@@ -157,14 +161,14 @@ export function PublicContactPage({
                   type="text"
                   required
                   placeholder="Subject"
-                  className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                  className={publicInputClass}
                 />
                 <textarea
                   name="message"
                   rows={4}
                   required
                   placeholder="Your message"
-                  className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                  className={publicInputClass}
                 />
                 {captcha.required && captcha.siteKey && (
                   <RecaptchaWidget siteKey={captcha.siteKey} />

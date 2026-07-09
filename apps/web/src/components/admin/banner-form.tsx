@@ -93,12 +93,16 @@ export function BannerForm({ banner }: { banner?: Banner }) {
       </label>
 
       <label className="block text-sm">
-        <span className="font-medium text-slate-700">Alt text</span>
+        <span className="font-medium text-slate-700">Alt text (screen readers)</span>
         <input
           name="altText"
           defaultValue={banner?.alt_text ?? ""}
+          placeholder="Describe the banner image for accessibility"
           className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
         />
+        <p className="mt-1 text-xs text-slate-500">
+          Required for GOI accessibility compliance. Use a short description of what the image shows.
+        </p>
       </label>
 
       <div className="grid gap-4 sm:grid-cols-2">

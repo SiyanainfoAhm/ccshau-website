@@ -7,8 +7,9 @@ import { useEffect, useState } from "react";
 
 import { useLanguage } from "@/components/design/shared/language-context";
 import { FloatingOrbs } from "@/components/design/shared/floating-orbs";
-import { SELECTED_LAYOUT } from "@/lib/design/selected-layout";
+import { heroSlideAlt } from "@/lib/a11y/image-alt";
 import type { PublicHeroSlide } from "@/lib/data/public-types";
+import { SELECTED_LAYOUT } from "@/lib/design/selected-layout";
 import { heroSlides as mockHeroSlides, university } from "@/lib/mock/site-content";
 
 export function HeroCarousel({
@@ -24,7 +25,7 @@ export function HeroCarousel({
   primaryCtaHref?: string;
   secondaryCtaHref?: string;
 }) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const heroSlides =
     slidesProp && slidesProp.length > 0
       ? slidesProp
@@ -32,6 +33,8 @@ export function HeroCarousel({
           titleEn: s.titleEn,
           titleHi: s.titleHi,
           subtitleEn: s.subtitleEn,
+          imageAltEn: s.subtitleEn ?? s.titleEn,
+          imageAltHi: s.titleHi,
           image: s.image,
           targetUrl: null,
         }));
@@ -78,7 +81,7 @@ export function HeroCarousel({
             </div>
           </div>
           <div className="relative aspect-[16/10] overflow-hidden rounded-md border-2 border-slate-300 bg-white shadow-md ring-1 ring-slate-200">
-            <Image src={slide.image} alt="" fill className="object-cover" priority />
+            <Image src={slide.image} alt={heroSlideAlt(slide, lang)} fill className="object-cover" priority />
             <div className="absolute bottom-0 left-0 right-0 bg-[#146c43] px-4 py-2 text-center text-sm font-semibold text-white">
               {t(university.taglineEn, university.taglineHi)}
             </div>
@@ -133,7 +136,7 @@ export function HeroCarousel({
           <div className="relative lg:col-span-7">
             <div className="relative h-[320px] p-4 lg:absolute lg:inset-0 lg:h-auto lg:p-6">
               <div className="relative h-full overflow-hidden rounded-3xl shadow-2xl ring-4 ring-white/80">
-                <Image src={slide.image} alt="" fill className="object-cover" priority />
+                <Image src={slide.image} alt={heroSlideAlt(slide, lang)} fill className="object-cover" priority />
                 <div className="absolute inset-0 bg-gradient-to-tr from-rose-200/20 via-transparent to-sky-200/25" />
               </div>
               <div className="absolute -bottom-2 left-8 right-8 hidden rounded-2xl bg-gradient-to-r from-amber-100 via-rose-50 to-sky-100 p-4 shadow-lg ring-1 ring-white lg:block lg:left-10 lg:right-10">
@@ -170,7 +173,7 @@ export function HeroCarousel({
         >
           <Image
             src={s.image}
-            alt=""
+            alt={heroSlideAlt(s, lang)}
             fill
             className={`object-cover ${i === index ? "animate-ken-burns" : "scale-105"}`}
             priority={i === 0}

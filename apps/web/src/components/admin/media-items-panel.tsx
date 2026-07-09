@@ -49,13 +49,37 @@ export function MediaItemsPanel({ albumId, items }: { albumId: string; items: Me
             className="rounded border border-slate-200 px-2 py-1.5 text-sm"
           />
           <input
-            name="sortOrder"
-            type="number"
-            min={0}
-            defaultValue={items.length}
-            className="rounded border border-slate-200 px-2 py-1.5 text-sm"
+            name="titleHi"
+            placeholder="Title (Hindi)"
+            className="rounded border border-slate-200 px-2 py-1.5 text-sm font-hindi"
           />
         </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <label className="block text-sm">
+            <span className="font-medium text-slate-700">Alt text (English)</span>
+            <input
+              name="captionEn"
+              placeholder="Describe image for screen readers"
+              className="mt-1 w-full rounded border border-slate-200 px-2 py-1.5 text-sm"
+            />
+          </label>
+          <label className="block text-sm">
+            <span className="font-medium text-slate-700">Alt text (Hindi)</span>
+            <input
+              name="captionHi"
+              placeholder="स्क्रीन रीडर के लिए विवरण"
+              className="mt-1 w-full rounded border border-slate-200 px-2 py-1.5 text-sm font-hindi"
+            />
+          </label>
+        </div>
+        <input
+          name="sortOrder"
+          type="number"
+          min={0}
+          defaultValue={items.length}
+          className="rounded border border-slate-200 px-2 py-1.5 text-sm"
+          aria-label="Sort order"
+        />
         <select name="mediaType" className="rounded border border-slate-200 px-2 py-1.5 text-sm">
           <option value="image">Image</option>
           <option value="video">Video</option>

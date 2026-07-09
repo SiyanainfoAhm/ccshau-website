@@ -12,6 +12,7 @@ import type {
   PublicPgStudiesHub,
   PublicPgStudiesSection,
 } from "@/lib/data/public-types";
+import { buildImageAlt } from "@/lib/a11y/image-alt";
 import { pickBilingual } from "@/lib/i18n/pick-bilingual";
 import { getPgStudiesHubPath } from "@/lib/pages/routes";
 
@@ -39,7 +40,14 @@ export function PublicPgStudiesSectionContent({
   return (
     <>
       <section className="relative min-h-[240px] overflow-hidden">
-        <Image src={heroImage} alt="" fill className="object-cover" priority sizes="100vw" />
+        <Image
+          src={heroImage}
+          alt={buildImageAlt({ titleEn: `${title} — PG Studies`, titleHi: section.titleHi, lang })}
+          fill
+          className="object-cover"
+          priority
+          sizes="100vw"
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/40 to-black/25" />
         <div className="relative mx-auto max-w-4xl px-4 py-12 text-center text-white md:py-14">
           <Link

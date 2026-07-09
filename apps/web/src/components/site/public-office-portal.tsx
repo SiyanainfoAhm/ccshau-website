@@ -15,6 +15,8 @@ import type {
   PublicOfficePortalData,
   PublicSidebarLink,
 } from "@/lib/data/public-types";
+import { buildImageAlt, staffPhotoAlt } from "@/lib/a11y/image-alt";
+import { publicSectionCardClass, publicSidebarClass } from "@/lib/design/public-page-classes";
 import { pickBilingual } from "@/lib/i18n/pick-bilingual";
 
 function SidebarPanel({
@@ -32,7 +34,7 @@ function SidebarPanel({
   if (links.length === 0) return null;
 
   return (
-    <aside className="rounded-xl border border-emerald-100 bg-white shadow-sm">
+    <aside className={publicSidebarClass}>
       <h2 className="border-b border-emerald-100 bg-emerald-50 px-4 py-3 font-display text-lg font-bold text-emerald-900">
         {title}
       </h2>
@@ -113,7 +115,14 @@ export function PublicOfficePortal({
   return (
     <>
       <section className="relative min-h-[320px] overflow-hidden">
-        <Image src={heroImage} alt="" fill className="object-cover" priority sizes="100vw" />
+        <Image
+          src={heroImage}
+          alt={buildImageAlt({ titleEn: `${title} — office`, titleHi: college.titleHi, lang })}
+          fill
+          className="object-cover"
+          priority
+          sizes="100vw"
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/40 to-black/25" />
         <div className="relative mx-auto flex max-w-4xl flex-col items-center px-4 py-14 text-center text-white">
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-amber-300">
@@ -142,10 +151,21 @@ export function PublicOfficePortal({
 
           <div className="min-w-0 flex-1 space-y-8">
             {showHeadOfficer && office.headOfficer && (
-              <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+              <div className={`overflow-hidden ${publicSectionCardClass}`}>
                 <div className="flex flex-col items-center gap-4 p-6 sm:flex-row sm:items-start">
                   {office.headOfficer.imageUrl && (
-                    <PortraitPhoto src={office.headOfficer.imageUrl} />
+                    <PortraitPhoto
+                      src={office.headOfficer.imageUrl}
+                      alt={staffPhotoAlt(
+                        {
+                          nameEn: office.headOfficer.nameEn,
+                          nameHi: office.headOfficer.nameHi,
+                          designationEn: office.headOfficer.roleEn,
+                          designationHi: office.headOfficer.roleHi,
+                        },
+                        lang,
+                      )}
+                    />
                   )}
                   <div className="text-center sm:text-left">
                     <p
@@ -176,7 +196,7 @@ export function PublicOfficePortal({
             )}
 
             {office.contactLines.length > 0 && !selectedSidebar && (
-              <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div className={`${publicSectionCardClass} p-6`}>
                 <h2 className="font-display text-lg font-bold text-slate-900">
                   {t("Telephone", "टेलीफोन")}
                 </h2>
@@ -200,7 +220,7 @@ export function PublicOfficePortal({
             )}
 
             {office.staff.length > 0 && !selectedSidebar && (
-              <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+              <div className={`overflow-hidden ${publicSectionCardClass}`}>
                 <div className="overflow-x-auto">
                   <table className="min-w-full text-left text-sm">
                     <thead className="bg-emerald-50 text-xs font-bold uppercase tracking-wide text-emerald-900">
@@ -222,7 +242,7 @@ export function PublicOfficePortal({
                               <div className="relative h-12 w-12 overflow-hidden rounded-full border border-slate-200">
                                 <Image
                                   src={member.imageUrl}
-                                  alt=""
+                                  alt={staffPhotoAlt(member, lang)}
                                   fill
                                   className="object-cover"
                                   sizes="48px"
@@ -266,7 +286,7 @@ export function PublicOfficePortal({
             )}
 
             {bodyContent && (
-              <article className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+              <article className={`${publicSectionCardClass} p-6`}>
                 {bodyTitle && (
                   <h2
                     className={`mb-4 font-display text-2xl font-bold text-slate-900 ${lang === "hi" ? "font-hindi" : ""}`}

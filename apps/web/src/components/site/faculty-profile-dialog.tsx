@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useEffect, useId } from "react";
 import { X } from "lucide-react";
 
+import { staffPhotoAlt } from "@/lib/a11y/image-alt";
 import { useLanguage } from "@/components/design/shared/language-context";
 import { FacultyProfileContent } from "@/components/site/faculty-profile-content";
 import type { PublicOfficeStaffMember } from "@/lib/data/public-types";
@@ -71,7 +72,7 @@ export function FacultyProfileDialog({
           <div className="border-b border-slate-100 bg-white px-6 py-6 md:flex md:items-center md:gap-6">
             {member.imageUrl ? (
               <div className="relative mx-auto h-28 w-28 shrink-0 overflow-hidden rounded-full border-4 border-emerald-50 md:mx-0">
-                <Image src={member.imageUrl} alt="" fill className="object-cover" sizes="112px" />
+                <Image src={member.imageUrl} alt={staffPhotoAlt(member, lang)} fill className="object-cover" sizes="112px" />
               </div>
             ) : null}
             <div className="mt-4 text-center md:mt-0 md:text-left">
