@@ -46,6 +46,58 @@ html.dark {
   --foreground: #ecfdf5;
 }
 
+body.high-contrast {
+  --background: #ffffff;
+  --foreground: #000000;
+  --hc-border: #000000;
+  --hc-link: #0000ee;
+}
+
+html.dark body.high-contrast {
+  --background: #000000;
+  --foreground: #ffffff;
+  --hc-border: #ffffff;
+  --hc-link: #ffff00;
+}
+
+body.high-contrast {
+  background: var(--background) !important;
+  color: var(--foreground) !important;
+}
+
+body.high-contrast :where(a, button, input, select, textarea):focus-visible {
+  outline: 3px solid var(--ccshau-gold-500) !important;
+  outline-offset: 2px;
+}
+
+body.high-contrast :where(a:not(.skip-link)) {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+body.high-contrast :where(
+  header,
+  footer,
+  main,
+  section,
+  article,
+  nav,
+  aside,
+  .rounded-xl,
+  .rounded-2xl,
+  .rounded-3xl
+) {
+  border-color: var(--hc-border) !important;
+}
+
+body.high-contrast :where(h1, h2, h3, h4, h5, h6, strong, b) {
+  color: var(--foreground) !important;
+}
+
+body.high-contrast :where(p, li, span, label, td, th) {
+  color: var(--foreground);
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
@@ -465,11 +517,20 @@ body {
 .skip-link {
   position: absolute;
   left: -9999px;
+  top: 0;
   z-index: 999;
   padding: 0.75rem 1rem;
   background: var(--ccshau-gold-500);
   color: #000;
   font-weight: 600;
+}
+
+.skip-link:focus,
+.skip-link:focus-visible {
+  left: 1rem;
+  top: 1rem;
+  outline: 3px solid var(--foreground);
+  outline-offset: 2px;
 }
 
 @keyframes marquee {

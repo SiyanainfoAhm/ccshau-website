@@ -121,7 +121,9 @@ export function SiteHeader({
               <Globe className="h-3.5 w-3.5" />
               {lang === "en" ? "हिंदी" : "English"}
             </button>
-            {(!isLight || isHeritage || isMinistry) && <AccessibilityToolbar />}
+            {(!isLight || isHeritage || isMinistry) && (
+              <AccessibilityToolbar variant={isLight ? "on-light" : "on-dark"} />
+            )}
             {isCollegeContext || isPgStudiesContext ? (
               <Link
                 href="/"
