@@ -4,6 +4,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useSyncExternalStore,
   type ReactNode,
@@ -77,6 +78,10 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     (en: string, hi: string) => (lang === "hi" ? hi : en),
     [lang],
   );
+
+  useEffect(() => {
+    document.documentElement.lang = lang === "hi" ? "hi" : "en";
+  }, [lang]);
 
   const value = useMemo(
     () => ({ lang, toggle, setLang, t }),

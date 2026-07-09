@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Sparkles } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { useLanguage } from "@/components/design/shared/language-context";
 import { FloatingOrbs } from "@/components/design/shared/floating-orbs";
@@ -40,10 +40,29 @@ export function HeroCarousel({
         }));
   const [index, setIndex] = useState(0);
 
+  const showPrev = useCallback(() => {
+    setIndex((i) => (i - 1 + heroSlides.length) % heroSlides.length);
+  }, [heroSlides.length]);
+
+  const showNext = useCallback(() => {
+    setIndex((i) => (i + 1) % heroSlides.length);
+  }, [heroSlides.length]);
+
   useEffect(() => {
     const id = setInterval(() => setIndex((i) => (i + 1) % heroSlides.length), 6000);
     return () => clearInterval(id);
   }, [heroSlides.length]);
+
+  function onCarouselKeyDown(event: React.KeyboardEvent) {
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      showPrev();
+    }
+    if (event.key === "ArrowRight") {
+      event.preventDefault();
+      showNext();
+    }
+  }
 
   const slide = heroSlides[index];
 
@@ -164,7 +183,14 @@ export function HeroCarousel({
 
   // Option B — Future (most exciting)
   return (
-    <section className="relative min-h-[90vh] overflow-hidden">
+    <section
+      className="relative min-h-[90vh] overflow-hidden"
+      role="region"
+      aria-roledescription="carousel"
+      aria-label={t("Homepage banner", "मुखपृष्ठ बैनर")}
+      onKeyDown={onCarouselKeyDown}
+      tabIndex={0}
+    >
       <FloatingOrbs />
       {heroSlides.map((s, i) => (
         <div
@@ -215,14 +241,16 @@ export function HeroCarousel({
           </div>
         </div>
 
-        <div className="absolute bottom-8 left-4 right-4 flex justify-center gap-2 md:left-auto md:right-8">
+        <div className="absolute bottom-8 left-4 right-4 flex justify-center gap-2 md:left-auto md:right-8" role="tablist" aria-label={t("Banner slides", "बैनर स्लाइड")}>
           {heroSlides.map((_, i) => (
             <button
               key={i}
               type="button"
+              role="tab"
               onClick={() => setIndex(i)}
               className={`h-2 rounded-full transition-all ${i === index ? "w-10 bg-amber-400" : "w-2 bg-white/40"}`}
-              aria-label={`Slide ${i + 1}`}
+              aria-label={t(`Slide ${i + 1}`, `स्लाइड ${i + 1}`)}
+              aria-selected={i === index}
             />
           ))}
         </div>

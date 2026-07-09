@@ -61,7 +61,7 @@ export function NewsForm({
     : "";
 
   return (
-    <form action={handleSubmit} encType="multipart/form-data" className="mx-auto max-w-3xl space-y-6">
+    <form action={handleSubmit} className="mx-auto max-w-3xl space-y-6">
       {error && (
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
           {error}

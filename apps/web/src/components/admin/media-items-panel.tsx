@@ -39,7 +39,7 @@ export function MediaItemsPanel({ albumId, items }: { albumId: string; items: Me
     <div className="space-y-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
       <h2 className="font-semibold text-slate-900">Album media ({items.length})</h2>
 
-      <form action={handleAdd} encType="multipart/form-data" className="space-y-3 rounded-lg border border-dashed border-slate-200 bg-slate-50 p-4">
+      <form action={handleAdd} className="space-y-3 rounded-lg border border-dashed border-slate-200 bg-slate-50 p-4">
         {error && <p className="text-sm text-red-600">{error}</p>}
         <p className="text-sm font-medium text-slate-700">Add photo or video</p>
         <div className="grid gap-3 sm:grid-cols-2">

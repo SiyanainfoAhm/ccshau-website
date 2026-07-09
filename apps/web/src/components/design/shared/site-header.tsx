@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Globe, Menu, Search, X } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 import { AccessibilityToolbar } from "@/components/design/shared/accessibility-toolbar";
+import { useEscapeKey } from "@/lib/a11y/use-escape-key";
 import { CollegeNavigation } from "@/components/design/shared/college-navigation";
 import { PgStudiesNavigation } from "@/components/design/shared/pg-studies-navigation";
 import { MainNavigation } from "@/components/design/shared/main-navigation";
@@ -76,6 +77,7 @@ export function SiteHeader({
   }));
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const mobileMenuButtonRef = useRef<HTMLButtonElement>(null);
   const router = useRouter();
   const isLight = variant === "ministry" || variant === "heritage";
   const isHeritage = variant === "heritage";
@@ -87,6 +89,14 @@ export function SiteHeader({
     }
     return href;
   };
+
+  useEscapeKey(mobileOpen, () => setMobileOpen(false));
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const firstLink = document.querySelector<HTMLElement>("[data-mobile-nav] a, [data-mobile-nav] button");
+    firstLink?.focus();
+  }, [mobileOpen]);
 
   function handleSearchSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -101,7 +111,7 @@ export function SiteHeader({
       {isMinistry && <div className="goi-tricolor-bar" />}
       {isHeritage && <div className="heritage-rainbow-bar" />}
       <a href="#main-content" className="skip-link">
-        Skip to content
+        {t("Skip to content", "सामग्री पर जाएं")}
       </a>
 
       {/* Top bar */}
@@ -116,6 +126,7 @@ export function SiteHeader({
             <button
               type="button"
               onClick={toggle}
+              aria-label={lang === "en" ? t("Switch to Hindi", "हिंदी में बदलें") : t("Switch to English", "अंग्रेज़ी में बदलें")}
               className={`flex items-center gap-1 rounded-full px-3 py-1 font-medium transition ${isHeritage ? "bg-white/80 text-violet-700 shadow-sm ring-1 ring-violet-100 hover:bg-violet-50" : isLight ? "bg-emerald-50 text-emerald-800 hover:bg-emerald-100" : "bg-white/10 hover:bg-white/20"}`}
             >
               <Globe className="h-3.5 w-3.5" />
@@ -175,6 +186,7 @@ export function SiteHeader({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={t("Search university...", "विश्वविद्यालय खोजें...")}
+              aria-label={t("Search university website", "विश्वविद्यालय वेबसाइट खोजें")}
               className={`w-44 bg-transparent text-sm outline-none md:w-56 ${isHeritage ? "placeholder:text-slate-400 text-slate-700" : isLight ? "placeholder:text-slate-400" : "placeholder:text-emerald-200/70"}`}
             />
           </div>
@@ -182,10 +194,13 @@ export function SiteHeader({
 
         {shouldShowMainNav && (
           <button
+            ref={mobileMenuButtonRef}
             type="button"
             className={`rounded-xl p-2 lg:hidden ${isLight ? "bg-slate-100" : "bg-white/10"}`}
             onClick={() => setMobileOpen(!mobileOpen)}
-            aria-label="Toggle menu"
+            aria-expanded={mobileOpen}
+            aria-controls="mobile-main-navigation"
+            aria-label={mobileOpen ? t("Close menu", "मेनू बंद करें") : t("Open menu", "मेनू खोलें")}
           >
             {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
@@ -194,6 +209,7 @@ export function SiteHeader({
 
       {shouldShowMainNav && (
       <div
+        id="mobile-main-navigation"
         className={`${mobileOpen ? "block" : "hidden"} lg:block ${
           isMinistry
             ? "border-t border-slate-200 bg-[#146c43]"
@@ -212,6 +228,7 @@ export function SiteHeader({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={t("Search...", "खोजें...")}
+              aria-label={t("Search", "खोज")}
               className="w-full bg-transparent text-sm text-white outline-none placeholder:text-emerald-200/70"
             />
           </div>
@@ -221,7 +238,10 @@ export function SiteHeader({
           resolveHref={resolveHref}
           tone={isMinistry ? "ministry" : isHeritage ? "heritage" : isLight ? "light" : "future"}
           mobileOpen={mobileOpen}
-          onMobileClose={() => setMobileOpen(false)}
+          onMobileClose={() => {
+            setMobileOpen(false);
+            mobileMenuButtonRef.current?.focus();
+          }}
         />
       </div>
       )}

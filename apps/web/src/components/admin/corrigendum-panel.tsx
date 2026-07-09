@@ -104,7 +104,7 @@ export function CorrigendumPanel({
         <p className="mb-6 text-sm text-slate-500">No corrigenda yet.</p>
       )}
 
-      <form key={corrigenda.length} action={handleAdd} encType="multipart/form-data" className="space-y-4 border-t border-slate-100 pt-4">
+      <form key={corrigenda.length} action={handleAdd} className="space-y-4 border-t border-slate-100 pt-4">
         <p className="text-sm font-medium text-slate-700">Add corrigendum</p>
         <input
           name="title"

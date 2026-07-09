@@ -533,6 +533,33 @@ body {
   outline-offset: 2px;
 }
 
+/* Visible keyboard focus for interactive controls (overridden in high-contrast mode) */
+body:not(.high-contrast) :where(a, button, input, select, textarea, [tabindex]:not([tabindex="-1"])):focus-visible {
+  outline: 2px solid var(--ccshau-gold-500);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .animate-marquee,
+  .animate-ken-burns,
+  .animate-fade-up,
+  .animate-pulse-glow {
+    animation: none !important;
+  }
+}
+
 @keyframes marquee {
   0% {
     transform: translateX(0);
