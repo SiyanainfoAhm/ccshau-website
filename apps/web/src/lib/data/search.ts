@@ -89,7 +89,7 @@ async function searchTenders(
   const { data } = await admin
     .from(Tables.tenders)
     .select("id, slug, title_en, title_hi, description_en, published_at")
-    .in("status", ["open", "closed", "archived"])
+    .in("status", ["open", "closed", "archived", "cancelled"])
     .textSearch("search_vector", query, { type: "websearch", config: "english" })
     .limit(20);
 

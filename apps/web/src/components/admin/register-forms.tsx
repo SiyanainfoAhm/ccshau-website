@@ -28,6 +28,7 @@ export function RegisterDepartmentForm({
   inDialog = false,
   onCancel,
   onSuccess,
+  readOnly = false,
 }: {
   colleges: CollegeOption[];
   department?: DepartmentEditData;
@@ -36,6 +37,7 @@ export function RegisterDepartmentForm({
   inDialog?: boolean;
   onCancel?: () => void;
   onSuccess?: () => void;
+  readOnly?: boolean;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -69,10 +71,11 @@ export function RegisterDepartmentForm({
   }
 
   return (
-    <form action={handleSubmit} className={inDialog ? "space-y-6" : "mx-auto max-w-2xl space-y-6"}>
+    <form action={readOnly ? undefined : handleSubmit} className={inDialog ? "space-y-6" : "mx-auto max-w-2xl space-y-6"}>
       {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
 
-      <section className={`rounded-xl border border-slate-200 bg-white p-6 shadow-sm ${inDialog ? "border-0 p-0 shadow-none" : ""}`}>
+      <fieldset disabled={readOnly} className={readOnly ? "contents" : undefined}>
+      <section className={`rounded-xl border border-slate-200 bg-white p-6 shadow-sm ${inDialog ? "border-0 p-0 shadow-none" : ""} ${readOnly ? "pointer-events-none opacity-90" : ""}`}>
         {!inDialog && (
           <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-slate-900">
             <GraduationCap className="h-5 w-5 text-emerald-700" aria-hidden />
@@ -165,8 +168,10 @@ export function RegisterDepartmentForm({
           Creates an office-portal department page with Faculty sidebar and staff directory enabled.
         </p>
       </section>
+      </fieldset>
 
       <div className="flex gap-3">
+        {!readOnly && (
         <button
           type="submit"
           disabled={isPending}
@@ -174,6 +179,7 @@ export function RegisterDepartmentForm({
         >
           {isPending ? "Saving…" : isEdit ? "Save changes" : "Add department"}
         </button>
+        )}
         {inDialog ? (
           <button
             type="button"

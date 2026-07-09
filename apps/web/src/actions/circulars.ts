@@ -10,6 +10,8 @@ import type { Circular, ContentStatus } from "@/lib/database/types";
 import { removeStorageObjects, uploadCircularFile } from "@/lib/storage/upload";
 import { fail, ok, type ActionResult } from "@/lib/types/action-result";
 import { circularFormSchema } from "@/lib/validations/circulars";
+import { emptyPaginatedResult, mergeAdminListOptions, runPaginatedQuery } from "@/lib/data/admin-list";
+import type { PaginatedResult } from "@/lib/data/pagination";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const CONTENT_ROLES = ["super_admin", "dept_admin", "editor"] as const;
@@ -45,16 +47,29 @@ function toRow(input: ReturnType<typeof circularFormSchema.parse>, userId: strin
   };
 }
 
-export async function listCircularsForAdmin(): Promise<Circular[]> {
+const CIRCULARS_LIST_SORTS = [
+  "title_en",
+  "circular_number",
+  "status",
+  "published_at",
+  "created_at",
+] as const;
+
+export async function listCircularsForAdmin(
+  options: import("@/lib/data/admin-list").AdminListOptions = {},
+): Promise<PaginatedResult<Circular>> {
+  const opts = mergeAdminListOptions(options, {
+    sortBy: "published_at",
+    sortOrder: "desc",
+    allowedSorts: CIRCULARS_LIST_SORTS,
+  });
+
   await requireAdminSession();
   const admin = createAdminClient();
-  if (!admin) return [];
-  const { data } = await admin
-    .from(Tables.circulars)
-    .select("*")
-    .order("published_at", { ascending: false, nullsFirst: false })
-    .order("created_at", { ascending: false });
-  return (data ?? []) as Circular[];
+  if (!admin) return emptyPaginatedResult(opts);
+
+  const query = admin.from(Tables.circulars).select("*", { count: "exact" });
+  return runPaginatedQuery<Circular>(query, opts);
 }
 
 export async function getCircularById(id: string): Promise<Circular | null> {

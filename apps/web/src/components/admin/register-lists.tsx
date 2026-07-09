@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
-import { Pencil, Trash2 } from "lucide-react";
+import { Eye, Pencil, Trash2 } from "lucide-react";
 
 import { deleteDepartmentAction, deleteFacultyAction } from "@/actions/college-register";
 import type { DepartmentOption, FacultyListItem } from "@/lib/pages/college-register-helpers";
@@ -45,9 +45,13 @@ function DeleteRowButton({
 export function DepartmentRegisterList({
   departments,
   collegePageId,
+  canEdit = true,
+  canDelete = true,
 }: {
   departments: DepartmentOption[];
   collegePageId?: string;
+  canEdit?: boolean;
+  canDelete?: boolean;
 }) {
   const showCollege = !collegePageId;
   return (
@@ -79,21 +83,40 @@ export function DepartmentRegisterList({
               departments.map((dept) => (
                 <tr key={dept.id} className="hover:bg-slate-50/80">
                   {showCollege && <td className="px-4 py-3 text-slate-600">{dept.college_title}</td>}
-                  <td className="px-4 py-3 font-medium text-slate-900">{dept.title_en}</td>
+                  <td className="px-4 py-3 font-medium text-slate-900">
+                    <Link
+                      href={`/admin/register/department/${dept.id}`}
+                      className="hover:text-emerald-800 hover:underline"
+                    >
+                      {dept.title_en}
+                    </Link>
+                  </td>
                   <td className="px-4 py-3 font-mono text-xs text-slate-500">{dept.slug}</td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-2">
-                      <Link
-                        href={`/admin/register/department/${dept.id}`}
-                        className="inline-flex items-center gap-1 rounded px-2 py-1 text-sm text-emerald-700 hover:bg-emerald-50"
-                      >
-                        <Pencil className="h-3.5 w-3.5" aria-hidden />
-                        Edit
-                      </Link>
-                      <DeleteRowButton
-                        label={dept.title_en}
-                        onConfirm={() => deleteDepartmentAction(dept.id)}
-                      />
+                      {canEdit ? (
+                        <Link
+                          href={`/admin/register/department/${dept.id}`}
+                          className="inline-flex items-center gap-1 rounded px-2 py-1 text-sm text-emerald-700 hover:bg-emerald-50"
+                        >
+                          <Pencil className="h-3.5 w-3.5" aria-hidden />
+                          Edit
+                        </Link>
+                      ) : (
+                        <Link
+                          href={`/admin/register/department/${dept.id}`}
+                          className="inline-flex items-center gap-1 rounded px-2 py-1 text-sm text-slate-600 hover:bg-slate-100"
+                        >
+                          <Eye className="h-3.5 w-3.5" aria-hidden />
+                          View
+                        </Link>
+                      )}
+                      {canDelete && (
+                        <DeleteRowButton
+                          label={dept.title_en}
+                          onConfirm={() => deleteDepartmentAction(dept.id)}
+                        />
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -109,9 +132,13 @@ export function DepartmentRegisterList({
 export function FacultyRegisterList({
   faculty,
   collegePageId,
+  canEdit = true,
+  canDelete = true,
 }: {
   faculty: FacultyListItem[];
   collegePageId?: string;
+  canEdit?: boolean;
+  canDelete?: boolean;
 }) {
   const showCollege = !collegePageId;
   return (
@@ -155,7 +182,14 @@ export function FacultyRegisterList({
                       member.department_title
                     )}
                   </td>
-                  <td className="px-4 py-3 font-medium text-slate-900">{member.name_en}</td>
+                  <td className="px-4 py-3 font-medium text-slate-900">
+                    <Link
+                      href={`/admin/register/faculty/${member.id}`}
+                      className="hover:text-emerald-800 hover:underline"
+                    >
+                      {member.name_en}
+                    </Link>
+                  </td>
                   <td className="px-4 py-3">
                     <span
                       className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
@@ -177,20 +211,32 @@ export function FacultyRegisterList({
                           rel="noopener noreferrer"
                           className="rounded px-2 py-1 text-xs text-slate-500 hover:bg-slate-100"
                         >
-                          View
+                          Public
                         </a>
                       )}
-                      <Link
-                        href={`/admin/register/faculty/${member.id}`}
-                        className="inline-flex items-center gap-1 rounded px-2 py-1 text-sm text-emerald-700 hover:bg-emerald-50"
-                      >
-                        <Pencil className="h-3.5 w-3.5" aria-hidden />
-                        Edit
-                      </Link>
-                      <DeleteRowButton
-                        label={member.name_en}
-                        onConfirm={() => deleteFacultyAction(member.id)}
-                      />
+                      {canEdit ? (
+                        <Link
+                          href={`/admin/register/faculty/${member.id}`}
+                          className="inline-flex items-center gap-1 rounded px-2 py-1 text-sm text-emerald-700 hover:bg-emerald-50"
+                        >
+                          <Pencil className="h-3.5 w-3.5" aria-hidden />
+                          Edit
+                        </Link>
+                      ) : (
+                        <Link
+                          href={`/admin/register/faculty/${member.id}`}
+                          className="inline-flex items-center gap-1 rounded px-2 py-1 text-sm text-slate-600 hover:bg-slate-100"
+                        >
+                          <Eye className="h-3.5 w-3.5" aria-hidden />
+                          View
+                        </Link>
+                      )}
+                      {canDelete && (
+                        <DeleteRowButton
+                          label={member.name_en}
+                          onConfirm={() => deleteFacultyAction(member.id)}
+                        />
+                      )}
                     </div>
                   </td>
                 </tr>

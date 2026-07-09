@@ -8,6 +8,8 @@ import { Tables } from "@/lib/database/names";
 import type { RelatedLink } from "@/lib/database/types";
 import { fail, ok, type ActionResult } from "@/lib/types/action-result";
 import { relatedLinkFormSchema } from "@/lib/validations/related-links";
+import { emptyPaginatedResult, mergeAdminListOptions, runPaginatedQuery, type AdminListOptions } from "@/lib/data/admin-list";
+import type { PaginatedResult } from "@/lib/data/pagination";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const LINK_ROLES = ["super_admin", "dept_admin", "editor"] as const;
@@ -24,18 +26,23 @@ function parseRelatedLinkForm(formData: FormData) {
   });
 }
 
-export async function listRelatedLinksForAdmin(): Promise<RelatedLink[]> {
+const RELATED_LINKS_LIST_SORTS = ["title_en", "category", "sort_order", "is_active", "created_at"] as const;
+
+export async function listRelatedLinksForAdmin(
+  options: AdminListOptions = {},
+): Promise<PaginatedResult<RelatedLink>> {
+  const opts = mergeAdminListOptions(options, {
+    sortBy: "sort_order",
+    sortOrder: "asc",
+    allowedSorts: RELATED_LINKS_LIST_SORTS,
+  });
+
   await requireAdminSession();
   const admin = createAdminClient();
-  if (!admin) return [];
+  if (!admin) return emptyPaginatedResult(opts);
 
-  const { data } = await admin
-    .from(Tables.relatedLinks)
-    .select("*")
-    .order("sort_order")
-    .order("title_en");
-
-  return (data ?? []) as RelatedLink[];
+  const query = admin.from(Tables.relatedLinks).select("*", { count: "exact" });
+  return runPaginatedQuery<RelatedLink>(query, opts);
 }
 
 export async function getRelatedLinkById(id: string): Promise<RelatedLink | null> {

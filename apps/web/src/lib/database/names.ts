@@ -84,6 +84,7 @@ export const Functions = {
   setUpdatedAt: ccshauFunction("set_updated_at"),
   writeAuditLog: ccshauFunction("write_audit_log"),
   archiveExpiredTenders: ccshauFunction("archive_expired_tenders"),
+  processExpiredTenders: ccshauFunction("process_expired_tenders"),
   archiveExpiredNews: ccshauFunction("archive_expired_news"),
   generateTicketNumber: ccshauFunction("generate_ticket_number"),
   isSuperAdmin: ccshauFunction("is_super_admin"),

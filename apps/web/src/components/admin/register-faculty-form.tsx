@@ -22,6 +22,7 @@ export function RegisterFacultyForm({
   inDialog = false,
   onCancel,
   onSuccess,
+  readOnly = false,
 }: {
   departments: DepartmentOption[];
   faculty?: PageStaff;
@@ -29,6 +30,7 @@ export function RegisterFacultyForm({
   inDialog?: boolean;
   onCancel?: () => void;
   onSuccess?: () => void;
+  readOnly?: boolean;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -73,10 +75,11 @@ export function RegisterFacultyForm({
     : "rounded-xl border border-slate-200 bg-white p-6 shadow-sm";
 
   return (
-    <form action={handleSubmit} className={inDialog ? "space-y-4" : "mx-auto max-w-3xl space-y-6"}>
+    <form action={readOnly ? undefined : handleSubmit} className={inDialog ? "space-y-4" : "mx-auto max-w-3xl space-y-6"}>
       {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
 
-      <section className={sectionClass}>
+      <fieldset disabled={readOnly} className={readOnly ? "contents" : undefined}>
+      <section className={`${sectionClass} ${readOnly ? "pointer-events-none opacity-90" : ""}`}>
         <h2 className="mb-4 text-lg font-semibold text-slate-900">Department & role</h2>
         <div className="grid gap-4 md:grid-cols-2">
           <label className="block text-sm md:col-span-2">
@@ -128,7 +131,7 @@ export function RegisterFacultyForm({
         </div>
       </section>
 
-      <section className={sectionClass}>
+      <section className={`${sectionClass} ${readOnly ? "pointer-events-none opacity-90" : ""}`}>
         <h2 className="mb-4 text-lg font-semibold text-slate-900">Faculty list row</h2>
         <p className="mb-4 text-xs text-slate-500">Shown in the department Faculty table (name, photo, designation, specialization).</p>
         <div className="grid gap-4 md:grid-cols-2">
@@ -178,7 +181,7 @@ export function RegisterFacultyForm({
         </div>
       </section>
 
-      <section className={sectionClass}>
+      <section className={`${sectionClass} ${readOnly ? "pointer-events-none opacity-90" : ""}`}>
         <h2 className="mb-4 text-lg font-semibold text-slate-900">Profile detail page</h2>
         <p className="mb-4 text-xs text-slate-500">
           Full CV-style content (education, publications, awards). Paste HTML or plain sections.
@@ -229,8 +232,10 @@ export function RegisterFacultyForm({
           </label>
         </div>
       </section>
+      </fieldset>
 
       <div className="flex gap-3">
+        {!readOnly && (
         <button
           type="submit"
           disabled={isPending || departments.length === 0}
@@ -238,6 +243,7 @@ export function RegisterFacultyForm({
         >
           {isPending ? "Saving…" : isEdit ? "Save changes" : "Add faculty"}
         </button>
+        )}
         {inDialog ? (
           <button
             type="button"

@@ -18,6 +18,7 @@ import {
   newsAttachmentPath,
   STORAGE_BUCKETS,
   tenderAttachmentPath,
+  tenderCancellationPath,
 } from "@/lib/storage/config";
 import { sanitizeFileName, validateUploadFile } from "@/lib/storage/validate";
 import { fail, ok, type ActionResult } from "@/lib/types/action-result";
@@ -116,6 +117,22 @@ export async function uploadCorrigendumDocument(
   const bucket = getStorageBucket(isPublic);
   const result = await uploadFilesToStorage(admin, bucket, [file], (f) =>
     corrigendumAttachmentPath(tenderId, corrigendumId, sanitizeFileName(f.name)),
+  );
+  if (!result.success) return result;
+  const first = result.data[0];
+  if (!first) return fail("Upload failed");
+  return ok(first);
+}
+
+export async function uploadTenderCancellationDocument(
+  admin: SupabaseClient,
+  tenderId: string,
+  file: File,
+  isPublic: boolean,
+): Promise<ActionResult<AttachmentPath>> {
+  const bucket = getStorageBucket(isPublic);
+  const result = await uploadFilesToStorage(admin, bucket, [file], (f) =>
+    tenderCancellationPath(tenderId, sanitizeFileName(f.name)),
   );
   if (!result.success) return result;
   const first = result.data[0];

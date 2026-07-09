@@ -1,13 +1,31 @@
+import { Suspense } from "react";
+
 import Link from "next/link";
 import { Plus } from "lucide-react";
 
 import { listMediaAlbumsForAdmin } from "@/actions/media";
+import { AdminListFooter } from "@/components/admin/admin-list-footer";
+import { AdminSortableTh } from "@/components/admin/admin-sortable-th";
 import { StatusBadge } from "@/components/admin/status-badge";
 import { requireAdminSession } from "@/lib/auth/session";
+import { parseAdminListParams } from "@/lib/data/admin-list";
 
-export default async function AdminMediaPage() {
+const MEDIA_SORTS = ["title_en", "album_type", "status", "created_at"] as const;
+
+export default async function AdminMediaPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>;
+}) {
   await requireAdminSession();
-  const albums = await listMediaAlbumsForAdmin();
+  const params = await searchParams;
+  const listParams = parseAdminListParams(params, {
+    sortBy: "created_at",
+    sortOrder: "desc",
+    allowedSorts: MEDIA_SORTS,
+  });
+  const data = await listMediaAlbumsForAdmin(listParams);
+  const albums = data.items;
 
   return (
     <div className="space-y-6">
@@ -28,12 +46,14 @@ export default async function AdminMediaPage() {
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         <table className="min-w-full divide-y divide-slate-200 text-sm">
           <thead className="bg-slate-50">
-            <tr>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Title</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Type</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Items</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Status</th>
-            </tr>
+            <Suspense fallback={<tr><th className="px-4 py-3">Title</th></tr>}>
+              <tr>
+                <AdminSortableTh label="Title" column="title_en" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
+                <AdminSortableTh label="Type" column="album_type" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
+                <th className="px-4 py-3 text-left font-semibold text-slate-700">Items</th>
+                <AdminSortableTh label="Status" column="status" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
+              </tr>
+            </Suspense>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {albums.length === 0 ? (
@@ -69,6 +89,7 @@ export default async function AdminMediaPage() {
             )}
           </tbody>
         </table>
+        <AdminListFooter data={data} />
       </div>
     </div>
   );

@@ -301,135 +301,13 @@ export async function getPublishedNewsBySlug(slug: string): Promise<PublicNewsIt
   };
 }
 
-export async function getPublicTenders(options?: {
-  status?: "open" | "closed" | "archived";
-  limit?: number;
-}): Promise<PublicTenderItem[]> {
-  const admin = createAdminClient();
-  if (!admin) return [];
+const PUBLIC_TENDER_STATUSES = ["open", "closed", "archived", "cancelled"] as const;
 
-  let query = admin
-    .from(Tables.tenders)
-    .select("*")
-    .in("status", options?.status ? [options.status] : ["open", "closed", "archived"])
-    .order("published_at", { ascending: false });
-
-  if (options?.limit) {
-    query = query.limit(options.limit);
-  }
-
-  const { data } = await query;
-  const tenders = (data as Tender[]) ?? [];
-
-  const deptIds = [...new Set(tenders.map((t) => t.department_id).filter(Boolean))] as string[];
-  const deptMap = new Map<string, string>();
-  if (deptIds.length > 0) {
-    const { data: depts } = await admin
-      .from(Tables.departments)
-      .select("id, name_en")
-      .in("id", deptIds);
-    for (const dept of depts ?? []) {
-      deptMap.set(dept.id, dept.name_en);
-    }
-  }
-
-  return tenders.map((item) => ({
-    id: item.id,
-    slug: item.slug,
-    tenderNumber: item.tender_number,
-    titleEn: item.title_en,
-    titleHi: item.title_hi,
-    descriptionEn: item.description_en,
-    descriptionHi: item.description_hi,
-    category: item.category,
-    status: item.status,
-    closingDate: item.closing_date,
-    publishedAt: item.published_at,
-    departmentName: item.department_id ? deptMap.get(item.department_id) ?? null : null,
-    documents: mapAttachments(item.document_paths ?? []),
-    corrigenda: [],
-  }));
-}
-
-export async function getPublicTendersPage(options: {
-  page?: number;
-  pageSize?: number;
-  status?: "open" | "closed" | "archived" | "all";
-}): Promise<PaginatedResult<PublicTenderItem>> {
-  const admin = createAdminClient();
-  const page = options.page ?? 1;
-  const pageSize = options.pageSize ?? DEFAULT_PAGE_SIZE;
-  if (!admin) {
-    return buildPaginatedResult([], 0, page, pageSize);
-  }
-
-  const statuses =
-    options.status && options.status !== "all"
-      ? [options.status]
-      : ["open", "closed", "archived"];
-
-  const { from, to } = paginationRange(page, pageSize);
-  const { data, count } = await admin
-    .from(Tables.tenders)
-    .select("*", { count: "exact" })
-    .in("status", statuses)
-    .order("published_at", { ascending: false })
-    .range(from, to);
-
-  const tenders = (data as Tender[]) ?? [];
-  const deptIds = [...new Set(tenders.map((t) => t.department_id).filter(Boolean))] as string[];
-  const deptMap = await loadDepartmentNames(admin, deptIds);
-
-  const items = tenders.map((item) => ({
-    id: item.id,
-    slug: item.slug,
-    tenderNumber: item.tender_number,
-    titleEn: item.title_en,
-    titleHi: item.title_hi,
-    descriptionEn: item.description_en,
-    descriptionHi: item.description_hi,
-    category: item.category,
-    status: item.status,
-    closingDate: item.closing_date,
-    publishedAt: item.published_at,
-    departmentName: item.department_id ? deptMap.get(item.department_id) ?? null : null,
-    documents: mapAttachments(item.document_paths ?? []),
-    corrigenda: [],
-  }));
-
-  return buildPaginatedResult(items, count ?? 0, page, pageSize);
-}
-
-export async function getPublicTenderBySlug(slug: string): Promise<PublicTenderItem | null> {
-  const admin = createAdminClient();
-  if (!admin) return null;
-
-  const { data } = await admin
-    .from(Tables.tenders)
-    .select("*")
-    .eq("slug", slug)
-    .in("status", ["open", "closed", "archived"])
-    .maybeSingle();
-
-  if (!data) return null;
-
-  const item = data as Tender;
-  let departmentName: string | null = null;
-  if (item.department_id) {
-    const { data: dept } = await admin
-      .from(Tables.departments)
-      .select("name_en")
-      .eq("id", item.department_id)
-      .maybeSingle();
-    departmentName = dept?.name_en ?? null;
-  }
-
-  const { data: corrigenda } = await admin
-    .from(Tables.tenderCorrigenda)
-    .select("*")
-    .eq("tender_id", item.id)
-    .order("published_at", { ascending: false });
-
+function mapTenderToPublicItem(
+  item: Tender,
+  deptMap: Map<string, string>,
+  corrigenda: PublicTenderItem["corrigenda"] = [],
+): PublicTenderItem {
   return {
     id: item.id,
     slug: item.slug,
@@ -442,9 +320,151 @@ export async function getPublicTenderBySlug(slug: string): Promise<PublicTenderI
     status: item.status,
     closingDate: item.closing_date,
     publishedAt: item.published_at,
-    departmentName,
+    departmentId: item.department_id,
+    departmentName: item.department_id ? deptMap.get(item.department_id) ?? null : null,
+    cancelledAt: item.cancelled_at,
+    cancellationNoticeEn: item.cancellation_notice_en,
+    cancellationNoticeHi: item.cancellation_notice_hi,
+    cancellationDocument: item.cancellation_document_path
+      ? {
+          path: item.cancellation_document_path,
+          name: item.cancellation_document_name ?? "Cancellation notice",
+          url: getStoredFileUrl(item.cancellation_document_path),
+        }
+      : null,
     documents: mapAttachments(item.document_paths ?? []),
-    corrigenda: (corrigenda ?? []).map((c) => ({
+    corrigenda,
+  };
+}
+
+export async function getPublicTenderFilterDepartments(): Promise<{ id: string; nameEn: string }[]> {
+  const admin = createAdminClient();
+  if (!admin) return [];
+
+  const { data } = await admin
+    .from(Tables.departments)
+    .select("id, name_en")
+    .eq("is_active", true)
+    .order("sort_order");
+
+  return (data ?? []).map((dept) => ({ id: dept.id, nameEn: dept.name_en }));
+}
+
+export async function getPublicTenders(options?: {
+  status?: "open" | "closed" | "archived" | "cancelled";
+  limit?: number;
+}): Promise<PublicTenderItem[]> {
+  const admin = createAdminClient();
+  if (!admin) return [];
+
+  let query = admin
+    .from(Tables.tenders)
+    .select("*")
+    .in("status", options?.status ? [options.status] : [...PUBLIC_TENDER_STATUSES])
+    .order("published_at", { ascending: false });
+
+  if (options?.limit) {
+    query = query.limit(options.limit);
+  }
+
+  const { data } = await query;
+  const tenders = (data as Tender[]) ?? [];
+
+  const deptIds = [...new Set(tenders.map((t) => t.department_id).filter(Boolean))] as string[];
+  const deptMap = await loadDepartmentNames(admin, deptIds);
+
+  return tenders.map((item) => mapTenderToPublicItem(item, deptMap));
+}
+
+export async function getPublicTendersPage(options: {
+  page?: number;
+  pageSize?: number;
+  status?: "open" | "closed" | "archived" | "cancelled" | "all";
+  category?: string;
+  departmentId?: string;
+  q?: string;
+}): Promise<PaginatedResult<PublicTenderItem>> {
+  const admin = createAdminClient();
+  const page = options.page ?? 1;
+  const pageSize = options.pageSize ?? DEFAULT_PAGE_SIZE;
+  if (!admin) {
+    return buildPaginatedResult([], 0, page, pageSize);
+  }
+
+  const statuses =
+    options.status && options.status !== "all"
+      ? [options.status]
+      : [...PUBLIC_TENDER_STATUSES];
+
+  const { from, to } = paginationRange(page, pageSize);
+  let query = admin
+    .from(Tables.tenders)
+    .select("*", { count: "exact" })
+    .in("status", statuses)
+    .order("published_at", { ascending: false });
+
+  if (options.category) {
+    query = query.eq("category", options.category);
+  }
+
+  if (options.departmentId) {
+    query = query.eq("department_id", options.departmentId);
+  }
+
+  const searchTerm = options.q?.trim();
+  if (searchTerm) {
+    if (searchTerm.length >= 3) {
+      query = query.textSearch("search_vector", searchTerm, {
+        type: "websearch",
+        config: "english",
+      });
+    } else {
+      const escaped = searchTerm.replace(/[%_]/g, "");
+      query = query.or(
+        `title_en.ilike.%${escaped}%,tender_number.ilike.%${escaped}%,description_en.ilike.%${escaped}%`,
+      );
+    }
+  }
+
+  const { data, count } = await query.range(from, to);
+
+  const tenders = (data as Tender[]) ?? [];
+  const deptIds = [...new Set(tenders.map((t) => t.department_id).filter(Boolean))] as string[];
+  const deptMap = await loadDepartmentNames(admin, deptIds);
+
+  const items = tenders.map((item) => mapTenderToPublicItem(item, deptMap));
+
+  return buildPaginatedResult(items, count ?? 0, page, pageSize);
+}
+
+export async function getPublicTenderBySlug(slug: string): Promise<PublicTenderItem | null> {
+  const admin = createAdminClient();
+  if (!admin) return null;
+
+  const { data } = await admin
+    .from(Tables.tenders)
+    .select("*")
+    .eq("slug", slug)
+    .in("status", [...PUBLIC_TENDER_STATUSES])
+    .maybeSingle();
+
+  if (!data) return null;
+
+  const item = data as Tender;
+  const deptMap = item.department_id
+    ? await loadDepartmentNames(admin, [item.department_id])
+    : new Map<string, string>();
+
+  const { data: corrigenda } = await admin
+    .from(Tables.tenderCorrigenda)
+    .select("*")
+    .eq("tender_id", item.id)
+    .order("published_at", { ascending: false });
+
+  return mapTenderToPublicItem(
+    item,
+    deptMap,
+    (corrigenda ?? []).map((c) => ({
       id: c.id,
       title: c.title,
       description: c.description,
@@ -452,7 +472,7 @@ export async function getPublicTenderBySlug(slug: string): Promise<PublicTenderI
       fileName: c.file_name,
       fileUrl: c.file_path ? getStoredFileUrl(c.file_path) : null,
     })),
-  };
+  );
 }
 
 function loadPublishedPageById(pages: Page[] | null): Map<string, Page> {

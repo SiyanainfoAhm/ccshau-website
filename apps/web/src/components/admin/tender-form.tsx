@@ -8,6 +8,7 @@ import { createTenderAction, updateTenderAction } from "@/actions/tenders";
 import { AdminFileUploadField } from "@/components/admin/admin-file-upload-field";
 import { AttachmentList, useAttachmentRemovals } from "@/components/admin/attachment-list";
 import type { Tender } from "@/lib/database/types";
+import { getStoredFileUrl } from "@/lib/storage/upload";
 import { TENDER_CATEGORIES } from "@/lib/validations/tenders";
 import { slugify } from "@/lib/utils/slug";
 
@@ -29,6 +30,8 @@ export function TenderForm({
   const [error, setError] = useState<string | null>(null);
   const [titleEn, setTitleEn] = useState(tender?.title_en ?? "");
   const [slug, setSlug] = useState(tender?.slug ?? "");
+  const [status, setStatus] = useState(tender?.status ?? "draft");
+  const [removeCancellationDoc, setRemoveCancellationDoc] = useState(false);
   const { removed, remove, removedJson } = useAttachmentRemovals(tender?.document_paths ?? []);
 
   function handleTitleBlur() {
@@ -40,6 +43,7 @@ export function TenderForm({
   function handleSubmit(formData: FormData) {
     setError(null);
     formData.set("removedDocuments", removedJson);
+    formData.set("removeCancellationDocument", removeCancellationDoc ? "true" : "false");
 
     startTransition(async () => {
       const result = tender
@@ -56,9 +60,15 @@ export function TenderForm({
     });
   }
 
+  const publishedValue = tender?.published_at
+    ? new Date(tender.published_at).toISOString().slice(0, 16)
+    : "";
   const closingValue = tender?.closing_date
     ? new Date(tender.closing_date).toISOString().slice(0, 16)
     : "";
+  const cancellationDocUrl = tender?.cancellation_document_path
+    ? getStoredFileUrl(tender.cancellation_document_path)
+    : null;
 
   return (
     <form action={handleSubmit} className="mx-auto max-w-3xl space-y-6">
@@ -192,16 +202,28 @@ export function TenderForm({
             <label className="mb-1 block text-sm font-medium text-slate-700">Status</label>
             <select
               name="status"
-              defaultValue={tender?.status ?? "draft"}
+              value={status}
+              onChange={(e) => setStatus(e.target.value as Tender["status"])}
               className="w-full rounded-lg border border-slate-300 px-3 py-2"
             >
               <option value="draft">Draft</option>
               <option value="open">Open (live)</option>
               <option value="closed">Closed</option>
+              <option value="cancelled">Cancelled</option>
               <option value="archived">Archived</option>
             </select>
           </div>
-          <div className="md:col-span-2">
+          <div>
+            <label className="mb-1 block text-sm font-medium text-slate-700">Publish date</label>
+            <input
+              type="datetime-local"
+              name="publishedAt"
+              defaultValue={publishedValue}
+              className="w-full rounded-lg border border-slate-300 px-3 py-2"
+            />
+            <p className="mt-1 text-xs text-slate-500">Leave blank to use the current time when first published.</p>
+          </div>
+          <div>
             <label className="mb-1 block text-sm font-medium text-slate-700">Closing date</label>
             <input
               type="datetime-local"
@@ -212,6 +234,62 @@ export function TenderForm({
           </div>
         </div>
       </div>
+
+      {(status === "cancelled" || tender?.status === "cancelled") && (
+        <div className="rounded-xl border border-red-200 bg-red-50/40 p-6 shadow-sm">
+          <h2 className="mb-4 text-lg font-semibold text-slate-900">Cancellation notice</h2>
+          <div className="grid gap-4">
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-700">Notice (English)</label>
+              <textarea
+                name="cancellationNoticeEn"
+                rows={4}
+                defaultValue={tender?.cancellation_notice_en ?? ""}
+                placeholder="Official cancellation notice text…"
+                className="w-full rounded-lg border border-slate-300 px-3 py-2"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-700">Notice (Hindi)</label>
+              <textarea
+                name="cancellationNoticeHi"
+                rows={4}
+                defaultValue={tender?.cancellation_notice_hi ?? ""}
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 font-hindi"
+              />
+            </div>
+            {cancellationDocUrl && tender?.cancellation_document_name && !removeCancellationDoc && (
+              <div className="rounded-lg border border-slate-200 bg-white px-4 py-3">
+                <p className="text-sm font-medium text-slate-700">Current cancellation document</p>
+                <a
+                  href={cancellationDocUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-1 inline-block text-sm text-emerald-800 underline"
+                >
+                  {tender.cancellation_document_name}
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setRemoveCancellationDoc(true)}
+                  className="ml-4 text-sm text-red-600 hover:underline"
+                >
+                  Remove
+                </button>
+              </div>
+            )}
+            {removeCancellationDoc && (
+              <p className="text-sm text-amber-800">Cancellation document will be removed on save.</p>
+            )}
+            <AdminFileUploadField
+              name="cancellationDocument"
+              accept=".pdf,.doc,.docx,application/pdf"
+              label="Upload cancellation document"
+              hint="PDF or Word document (optional)"
+            />
+          </div>
+        </div>
+      )}
 
       <div className="flex items-center gap-3">
         <button

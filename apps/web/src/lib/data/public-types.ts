@@ -57,6 +57,11 @@ export interface PublicTenderItem {
   closingDate: string | null;
   publishedAt: string | null;
   departmentName: string | null;
+  departmentId: string | null;
+  cancelledAt: string | null;
+  cancellationNoticeEn: string | null;
+  cancellationNoticeHi: string | null;
+  cancellationDocument: { path: string; name: string; url: string | null } | null;
   documents: { path: string; name: string; url: string | null }[];
   corrigenda: {
     id: string;

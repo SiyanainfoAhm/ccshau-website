@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { writeAuditLog } from "@/lib/auth/audit";
-import { isSuperAdminSession } from "@/lib/auth/college-scope";
+import { canDeletePages, canEditPages, isSuperAdminSession } from "@/lib/auth/college-scope";
 import { requireAdminSession, requireAdminWithRoles } from "@/lib/auth/session";
 import { Tables } from "@/lib/database/names";
 import {
@@ -26,7 +26,6 @@ import {
   updateDepartmentSchema,
   updateFacultySchema,
 } from "@/lib/validations/college-register";
-import { canDeletePages } from "@/lib/auth/college-scope";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function getCollegesForRegisterForm() {
@@ -77,6 +76,9 @@ export async function registerDepartmentAction(
 ): Promise<ActionResult<{ id: string; slug: string }>> {
   try {
     const session = await requireRegisterSession();
+    if (!canEditPages(session)) {
+      return fail("You do not have permission to add departments.");
+    }
     if (!isSuperAdminSession(session) && !session.collegeAssignment) {
       return fail("College staff cannot create departments without an assignment.");
     }
@@ -152,6 +154,9 @@ export async function registerFacultyAction(
 ): Promise<ActionResult<{ id: string; detailPath: string | null }>> {
   try {
     const session = await requireRegisterSession();
+    if (!canEditPages(session)) {
+      return fail("You do not have permission to add faculty.");
+    }
     const parsed = registerFacultySchema.safeParse({
       departmentPageId: formData.get("departmentPageId"),
       memberType: formData.get("memberType"),
@@ -288,6 +293,9 @@ export async function updateDepartmentAction(
 ): Promise<ActionResult<{ id: string }>> {
   try {
     const session = await requireRegisterSession();
+    if (!canEditPages(session)) {
+      return fail("You do not have permission to edit departments.");
+    }
     const parsed = updateDepartmentSchema.safeParse({
       titleEn: formData.get("titleEn"),
       titleHi: formData.get("titleHi") || undefined,
@@ -419,6 +427,9 @@ export async function updateFacultyAction(
 ): Promise<ActionResult<{ id: string; detailPath: string | null }>> {
   try {
     const session = await requireRegisterSession();
+    if (!canEditPages(session)) {
+      return fail("You do not have permission to edit faculty.");
+    }
     const parsed = updateFacultySchema.safeParse({
       departmentPageId: formData.get("departmentPageId"),
       memberType: formData.get("memberType"),

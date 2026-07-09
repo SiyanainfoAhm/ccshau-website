@@ -23,6 +23,13 @@ import {
   uploadHomepageDignitaryImage,
   uploadHomepageInitiativeImage,
 } from "@/lib/storage/upload";
+import {
+  emptyPaginatedResult,
+  mergeAdminListOptions,
+  runPaginatedQuery,
+  type AdminListOptions,
+} from "@/lib/data/admin-list";
+import type { PaginatedResult } from "@/lib/data/pagination";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
@@ -112,16 +119,23 @@ function parseInitiativeForm(formData: FormData) {
 
 // --- Quotes ---
 
-export async function listHomepageQuotesForAdmin(): Promise<HomepageQuote[]> {
+const HOMEPAGE_QUOTES_SORTS = ["author_en", "sort_order", "is_active", "created_at"] as const;
+
+export async function listHomepageQuotesForAdmin(
+  options: AdminListOptions = {},
+): Promise<PaginatedResult<HomepageQuote>> {
+  const opts = mergeAdminListOptions(options, {
+    sortBy: "sort_order",
+    sortOrder: "asc",
+    allowedSorts: HOMEPAGE_QUOTES_SORTS,
+  });
+
   await requireAdminSession();
   const admin = createAdminClient();
-  if (!admin) return [];
-  const { data } = await admin
-    .from(Tables.homepageQuotes)
-    .select("*")
-    .order("sort_order")
-    .order("author_en");
-  return (data ?? []) as HomepageQuote[];
+  if (!admin) return emptyPaginatedResult(opts);
+
+  const query = admin.from(Tables.homepageQuotes).select("*", { count: "exact" });
+  return runPaginatedQuery<HomepageQuote>(query, opts);
 }
 
 export async function getHomepageQuoteById(id: string): Promise<HomepageQuote | null> {
@@ -247,16 +261,23 @@ export async function deleteHomepageQuoteAction(id: string): Promise<ActionResul
 
 // --- Dignitaries ---
 
-export async function listHomepageDignitariesForAdmin(): Promise<HomepageDignitary[]> {
+const HOMEPAGE_DIGNITARIES_SORTS = ["name_en", "role_en", "sort_order", "is_active"] as const;
+
+export async function listHomepageDignitariesForAdmin(
+  options: AdminListOptions = {},
+): Promise<PaginatedResult<HomepageDignitary>> {
+  const opts = mergeAdminListOptions(options, {
+    sortBy: "sort_order",
+    sortOrder: "asc",
+    allowedSorts: HOMEPAGE_DIGNITARIES_SORTS,
+  });
+
   await requireAdminSession();
   const admin = createAdminClient();
-  if (!admin) return [];
-  const { data } = await admin
-    .from(Tables.homepageDignitaries)
-    .select("*")
-    .order("sort_order")
-    .order("name_en");
-  return (data ?? []) as HomepageDignitary[];
+  if (!admin) return emptyPaginatedResult(opts);
+
+  const query = admin.from(Tables.homepageDignitaries).select("*", { count: "exact" });
+  return runPaginatedQuery<HomepageDignitary>(query, opts);
 }
 
 export async function getHomepageDignitaryById(id: string): Promise<HomepageDignitary | null> {
@@ -422,16 +443,23 @@ export async function deleteHomepageDignitaryAction(id: string): Promise<ActionR
 
 // --- Initiatives (Flagships) ---
 
-export async function listHomepageInitiativesForAdmin(): Promise<HomepageInitiative[]> {
+const HOMEPAGE_INITIATIVES_SORTS = ["title_en", "sort_order", "is_active", "created_at"] as const;
+
+export async function listHomepageInitiativesForAdmin(
+  options: AdminListOptions = {},
+): Promise<PaginatedResult<HomepageInitiative>> {
+  const opts = mergeAdminListOptions(options, {
+    sortBy: "sort_order",
+    sortOrder: "asc",
+    allowedSorts: HOMEPAGE_INITIATIVES_SORTS,
+  });
+
   await requireAdminSession();
   const admin = createAdminClient();
-  if (!admin) return [];
-  const { data } = await admin
-    .from(Tables.homepageInitiatives)
-    .select("*")
-    .order("sort_order")
-    .order("title_en");
-  return (data ?? []) as HomepageInitiative[];
+  if (!admin) return emptyPaginatedResult(opts);
+
+  const query = admin.from(Tables.homepageInitiatives).select("*", { count: "exact" });
+  return runPaginatedQuery<HomepageInitiative>(query, opts);
 }
 
 export async function getHomepageInitiativeById(id: string): Promise<HomepageInitiative | null> {

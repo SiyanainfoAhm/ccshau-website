@@ -9,28 +9,43 @@ import { Tables } from "@/lib/database/names";
 import type { Feedback, FeedbackStatus } from "@/lib/database/types";
 import { fail, ok, type ActionResult } from "@/lib/types/action-result";
 import { feedbackUpdateSchema } from "@/lib/validations/feedback";
+import { emptyPaginatedResult, mergeAdminListOptions, runPaginatedQuery, type AdminListOptions } from "@/lib/data/admin-list";
+import type { PaginatedResult } from "@/lib/data/pagination";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const FEEDBACK_UPDATE_ROLES = ["super_admin", "dept_admin", "editor"] as const;
 
 export { listDepartments };
 
-export async function listFeedbackForAdmin(status?: FeedbackStatus): Promise<Feedback[]> {
+const FEEDBACK_LIST_SORTS = [
+  "ticket_number",
+  "subject",
+  "submitter_name",
+  "category",
+  "status",
+  "created_at",
+] as const;
+
+export async function listFeedbackForAdmin(
+  status?: FeedbackStatus,
+  options: AdminListOptions = {},
+): Promise<PaginatedResult<Feedback>> {
+  const opts = mergeAdminListOptions(options, {
+    sortBy: "created_at",
+    sortOrder: "desc",
+    allowedSorts: FEEDBACK_LIST_SORTS,
+  });
+
   await requireAdminSession();
   const admin = createAdminClient();
-  if (!admin) return [];
+  if (!admin) return emptyPaginatedResult(opts);
 
-  let query = admin
-    .from(Tables.feedback)
-    .select("*")
-    .order("created_at", { ascending: false });
-
+  let query = admin.from(Tables.feedback).select("*", { count: "exact" });
   if (status) {
     query = query.eq("status", status);
   }
 
-  const { data } = await query;
-  return (data ?? []) as Feedback[];
+  return runPaginatedQuery<Feedback>(query, opts);
 }
 
 export async function getFeedbackById(id: string): Promise<Feedback | null> {

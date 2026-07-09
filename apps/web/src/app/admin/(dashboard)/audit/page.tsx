@@ -2,14 +2,19 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 
 import { listAuditLogs } from "@/actions/audit";
+import { AdminListFooter } from "@/components/admin/admin-list-footer";
+import { AdminSortableTh } from "@/components/admin/admin-sortable-th";
 import { AuditLogFilters } from "@/components/admin/audit-log-filters";
 import { requireAdminSession } from "@/lib/auth/session";
+import { parseAdminListParams } from "@/lib/data/admin-list";
 import type { AuditAction } from "@/lib/database/types";
+
+const AUDIT_SORTS = ["created_at", "action", "entity_type"] as const;
 
 export default async function AdminAuditPage({
   searchParams,
 }: {
-  searchParams: Promise<{ action?: string; entityType?: string }>;
+  searchParams: Promise<Record<string, string | undefined>>;
 }) {
   const session = await requireAdminSession();
   if (!session.roles.some((r) => r.role === "super_admin")) {
@@ -17,10 +22,20 @@ export default async function AdminAuditPage({
   }
 
   const params = await searchParams;
-  const logs = await listAuditLogs({
+  const listParams = parseAdminListParams(params, {
+    sortBy: "created_at",
+    sortOrder: "desc",
+    allowedSorts: AUDIT_SORTS,
+  });
+  const data = await listAuditLogs({
     action: params.action as AuditAction | undefined,
     entityType: params.entityType || undefined,
+    page: listParams.page,
+    pageSize: listParams.pageSize,
+    sortBy: listParams.sortBy,
+    sortOrder: listParams.sortOrder,
   });
+  const logs = data.items;
 
   return (
     <div className="space-y-6">
@@ -38,13 +53,15 @@ export default async function AdminAuditPage({
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         <table className="min-w-full divide-y divide-slate-200 text-sm">
           <thead className="bg-slate-50">
-            <tr>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Time</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">User</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Action</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Entity</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Details</th>
-            </tr>
+            <Suspense fallback={<tr><th className="px-4 py-3">Time</th></tr>}>
+              <tr>
+                <AdminSortableTh label="Time" column="created_at" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
+                <th className="px-4 py-3 text-left font-semibold text-slate-700">User</th>
+                <AdminSortableTh label="Action" column="action" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
+                <AdminSortableTh label="Entity" column="entity_type" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
+                <th className="px-4 py-3 text-left font-semibold text-slate-700">Details</th>
+              </tr>
+            </Suspense>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {logs.length === 0 ? (
@@ -81,6 +98,7 @@ export default async function AdminAuditPage({
             )}
           </tbody>
         </table>
+        <AdminListFooter data={data} />
       </div>
     </div>
   );

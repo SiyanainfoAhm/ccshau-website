@@ -14,10 +14,14 @@ export function FacultyRegisterPage({
   college,
   departments,
   faculty,
+  canEdit = true,
+  canDelete = true,
 }: {
   college: CollegeOption;
   departments: DepartmentOption[];
   faculty: FacultyListItem[];
+  canEdit?: boolean;
+  canDelete?: boolean;
 }) {
   const router = useRouter();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -42,20 +46,26 @@ export function FacultyRegisterPage({
             ← {college.title_en}
           </Link>
           <h1 className="mt-2 font-display text-2xl font-bold text-slate-900">Faculty</h1>
-          <p className="text-sm text-slate-500">View, edit, or delete HOD and faculty for {college.title_en}.</p>
+          <p className="text-sm text-slate-500">
+            {canEdit
+              ? `View, edit, or delete HOD and faculty for ${college.title_en}.`
+              : `View HOD and faculty for ${college.title_en}.`}
+          </p>
         </div>
-        <button
-          type="button"
-          onClick={openDialog}
-          disabled={departments.length === 0}
-          className="inline-flex items-center gap-2 rounded-lg bg-[#0b3d2e] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#0d4a38] disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          <Plus className="h-4 w-4" aria-hidden />
-          Add new
-        </button>
+        {canEdit && (
+          <button
+            type="button"
+            onClick={openDialog}
+            disabled={departments.length === 0}
+            className="inline-flex items-center gap-2 rounded-lg bg-[#0b3d2e] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#0d4a38] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <Plus className="h-4 w-4" aria-hidden />
+            Add new
+          </button>
+        )}
       </div>
 
-      {departments.length === 0 && (
+      {canEdit && departments.length === 0 && (
         <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
           Register a department first before adding faculty.{" "}
           <Link href={`${collegeBase}/department`} className="font-medium underline">
@@ -64,8 +74,14 @@ export function FacultyRegisterPage({
         </p>
       )}
 
-      <FacultyRegisterList faculty={faculty} collegePageId={college.id} />
+      <FacultyRegisterList
+        faculty={faculty}
+        collegePageId={college.id}
+        canEdit={canEdit}
+        canDelete={canDelete}
+      />
 
+      {canEdit && (
       <AdminDialog
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}
@@ -81,6 +97,7 @@ export function FacultyRegisterPage({
           onSuccess={handleSuccess}
         />
       </AdminDialog>
+      )}
     </div>
   );
 }

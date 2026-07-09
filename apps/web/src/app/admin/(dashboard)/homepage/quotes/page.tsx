@@ -1,12 +1,30 @@
+import { Suspense } from "react";
+
 import Link from "next/link";
 import { Plus } from "lucide-react";
 
 import { listHomepageQuotesForAdmin } from "@/actions/homepage";
+import { AdminListFooter } from "@/components/admin/admin-list-footer";
+import { AdminSortableTh } from "@/components/admin/admin-sortable-th";
 import { requireAdminSession } from "@/lib/auth/session";
+import { parseAdminListParams } from "@/lib/data/admin-list";
 
-export default async function AdminHomepageQuotesPage() {
+const QUOTES_SORTS = ["author_en", "sort_order", "is_active"] as const;
+
+export default async function AdminHomepageQuotesPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>;
+}) {
   await requireAdminSession();
-  const items = await listHomepageQuotesForAdmin();
+  const params = await searchParams;
+  const listParams = parseAdminListParams(params, {
+    sortBy: "sort_order",
+    sortOrder: "asc",
+    allowedSorts: QUOTES_SORTS,
+  });
+  const data = await listHomepageQuotesForAdmin(listParams);
+  const items = data.items;
 
   return (
     <div className="space-y-6">
@@ -27,12 +45,14 @@ export default async function AdminHomepageQuotesPage() {
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         <table className="min-w-full divide-y divide-slate-200 text-sm">
           <thead className="bg-slate-50">
-            <tr>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Author</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Quote</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Order</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Active</th>
-            </tr>
+            <Suspense fallback={<tr><th className="px-4 py-3">Author</th></tr>}>
+              <tr>
+                <AdminSortableTh label="Author" column="author_en" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
+                <th className="px-4 py-3 text-left font-semibold text-slate-700">Quote</th>
+                <AdminSortableTh label="Order" column="sort_order" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
+                <AdminSortableTh label="Active" column="is_active" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
+              </tr>
+            </Suspense>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {items.length === 0 ? (
@@ -60,6 +80,7 @@ export default async function AdminHomepageQuotesPage() {
             )}
           </tbody>
         </table>
+        <AdminListFooter data={data} />
       </div>
 
       <Link href="/admin/homepage" className="text-sm text-emerald-700 hover:underline">

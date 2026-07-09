@@ -22,8 +22,12 @@ export const tenderFormSchema = z.object({
   descriptionHi: z.string().optional(),
   category: z.string().optional(),
   departmentId: z.string().uuid().optional().or(z.literal("")),
-  status: z.enum(["draft", "open", "closed", "archived"]),
+  status: z.enum(["draft", "open", "closed", "cancelled", "archived"]),
+  publishedAt: z.string().optional(),
   closingDate: z.string().optional(),
+  cancellationNoticeEn: z.string().optional(),
+  cancellationNoticeHi: z.string().optional(),
+  removeCancellationDocument: z.enum(["true", "false"]).optional(),
   removedDocuments: z.string().optional(),
 });
 
@@ -33,3 +37,8 @@ export const corrigendumFormSchema = z.object({
 });
 
 export type TenderFormInput = z.infer<typeof tenderFormSchema>;
+
+export function formatTenderCategory(category: string | null | undefined): string {
+  if (!category) return "—";
+  return category.charAt(0).toUpperCase() + category.slice(1);
+}

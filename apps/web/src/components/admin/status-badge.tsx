@@ -5,6 +5,7 @@ const styles: Record<string, string> = {
   archived: "bg-slate-200 text-slate-600",
   open: "bg-emerald-100 text-emerald-800",
   closed: "bg-amber-100 text-amber-800",
+  cancelled: "bg-red-100 text-red-800",
   new: "bg-sky-100 text-sky-800",
   in_progress: "bg-violet-100 text-violet-800",
   resolved: "bg-emerald-100 text-emerald-800",
