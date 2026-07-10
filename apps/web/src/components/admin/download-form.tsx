@@ -7,6 +7,7 @@ import { useState, useTransition } from "react";
 import { createDownloadAction, updateDownloadAction } from "@/actions/downloads";
 import { AdminFileUploadField } from "@/components/admin/admin-file-upload-field";
 import type { Download } from "@/lib/database/types";
+import { contentStatusOptions } from "@/lib/auth/content-status-options";
 import { getStoredFileUrl } from "@/lib/storage/upload";
 import { DOWNLOAD_CATEGORIES } from "@/lib/validations/downloads";
 
@@ -18,9 +19,11 @@ interface Department {
 export function DownloadForm({
   departments,
   download,
+  canPublish = true,
 }: {
   departments: Department[];
   download?: Download;
+  canPublish?: boolean;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -142,10 +145,11 @@ export function DownloadForm({
             defaultValue={download?.status ?? "draft"}
             className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
           >
-            <option value="draft">Draft</option>
-            <option value="pending_review">Pending review</option>
-            <option value="published">Published</option>
-            <option value="archived">Archived</option>
+            {contentStatusOptions(canPublish).map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
           </select>
         </label>
         <label className="block text-sm">

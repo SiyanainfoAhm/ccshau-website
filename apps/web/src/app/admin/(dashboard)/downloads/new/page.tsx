@@ -2,11 +2,11 @@ import Link from "next/link";
 
 import { listDepartments } from "@/actions/downloads";
 import { DownloadForm } from "@/components/admin/download-form";
-import { CONTENT_EDIT_ROLES } from "@/lib/auth/cms-roles";
+import { CONTENT_EDIT_ROLES, canPublishContent } from "@/lib/auth/cms-roles";
 import { requireAdminWithRolesOrRedirect } from "@/lib/auth/session";
 
 export default async function AdminNewDownloadPage() {
-  await requireAdminWithRolesOrRedirect([...CONTENT_EDIT_ROLES]);
+  const session = await requireAdminWithRolesOrRedirect([...CONTENT_EDIT_ROLES]);
   const departments = await listDepartments();
 
   return (
@@ -17,7 +17,7 @@ export default async function AdminNewDownloadPage() {
         </Link>
         <h1 className="mt-2 font-display text-2xl font-bold text-slate-900">New download</h1>
       </div>
-      <DownloadForm departments={departments} />
+      <DownloadForm departments={departments} canPublish={canPublishContent(session)} />
     </div>
   );
 }

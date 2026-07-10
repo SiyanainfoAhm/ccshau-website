@@ -8,6 +8,7 @@ import { createNewsAction, updateNewsAction } from "@/actions/news";
 import { AdminFileUploadField } from "@/components/admin/admin-file-upload-field";
 import { AttachmentList, useAttachmentRemovals } from "@/components/admin/attachment-list";
 import type { NewsItem } from "@/lib/database/types";
+import { contentStatusOptions } from "@/lib/auth/content-status-options";
 import { NEWS_CATEGORIES } from "@/lib/validations/news";
 import { slugify } from "@/lib/utils/slug";
 
@@ -20,9 +21,11 @@ interface Department {
 export function NewsForm({
   departments,
   news,
+  canPublish = true,
 }: {
   departments: Department[];
   news?: NewsItem;
+  canPublish?: boolean;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -199,10 +202,11 @@ export function NewsForm({
               defaultValue={news?.status ?? "draft"}
               className="w-full rounded-lg border border-slate-300 px-3 py-2"
             >
-              <option value="draft">Draft</option>
-              <option value="pending_review">Pending review</option>
-              <option value="published">Published</option>
-              <option value="archived">Archived</option>
+              {contentStatusOptions(canPublish).map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </select>
           </div>
           <div>

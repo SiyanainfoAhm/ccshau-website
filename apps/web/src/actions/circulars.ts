@@ -7,6 +7,7 @@ import { writeAuditLog } from "@/lib/auth/audit";
 import {
   canPublishContent,
   CONTENT_EDIT_ROLES,
+  isUniversityWideCmsSession,
 } from "@/lib/auth/cms-roles";
 import { requireAdminSession, requireAdminWithRoles } from "@/lib/auth/session";
 import { Tables } from "@/lib/database/names";
@@ -48,6 +49,20 @@ function toRow(input: ReturnType<typeof circularFormSchema.parse>, userId: strin
   };
 }
 
+async function assertCircularAccess(
+  session: Awaited<ReturnType<typeof requireAdminSession>>,
+  circular: Pick<Circular, "department_id">,
+): Promise<ActionResult | null> {
+  if (
+    !isUniversityWideCmsSession(session) &&
+    session.departmentId &&
+    circular.department_id !== session.departmentId
+  ) {
+    return fail("You do not have access to this circular.");
+  }
+  return null;
+}
+
 const CIRCULARS_LIST_SORTS = [
   "title_en",
   "circular_number",
@@ -65,20 +80,35 @@ export async function listCircularsForAdmin(
     allowedSorts: CIRCULARS_LIST_SORTS,
   });
 
-  await requireAdminSession();
+  const session = await requireAdminSession();
   const admin = createAdminClient();
   if (!admin) return emptyPaginatedResult(opts);
 
-  const query = admin.from(Tables.circulars).select("*", { count: "exact" });
+  let query = admin.from(Tables.circulars).select("*", { count: "exact" });
+
+  if (!isUniversityWideCmsSession(session) && session.departmentId) {
+    query = query.eq("department_id", session.departmentId);
+  }
+
   return runPaginatedQuery<Circular>(query, opts);
 }
 
 export async function getCircularById(id: string): Promise<Circular | null> {
-  await requireAdminSession();
+  const session = await requireAdminSession();
   const admin = createAdminClient();
   if (!admin) return null;
   const { data } = await admin.from(Tables.circulars).select("*").eq("id", id).maybeSingle();
-  return (data as Circular) ?? null;
+  if (!data) return null;
+
+  if (
+    !isUniversityWideCmsSession(session) &&
+    session.departmentId &&
+    data.department_id !== session.departmentId
+  ) {
+    return null;
+  }
+
+  return data as Circular;
 }
 
 export async function createCircularAction(formData: FormData): Promise<ActionResult<{ id: string }>> {
@@ -154,6 +184,9 @@ export async function updateCircularAction(id: string, formData: FormData): Prom
     const existing = await getCircularById(id);
     if (!existing) return fail("Circular not found.");
 
+    const accessError = await assertCircularAccess(session, existing);
+    if (accessError) return accessError;
+
     let filePath = existing.file_path;
     let fileName = existing.file_name;
     let fileSize = existing.file_size;
@@ -218,6 +251,10 @@ export async function deleteCircularAction(id: string): Promise<ActionResult> {
 
     const existing = await getCircularById(id);
     if (!existing) return fail("Circular not found.");
+
+    const accessError = await assertCircularAccess(session, existing);
+    if (accessError) return accessError;
+
     if (existing.file_path) await removeStorageObjects(admin, [existing.file_path]);
 
     const { error } = await admin.from(Tables.circulars).delete().eq("id", id);

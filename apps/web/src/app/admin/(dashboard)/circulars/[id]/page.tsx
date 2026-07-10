@@ -40,7 +40,12 @@ export default async function AdminEditCircularPage({
       {showReview ? (
         <ContentReviewPanel entityType="circular" entityId={id} title={circular.title_en} />
       ) : null}
-      <CircularForm departments={departments} circular={circular} canEdit={canEdit} />
+      <CircularForm
+        departments={departments}
+        circular={circular}
+        canEdit={canEdit}
+        canPublish={canPublishContent(session)}
+      />
     </div>
   );
 }

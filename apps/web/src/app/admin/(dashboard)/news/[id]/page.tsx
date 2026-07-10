@@ -36,7 +36,11 @@ export default async function EditNewsPage({ params }: { params: Promise<{ id: s
       ) : null}
 
       {canEdit ? (
-        <NewsForm departments={departments} news={news} />
+        <NewsForm
+          departments={departments}
+          news={news}
+          canPublish={canPublishContent(session)}
+        />
       ) : (
         <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="flex flex-wrap items-center gap-3">

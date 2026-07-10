@@ -1,5 +1,6 @@
 import { listAllPagesForAdmin, listDepartments } from "@/actions/pages";
 import { PageForm } from "@/components/admin/page-form";
+import { canPublishContent } from "@/lib/auth/cms-roles";
 import { canCreateCollegeRoot, canEditPages } from "@/lib/auth/college-scope";
 import { requireAdminSession } from "@/lib/auth/session";
 import { buildAdminParentPageOptions } from "@/lib/pages/resolve-public-path";
@@ -27,6 +28,7 @@ export default async function NewPagePage() {
         departments={departments}
         parentPages={parentPages}
         allowCollegeRoot={canCreateCollegeRoot(session)}
+        canPublish={canPublishContent(session)}
       />
     </div>
   );

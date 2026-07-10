@@ -7,6 +7,7 @@ import { useState, useTransition } from "react";
 import { createCircularAction, updateCircularAction } from "@/actions/circulars";
 import { AdminFileUploadField } from "@/components/admin/admin-file-upload-field";
 import type { Circular } from "@/lib/database/types";
+import { contentStatusOptions } from "@/lib/auth/content-status-options";
 import { getStoredFileUrl } from "@/lib/storage/upload";
 
 interface Department {
@@ -18,10 +19,12 @@ export function CircularForm({
   departments,
   circular,
   canEdit = true,
+  canPublish = true,
 }: {
   departments: Department[];
   circular?: Circular;
   canEdit?: boolean;
+  canPublish?: boolean;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -122,10 +125,11 @@ export function CircularForm({
           disabled={!canEdit}
           className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 disabled:bg-slate-50"
         >
-          <option value="draft">Draft</option>
-          <option value="pending_review">Pending review</option>
-          <option value="published">Published</option>
-          <option value="archived">Archived</option>
+          {contentStatusOptions(canPublish).map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
         </select>
       </label>
 

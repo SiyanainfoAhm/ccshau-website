@@ -52,7 +52,11 @@ export default async function AdminEditDownloadPage({
       ) : null}
       {canEdit ? (
         <>
-          <DownloadForm departments={departments} download={download} />
+          <DownloadForm
+            departments={departments}
+            download={download}
+            canPublish={canPublishContent(session)}
+          />
           <DownloadVersionPanel versions={versions} />
         </>
       ) : (
