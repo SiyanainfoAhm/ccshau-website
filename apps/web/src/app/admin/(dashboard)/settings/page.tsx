@@ -7,6 +7,7 @@ import { requireAdminSession } from "@/lib/auth/session";
 export default async function AdminSettingsPage() {
   const session = await requireAdminSession();
   const isSuperAdmin = session.roles.some((r) => r.role === "super_admin");
+  const isUniversityAdmin = session.roles.some((r) => r.role === "university_admin");
   const isDeptAdmin = session.roles.some((r) => r.role === "dept_admin");
   const securitySettings = isSuperAdmin ? await getSecuritySettingsForAdmin() : null;
 
@@ -36,7 +37,7 @@ export default async function AdminSettingsPage() {
           <p className="font-semibold text-slate-900">Related links</p>
           <p className="mt-1 text-sm text-slate-500">Homepage partner and institutional links</p>
         </Link>
-        {(isSuperAdmin || isDeptAdmin) && (
+        {(isSuperAdmin || isUniversityAdmin || isDeptAdmin) && (
           <Link
             href="/admin/redirects"
             className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm hover:border-emerald-300"

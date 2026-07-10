@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { writeAuditLog } from "@/lib/auth/audit";
-import { assertPageAccess } from "@/lib/auth/college-scope";
+import { assertPageAccess } from "@/lib/auth/college-scope-server";
 import { requireAdminSession, requirePageEditSession } from "@/lib/auth/session";
 import { Tables } from "@/lib/database/names";
 import type {

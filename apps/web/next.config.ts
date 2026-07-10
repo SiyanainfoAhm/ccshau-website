@@ -1,10 +1,20 @@
 import type { NextConfig } from "next";
+import { resolve } from "path";
 
 const supabaseHostname = process.env.NEXT_PUBLIC_SUPABASE_URL
   ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname
   : null;
 
 const nextConfig: NextConfig = {
+  outputFileTracingRoot: resolve(__dirname),
+  // Circulars, tenders, downloads, etc. upload PDFs via Server Actions (default limit is 1 MB).
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "26mb",
+    },
+    // Middleware/proxy buffers multipart bodies before Server Actions; default is 10 MB.
+    proxyClientMaxBodySize: "26mb",
+  },
   async redirects() {
     return [
       { source: "/index.aspx", destination: "/", permanent: true },

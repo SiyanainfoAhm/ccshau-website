@@ -1,7 +1,10 @@
+import dns from "node:dns";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
 import { getPublicSupabaseEnv } from "./env";
+
+dns.setDefaultResultOrder("ipv4first");
 
 export async function createClient() {
   const env = getPublicSupabaseEnv();

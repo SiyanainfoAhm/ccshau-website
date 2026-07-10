@@ -6,6 +6,7 @@ import { Plus } from "lucide-react";
 import { listRedirectsForAdmin } from "@/actions/redirects";
 import { AdminListFooter } from "@/components/admin/admin-list-footer";
 import { AdminSortableTh } from "@/components/admin/admin-sortable-th";
+import { SETTINGS_ACCESS_ROLES } from "@/lib/auth/cms-roles";
 import { requireAdminWithRolesOrRedirect } from "@/lib/auth/session";
 import { parseAdminListParams } from "@/lib/data/admin-list";
 
@@ -16,7 +17,7 @@ export default async function AdminRedirectsPage({
 }: {
   searchParams: Promise<Record<string, string | undefined>>;
 }) {
-  await requireAdminWithRolesOrRedirect(["super_admin", "dept_admin"]);
+  await requireAdminWithRolesOrRedirect([...SETTINGS_ACCESS_ROLES]);
   const params = await searchParams;
   const listParams = parseAdminListParams(params, {
     sortBy: "legacy_path",

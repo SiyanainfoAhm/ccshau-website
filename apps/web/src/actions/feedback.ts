@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { listDepartments } from "@/actions/pages";
 import { writeAuditLog } from "@/lib/auth/audit";
+import { CONTENT_EDIT_ROLES } from "@/lib/auth/cms-roles";
 import { requireAdminSession, requireAdminWithRoles } from "@/lib/auth/session";
 import { Tables } from "@/lib/database/names";
 import type { Feedback, FeedbackStatus } from "@/lib/database/types";
@@ -12,8 +13,6 @@ import { feedbackUpdateSchema } from "@/lib/validations/feedback";
 import { emptyPaginatedResult, mergeAdminListOptions, runPaginatedQuery, type AdminListOptions } from "@/lib/data/admin-list";
 import type { PaginatedResult } from "@/lib/data/pagination";
 import { createAdminClient } from "@/lib/supabase/admin";
-
-const FEEDBACK_UPDATE_ROLES = ["super_admin", "dept_admin", "editor"] as const;
 
 export { listDepartments };
 
@@ -26,8 +25,21 @@ const FEEDBACK_LIST_SORTS = [
   "created_at",
 ] as const;
 
+export interface FeedbackListFilters {
+  status?: FeedbackStatus;
+  q?: string;
+  from?: string;
+  to?: string;
+}
+
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+function escapeIlikeTerm(value: string): string {
+  return value.replace(/[%_\\]/g, "");
+}
+
 export async function listFeedbackForAdmin(
-  status?: FeedbackStatus,
+  filters: FeedbackListFilters = {},
   options: AdminListOptions = {},
 ): Promise<PaginatedResult<Feedback>> {
   const opts = mergeAdminListOptions(options, {
@@ -41,8 +53,23 @@ export async function listFeedbackForAdmin(
   if (!admin) return emptyPaginatedResult(opts);
 
   let query = admin.from(Tables.feedback).select("*", { count: "exact" });
-  if (status) {
-    query = query.eq("status", status);
+  if (filters.status) {
+    query = query.eq("status", filters.status);
+  }
+
+  const nameQuery = filters.q?.trim();
+  if (nameQuery) {
+    const term = escapeIlikeTerm(nameQuery);
+    if (term) {
+      query = query.ilike("submitter_name", `%${term}%`);
+    }
+  }
+
+  if (filters.from && ISO_DATE.test(filters.from)) {
+    query = query.gte("created_at", `${filters.from}T00:00:00.000Z`);
+  }
+  if (filters.to && ISO_DATE.test(filters.to)) {
+    query = query.lte("created_at", `${filters.to}T23:59:59.999Z`);
   }
 
   return runPaginatedQuery<Feedback>(query, opts);
@@ -62,7 +89,7 @@ export async function updateFeedbackAction(
   formData: FormData,
 ): Promise<ActionResult> {
   try {
-    const session = await requireAdminWithRoles([...FEEDBACK_UPDATE_ROLES]);
+    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
     const parsed = feedbackUpdateSchema.safeParse({
       status: formData.get("status"),
       category: formData.get("category") || undefined,

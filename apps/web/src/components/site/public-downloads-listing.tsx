@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, Download, FileText, Search } from "lucide-react";
+import { ArrowLeft, Download, FileText, Search, Tag } from "lucide-react";
 import { useState } from "react";
 
 import { SiteFooter } from "@/components/design/shared/site-footer";
@@ -19,7 +19,7 @@ import {
   publicMainClass,
   publicSearchInputClass,
 } from "@/lib/design/public-page-classes";
-import { DOWNLOAD_CATEGORIES } from "@/lib/validations/downloads";
+import { DOWNLOAD_CATEGORIES, formatDownloadCategory } from "@/lib/validations/downloads";
 
 const CATEGORY_LABELS: Record<string, string> = {
   forms: "Forms",
@@ -33,32 +33,42 @@ const CATEGORY_LABELS: Record<string, string> = {
 export function PublicDownloadsListing({
   data,
   activeCategory,
+  activeDepartmentId,
+  activeTag,
   initialQuery,
+  departments,
+  tags,
 }: {
   data: PaginatedResult<PublicDownloadItem>;
   activeCategory: string;
+  activeDepartmentId: string;
+  activeTag: string;
   initialQuery: string;
+  departments: { id: string; nameEn: string }[];
+  tags: string[];
 }) {
   const { t } = useLanguage();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState(initialQuery);
 
-  function handleSearch(e: React.FormEvent) {
-    e.preventDefault();
+  function pushFilters(updates: Record<string, string | null>) {
     const params = new URLSearchParams(searchParams.toString());
-    if (query.trim()) params.set("q", query.trim());
-    else params.delete("q");
+    for (const [key, value] of Object.entries(updates)) {
+      if (!value) params.delete(key);
+      else params.set(key, value);
+    }
     params.delete("page");
     router.push(`/downloads?${params.toString()}`);
   }
 
+  function handleSearch(e: React.FormEvent) {
+    e.preventDefault();
+    pushFilters({ q: query.trim() || null });
+  }
+
   function setCategory(cat: string) {
-    const params = new URLSearchParams(searchParams.toString());
-    if (cat === "all") params.delete("category");
-    else params.set("category", cat);
-    params.delete("page");
-    router.push(`/downloads?${params.toString()}`);
+    pushFilters({ category: cat === "all" ? null : cat });
   }
 
   return (
@@ -83,8 +93,8 @@ export function PublicDownloadsListing({
         </div>
 
         <div className="mx-auto max-w-7xl px-4 py-10">
-          <form onSubmit={handleSearch} className="mb-6 flex gap-2">
-            <div className="relative flex-1">
+          <form onSubmit={handleSearch} className="mb-4 flex flex-wrap gap-2">
+            <div className="relative min-w-[220px] flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <input
                 type="search"
@@ -94,6 +104,19 @@ export function PublicDownloadsListing({
                 className={publicSearchInputClass}
               />
             </div>
+            <select
+              value={activeDepartmentId}
+              onChange={(e) => pushFilters({ department: e.target.value || null })}
+              className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
+              aria-label="Filter by department"
+            >
+              <option value="">{t("All departments", "सभी विभाग")}</option>
+              {departments.map((dept) => (
+                <option key={dept.id} value={dept.id}>
+                  {dept.nameEn}
+                </option>
+              ))}
+            </select>
             <button
               type="submit"
               className="rounded-xl bg-[#0b3d2e] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#0d4a38]"
@@ -102,7 +125,7 @@ export function PublicDownloadsListing({
             </button>
           </form>
 
-          <div className="mb-6 flex flex-wrap gap-2">
+          <div className="mb-4 flex flex-wrap gap-2">
             <button
               type="button"
               onClick={() => setCategory("all")}
@@ -130,10 +153,41 @@ export function PublicDownloadsListing({
             ))}
           </div>
 
+          {tags.length > 0 && (
+            <div className="mb-6 flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <Tag className="h-3.5 w-3.5" /> Tags
+              </span>
+              <button
+                type="button"
+                onClick={() => pushFilters({ tag: null })}
+                className={`rounded-full px-3 py-1 text-xs font-medium ${
+                  !activeTag ? publicFilterChipActiveClass : publicFilterChipInactiveClass
+                }`}
+              >
+                All
+              </button>
+              {tags.map((tag) => (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => pushFilters({ tag })}
+                  className={`rounded-full px-3 py-1 text-xs font-medium ${
+                    activeTag === tag
+                      ? publicFilterChipActiveClass
+                      : publicFilterChipInactiveClass
+                  }`}
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
+          )}
+
           <div className="space-y-3">
             {data.items.length === 0 ? (
               <p className={publicEmptyStateClass}>
-                {t("No downloads published yet.", "अभी कोई दस्तावेज़ प्रकाशित नहीं है।")}
+                {t("No downloads match your filters.", "आपके फ़िल्टर से कोई दस्तावेज़ मेल नहीं खाता।")}
               </p>
             ) : (
               data.items.map((item) => (
@@ -148,24 +202,32 @@ export function PublicDownloadsListing({
                         {t(item.titleEn, item.titleHi ?? item.titleEn)}
                       </h2>
                       <p className="mt-1 text-xs text-slate-500">
-                        {item.category ? (CATEGORY_LABELS[item.category] ?? item.category) : "—"}
+                        {item.category ? formatDownloadCategory(item.category) : "—"}
                         {item.version ? ` · v${item.version}` : ""}
                         {item.departmentName ? ` · ${item.departmentName}` : ""}
+                        {item.downloadCount > 0 ? ` · ${item.downloadCount} downloads` : ""}
                       </p>
+                      {item.tags.length > 0 && (
+                        <p className="mt-2 flex flex-wrap gap-1">
+                          {item.tags.map((tag) => (
+                            <span
+                              key={tag}
+                              className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium uppercase text-slate-600"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </p>
+                      )}
                     </div>
                   </div>
-                  {item.fileUrl && (
-                    <a
-                      href={item.fileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      download
-                      className="inline-flex items-center gap-2 rounded-lg bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-800 hover:bg-emerald-100"
-                    >
-                      <Download className="h-4 w-4" />
-                      {t("Download", "डाउनलोड")}
-                    </a>
-                  )}
+                  <a
+                    href={item.downloadUrl}
+                    className="inline-flex items-center gap-2 rounded-lg bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-800 hover:bg-emerald-100"
+                  >
+                    <Download className="h-4 w-4" />
+                    {t("Download", "डाउनलोड")}
+                  </a>
                 </article>
               ))
             )}

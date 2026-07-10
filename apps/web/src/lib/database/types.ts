@@ -11,7 +11,13 @@ export type LayoutTemplate = "college_home" | "office_portal" | "standard";
 
 export type SidebarSide = "left" | "right";
 
-export type UserRole = "super_admin" | "dept_admin" | "editor" | "viewer";
+export type UserRole =
+  | "super_admin"
+  | "university_admin"
+  | "dept_admin"
+  | "editor"
+  | "reviewer"
+  | "viewer";
 
 export type CollegeScopeRole = "college_admin" | "college_editor" | "college_viewer";
 
@@ -316,11 +322,27 @@ export interface Download {
   version: string | null;
   department_id: string | null;
   status: ContentStatus;
+  tags: string[];
+  expires_at: string | null;
+  is_public: boolean;
+  published_at: string | null;
   download_count: number;
   created_by: string | null;
   updated_by: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface DownloadVersion {
+  id: string;
+  download_id: string;
+  version_label: string | null;
+  file_path: string;
+  file_name: string;
+  file_size: number | null;
+  mime_type: string | null;
+  created_by: string | null;
+  created_at: string;
 }
 
 export interface MediaAlbum {

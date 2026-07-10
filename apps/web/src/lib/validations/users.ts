@@ -1,6 +1,19 @@
 import { z } from "zod";
 
-const userRoleEnum = z.enum(["super_admin", "dept_admin", "editor", "viewer"]);
+import {
+  isUniversityWideRole,
+  requiresDepartmentForRole,
+} from "@/lib/auth/cms-roles";
+import type { UserRole } from "@/lib/database/types";
+
+const userRoleEnum = z.enum([
+  "super_admin",
+  "university_admin",
+  "dept_admin",
+  "editor",
+  "reviewer",
+  "viewer",
+]);
 const collegeScopeRoleEnum = z.enum(["college_admin", "college_editor", "college_viewer"]);
 
 export const inviteUserSchema = z
@@ -42,26 +55,28 @@ export const assignRoleSchema = z
     departmentId: z.string().uuid().optional().or(z.literal("")),
   })
   .superRefine((data, ctx) => {
-    if (data.role !== "super_admin" && !data.departmentId) {
+    if (requiresDepartmentForRole(data.role) && !data.departmentId) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "Department is required for this role",
         path: ["departmentId"],
       });
     }
-    if (data.role === "super_admin" && data.departmentId) {
+    if (isUniversityWideRole(data.role) && data.departmentId) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Super admin is not scoped to a department",
+        message: "This role is not scoped to a department",
         path: ["departmentId"],
       });
     }
   });
 
-export const ROLE_LABELS: Record<z.infer<typeof userRoleEnum>, string> = {
+export const ROLE_LABELS: Record<UserRole, string> = {
   super_admin: "Super Admin",
+  university_admin: "University Admin",
   dept_admin: "Department Admin",
   editor: "Content Editor",
+  reviewer: "Reviewer / Approver",
   viewer: "Viewer",
 };
 

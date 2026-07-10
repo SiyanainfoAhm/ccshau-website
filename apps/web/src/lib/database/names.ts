@@ -58,6 +58,7 @@ export const Tables = {
   tenders: ccshauTable("tenders"),
   tenderCorrigenda: ccshauTable("tender_corrigenda"),
   downloads: ccshauTable("downloads"),
+  downloadVersions: ccshauTable("download_versions"),
   mediaAlbums: ccshauTable("media_albums"),
   mediaItems: ccshauTable("media_items"),
   banners: ccshauTable("banners"),
@@ -86,6 +87,8 @@ export const Functions = {
   archiveExpiredTenders: ccshauFunction("archive_expired_tenders"),
   processExpiredTenders: ccshauFunction("process_expired_tenders"),
   archiveExpiredNews: ccshauFunction("archive_expired_news"),
+  archiveExpiredDownloads: ccshauFunction("archive_expired_downloads"),
+  incrementDownloadCount: ccshauFunction("increment_download_count"),
   generateTicketNumber: ccshauFunction("generate_ticket_number"),
   isSuperAdmin: ccshauFunction("is_super_admin"),
 } as const;

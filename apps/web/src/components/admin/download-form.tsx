@@ -25,12 +25,17 @@ export function DownloadForm({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [isPublic, setIsPublic] = useState(download?.is_public ?? true);
 
   const hasFile = Boolean(download?.file_path && download.file_path !== "pending");
   const fileUrl = hasFile ? getStoredFileUrl(download!.file_path!) : null;
+  const expiresValue = download?.expires_at
+    ? new Date(download.expires_at).toISOString().slice(0, 16)
+    : "";
 
   function handleSubmit(formData: FormData) {
     setError(null);
+    formData.set("isPublic", isPublic ? "true" : "false");
 
     startTransition(async () => {
       if (download) {
@@ -92,7 +97,7 @@ export function DownloadForm({
           </select>
         </label>
         <label className="block text-sm">
-          <span className="font-medium text-slate-700">Version</span>
+          <span className="font-medium text-slate-700">Version label</span>
           <input
             name="version"
             defaultValue={download?.version ?? ""}
@@ -101,6 +106,17 @@ export function DownloadForm({
           />
         </label>
       </div>
+
+      <label className="block text-sm">
+        <span className="font-medium text-slate-700">Tags</span>
+        <input
+          name="tags"
+          defaultValue={download?.tags?.join(", ") ?? ""}
+          placeholder="admission, form, ug (comma-separated)"
+          className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
+        />
+        <p className="mt-1 text-xs text-slate-500">Used for search and public tag filters.</p>
+      </label>
 
       <label className="block text-sm">
         <span className="font-medium text-slate-700">Department</span>
@@ -118,19 +134,50 @@ export function DownloadForm({
         </select>
       </label>
 
-      <label className="block text-sm">
-        <span className="font-medium text-slate-700">Status</span>
-        <select
-          name="status"
-          defaultValue={download?.status ?? "draft"}
-          className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
-        >
-          <option value="draft">Draft</option>
-          <option value="pending_review">Pending review</option>
-          <option value="published">Published</option>
-          <option value="archived">Archived</option>
-        </select>
-      </label>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <label className="block text-sm">
+          <span className="font-medium text-slate-700">Workflow status</span>
+          <select
+            name="status"
+            defaultValue={download?.status ?? "draft"}
+            className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
+          >
+            <option value="draft">Draft</option>
+            <option value="pending_review">Pending review</option>
+            <option value="published">Published</option>
+            <option value="archived">Archived</option>
+          </select>
+        </label>
+        <label className="block text-sm">
+          <span className="font-medium text-slate-700">Expiry date</span>
+          <input
+            type="datetime-local"
+            name="expiresAt"
+            defaultValue={expiresValue}
+            className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
+          />
+          <p className="mt-1 text-xs text-slate-500">Auto-archived after this date.</p>
+        </label>
+      </div>
+
+      <fieldset className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+        <legend className="px-1 text-sm font-medium text-slate-700">Public visibility</legend>
+        <label className="mt-2 flex items-start gap-3 text-sm">
+          <input
+            type="checkbox"
+            checked={isPublic}
+            onChange={(e) => setIsPublic(e.target.checked)}
+            className="mt-1"
+          />
+          <span>
+            <span className="font-medium text-slate-900">Public document</span>
+            <span className="mt-0.5 block text-slate-600">
+              When published, anyone can find and download this file on the public downloads page.
+              Uncheck for admin-only internal documents.
+            </span>
+          </span>
+        </label>
+      </fieldset>
 
       <div className="space-y-2">
         <span className="text-sm font-medium text-slate-700">
@@ -162,9 +209,15 @@ export function DownloadForm({
         <AdminFileUploadField
           name="file"
           required={!download}
+          accept=".pdf,.doc,.docx,.xls,.xlsx,application/pdf"
           label={hasFile ? "Replace download file" : "Upload download file"}
-          hint="PDF, Word, Excel, or other document formats"
+          hint="PDF, Word, or Excel — max 25 MB"
         />
+        {hasFile && (
+          <p className="text-xs text-slate-500">
+            Replacing the file keeps the previous version in version history.
+          </p>
+        )}
       </div>
 
       <div className="flex gap-3">

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { writeAuditLog } from "@/lib/auth/audit";
+import { CONTENT_EDIT_ROLES } from "@/lib/auth/cms-roles";
 import { requireAdminSession, requireAdminWithRoles } from "@/lib/auth/session";
 import { Tables } from "@/lib/database/names";
 import type { Banner } from "@/lib/database/types";
@@ -12,8 +13,6 @@ import { bannerFormSchema } from "@/lib/validations/banners";
 import { emptyPaginatedResult, mergeAdminListOptions, runPaginatedQuery, type AdminListOptions } from "@/lib/data/admin-list";
 import type { PaginatedResult } from "@/lib/data/pagination";
 import { createAdminClient } from "@/lib/supabase/admin";
-
-const BANNER_ROLES = ["super_admin", "dept_admin", "editor"] as const;
 
 function parseBannerForm(formData: FormData) {
   return bannerFormSchema.safeParse({
@@ -76,7 +75,7 @@ export async function getBannerById(id: string): Promise<Banner | null> {
 
 export async function createBannerAction(formData: FormData): Promise<ActionResult<{ id: string }>> {
   try {
-    const session = await requireAdminWithRoles([...BANNER_ROLES]);
+    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
     const parsed = parseBannerForm(formData);
     if (!parsed.success) {
       return fail("Validation failed", parsed.error.flatten().fieldErrors);
@@ -129,7 +128,7 @@ export async function updateBannerAction(
   formData: FormData,
 ): Promise<ActionResult> {
   try {
-    const session = await requireAdminWithRoles([...BANNER_ROLES]);
+    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
     const parsed = parseBannerForm(formData);
     if (!parsed.success) {
       return fail("Validation failed", parsed.error.flatten().fieldErrors);
@@ -190,7 +189,7 @@ export async function updateBannerAction(
 
 export async function deleteBannerAction(bannerId: string): Promise<ActionResult> {
   try {
-    const session = await requireAdminWithRoles([...BANNER_ROLES]);
+    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
     const admin = createAdminClient();
     if (!admin) return fail("Database not configured.");
 

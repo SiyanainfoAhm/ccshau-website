@@ -53,6 +53,15 @@ export function downloadFilePath(downloadId: string, fileName: string): string {
   return `downloads/${downloadId}/${safe}`;
 }
 
+export function downloadVersionPath(
+  downloadId: string,
+  versionId: string,
+  fileName: string,
+): string {
+  const safe = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
+  return `downloads/${downloadId}/versions/${versionId}/${safe}`;
+}
+
 export function mediaAlbumCoverPath(albumId: string, fileName: string): string {
   const safe = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
   return `albums/${albumId}/cover/${safe}`;

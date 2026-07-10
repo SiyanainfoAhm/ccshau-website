@@ -1161,49 +1161,138 @@ export async function getPublishedCirculars(options?: {
   }));
 }
 
-export async function getPublishedDownloads(options?: {
-  category?: string;
-  query?: string;
-}): Promise<PublicDownloadItem[]> {
-  const admin = createAdminClient();
-  if (!admin) return [];
-
-  let query = admin
-    .from(Tables.downloads)
-    .select("*")
-    .eq("status", "published")
-    .order("title_en", { ascending: true });
-
-  if (options?.category) {
-    query = query.eq("category", options.category);
-  }
-
-  const { data } = await query;
-  const downloads = (data as Download[]) ?? [];
-  const deptIds = [...new Set(downloads.map((d) => d.department_id).filter(Boolean))] as string[];
-  const deptMap = await loadDepartmentNames(admin, deptIds);
-
-  const q = options?.query?.trim().toLowerCase();
-  const filtered = q
-    ? downloads.filter(
-        (d) =>
-          d.title_en.toLowerCase().includes(q) ||
-          (d.title_hi?.toLowerCase().includes(q) ?? false) ||
-          (d.category?.toLowerCase().includes(q) ?? false),
-      )
-    : downloads;
-
-  return filtered.map((item) => ({
+function mapDownloadToPublicItem(
+  item: Download,
+  deptMap: Map<string, string>,
+): PublicDownloadItem {
+  return {
     id: item.id,
     titleEn: item.title_en,
     titleHi: item.title_hi,
     category: item.category,
     version: item.version,
+    departmentId: item.department_id,
     departmentName: item.department_id ? deptMap.get(item.department_id) ?? null : null,
+    tags: item.tags ?? [],
     fileName: item.file_name,
     fileUrl: getStoredFileUrl(item.file_path),
+    downloadUrl: `/api/downloads/${item.id}/file`,
     downloadCount: item.download_count,
-  }));
+    expiresAt: item.expires_at,
+  };
+}
+
+export async function getPublicDownloadTags(): Promise<string[]> {
+  const admin = createAdminClient();
+  if (!admin) return [];
+
+  const { data } = await admin
+    .from(Tables.downloads)
+    .select("tags")
+    .eq("status", "published")
+    .eq("is_public", true);
+
+  const tagSet = new Set<string>();
+  for (const row of data ?? []) {
+    for (const tag of (row.tags as string[]) ?? []) {
+      if (tag) tagSet.add(tag);
+    }
+  }
+
+  return [...tagSet].sort((a, b) => a.localeCompare(b));
+}
+
+export async function getPublicDownloadFilterDepartments(): Promise<{ id: string; nameEn: string }[]> {
+  const admin = createAdminClient();
+  if (!admin) return [];
+
+  const { data } = await admin
+    .from(Tables.departments)
+    .select("id, name_en")
+    .eq("is_active", true)
+    .order("sort_order");
+
+  return (data ?? []).map((dept) => ({ id: dept.id, nameEn: dept.name_en }));
+}
+
+export async function getPublishedDownloads(options?: {
+  category?: string;
+  departmentId?: string;
+  tag?: string;
+  query?: string;
+  limit?: number;
+}): Promise<PublicDownloadItem[]> {
+  const page = await getPublishedDownloadsPage({
+    category: options?.category,
+    departmentId: options?.departmentId,
+    tag: options?.tag,
+    query: options?.query,
+    page: 1,
+    pageSize: options?.limit ?? 500,
+  });
+  return page.items;
+}
+
+export async function getPublishedDownloadsPage(options: {
+  page?: number;
+  pageSize?: number;
+  category?: string;
+  departmentId?: string;
+  tag?: string;
+  query?: string;
+}): Promise<PaginatedResult<PublicDownloadItem>> {
+  const admin = createAdminClient();
+  const page = options.page ?? 1;
+  const pageSize = options.pageSize ?? DEFAULT_PAGE_SIZE;
+  if (!admin) {
+    return buildPaginatedResult([], 0, page, pageSize);
+  }
+
+  const now = new Date().toISOString();
+  const { from, to } = paginationRange(page, pageSize);
+
+  let query = admin
+    .from(Tables.downloads)
+    .select("*", { count: "exact" })
+    .eq("status", "published")
+    .eq("is_public", true)
+    .or(`expires_at.is.null,expires_at.gt.${now}`)
+    .order("title_en", { ascending: true });
+
+  if (options.category) {
+    query = query.eq("category", options.category);
+  }
+
+  if (options.departmentId) {
+    query = query.eq("department_id", options.departmentId);
+  }
+
+  if (options.tag) {
+    query = query.contains("tags", [options.tag]);
+  }
+
+  const searchTerm = options.query?.trim();
+  if (searchTerm) {
+    if (searchTerm.length >= 3) {
+      query = query.textSearch("search_vector", searchTerm, {
+        type: "websearch",
+        config: "english",
+      });
+    } else {
+      const escaped = searchTerm.replace(/[%_]/g, "");
+      query = query.or(
+        `title_en.ilike.%${escaped}%,title_hi.ilike.%${escaped}%,category.ilike.%${escaped}%`,
+      );
+    }
+  }
+
+  const { data, count } = await query.range(from, to);
+  const downloads = (data as Download[]) ?? [];
+  const deptIds = [...new Set(downloads.map((d) => d.department_id).filter(Boolean))] as string[];
+  const deptMap = await loadDepartmentNames(admin, deptIds);
+
+  const items = downloads.map((item) => mapDownloadToPublicItem(item, deptMap));
+  return buildPaginatedResult(items, count ?? 0, page, pageSize);
 }
 
 export async function getPublishedMediaAlbums(options?: {
@@ -1303,23 +1392,6 @@ export async function getPublishedCircularsPage(options: {
   query?: string;
 }): Promise<PaginatedResult<PublicCircularItem>> {
   const all = await getPublishedCirculars({ query: options.query });
-  const page = options.page ?? 1;
-  const pageSize = options.pageSize ?? DEFAULT_PAGE_SIZE;
-  const start = (page - 1) * pageSize;
-  const items = all.slice(start, start + pageSize);
-  return buildPaginatedResult(items, all.length, page, pageSize);
-}
-
-export async function getPublishedDownloadsPage(options: {
-  page?: number;
-  pageSize?: number;
-  category?: string;
-  query?: string;
-}): Promise<PaginatedResult<PublicDownloadItem>> {
-  const all = await getPublishedDownloads({
-    category: options.category && options.category !== "all" ? options.category : undefined,
-    query: options.query,
-  });
   const page = options.page ?? 1;
   const pageSize = options.pageSize ?? DEFAULT_PAGE_SIZE;
   const start = (page - 1) * pageSize;

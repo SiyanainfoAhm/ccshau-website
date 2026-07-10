@@ -55,6 +55,7 @@ export default async function AdminDownloadsPage({
                 <AdminSortableTh label="Title" column="title_en" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
                 <AdminSortableTh label="Category" column="category" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
                 <AdminSortableTh label="Version" column="version" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
+                <th className="px-4 py-3 text-left font-semibold text-slate-700">Visibility</th>
                 <AdminSortableTh label="Status" column="status" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
               </tr>
             </Suspense>
@@ -62,7 +63,7 @@ export default async function AdminDownloadsPage({
           <tbody className="divide-y divide-slate-100">
             {items.length === 0 ? (
               <tr>
-                <td colSpan={4} className="px-4 py-10 text-center text-slate-500">
+                <td colSpan={5} className="px-4 py-10 text-center text-slate-500">
                   No downloads yet.
                   {canCreate && (
                     <>
@@ -87,6 +88,9 @@ export default async function AdminDownloadsPage({
                   </td>
                   <td className="px-4 py-3 capitalize text-slate-600">{item.category ?? "—"}</td>
                   <td className="px-4 py-3 text-slate-600">{item.version ?? "—"}</td>
+                  <td className="px-4 py-3 text-slate-600">
+                    {item.is_public ? "Public" : "Private"}
+                  </td>
                   <td className="px-4 py-3">
                     <StatusBadge status={item.status} />
                   </td>

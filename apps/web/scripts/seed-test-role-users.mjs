@@ -70,6 +70,22 @@ const ROLE_MATRIX_USERS = [
     collegeRole: null,
   },
   {
+    email: "test.universityadmin@ccshau.test",
+    displayName: "Test University Admin",
+    cmsRole: "university_admin",
+    departmentId: null,
+    collegePageId: null,
+    collegeRole: null,
+  },
+  {
+    email: "test.reviewer@ccshau.test",
+    displayName: "Test Reviewer",
+    cmsRole: "reviewer",
+    departmentId: null,
+    collegePageId: null,
+    collegeRole: null,
+  },
+  {
     email: "test.collegeadmin@ccshau.test",
     displayName: "Test College Admin",
     cmsRole: null,
@@ -168,7 +184,9 @@ async function ensureUser(config) {
     const { error } = await admin.from("ccshau_user_roles").insert({
       user_id: userId,
       role: config.cmsRole,
-      department_id: config.cmsRole === "super_admin" ? null : config.departmentId,
+      department_id: ["super_admin", "university_admin"].includes(config.cmsRole)
+        ? null
+        : config.departmentId,
     });
     if (error) throw new Error(`${config.email} role: ${error.message}`);
   }

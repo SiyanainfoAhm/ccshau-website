@@ -130,10 +130,13 @@ async function searchDownloads(
   admin: NonNullable<ReturnType<typeof createAdminClient>>,
   query: string,
 ): Promise<PublicSearchResult[]> {
+  const now = new Date().toISOString();
   const { data } = await admin
     .from(Tables.downloads)
-    .select("id, title_en, title_hi, category, file_path, created_at")
+    .select("id, title_en, title_hi, category, created_at")
     .eq("status", "published")
+    .eq("is_public", true)
+    .or(`expires_at.is.null,expires_at.gt.${now}`)
     .textSearch("search_vector", query, { type: "websearch", config: "english" })
     .limit(20);
 
@@ -143,7 +146,7 @@ async function searchDownloads(
     titleEn: item.title_en,
     titleHi: item.title_hi,
     excerpt: item.category,
-    url: getStoredFileUrl(item.file_path) ?? "/downloads",
+    url: `/api/downloads/${item.id}/file`,
     publishedAt: item.created_at,
   }));
 }

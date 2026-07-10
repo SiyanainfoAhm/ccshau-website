@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { writeAuditLog } from "@/lib/auth/audit";
+import { SETTINGS_ACCESS_ROLES } from "@/lib/auth/cms-roles";
 import { requireAdminWithRoles } from "@/lib/auth/session";
 import { Tables } from "@/lib/database/names";
 import type { UrlRedirect } from "@/lib/database/types";
@@ -11,8 +12,6 @@ import { redirectFormSchema } from "@/lib/validations/redirects";
 import { emptyPaginatedResult, mergeAdminListOptions, runPaginatedQuery, type AdminListOptions } from "@/lib/data/admin-list";
 import type { PaginatedResult } from "@/lib/data/pagination";
 import { createAdminClient } from "@/lib/supabase/admin";
-
-const REDIRECT_ROLES = ["super_admin", "dept_admin"] as const;
 
 function parseRedirectForm(formData: FormData) {
   return redirectFormSchema.safeParse({
@@ -35,7 +34,7 @@ export async function listRedirectsForAdmin(
     allowedSorts: REDIRECTS_LIST_SORTS,
   });
 
-  await requireAdminWithRoles([...REDIRECT_ROLES]);
+  await requireAdminWithRoles([...SETTINGS_ACCESS_ROLES]);
   const admin = createAdminClient();
   if (!admin) return emptyPaginatedResult(opts);
 
@@ -44,7 +43,7 @@ export async function listRedirectsForAdmin(
 }
 
 export async function getRedirectById(id: string): Promise<UrlRedirect | null> {
-  await requireAdminWithRoles([...REDIRECT_ROLES]);
+  await requireAdminWithRoles([...SETTINGS_ACCESS_ROLES]);
   const admin = createAdminClient();
   if (!admin) return null;
 
@@ -54,7 +53,7 @@ export async function getRedirectById(id: string): Promise<UrlRedirect | null> {
 
 export async function createRedirectAction(formData: FormData): Promise<ActionResult<{ id: string }>> {
   try {
-    const session = await requireAdminWithRoles([...REDIRECT_ROLES]);
+    const session = await requireAdminWithRoles([...SETTINGS_ACCESS_ROLES]);
     const parsed = parseRedirectForm(formData);
     if (!parsed.success) {
       return fail("Validation failed", parsed.error.flatten().fieldErrors);
@@ -94,7 +93,7 @@ export async function createRedirectAction(formData: FormData): Promise<ActionRe
 
 export async function updateRedirectAction(id: string, formData: FormData): Promise<ActionResult> {
   try {
-    const session = await requireAdminWithRoles([...REDIRECT_ROLES]);
+    const session = await requireAdminWithRoles([...SETTINGS_ACCESS_ROLES]);
     const parsed = parseRedirectForm(formData);
     if (!parsed.success) {
       return fail("Validation failed", parsed.error.flatten().fieldErrors);
@@ -134,7 +133,7 @@ export async function updateRedirectAction(id: string, formData: FormData): Prom
 
 export async function deleteRedirectAction(id: string): Promise<ActionResult> {
   try {
-    const session = await requireAdminWithRoles([...REDIRECT_ROLES]);
+    const session = await requireAdminWithRoles([...SETTINGS_ACCESS_ROLES]);
     const admin = createAdminClient();
     if (!admin) return fail("Database not configured.");
 

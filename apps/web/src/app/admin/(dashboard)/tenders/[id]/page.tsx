@@ -4,10 +4,12 @@ import { getTenderById, listCorrigendaForTender, listDepartments } from "@/actio
 import { CorrigendumPanel } from "@/components/admin/corrigendum-panel";
 import { DeleteTenderButton } from "@/components/admin/delete-tender-button";
 import { TenderForm } from "@/components/admin/tender-form";
+import { canEditContent, CMS_READ_ROLES } from "@/lib/auth/cms-roles";
 import { requireAdminWithRolesOrRedirect } from "@/lib/auth/session";
 
 export default async function EditTenderPage({ params }: { params: Promise<{ id: string }> }) {
-  await requireAdminWithRolesOrRedirect(["super_admin", "dept_admin", "editor"]);
+  const session = await requireAdminWithRolesOrRedirect([...CMS_READ_ROLES]);
+  const canEdit = canEditContent(session);
   const { id } = await params;
   const [tender, departments, corrigenda] = await Promise.all([
     getTenderById(id),
@@ -21,15 +23,26 @@ export default async function EditTenderPage({ params }: { params: Promise<{ id:
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="font-display text-2xl font-bold text-slate-900">Edit tender</h1>
+          <h1 className="font-display text-2xl font-bold text-slate-900">
+            {canEdit ? "Edit tender" : "View tender"}
+          </h1>
           <p className="text-sm text-slate-500">
             {tender.tender_number ? `${tender.tender_number} · ` : ""}/{tender.slug}
           </p>
         </div>
-        <DeleteTenderButton tenderId={tender.id} />
+        {canEdit ? <DeleteTenderButton tenderId={tender.id} /> : null}
       </div>
-      <TenderForm departments={departments} tender={tender} />
-      <CorrigendumPanel tenderId={tender.id} corrigenda={corrigenda} />
+      {canEdit ? (
+        <>
+          <TenderForm departments={departments} tender={tender} />
+          <CorrigendumPanel tenderId={tender.id} corrigenda={corrigenda} />
+        </>
+      ) : (
+        <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm">
+          <p className="font-semibold text-slate-900">{tender.title_en}</p>
+          <p className="mt-2">Status: {tender.status}</p>
+        </div>
+      )}
     </div>
   );
 }

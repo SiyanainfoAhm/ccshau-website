@@ -73,6 +73,8 @@ export type AdminDashboardData = {
 
 function roleLabel(session: AdminSession): string {
   if (isSuperAdminSession(session)) return "Super Admin";
+  if (session.roles.some((r) => r.role === "university_admin")) return "University Admin";
+  if (session.roles.some((r) => r.role === "reviewer")) return "Reviewer / Approver";
   if (session.collegeAssignment) {
     const map: Record<string, string> = {
       college_admin: "College Admin",
@@ -83,8 +85,10 @@ function roleLabel(session: AdminSession): string {
   }
   const role = session.primaryRole;
   const map: Record<string, string> = {
+    university_admin: "University Admin",
     dept_admin: "Department Admin",
     editor: "Editor",
+    reviewer: "Reviewer / Approver",
     viewer: "Viewer",
   };
   return role ? (map[role] ?? role.replace(/_/g, " ")) : "CMS User";

@@ -23,6 +23,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
 }
 
 export async function isCaptchaEnabled(): Promise<boolean> {
+  if (process.env.CAPTCHA_ENABLED === "false") return false;
   const settings = await getSiteSettings();
   return settings.captcha_enabled;
 }

@@ -1,9 +1,10 @@
 import { listDepartments } from "@/actions/news";
 import { NewsForm } from "@/components/admin/news-form";
+import { CONTENT_EDIT_ROLES } from "@/lib/auth/cms-roles";
 import { requireAdminWithRolesOrRedirect } from "@/lib/auth/session";
 
 export default async function NewNewsPage() {
-  await requireAdminWithRolesOrRedirect(["super_admin", "dept_admin", "editor"]);
+  await requireAdminWithRolesOrRedirect([...CONTENT_EDIT_ROLES]);
   const departments = await listDepartments();
 
   return (

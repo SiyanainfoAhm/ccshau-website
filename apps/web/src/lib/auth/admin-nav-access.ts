@@ -1,29 +1,38 @@
+import {
+  isReviewerOnlySession,
+  isUniversityAdminSession,
+  isViewerOnlySession,
+  SETTINGS_ACCESS_ROLES,
+  sessionHasCmsRole,
+} from "@/lib/auth/cms-roles";
 import { isCollegeOnlyUser, isSuperAdminSession } from "@/lib/auth/college-scope";
 import type { AdminSession } from "@/lib/auth/session";
 
 export type AdminNavAccess = {
   isCollegeOnly: boolean;
   isSuperAdmin: boolean;
+  isUniversityAdmin: boolean;
   isDeptAdmin: boolean;
   isEditor: boolean;
+  isReviewerOnly: boolean;
   isViewerOnly: boolean;
 };
 
 export function getAdminNavAccess(session: AdminSession): AdminNavAccess {
   const isSuperAdmin = isSuperAdminSession(session);
+  const isUniversityAdmin = isUniversityAdminSession(session);
   const isDeptAdmin = session.roles.some((r) => r.role === "dept_admin");
   const isEditor = session.roles.some((r) => r.role === "editor");
-  const isViewerOnly =
-    session.roles.some((r) => r.role === "viewer") &&
-    !isSuperAdmin &&
-    !isDeptAdmin &&
-    !isEditor;
+  const isReviewerOnly = isReviewerOnlySession(session);
+  const isViewerOnly = isViewerOnlySession(session);
 
   return {
     isCollegeOnly: isCollegeOnlyUser(session),
     isSuperAdmin,
+    isUniversityAdmin,
     isDeptAdmin,
     isEditor,
+    isReviewerOnly,
     isViewerOnly,
   };
 }
@@ -37,9 +46,9 @@ const SUPER_ADMIN_ONLY_PREFIXES = [
   "/admin/directorates/new",
 ] as const;
 
-const DEPT_ADMIN_UP_PREFIXES = ["/admin/redirects", "/admin/settings"] as const;
+const SETTINGS_PREFIXES = ["/admin/redirects", "/admin/settings"] as const;
 
-const VIEWER_LIST_PATHS = [
+const READ_ONLY_LIST_PATHS = [
   "/admin/pages",
   "/admin/news",
   "/admin/circulars",
@@ -49,11 +58,11 @@ const VIEWER_LIST_PATHS = [
   "/admin/media",
 ] as const;
 
-function canViewerAccessPath(pathname: string): boolean {
+function canReadOnlyAccessPath(pathname: string): boolean {
   if (pathname === "/admin") return true;
-  if ((VIEWER_LIST_PATHS as readonly string[]).includes(pathname)) return true;
+  if ((READ_ONLY_LIST_PATHS as readonly string[]).includes(pathname)) return true;
   if (pathname.startsWith("/admin/pages/") && pathname !== "/admin/pages/new") return true;
-  for (const prefix of VIEWER_LIST_PATHS) {
+  for (const prefix of READ_ONLY_LIST_PATHS) {
     if (prefix === "/admin/pages") continue;
     if (pathname.startsWith(`${prefix}/`) && !pathname.endsWith("/new")) return true;
   }
@@ -81,12 +90,12 @@ export function canAccessAdminPath(access: AdminNavAccess, pathname: string): bo
     if (matchesPrefix(pathname, prefix)) return false;
   }
 
-  if (DEPT_ADMIN_UP_PREFIXES.some((prefix) => matchesPrefix(pathname, prefix))) {
-    return access.isDeptAdmin;
+  if (SETTINGS_PREFIXES.some((prefix) => matchesPrefix(pathname, prefix))) {
+    return access.isUniversityAdmin || access.isDeptAdmin;
   }
 
-  if (access.isViewerOnly) {
-    return canViewerAccessPath(pathname);
+  if (access.isReviewerOnly || access.isViewerOnly) {
+    return canReadOnlyAccessPath(pathname);
   }
 
   return true;
@@ -98,16 +107,20 @@ export function canSeeAdminNavHref(access: AdminNavAccess, href: string): boolea
   }
 
   if (href === "/admin/redirects" || href === "/admin/settings") {
-    return access.isSuperAdmin || access.isDeptAdmin;
+    return access.isSuperAdmin || access.isUniversityAdmin || access.isDeptAdmin;
   }
 
   if (href === "/admin/audit") {
     return access.isSuperAdmin;
   }
 
-  if (access.isViewerOnly) {
-    return canViewerAccessPath(href);
+  if (access.isReviewerOnly || access.isViewerOnly) {
+    return canReadOnlyAccessPath(href);
   }
 
   return true;
+}
+
+export function sessionCanAccessSettings(session: AdminSession): boolean {
+  return sessionHasCmsRole(session, SETTINGS_ACCESS_ROLES);
 }
