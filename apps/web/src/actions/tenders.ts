@@ -4,6 +4,12 @@ import { revalidatePath } from "next/cache";
 
 import { listDepartments } from "@/actions/pages";
 import { writeAuditLog } from "@/lib/auth/audit";
+import {
+  canPublishContent,
+  CMS_READ_ROLES,
+  CONTENT_EDIT_ROLES,
+  isUniversityWideCmsSession,
+} from "@/lib/auth/cms-roles";
 import { hasRole } from "@/lib/auth/rbac";
 import { requireAdminSession, requireAdminWithRoles } from "@/lib/auth/session";
 import { Tables } from "@/lib/database/names";
@@ -19,9 +25,6 @@ import { corrigendumFormSchema, tenderFormSchema } from "@/lib/validations/tende
 import { emptyPaginatedResult, mergeAdminListOptions, runPaginatedQuery } from "@/lib/data/admin-list";
 import type { PaginatedResult } from "@/lib/data/pagination";
 import { createAdminClient } from "@/lib/supabase/admin";
-
-const TENDER_ROLES = ["super_admin", "dept_admin", "editor"] as const;
-const PUBLISH_ROLES = ["super_admin", "dept_admin"] as const;
 
 export { listDepartments };
 
@@ -176,17 +179,14 @@ async function mergeCancellationDocument(
 
 export async function createTenderAction(formData: FormData): Promise<ActionResult<{ id: string }>> {
   try {
-    const session = await requireAdminWithRoles([...TENDER_ROLES]);
+    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
     const parsed = parseTenderForm(formData);
     if (!parsed.success) {
       return fail("Validation failed", parsed.error.flatten().fieldErrors);
     }
 
-    if (
-      parsed.data.status === "open" &&
-      !session.roles.some((r) => PUBLISH_ROLES.includes(r.role as (typeof PUBLISH_ROLES)[number]))
-    ) {
-      return fail("Only department admins can open tenders for bidding.");
+    if (parsed.data.status === "open" && !canPublishContent(session)) {
+      return fail("You do not have permission to open tenders for bidding.");
     }
 
     const admin = createAdminClient();
@@ -236,17 +236,14 @@ export async function updateTenderAction(
   formData: FormData,
 ): Promise<ActionResult<{ id: string }>> {
   try {
-    const session = await requireAdminWithRoles([...TENDER_ROLES]);
+    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
     const parsed = parseTenderForm(formData);
     if (!parsed.success) {
       return fail("Validation failed", parsed.error.flatten().fieldErrors);
     }
 
-    if (
-      parsed.data.status === "open" &&
-      !session.roles.some((r) => PUBLISH_ROLES.includes(r.role as (typeof PUBLISH_ROLES)[number]))
-    ) {
-      return fail("Only department admins can open tenders for bidding.");
+    if (parsed.data.status === "open" && !canPublishContent(session)) {
+      return fail("You do not have permission to open tenders for bidding.");
     }
 
     const admin = createAdminClient();
@@ -260,8 +257,7 @@ export async function updateTenderAction(
 
     if (!existing) return fail("Tender not found.");
 
-    const isSuperAdmin = session.roles.some((r) => r.role === "super_admin");
-    if (!isSuperAdmin && session.departmentId && existing.department_id !== session.departmentId) {
+    if (!isUniversityWideCmsSession(session) && session.departmentId && existing.department_id !== session.departmentId) {
       return fail("You do not have access to this tender.");
     }
 
@@ -359,7 +355,7 @@ export async function addCorrigendumAction(
   formData: FormData,
 ): Promise<ActionResult<{ id: string }>> {
   try {
-    const session = await requireAdminWithRoles([...TENDER_ROLES]);
+    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
     const parsed = corrigendumFormSchema.safeParse({
       title: formData.get("title"),
       description: formData.get("description") || undefined,
@@ -484,7 +480,7 @@ export async function listTendersForAdmin(
   });
 
   const session = await requireAdminSession();
-  if (!hasRole(session.roles, ["super_admin", "dept_admin", "editor", "viewer"])) {
+  if (!hasRole(session.roles, [...CMS_READ_ROLES])) {
     return emptyPaginatedResult(opts);
   }
 
@@ -493,8 +489,7 @@ export async function listTendersForAdmin(
 
   let query = admin.from(Tables.tenders).select("*", { count: "exact" });
 
-  const isSuperAdmin = session.roles.some((r) => r.role === "super_admin");
-  if (!isSuperAdmin && session.departmentId) {
+  if (!isUniversityWideCmsSession(session) && session.departmentId) {
     query = query.eq("department_id", session.departmentId);
   }
 
@@ -503,7 +498,7 @@ export async function listTendersForAdmin(
 
 export async function getTenderById(tenderId: string): Promise<Tender | null> {
   const session = await requireAdminSession();
-  if (!hasRole(session.roles, ["super_admin", "dept_admin", "editor", "viewer"])) {
+  if (!hasRole(session.roles, [...CMS_READ_ROLES])) {
     return null;
   }
 
@@ -513,8 +508,11 @@ export async function getTenderById(tenderId: string): Promise<Tender | null> {
   const { data } = await admin.from(Tables.tenders).select("*").eq("id", tenderId).maybeSingle();
   if (!data) return null;
 
-  const isSuperAdmin = session.roles.some((r) => r.role === "super_admin");
-  if (!isSuperAdmin && session.departmentId && data.department_id !== session.departmentId) {
+  if (
+    !isUniversityWideCmsSession(session) &&
+    session.departmentId &&
+    data.department_id !== session.departmentId
+  ) {
     return null;
   }
 

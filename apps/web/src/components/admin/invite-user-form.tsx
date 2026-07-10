@@ -6,6 +6,7 @@ import { useState, useTransition } from "react";
 
 import { inviteUserAction } from "@/actions/users";
 import type { DepartmentOption } from "@/lib/database/types";
+import { isUniversityWideRole, requiresDepartmentForRole } from "@/lib/auth/cms-roles";
 import { COLLEGE_ROLE_LABELS, ROLE_LABELS } from "@/lib/validations/users";
 
 type CollegeOption = { id: string; title_en: string };
@@ -36,7 +37,10 @@ export function InviteUserForm({
     });
   }
 
-  const showDeptForRole = initialRole && initialRole !== "super_admin";
+  const showDeptForRole = initialRole && !isUniversityWideRole(initialRole as keyof typeof ROLE_LABELS);
+  const departmentRequired = initialRole
+    ? requiresDepartmentForRole(initialRole as keyof typeof ROLE_LABELS)
+    : false;
 
   return (
     <form action={handleSubmit} className="max-w-2xl space-y-5">
@@ -79,7 +83,11 @@ export function InviteUserForm({
 
       <label className="block text-sm">
         <span className="font-medium text-slate-700">Home department (profile)</span>
-        <select name="departmentId" className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2">
+        <select
+          name="departmentId"
+          required={departmentRequired}
+          className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+        >
           <option value="">— None —</option>
           {departments.map((dept) => (
             <option key={dept.id} value={dept.id}>

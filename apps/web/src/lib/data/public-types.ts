@@ -251,10 +251,14 @@ export interface PublicDownloadItem {
   titleHi: string | null;
   category: string | null;
   version: string | null;
+  departmentId: string | null;
   departmentName: string | null;
+  tags: string[];
   fileName: string;
   fileUrl: string | null;
+  downloadUrl: string;
   downloadCount: number;
+  expiresAt: string | null;
 }
 
 export interface PublicMediaAlbumItem {

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { writeAuditLog } from "@/lib/auth/audit";
+import { CONTENT_EDIT_ROLES } from "@/lib/auth/cms-roles";
 import { requireAdminSession, requireAdminWithRoles } from "@/lib/auth/session";
 import { Tables } from "@/lib/database/names";
 import type { RelatedLink } from "@/lib/database/types";
@@ -11,8 +12,6 @@ import { relatedLinkFormSchema } from "@/lib/validations/related-links";
 import { emptyPaginatedResult, mergeAdminListOptions, runPaginatedQuery, type AdminListOptions } from "@/lib/data/admin-list";
 import type { PaginatedResult } from "@/lib/data/pagination";
 import { createAdminClient } from "@/lib/supabase/admin";
-
-const LINK_ROLES = ["super_admin", "dept_admin", "editor"] as const;
 
 function parseRelatedLinkForm(formData: FormData) {
   return relatedLinkFormSchema.safeParse({
@@ -58,7 +57,7 @@ export async function createRelatedLinkAction(
   formData: FormData,
 ): Promise<ActionResult<{ id: string }>> {
   try {
-    const session = await requireAdminWithRoles([...LINK_ROLES]);
+    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
     const parsed = parseRelatedLinkForm(formData);
     if (!parsed.success) {
       return fail("Validation failed", parsed.error.flatten().fieldErrors);
@@ -101,7 +100,7 @@ export async function createRelatedLinkAction(
 
 export async function updateRelatedLinkAction(id: string, formData: FormData): Promise<ActionResult> {
   try {
-    const session = await requireAdminWithRoles([...LINK_ROLES]);
+    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
     const parsed = parseRelatedLinkForm(formData);
     if (!parsed.success) {
       return fail("Validation failed", parsed.error.flatten().fieldErrors);
@@ -144,7 +143,7 @@ export async function updateRelatedLinkAction(id: string, formData: FormData): P
 
 export async function deleteRelatedLinkAction(id: string): Promise<ActionResult> {
   try {
-    const session = await requireAdminWithRoles([...LINK_ROLES]);
+    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
     const admin = createAdminClient();
     if (!admin) return fail("Database not configured.");
 

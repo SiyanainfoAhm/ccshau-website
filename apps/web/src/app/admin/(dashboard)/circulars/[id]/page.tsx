@@ -3,7 +3,9 @@ import { notFound } from "next/navigation";
 
 import { getCircularById, listDepartments } from "@/actions/circulars";
 import { CircularForm } from "@/components/admin/circular-form";
+import { ContentReviewPanel } from "@/components/admin/content-review-panel";
 import { DeleteCircularButton } from "@/components/admin/delete-circular-button";
+import { canPublishContent } from "@/lib/auth/cms-roles";
 import { canManageUniversityContent } from "@/lib/auth/college-scope";
 import { requireAdminSession } from "@/lib/auth/session";
 
@@ -20,6 +22,7 @@ export default async function AdminEditCircularPage({
     listDepartments(),
   ]);
   if (!circular) notFound();
+  const showReview = circular.status === "pending_review" && canPublishContent(session);
 
   return (
     <div className="space-y-6">
@@ -34,7 +37,15 @@ export default async function AdminEditCircularPage({
         </div>
         {canEdit && <DeleteCircularButton circularId={circular.id} />}
       </div>
-      <CircularForm departments={departments} circular={circular} canEdit={canEdit} />
+      {showReview ? (
+        <ContentReviewPanel entityType="circular" entityId={id} title={circular.title_en} />
+      ) : null}
+      <CircularForm
+        departments={departments}
+        circular={circular}
+        canEdit={canEdit}
+        canPublish={canPublishContent(session)}
+      />
     </div>
   );
 }

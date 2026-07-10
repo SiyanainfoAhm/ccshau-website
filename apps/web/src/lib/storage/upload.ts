@@ -6,6 +6,7 @@ import {
   circularFilePath,
   corrigendumAttachmentPath,
   downloadFilePath,
+  downloadVersionPath,
   getMediaBucket,
   getStorageBucket,
   homepageDignitaryImagePath,
@@ -332,14 +333,30 @@ export async function uploadDownloadFile(
   admin: SupabaseClient,
   downloadId: string,
   file: File,
-  isPublished: boolean,
+  usePublicBucket: boolean,
 ): Promise<ActionResult<string>> {
-  const bucket = getStorageBucket(isPublished);
+  const bucket = getStorageBucket(usePublicBucket);
   return uploadSingleDocument(
     admin,
     file,
     bucket,
     downloadFilePath(downloadId, sanitizeFileName(file.name)),
+  );
+}
+
+export async function uploadDownloadVersionFile(
+  admin: SupabaseClient,
+  downloadId: string,
+  versionId: string,
+  file: File,
+  usePublicBucket: boolean,
+): Promise<ActionResult<string>> {
+  const bucket = getStorageBucket(usePublicBucket);
+  return uploadSingleDocument(
+    admin,
+    file,
+    bucket,
+    downloadVersionPath(downloadId, versionId, sanitizeFileName(file.name)),
   );
 }
 

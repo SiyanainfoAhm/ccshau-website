@@ -4,6 +4,11 @@ import { revalidatePath } from "next/cache";
 
 import { listDepartments } from "@/actions/pages";
 import { writeAuditLog } from "@/lib/auth/audit";
+import {
+  canPublishContent,
+  CONTENT_EDIT_ROLES,
+  isUniversityWideCmsSession,
+} from "@/lib/auth/cms-roles";
 import { requireAdminSession, requireAdminWithRoles } from "@/lib/auth/session";
 import { Tables } from "@/lib/database/names";
 import type { ContentStatus, MediaAlbum, MediaAlbumType, MediaItem } from "@/lib/database/types";
@@ -25,9 +30,6 @@ import {
 } from "@/lib/data/admin-list";
 import type { PaginatedResult } from "@/lib/data/pagination";
 import { createAdminClient } from "@/lib/supabase/admin";
-
-const CONTENT_ROLES = ["super_admin", "dept_admin", "editor"] as const;
-const PUBLISH_ROLES = ["super_admin", "dept_admin"] as const;
 
 export { listDepartments };
 
@@ -73,6 +75,20 @@ function toAlbumRow(input: ReturnType<typeof mediaAlbumFormSchema.parse>, userId
   };
 }
 
+async function assertMediaAlbumAccess(
+  session: Awaited<ReturnType<typeof requireAdminSession>>,
+  album: Pick<MediaAlbum, "department_id">,
+): Promise<ActionResult | null> {
+  if (
+    !isUniversityWideCmsSession(session) &&
+    session.departmentId &&
+    album.department_id !== session.departmentId
+  ) {
+    return fail("You do not have access to this album.");
+  }
+  return null;
+}
+
 const MEDIA_LIST_SORTS = ["title_en", "album_type", "status", "created_at", "event_date"] as const;
 
 async function attachMediaItemCounts(
@@ -111,16 +127,21 @@ export async function listMediaAlbumsForAdmin(
     allowedSorts: MEDIA_LIST_SORTS,
   });
 
-  await requireAdminSession();
+  const session = await requireAdminSession();
   const admin = createAdminClient();
   if (!admin) return emptyPaginatedResult(opts);
 
   const { from, to } = paginationRange(opts.page, opts.pageSize);
-  const { data, count, error } = await admin
+  let query = admin
     .from(Tables.mediaAlbums)
     .select("*", { count: "exact" })
-    .order(opts.sortBy, { ascending: opts.sortOrder === "asc" })
-    .range(from, to);
+    .order(opts.sortBy, { ascending: opts.sortOrder === "asc" });
+
+  if (!isUniversityWideCmsSession(session) && session.departmentId) {
+    query = query.eq("department_id", session.departmentId);
+  }
+
+  const { data, count, error } = await query.range(from, to);
 
   if (error) {
     console.error("Media albums list failed:", error.message);
@@ -132,15 +153,27 @@ export async function listMediaAlbumsForAdmin(
 }
 
 export async function getMediaAlbumById(id: string): Promise<MediaAlbum | null> {
-  await requireAdminSession();
+  const session = await requireAdminSession();
   const admin = createAdminClient();
   if (!admin) return null;
   const { data } = await admin.from(Tables.mediaAlbums).select("*").eq("id", id).maybeSingle();
-  return (data as MediaAlbum) ?? null;
+  if (!data) return null;
+
+  if (
+    !isUniversityWideCmsSession(session) &&
+    session.departmentId &&
+    data.department_id !== session.departmentId
+  ) {
+    return null;
+  }
+
+  return data as MediaAlbum;
 }
 
 export async function listMediaItemsForAlbum(albumId: string): Promise<MediaItem[]> {
-  await requireAdminSession();
+  const album = await getMediaAlbumById(albumId);
+  if (!album) return [];
+
   const admin = createAdminClient();
   if (!admin) return [];
   const { data } = await admin
@@ -156,15 +189,12 @@ export async function createMediaAlbumAction(
   formData: FormData,
 ): Promise<ActionResult<{ id: string }>> {
   try {
-    const session = await requireAdminWithRoles([...CONTENT_ROLES]);
+    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
     const parsed = parseAlbumForm(formData);
     if (!parsed.success) return fail("Validation failed", parsed.error.flatten().fieldErrors);
 
-    if (
-      parsed.data.status === "published" &&
-      !session.roles.some((r) => PUBLISH_ROLES.includes(r.role as (typeof PUBLISH_ROLES)[number]))
-    ) {
-      return fail("Only department admins can publish albums.");
+    if (parsed.data.status === "published" && !canPublishContent(session)) {
+      return fail("You do not have permission to publish albums.");
     }
 
     const admin = createAdminClient();
@@ -207,15 +237,12 @@ export async function updateMediaAlbumAction(
   formData: FormData,
 ): Promise<ActionResult> {
   try {
-    const session = await requireAdminWithRoles([...CONTENT_ROLES]);
+    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
     const parsed = parseAlbumForm(formData);
     if (!parsed.success) return fail("Validation failed", parsed.error.flatten().fieldErrors);
 
-    if (
-      parsed.data.status === "published" &&
-      !session.roles.some((r) => PUBLISH_ROLES.includes(r.role as (typeof PUBLISH_ROLES)[number]))
-    ) {
-      return fail("Only department admins can publish albums.");
+    if (parsed.data.status === "published" && !canPublishContent(session)) {
+      return fail("You do not have permission to publish albums.");
     }
 
     const admin = createAdminClient();
@@ -267,7 +294,7 @@ export async function updateMediaAlbumAction(
 
 export async function deleteMediaAlbumAction(albumId: string): Promise<ActionResult> {
   try {
-    const session = await requireAdminWithRoles([...CONTENT_ROLES]);
+    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
     const admin = createAdminClient();
     if (!admin) return fail("Database not configured.");
 
@@ -304,7 +331,7 @@ export async function addMediaItemAction(
   formData: FormData,
 ): Promise<ActionResult<{ id: string }>> {
   try {
-    const session = await requireAdminWithRoles([...CONTENT_ROLES]);
+    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
     const parsed = parseItemForm(formData);
     if (!parsed.success) return fail("Validation failed", parsed.error.flatten().fieldErrors);
 
@@ -366,7 +393,7 @@ export async function deleteMediaItemAction(
   albumId: string,
 ): Promise<ActionResult> {
   try {
-    const session = await requireAdminWithRoles([...CONTENT_ROLES]);
+    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
     const admin = createAdminClient();
     if (!admin) return fail("Database not configured.");
 

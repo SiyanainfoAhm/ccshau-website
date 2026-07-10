@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { getUserById } from "@/actions/users";
-import { listCollegesForAdmin } from "@/lib/auth/college-scope";
+import { listCollegesForAdmin } from "@/lib/auth/college-scope-server";
 import { listDepartments } from "@/actions/pages";
 import { CollegeAssignmentPanel } from "@/components/admin/college-assignment-panel";
 import { UserProfileForm } from "@/components/admin/user-profile-form";

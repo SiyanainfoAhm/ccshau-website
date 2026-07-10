@@ -1,4 +1,5 @@
-import { assertPageAccess, isSuperAdminSession } from "@/lib/auth/college-scope";
+import { assertPageAccess } from "@/lib/auth/college-scope-server";
+import { isSuperAdminSession } from "@/lib/auth/college-scope";
 import type { AdminSession } from "@/lib/auth/session";
 import { Tables } from "@/lib/database/names";
 import type { Page } from "@/lib/database/types";

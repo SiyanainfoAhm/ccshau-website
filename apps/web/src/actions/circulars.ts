@@ -4,6 +4,11 @@ import { revalidatePath } from "next/cache";
 
 import { listDepartments } from "@/actions/pages";
 import { writeAuditLog } from "@/lib/auth/audit";
+import {
+  canPublishContent,
+  CONTENT_EDIT_ROLES,
+  isUniversityWideCmsSession,
+} from "@/lib/auth/cms-roles";
 import { requireAdminSession, requireAdminWithRoles } from "@/lib/auth/session";
 import { Tables } from "@/lib/database/names";
 import type { Circular, ContentStatus } from "@/lib/database/types";
@@ -13,9 +18,6 @@ import { circularFormSchema } from "@/lib/validations/circulars";
 import { emptyPaginatedResult, mergeAdminListOptions, runPaginatedQuery } from "@/lib/data/admin-list";
 import type { PaginatedResult } from "@/lib/data/pagination";
 import { createAdminClient } from "@/lib/supabase/admin";
-
-const CONTENT_ROLES = ["super_admin", "dept_admin", "editor"] as const;
-const PUBLISH_ROLES = ["super_admin", "dept_admin"] as const;
 
 export { listDepartments };
 
@@ -47,6 +49,20 @@ function toRow(input: ReturnType<typeof circularFormSchema.parse>, userId: strin
   };
 }
 
+async function assertCircularAccess(
+  session: Awaited<ReturnType<typeof requireAdminSession>>,
+  circular: Pick<Circular, "department_id">,
+): Promise<ActionResult | null> {
+  if (
+    !isUniversityWideCmsSession(session) &&
+    session.departmentId &&
+    circular.department_id !== session.departmentId
+  ) {
+    return fail("You do not have access to this circular.");
+  }
+  return null;
+}
+
 const CIRCULARS_LIST_SORTS = [
   "title_en",
   "circular_number",
@@ -64,33 +80,45 @@ export async function listCircularsForAdmin(
     allowedSorts: CIRCULARS_LIST_SORTS,
   });
 
-  await requireAdminSession();
+  const session = await requireAdminSession();
   const admin = createAdminClient();
   if (!admin) return emptyPaginatedResult(opts);
 
-  const query = admin.from(Tables.circulars).select("*", { count: "exact" });
+  let query = admin.from(Tables.circulars).select("*", { count: "exact" });
+
+  if (!isUniversityWideCmsSession(session) && session.departmentId) {
+    query = query.eq("department_id", session.departmentId);
+  }
+
   return runPaginatedQuery<Circular>(query, opts);
 }
 
 export async function getCircularById(id: string): Promise<Circular | null> {
-  await requireAdminSession();
+  const session = await requireAdminSession();
   const admin = createAdminClient();
   if (!admin) return null;
   const { data } = await admin.from(Tables.circulars).select("*").eq("id", id).maybeSingle();
-  return (data as Circular) ?? null;
+  if (!data) return null;
+
+  if (
+    !isUniversityWideCmsSession(session) &&
+    session.departmentId &&
+    data.department_id !== session.departmentId
+  ) {
+    return null;
+  }
+
+  return data as Circular;
 }
 
 export async function createCircularAction(formData: FormData): Promise<ActionResult<{ id: string }>> {
   try {
-    const session = await requireAdminWithRoles([...CONTENT_ROLES]);
+    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
     const parsed = parseForm(formData);
     if (!parsed.success) return fail("Validation failed", parsed.error.flatten().fieldErrors);
 
-    if (
-      parsed.data.status === "published" &&
-      !session.roles.some((r) => PUBLISH_ROLES.includes(r.role as (typeof PUBLISH_ROLES)[number]))
-    ) {
-      return fail("Only department admins can publish circulars.");
+    if (parsed.data.status === "published" && !canPublishContent(session)) {
+      return fail("You do not have permission to publish circulars.");
     }
 
     const file = getFile(formData);
@@ -142,15 +170,12 @@ export async function createCircularAction(formData: FormData): Promise<ActionRe
 
 export async function updateCircularAction(id: string, formData: FormData): Promise<ActionResult> {
   try {
-    const session = await requireAdminWithRoles([...CONTENT_ROLES]);
+    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
     const parsed = parseForm(formData);
     if (!parsed.success) return fail("Validation failed", parsed.error.flatten().fieldErrors);
 
-    if (
-      parsed.data.status === "published" &&
-      !session.roles.some((r) => PUBLISH_ROLES.includes(r.role as (typeof PUBLISH_ROLES)[number]))
-    ) {
-      return fail("Only department admins can publish circulars.");
+    if (parsed.data.status === "published" && !canPublishContent(session)) {
+      return fail("You do not have permission to publish circulars.");
     }
 
     const admin = createAdminClient();
@@ -158,6 +183,9 @@ export async function updateCircularAction(id: string, formData: FormData): Prom
 
     const existing = await getCircularById(id);
     if (!existing) return fail("Circular not found.");
+
+    const accessError = await assertCircularAccess(session, existing);
+    if (accessError) return accessError;
 
     let filePath = existing.file_path;
     let fileName = existing.file_name;
@@ -217,12 +245,16 @@ export async function updateCircularAction(id: string, formData: FormData): Prom
 
 export async function deleteCircularAction(id: string): Promise<ActionResult> {
   try {
-    const session = await requireAdminWithRoles([...CONTENT_ROLES]);
+    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
     const admin = createAdminClient();
     if (!admin) return fail("Database not configured.");
 
     const existing = await getCircularById(id);
     if (!existing) return fail("Circular not found.");
+
+    const accessError = await assertCircularAccess(session, existing);
+    if (accessError) return accessError;
+
     if (existing.file_path) await removeStorageObjects(admin, [existing.file_path]);
 
     const { error } = await admin.from(Tables.circulars).delete().eq("id", id);

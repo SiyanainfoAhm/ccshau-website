@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getRedirectById } from "@/actions/redirects";
 import { DeleteRedirectButton } from "@/components/admin/delete-redirect-button";
 import { RedirectForm } from "@/components/admin/redirect-form";
+import { SETTINGS_ACCESS_ROLES } from "@/lib/auth/cms-roles";
 import { requireAdminWithRolesOrRedirect } from "@/lib/auth/session";
 
 export default async function AdminEditRedirectPage({
@@ -11,7 +12,7 @@ export default async function AdminEditRedirectPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireAdminWithRolesOrRedirect(["super_admin", "dept_admin"]);
+  await requireAdminWithRolesOrRedirect([...SETTINGS_ACCESS_ROLES]);
   const { id } = await params;
   const redirect = await getRedirectById(id);
   if (!redirect) notFound();

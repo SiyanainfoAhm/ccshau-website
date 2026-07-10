@@ -9,6 +9,7 @@ import { translateFieldsEnToHiAction } from "@/actions/translate";
 import { LayoutConfigAdminPanel } from "@/components/admin/layout-config-admin-panel";
 import { OfficePortalAdminPanel } from "@/components/admin/office-portal-admin-panel";
 import type { Page, PageContactLine, PageGalleryItem, PageNewsTickerItem, PageStudentCornerItem, PageSidebarItem, PageStaff } from "@/lib/database/types";
+import { contentStatusOptions } from "@/lib/auth/content-status-options";
 import {
   applyLayoutConfigToFormData,
   isCollegeLayoutPage,
@@ -49,6 +50,7 @@ export function PageForm({
   officePortalData,
   allowCollegeRoot = true,
   canEdit = true,
+  canPublish = true,
 }: {
   departments: Department[];
   parentPages: ParentOption[];
@@ -63,6 +65,7 @@ export function PageForm({
   };
   allowCollegeRoot?: boolean;
   canEdit?: boolean;
+  canPublish?: boolean;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -667,10 +670,11 @@ export function PageForm({
               defaultValue={page?.status ?? "draft"}
               className="w-full rounded-lg border border-slate-300 px-3 py-2"
             >
-              <option value="draft">Draft</option>
-              <option value="pending_review">Pending review</option>
-              <option value="published">Published</option>
-              <option value="archived">Archived</option>
+              {contentStatusOptions(canPublish).map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </select>
           </div>
           <div>

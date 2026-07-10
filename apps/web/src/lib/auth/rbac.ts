@@ -54,7 +54,14 @@ export async function requireRole(
 }
 
 export function highestRole(assignments: UserRoleAssignment[]): UserRole | null {
-  const order: UserRole[] = ["super_admin", "dept_admin", "editor", "viewer"];
+  const order: UserRole[] = [
+    "super_admin",
+    "university_admin",
+    "dept_admin",
+    "editor",
+    "reviewer",
+    "viewer",
+  ];
   for (const role of order) {
     if (assignments.some((a) => a.role === role)) return role;
   }

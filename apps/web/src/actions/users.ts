@@ -3,6 +3,11 @@
 import { revalidatePath } from "next/cache";
 
 import { writeAuditLog } from "@/lib/auth/audit";
+import {
+  isUniversityWideRole,
+  requiresDepartmentForRole,
+  USER_ADMIN_ROLES,
+} from "@/lib/auth/cms-roles";
 import { requireAdminWithRoles } from "@/lib/auth/session";
 import { Tables } from "@/lib/database/names";
 import type { CollegeScopeRole, Profile, UserRole, UserRoleRow } from "@/lib/database/types";
@@ -24,8 +29,6 @@ import {
   type AdminListOptions,
 } from "@/lib/data/admin-list";
 import { createAdminClient } from "@/lib/supabase/admin";
-
-const USER_ADMIN_ROLES = ["super_admin"] as const;
 
 export interface RoleAssignmentView {
   id: string;
@@ -253,9 +256,10 @@ export async function inviteUserAction(formData: FormData): Promise<ActionResult
     }
 
     if (input.initialRole) {
-      const roleDepartmentId =
-        input.initialRole === "super_admin" ? null : departmentId;
-      if (input.initialRole !== "super_admin" && !roleDepartmentId) {
+      const roleDepartmentId = isUniversityWideRole(input.initialRole)
+        ? null
+        : departmentId;
+      if (requiresDepartmentForRole(input.initialRole) && !roleDepartmentId) {
         return fail("Select a department before assigning a department-scoped role.");
       }
 
@@ -359,7 +363,7 @@ export async function assignRoleAction(
     if (!admin) return fail("Database not configured.");
 
     const input = parsed.data;
-    const departmentId = input.role === "super_admin" ? null : input.departmentId || null;
+    const departmentId = isUniversityWideRole(input.role) ? null : input.departmentId || null;
 
     const { data, error } = await admin
       .from(Tables.userRoles)

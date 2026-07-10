@@ -2,10 +2,11 @@ import Link from "next/link";
 
 import { listDepartments } from "@/actions/media";
 import { MediaAlbumForm } from "@/components/admin/media-album-form";
-import { requireAdminSession } from "@/lib/auth/session";
+import { CONTENT_EDIT_ROLES, canPublishContent } from "@/lib/auth/cms-roles";
+import { requireAdminWithRolesOrRedirect } from "@/lib/auth/session";
 
 export default async function AdminNewMediaAlbumPage() {
-  await requireAdminSession();
+  const session = await requireAdminWithRolesOrRedirect([...CONTENT_EDIT_ROLES]);
   const departments = await listDepartments();
 
   return (
@@ -16,7 +17,7 @@ export default async function AdminNewMediaAlbumPage() {
         </Link>
         <h1 className="mt-2 font-display text-2xl font-bold text-slate-900">New media album</h1>
       </div>
-      <MediaAlbumForm departments={departments} />
+      <MediaAlbumForm departments={departments} canPublish={canPublishContent(session)} />
     </div>
   );
 }

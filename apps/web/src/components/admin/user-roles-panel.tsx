@@ -4,7 +4,8 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { assignRoleAction, revokeRoleAction, type RoleAssignmentView } from "@/actions/users";
-import type { DepartmentOption } from "@/lib/database/types";
+import type { DepartmentOption, UserRole } from "@/lib/database/types";
+import { isUniversityWideRole, requiresDepartmentForRole } from "@/lib/auth/cms-roles";
 import { ROLE_LABELS } from "@/lib/validations/users";
 
 type UserRoleOption = keyof typeof ROLE_LABELS;
@@ -48,7 +49,8 @@ export function UserRolesPanel({
     });
   }
 
-  const showDepartment = selectedRole !== "super_admin";
+  const showDepartment = !isUniversityWideRole(selectedRole);
+  const departmentRequired = requiresDepartmentForRole(selectedRole);
 
   return (
     <div className="space-y-4">
@@ -77,7 +79,12 @@ export function UserRolesPanel({
                     {ROLE_LABELS[assignment.role]}
                   </td>
                   <td className="px-4 py-3 text-slate-600">
-                    {assignment.department_name ?? (assignment.role === "super_admin" ? "All departments" : "—")}
+                    {assignment.department_name ??
+                      (isUniversityWideRole(assignment.role)
+                        ? "All departments"
+                        : assignment.role === "reviewer" && !assignment.department_id
+                          ? "All departments"
+                          : "—")}
                   </td>
                   <td className="px-4 py-3 text-right">
                     <button
@@ -115,10 +122,12 @@ export function UserRolesPanel({
 
         {showDepartment && (
           <label className="block text-sm">
-            <span className="font-medium text-slate-700">Department</span>
+            <span className="font-medium text-slate-700">
+              Department{departmentRequired ? "" : " (optional)"}
+            </span>
             <select
               name="departmentId"
-              required
+              required={departmentRequired}
               className="mt-1 block w-56 rounded-lg border border-slate-300 px-3 py-2"
             >
               <option value="">Select department</option>

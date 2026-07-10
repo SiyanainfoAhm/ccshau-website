@@ -5,6 +5,7 @@ import Link from "next/link";
 import { listFeedbackForAdmin } from "@/actions/feedback";
 import { AdminListFooter } from "@/components/admin/admin-list-footer";
 import { AdminSortableTh } from "@/components/admin/admin-sortable-th";
+import { FeedbackInboxFilters } from "@/components/admin/feedback-inbox-filters";
 import { StatusBadge } from "@/components/admin/status-badge";
 import { requireAdminSession } from "@/lib/auth/session";
 import { parseAdminListParams } from "@/lib/data/admin-list";
@@ -28,13 +29,20 @@ export default async function AdminFeedbackPage({
   await requireAdminSession();
   const params = await searchParams;
   const status = params.status as FeedbackStatus | undefined;
+  const nameQuery = params.q?.trim();
+  const fromDate = params.from;
+  const toDate = params.to;
   const listParams = parseAdminListParams(params, {
     sortBy: "created_at",
     sortOrder: "desc",
     allowedSorts: FEEDBACK_SORTS,
   });
-  const data = await listFeedbackForAdmin(status, listParams);
+  const data = await listFeedbackForAdmin(
+    { status, q: nameQuery, from: fromDate, to: toDate },
+    listParams,
+  );
   const items = data.items;
+  const hasExtraFilters = Boolean(nameQuery || fromDate || toDate);
 
   return (
     <div className="space-y-6">
@@ -43,10 +51,17 @@ export default async function AdminFeedbackPage({
         <p className="text-sm text-slate-500">Review and respond to public contact submissions</p>
       </div>
 
+      <Suspense fallback={null}>
+        <FeedbackInboxFilters />
+      </Suspense>
+
       <div className="flex flex-wrap gap-2">
         {STATUS_TABS.map((tab) => {
           const tabParams = new URLSearchParams();
           if (tab.value) tabParams.set("status", tab.value);
+          if (nameQuery) tabParams.set("q", nameQuery);
+          if (fromDate) tabParams.set("from", fromDate);
+          if (toDate) tabParams.set("to", toDate);
           if (listParams.sortBy !== "created_at") tabParams.set("sort", listParams.sortBy);
           if (listParams.sortOrder !== "desc") tabParams.set("order", listParams.sortOrder);
           const qs = tabParams.toString();
@@ -86,7 +101,9 @@ export default async function AdminFeedbackPage({
             {items.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-4 py-10 text-center text-slate-500">
-                  No feedback submissions{status ? ` with status "${status.replace(/_/g, " ")}"` : ""}.
+                  No feedback submissions
+                  {status ? ` with status "${status.replace(/_/g, " ")}"` : ""}
+                  {hasExtraFilters ? " matching your filters" : ""}.
                 </td>
               </tr>
             ) : (

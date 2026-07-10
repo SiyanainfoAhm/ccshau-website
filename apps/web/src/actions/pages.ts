@@ -4,16 +4,17 @@ import { revalidatePath } from "next/cache";
 
 import { writeAuditLog } from "@/lib/auth/audit";
 import {
-  assertPageAccess,
   canCreateCollegeRoot,
   canDeletePages,
   canPublishPages,
-  getPageCollegeRootId,
   hasUniversityCmsRole,
   isCollegeOnlyUser,
   isSuperAdminSession,
+  isUniversityAdminSession,
   universityCmsPageListOrFilter,
 } from "@/lib/auth/college-scope";
+import { assertPageAccess, getPageCollegeRootId } from "@/lib/auth/college-scope-server";
+import { CMS_READ_ROLES, isUniversityWideCmsSession } from "@/lib/auth/cms-roles";
 import { hasRole } from "@/lib/auth/rbac";
 import {
   requireAdminSession,
@@ -298,7 +299,12 @@ export async function updatePageAction(
       row.page_type = "college";
     }
 
-    if (existing.page_type === "college" && row.page_type !== "college" && !isSuperAdminSession(session)) {
+    if (
+      existing.page_type === "college" &&
+      row.page_type !== "college" &&
+      !isSuperAdminSession(session) &&
+      !isUniversityAdminSession(session)
+    ) {
       return fail("Cannot change a college microsite to a standard page.");
     }
 
@@ -424,7 +430,7 @@ export async function listPagesForAdmin(
 
   const session = await requireAdminSession();
   const canList =
-    hasRole(session.roles, ["super_admin", "dept_admin", "editor", "viewer"]) ||
+    hasRole(session.roles, [...CMS_READ_ROLES]) ||
     Boolean(session.collegeAssignment);
 
   if (!canList) return emptyPaginatedResult(opts);
@@ -437,7 +443,7 @@ export async function listPagesForAdmin(
   if (isCollegeOnlyUser(session) && session.collegeAssignment) {
     query = query.eq("college_root_id", session.collegeAssignment.collegePageId);
   } else if (
-    !isSuperAdminSession(session) &&
+    !isUniversityWideCmsSession(session) &&
     hasUniversityCmsRole(session) &&
     !isCollegeOnlyUser(session) &&
     session.departmentId
@@ -461,7 +467,7 @@ export async function listAllPagesForAdmin(): Promise<Page[]> {
 export async function getPageById(pageId: string): Promise<Page | null> {
   const session = await requireAdminSession();
   const canView =
-    hasRole(session.roles, ["super_admin", "dept_admin", "editor", "viewer"]) ||
+    hasRole(session.roles, [...CMS_READ_ROLES]) ||
     Boolean(session.collegeAssignment);
 
   if (!canView) return null;

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { listCollegesForAdmin } from "@/lib/auth/college-scope";
+import { listCollegesForAdmin } from "@/lib/auth/college-scope-server";
 import { listDepartments } from "@/actions/pages";
 import { InviteUserForm } from "@/components/admin/invite-user-form";
 import { requireAdminSession } from "@/lib/auth/session";

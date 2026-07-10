@@ -2,9 +2,9 @@ import { redirect } from "next/navigation";
 
 import {
   canAccessAdmin,
-  getCollegeAssignmentForUser,
   type CollegeAssignment,
 } from "@/lib/auth/college-scope";
+import { getCollegeAssignmentForUser } from "@/lib/auth/college-scope-server";
 import { getAdminNavAccess, canAccessAdminPath } from "@/lib/auth/admin-nav-access";
 import { getUserRoles, highestRole, type UserRoleAssignment } from "@/lib/auth/rbac";
 import { Tables } from "@/lib/database/names";
