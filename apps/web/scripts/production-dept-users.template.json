@@ -1,0 +1,37 @@
+[
+  {
+    "email": "computer.section@hau.ac.in",
+    "displayName": "Computer Section Admin",
+    "departmentSlug": "computer-section",
+    "role": "university_admin",
+    "note": "Full technical control — site structure, all content modules, redirects. No Users/Audit (use super_admin for those)."
+  },
+  {
+    "email": "purchase.tender@hau.ac.in",
+    "displayName": "Purchase / Tender Section",
+    "departmentSlug": "purchase-tender",
+    "role": "dept_admin",
+    "note": "Tenders, corrigendum, cancellations only"
+  },
+  {
+    "email": "pro.media@hau.ac.in",
+    "displayName": "PRO / Media Section",
+    "departmentSlug": "pro-media",
+    "role": "dept_admin",
+    "note": "Press releases (news) and media gallery"
+  },
+  {
+    "email": "admin.section@hau.ac.in",
+    "displayName": "Admin Section",
+    "departmentSlug": "admin-section",
+    "role": "dept_admin",
+    "note": "Circulars and official notices"
+  },
+  {
+    "email": "agriculture.dept@hau.ac.in",
+    "displayName": "Agriculture Department",
+    "departmentSlug": "agriculture-department",
+    "role": "dept_admin",
+    "note": "Department page, notices, downloads, gallery"
+  }
+]

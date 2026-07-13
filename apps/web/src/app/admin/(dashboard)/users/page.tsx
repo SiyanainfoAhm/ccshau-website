@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { listUsersForAdmin } from "@/actions/users";
 import { AdminListFooter } from "@/components/admin/admin-list-footer";
 import { AdminSortableTh } from "@/components/admin/admin-sortable-th";
+import { UsersListSearch } from "@/components/admin/users-list-search";
 import { requireAdminSession } from "@/lib/auth/session";
 import { parseAdminListParams } from "@/lib/data/admin-list";
 import { ROLE_LABELS } from "@/lib/validations/users";
@@ -63,6 +64,10 @@ export default async function AdminUsersPage({
         </Link>
       </div>
 
+      <Suspense fallback={null}>
+        <UsersListSearch listParams={listParams} data={data} />
+      </Suspense>
+
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         <table className="min-w-full divide-y divide-slate-200 text-sm">
           <thead className="bg-slate-50">
@@ -80,10 +85,16 @@ export default async function AdminUsersPage({
             {users.length === 0 ? (
               <tr>
                 <td colSpan={5} className="px-4 py-10 text-center text-slate-500">
-                  No CMS users yet.{" "}
-                  <Link href="/admin/users/new" className="text-emerald-700 hover:underline">
-                    Create the first user
-                  </Link>
+                  {listParams.search ? (
+                    "No users match your search."
+                  ) : (
+                    <>
+                      No CMS users yet.{" "}
+                      <Link href="/admin/users/new" className="text-emerald-700 hover:underline">
+                        Create the first user
+                      </Link>
+                    </>
+                  )}
                 </td>
               </tr>
             ) : (

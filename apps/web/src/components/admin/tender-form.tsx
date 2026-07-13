@@ -8,6 +8,7 @@ import { createTenderAction, updateTenderAction } from "@/actions/tenders";
 import { AdminFileUploadField } from "@/components/admin/admin-file-upload-field";
 import { AttachmentList, useAttachmentRemovals } from "@/components/admin/attachment-list";
 import type { Tender } from "@/lib/database/types";
+import { tenderStatusOptions } from "@/lib/auth/tender-status-options";
 import { getStoredFileUrl } from "@/lib/storage/upload";
 import { TENDER_CATEGORIES } from "@/lib/validations/tenders";
 import { slugify } from "@/lib/utils/slug";
@@ -21,9 +22,11 @@ interface Department {
 export function TenderForm({
   departments,
   tender,
+  canPublish = true,
 }: {
   departments: Department[];
   tender?: Tender;
+  canPublish?: boolean;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -69,6 +72,8 @@ export function TenderForm({
   const cancellationDocUrl = tender?.cancellation_document_path
     ? getStoredFileUrl(tender.cancellation_document_path)
     : null;
+
+  const statusOptions = tenderStatusOptions(canPublish);
 
   return (
     <form action={handleSubmit} className="mx-auto max-w-3xl space-y-6">
@@ -206,11 +211,11 @@ export function TenderForm({
               onChange={(e) => setStatus(e.target.value as Tender["status"])}
               className="w-full rounded-lg border border-slate-300 px-3 py-2"
             >
-              <option value="draft">Draft</option>
-              <option value="open">Open (live)</option>
-              <option value="closed">Closed</option>
-              <option value="cancelled">Cancelled</option>
-              <option value="archived">Archived</option>
+              {statusOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </select>
           </div>
           <div>

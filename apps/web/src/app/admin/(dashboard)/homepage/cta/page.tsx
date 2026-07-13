@@ -2,10 +2,10 @@ import Link from "next/link";
 
 import { getHomepageCtaForAdmin } from "@/actions/homepage";
 import { HomepageCtaForm } from "@/components/admin/homepage-forms";
-import { requireAdminSession } from "@/lib/auth/session";
+import { requireSiteStructureOrRedirect } from "@/lib/auth/site-structure-access";
 
 export default async function AdminHomepageCtaPage() {
-  await requireAdminSession();
+  await requireSiteStructureOrRedirect();
   const cta = await getHomepageCtaForAdmin();
 
   return (

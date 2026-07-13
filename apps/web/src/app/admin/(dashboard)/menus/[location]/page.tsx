@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 
 import { getMenuEditorData } from "@/actions/menus";
 import { MenuEditor } from "@/components/admin/menu-editor";
-import { requireAdminSession } from "@/lib/auth/session";
+import { requireSiteStructureOrRedirect } from "@/lib/auth/site-structure-access";
 import { isValidMenuLocation } from "@/lib/validations/menus";
 import type { MenuLocation } from "@/lib/database/types";
 
@@ -18,7 +18,7 @@ export default async function AdminMenuLocationPage({
 }: {
   params: Promise<{ location: string }>;
 }) {
-  await requireAdminSession();
+  await requireSiteStructureOrRedirect();
   const { location } = await params;
 
   if (!isValidMenuLocation(location)) notFound();

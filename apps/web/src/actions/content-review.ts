@@ -6,11 +6,10 @@ import { writeAuditLog } from "@/lib/auth/audit";
 import {
   canActOnDepartmentContent,
   canPublishContent,
-  isReviewerOnlySession,
 } from "@/lib/auth/cms-roles";
 import { requireAdminSession } from "@/lib/auth/session";
 import { Tables } from "@/lib/database/names";
-import type { ContentStatus } from "@/lib/database/types";
+import type { ContentStatus, TenderStatus } from "@/lib/database/types";
 import { fail, ok, type ActionResult } from "@/lib/types/action-result";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -19,46 +18,59 @@ export type ReviewableEntityType =
   | "circular"
   | "download"
   | "media_album"
-  | "page";
+  | "page"
+  | "tender";
 
-const ENTITY_CONFIG: Record<
-  ReviewableEntityType,
-  {
-    table: string;
-    adminListPath: string;
-    entityType: string;
-    titleColumn: string;
-  }
-> = {
+type ReviewConfig = {
+  table: string;
+  adminListPath: string;
+  entityType: string;
+  titleColumn: string;
+  kind: "content" | "tender";
+};
+
+const ENTITY_CONFIG: Record<ReviewableEntityType, ReviewConfig> = {
   news: {
     table: Tables.news,
     adminListPath: "/admin/news",
     entityType: "news",
     titleColumn: "title_en",
+    kind: "content",
   },
   circular: {
     table: Tables.circulars,
     adminListPath: "/admin/circulars",
     entityType: "circular",
     titleColumn: "title_en",
+    kind: "content",
   },
   download: {
     table: Tables.downloads,
     adminListPath: "/admin/downloads",
     entityType: "download",
     titleColumn: "title_en",
+    kind: "content",
   },
   media_album: {
     table: Tables.mediaAlbums,
     adminListPath: "/admin/media",
     entityType: "media_album",
     titleColumn: "title_en",
+    kind: "content",
   },
   page: {
     table: Tables.pages,
     adminListPath: "/admin/pages",
     entityType: "page",
     titleColumn: "title_en",
+    kind: "content",
+  },
+  tender: {
+    table: Tables.tenders,
+    adminListPath: "/admin/tenders",
+    entityType: "tender",
+    titleColumn: "title_en",
+    kind: "tender",
   },
 };
 
@@ -90,7 +102,7 @@ export async function reviewContentAction(
 
     const row = existing as {
       id: string;
-      status: ContentStatus;
+      status: ContentStatus | TenderStatus;
       department_id: string | null;
       title_en?: string;
     };
@@ -103,17 +115,21 @@ export async function reviewContentAction(
       return fail("You do not have permission to review this department's content.");
     }
 
-    if (isReviewerOnlySession(session) && decision === "reject") {
-      // Reviewers return to draft; full editors may also use this path from the panel.
-    }
+    const nextStatus =
+      config.kind === "tender"
+        ? ((decision === "approve" ? "open" : "draft") satisfies TenderStatus)
+        : ((decision === "approve" ? "published" : "draft") satisfies ContentStatus);
 
-    const nextStatus: ContentStatus = decision === "approve" ? "published" : "draft";
     const { error: updateError } = await admin
       .from(config.table)
       .update({
         status: nextStatus,
         updated_by: session.userId,
-        ...(nextStatus === "published" ? { published_at: new Date().toISOString() } : {}),
+        ...(decision === "approve"
+          ? { published_at: new Date().toISOString() }
+          : config.kind === "tender"
+            ? { published_at: null }
+            : {}),
       })
       .eq("id", entityId);
 
@@ -135,6 +151,7 @@ export async function reviewContentAction(
     revalidatePath(config.adminListPath);
     revalidatePath(`${config.adminListPath}/${entityId}`);
     revalidatePath("/admin");
+    revalidatePath("/admin/reports");
 
     return ok(undefined);
   } catch (e) {

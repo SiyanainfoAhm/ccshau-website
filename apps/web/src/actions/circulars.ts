@@ -9,7 +9,8 @@ import {
   CONTENT_EDIT_ROLES,
   isUniversityWideCmsSession,
 } from "@/lib/auth/cms-roles";
-import { requireAdminSession, requireAdminWithRoles } from "@/lib/auth/session";
+import { hasCmsModuleAccess, requireAdminSessionForCmsModule } from "@/lib/auth/cms-module-access-server";
+import { requireAdminSession } from "@/lib/auth/session";
 import { Tables } from "@/lib/database/names";
 import type { Circular, ContentStatus } from "@/lib/database/types";
 import { removeStorageObjects, uploadCircularFile } from "@/lib/storage/upload";
@@ -81,6 +82,9 @@ export async function listCircularsForAdmin(
   });
 
   const session = await requireAdminSession();
+  if (!(await hasCmsModuleAccess(session, "circulars"))) {
+    return emptyPaginatedResult(opts);
+  }
   const admin = createAdminClient();
   if (!admin) return emptyPaginatedResult(opts);
 
@@ -95,6 +99,9 @@ export async function listCircularsForAdmin(
 
 export async function getCircularById(id: string): Promise<Circular | null> {
   const session = await requireAdminSession();
+  if (!(await hasCmsModuleAccess(session, "circulars"))) {
+    return null;
+  }
   const admin = createAdminClient();
   if (!admin) return null;
   const { data } = await admin.from(Tables.circulars).select("*").eq("id", id).maybeSingle();
@@ -113,7 +120,7 @@ export async function getCircularById(id: string): Promise<Circular | null> {
 
 export async function createCircularAction(formData: FormData): Promise<ActionResult<{ id: string }>> {
   try {
-    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
+    const session = await requireAdminSessionForCmsModule("circulars", [...CONTENT_EDIT_ROLES]);
     const parsed = parseForm(formData);
     if (!parsed.success) return fail("Validation failed", parsed.error.flatten().fieldErrors);
 
@@ -170,7 +177,7 @@ export async function createCircularAction(formData: FormData): Promise<ActionRe
 
 export async function updateCircularAction(id: string, formData: FormData): Promise<ActionResult> {
   try {
-    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
+    const session = await requireAdminSessionForCmsModule("circulars", [...CONTENT_EDIT_ROLES]);
     const parsed = parseForm(formData);
     if (!parsed.success) return fail("Validation failed", parsed.error.flatten().fieldErrors);
 
@@ -245,7 +252,7 @@ export async function updateCircularAction(id: string, formData: FormData): Prom
 
 export async function deleteCircularAction(id: string): Promise<ActionResult> {
   try {
-    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
+    const session = await requireAdminSessionForCmsModule("circulars", [...CONTENT_EDIT_ROLES]);
     const admin = createAdminClient();
     if (!admin) return fail("Database not configured.");
 

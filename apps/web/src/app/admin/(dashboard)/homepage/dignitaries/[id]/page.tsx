@@ -2,14 +2,14 @@ import { notFound } from "next/navigation";
 
 import { getHomepageDignitaryById } from "@/actions/homepage";
 import { DeleteHomepageDignitaryButton, HomepageDignitaryForm } from "@/components/admin/homepage-forms";
-import { requireAdminSession } from "@/lib/auth/session";
+import { requireSiteStructureOrRedirect } from "@/lib/auth/site-structure-access";
 
 export default async function AdminEditHomepageDignitaryPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireAdminSession();
+  await requireSiteStructureOrRedirect();
   const { id } = await params;
   const dignitary = await getHomepageDignitaryById(id);
   if (!dignitary) notFound();

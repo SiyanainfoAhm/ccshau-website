@@ -9,10 +9,14 @@ export function ContentReviewPanel({
   entityType,
   entityId,
   title,
+  approveLabel = "Approve & publish",
+  approveMessage = "Published successfully.",
 }: {
   entityType: ReviewableEntityType;
   entityId: string;
   title: string;
+  approveLabel?: string;
+  approveMessage?: string;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -22,7 +26,7 @@ export function ContentReviewPanel({
   function runReview(decision: "approve" | "reject") {
     setError(null);
     setMessage(null);
-    const label = decision === "approve" ? "approve and publish" : "return to draft";
+    const label = decision === "approve" ? approveLabel.toLowerCase() : "return to draft";
     if (!confirm(`${label.charAt(0).toUpperCase()}${label.slice(1)} this item?`)) return;
 
     startTransition(async () => {
@@ -31,7 +35,7 @@ export function ContentReviewPanel({
         setError(result.error);
         return;
       }
-      setMessage(decision === "approve" ? "Published successfully." : "Returned to draft.");
+      setMessage(decision === "approve" ? approveMessage : "Returned to draft.");
       router.refresh();
     });
   }
@@ -52,7 +56,7 @@ export function ContentReviewPanel({
             onClick={() => runReview("approve")}
             className="rounded-lg bg-[#0b3d2e] px-4 py-2 text-sm font-medium text-white hover:bg-[#0a3427] disabled:opacity-50"
           >
-            Approve & publish
+            {approveLabel}
           </button>
           <button
             type="button"

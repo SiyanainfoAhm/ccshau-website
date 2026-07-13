@@ -7,7 +7,7 @@ import { Plus } from "lucide-react";
 import { listBannersForAdmin } from "@/actions/banners";
 import { AdminListFooter } from "@/components/admin/admin-list-footer";
 import { AdminPagination } from "@/components/admin/admin-pagination";
-import { requireAdminSession } from "@/lib/auth/session";
+import { requireSiteStructureOrRedirect } from "@/lib/auth/site-structure-access";
 import { parseAdminListParams } from "@/lib/data/admin-list";
 import { getStoredFileUrl } from "@/lib/storage/upload";
 
@@ -18,7 +18,7 @@ export default async function AdminBannersPage({
 }: {
   searchParams: Promise<Record<string, string | undefined>>;
 }) {
-  await requireAdminSession();
+  await requireSiteStructureOrRedirect();
   const params = await searchParams;
   const listParams = parseAdminListParams(params, {
     sortBy: "priority",

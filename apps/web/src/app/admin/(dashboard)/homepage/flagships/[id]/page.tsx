@@ -2,14 +2,14 @@ import { notFound } from "next/navigation";
 
 import { getHomepageInitiativeById } from "@/actions/homepage";
 import { DeleteHomepageInitiativeButton, HomepageInitiativeForm } from "@/components/admin/homepage-forms";
-import { requireAdminSession } from "@/lib/auth/session";
+import { requireSiteStructureOrRedirect } from "@/lib/auth/site-structure-access";
 
 export default async function AdminEditHomepageFlagshipPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireAdminSession();
+  await requireSiteStructureOrRedirect();
   const { id } = await params;
   const initiative = await getHomepageInitiativeById(id);
   if (!initiative) notFound();

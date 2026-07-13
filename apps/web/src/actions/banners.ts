@@ -3,8 +3,8 @@
 import { revalidatePath } from "next/cache";
 
 import { writeAuditLog } from "@/lib/auth/audit";
-import { CONTENT_EDIT_ROLES } from "@/lib/auth/cms-roles";
-import { requireAdminSession, requireAdminWithRoles } from "@/lib/auth/session";
+import { SITE_STRUCTURE_ACCESS_ROLES } from "@/lib/auth/cms-roles";
+import { requireAdminWithRoles } from "@/lib/auth/session";
 import { Tables } from "@/lib/database/names";
 import type { Banner } from "@/lib/database/types";
 import { removeStorageObjects, uploadBannerImage } from "@/lib/storage/upload";
@@ -56,7 +56,7 @@ export async function listBannersForAdmin(
     allowedSorts: BANNERS_LIST_SORTS,
   });
 
-  await requireAdminSession();
+  await requireAdminWithRoles([...SITE_STRUCTURE_ACCESS_ROLES]);
   const admin = createAdminClient();
   if (!admin) return emptyPaginatedResult(opts);
 
@@ -65,7 +65,7 @@ export async function listBannersForAdmin(
 }
 
 export async function getBannerById(id: string): Promise<Banner | null> {
-  await requireAdminSession();
+  await requireAdminWithRoles([...SITE_STRUCTURE_ACCESS_ROLES]);
   const admin = createAdminClient();
   if (!admin) return null;
 
@@ -75,7 +75,7 @@ export async function getBannerById(id: string): Promise<Banner | null> {
 
 export async function createBannerAction(formData: FormData): Promise<ActionResult<{ id: string }>> {
   try {
-    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
+    const session = await requireAdminWithRoles([...SITE_STRUCTURE_ACCESS_ROLES]);
     const parsed = parseBannerForm(formData);
     if (!parsed.success) {
       return fail("Validation failed", parsed.error.flatten().fieldErrors);
@@ -128,7 +128,7 @@ export async function updateBannerAction(
   formData: FormData,
 ): Promise<ActionResult> {
   try {
-    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
+    const session = await requireAdminWithRoles([...SITE_STRUCTURE_ACCESS_ROLES]);
     const parsed = parseBannerForm(formData);
     if (!parsed.success) {
       return fail("Validation failed", parsed.error.flatten().fieldErrors);
@@ -189,7 +189,7 @@ export async function updateBannerAction(
 
 export async function deleteBannerAction(bannerId: string): Promise<ActionResult> {
   try {
-    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
+    const session = await requireAdminWithRoles([...SITE_STRUCTURE_ACCESS_ROLES]);
     const admin = createAdminClient();
     if (!admin) return fail("Database not configured.");
 

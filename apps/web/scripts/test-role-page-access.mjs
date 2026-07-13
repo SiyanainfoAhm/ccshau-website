@@ -55,9 +55,45 @@ const PAGES = [
   { path: "/admin/users", label: "Users & roles" },
 ];
 
-function expectedAccess(role, path) {
+function matchesPrefix(path, prefix) {
+  return path === prefix || path.startsWith(`${prefix}/`);
+}
+
+const SITE_STRUCTURE = [
+  "/admin/banners",
+  "/admin/homepage",
+  "/admin/menus",
+  "/admin/related-links",
+];
+
+const SUPER_ADMIN_ONLY = [
+  "/admin/audit",
+  "/admin/users",
+  "/admin/pg-seminar-registrations",
+  "/admin/register",
+];
+
+const SETTINGS = ["/admin/settings", "/admin/redirects"];
+
+const PATH_CMS_MODULE = {
+  "/admin/pages": "pages",
+  "/admin/news": "news",
+  "/admin/circulars": "circulars",
+  "/admin/tenders": "tenders",
+  "/admin/downloads": "downloads",
+  "/admin/media": "media",
+  "/admin/feedback": "feedback",
+};
+
+/** Allowed CMS modules per test account (matches seeded department_modules). */
+const USER_CMS_MODULES = {
+  "test.deptadmin@ccshau.test": ["pages", "news", "circulars", "feedback"],
+  "test.editor@ccshau.test": ["pages", "news", "downloads", "feedback"],
+  "test.viewer@ccshau.test": ["pages", "news", "downloads", "feedback"],
+};
+
+function expectedAccess(role, path, email) {
   const collegeOnly = ["college_admin", "college_editor", "college_viewer"].includes(role);
-  const university = ["super_admin", "dept_admin", "editor", "viewer"].includes(role);
 
   if (collegeOnly) {
     if (path === "/admin" || path.startsWith("/admin/register") || path.startsWith("/admin/pages")) {
@@ -68,12 +104,11 @@ function expectedAccess(role, path) {
 
   if (role === "super_admin") return true;
 
-  if (path === "/admin/audit" || path === "/admin/users" || path === "/admin/pg-seminar-registrations") {
-    return false;
+  for (const prefix of SUPER_ADMIN_ONLY) {
+    if (matchesPrefix(path, prefix)) return false;
   }
-  if (path.startsWith("/admin/register")) return false;
 
-  if (path === "/admin/redirects" || path === "/admin/settings") {
+  if (SETTINGS.some((p) => matchesPrefix(path, p))) {
     return role === "dept_admin";
   }
 
@@ -88,10 +123,36 @@ function expectedAccess(role, path) {
       "/admin/media",
     ];
     if (path === "/admin") return true;
+    if (path === "/admin/reports") return true;
+    if (SITE_STRUCTURE.some((p) => matchesPrefix(path, p))) return false;
+    if (!hasModuleAccess(email, path)) return false;
     return viewerPaths.some((p) => path === p || path.startsWith(`${p}/`));
   }
 
-  return university;
+  if (role === "dept_admin") {
+    if (path === "/admin/reports") return false;
+    if (SITE_STRUCTURE.some((p) => matchesPrefix(path, p))) return false;
+    if (!hasModuleAccess(email, path)) return false;
+    return true;
+  }
+
+  if (role === "editor") {
+    if (path === "/admin/reports") return false;
+    if (SETTINGS.some((p) => matchesPrefix(path, p))) return false;
+    if (SITE_STRUCTURE.some((p) => matchesPrefix(path, p))) return false;
+    if (!hasModuleAccess(email, path)) return false;
+    return true;
+  }
+
+  return false;
+}
+
+function hasModuleAccess(email, path) {
+  const allowed = USER_CMS_MODULES[email];
+  if (!allowed) return true;
+  const cmsModule = PATH_CMS_MODULE[path];
+  if (!cmsModule) return true;
+  return allowed.includes(cmsModule);
 }
 
 function createCookieClient() {
@@ -197,7 +258,7 @@ async function main() {
           user: user.email,
           page: page.label,
           path: page.path,
-          expected: expectedAccess(user.role, page.path) ? "ALLOW" : "DENY",
+          expected: expectedAccess(user.role, page.path, user.email) ? "ALLOW" : "DENY",
           status: "FAIL",
           note: `Login failed: ${loginResult.error}`,
         });
@@ -206,7 +267,7 @@ async function main() {
     }
 
     for (const page of PAGES) {
-      const expected = expectedAccess(user.role, page.path);
+      const expected = expectedAccess(user.role, page.path, user.email);
       const fetched = await fetchPage(page.path, loginResult.jar);
       const verdict = classifyResult(expected, fetched);
       results.push({

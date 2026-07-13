@@ -47,6 +47,7 @@ export function ccshauIndex(table: string, columns: string): string {
 export const Tables = {
   schemaMeta: ccshauTable("schema_meta"),
   departments: ccshauTable("departments"),
+  departmentModules: ccshauTable("department_modules"),
   profiles: ccshauTable("profiles"),
   userRoles: ccshauTable("user_roles"),
   userColleges: ccshauTable("user_colleges"),

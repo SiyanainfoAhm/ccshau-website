@@ -58,7 +58,7 @@ export async function submitPublicFeedbackAction(
     email: parsed.data.email,
     phone: parsed.data.phone || null,
     category: parsed.data.category || null,
-    department_id: parsed.data.departmentId || null,
+    department_id: parsed.data.departmentId,
     subject: parsed.data.subject,
     message: parsed.data.message,
     status: "new",

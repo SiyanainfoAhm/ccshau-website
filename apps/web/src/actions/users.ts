@@ -107,6 +107,10 @@ async function getCollegeAssignmentsMap() {
 
 const USERS_LIST_SORTS = ["display_name", "email", "created_at", "is_active"] as const;
 
+function escapeIlikeTerm(value: string): string {
+  return value.replace(/[%_\\]/g, "");
+}
+
 export async function listUsersForAdmin(
   options: AdminListOptions = {},
 ): Promise<PaginatedResult<AdminUserListItem>> {
@@ -121,15 +125,41 @@ export async function listUsersForAdmin(
   if (!admin) return emptyPaginatedResult(opts);
 
   const { from, to } = paginationRange(opts.page, opts.pageSize);
-  const [profilesRes, deptMap, collegeMap] = await Promise.all([
-    admin
-      .from(Tables.profiles)
-      .select("*", { count: "exact" })
-      .order(opts.sortBy, { ascending: opts.sortOrder === "asc" })
-      .range(from, to),
-    getDepartmentNameMap(),
-    getCollegeAssignmentsMap(),
-  ]);
+  const [deptMap, collegeMap] = await Promise.all([getDepartmentNameMap(), getCollegeAssignmentsMap()]);
+
+  let profileQuery = admin.from(Tables.profiles).select("*", { count: "exact" });
+
+  if (opts.search) {
+    const escaped = escapeIlikeTerm(opts.search);
+    if (escaped) {
+      const term = `%${escaped}%`;
+      const matchingDeptIds = [...deptMap.entries()]
+        .filter(([, name]) => name.toLowerCase().includes(escaped.toLowerCase()))
+        .map(([id]) => id);
+
+      let roleMatchedUserIds: string[] = [];
+      if (matchingDeptIds.length > 0) {
+        const { data: roleRows } = await admin
+          .from(Tables.userRoles)
+          .select("user_id")
+          .in("department_id", matchingDeptIds);
+        roleMatchedUserIds = [...new Set((roleRows ?? []).map((row) => row.user_id as string))];
+      }
+
+      const orClauses = [`display_name.ilike.${term}`, `email.ilike.${term}`];
+      if (matchingDeptIds.length > 0) {
+        orClauses.push(`department_id.in.(${matchingDeptIds.join(",")})`);
+      }
+      if (roleMatchedUserIds.length > 0) {
+        orClauses.push(`id.in.(${roleMatchedUserIds.join(",")})`);
+      }
+      profileQuery = profileQuery.or(orClauses.join(","));
+    }
+  }
+
+  const profilesRes = await profileQuery
+    .order(opts.sortBy, { ascending: opts.sortOrder === "asc" })
+    .range(from, to);
 
   const profiles = (profilesRes.data ?? []) as Profile[];
   if (!profiles.length) {

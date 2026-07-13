@@ -1,3 +1,4 @@
+import { getAllowedCmsModulesForSession } from "@/lib/auth/cms-module-access-server";
 import type { AdminSession } from "@/lib/auth/session";
 import { Tables } from "@/lib/database/names";
 import type { CollegeScopeRole, Page } from "@/lib/database/types";
@@ -70,6 +71,19 @@ export async function assertPageAccess(
   if (isSuperAdminSession(session) || isUniversityAdminSession(session)) return page;
 
   if (hasUniversityCmsRole(session)) {
+    const allowedModules = await getAllowedCmsModulesForSession(session);
+    const strictDepartmentScope = Boolean(session.departmentId && allowedModules !== null);
+
+    if (strictDepartmentScope) {
+      if (collegeRootId) {
+        throw new Error("You do not have permission to access this college page.");
+      }
+      if (page.department_id !== session.departmentId) {
+        throw new Error("You do not have permission to access this page.");
+      }
+      return page;
+    }
+
     if (collegeRootId) return page;
     if (session.departmentId && page.department_id && page.department_id !== session.departmentId) {
       throw new Error("You do not have permission to access this page.");

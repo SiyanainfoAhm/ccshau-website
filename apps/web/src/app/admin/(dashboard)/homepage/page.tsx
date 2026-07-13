@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, GraduationCap, Megaphone, Quote, Sprout, Users } from "lucide-react";
 
-import { requireAdminSession } from "@/lib/auth/session";
+import { requireSiteStructureOrRedirect } from "@/lib/auth/site-structure-access";
 
 const sections = [
   {
@@ -67,7 +67,7 @@ const sections = [
 ];
 
 export default async function AdminHomepageHubPage() {
-  await requireAdminSession();
+  await requireSiteStructureOrRedirect();
 
   return (
     <div className="space-y-6">

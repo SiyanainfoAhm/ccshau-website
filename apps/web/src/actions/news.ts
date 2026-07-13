@@ -11,6 +11,7 @@ import {
   isUniversityWideCmsSession,
 } from "@/lib/auth/cms-roles";
 import { hasRole } from "@/lib/auth/rbac";
+import { hasCmsModuleAccess, requireAdminSessionForCmsModule } from "@/lib/auth/cms-module-access-server";
 import { requireAdminSession, requireAdminWithRoles } from "@/lib/auth/session";
 import { Tables } from "@/lib/database/names";
 import type { AttachmentPath, ContentStatus, NewsItem, NoticeType } from "@/lib/database/types";
@@ -108,7 +109,7 @@ async function mergeAttachments(
 
 export async function createNewsAction(formData: FormData): Promise<ActionResult<{ id: string }>> {
   try {
-    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
+    const session = await requireAdminSessionForCmsModule("news", [...CONTENT_EDIT_ROLES]);
     const parsed = parseNewsForm(formData);
     if (!parsed.success) {
       return fail("Validation failed", parsed.error.flatten().fieldErrors);
@@ -158,7 +159,7 @@ export async function updateNewsAction(
   formData: FormData,
 ): Promise<ActionResult<{ id: string }>> {
   try {
-    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
+    const session = await requireAdminSessionForCmsModule("news", [...CONTENT_EDIT_ROLES]);
     const parsed = parseNewsForm(formData);
     if (!parsed.success) {
       return fail("Validation failed", parsed.error.flatten().fieldErrors);
@@ -262,7 +263,7 @@ export async function listNewsForAdmin(
   });
 
   const session = await requireAdminSession();
-  if (!hasRole(session.roles, [...CMS_READ_ROLES])) {
+  if (!hasRole(session.roles, [...CMS_READ_ROLES]) || !(await hasCmsModuleAccess(session, "news"))) {
     return emptyPaginatedResult(opts);
   }
 
@@ -280,7 +281,7 @@ export async function listNewsForAdmin(
 
 export async function getNewsById(newsId: string): Promise<NewsItem | null> {
   const session = await requireAdminSession();
-  if (!hasRole(session.roles, [...CMS_READ_ROLES])) {
+  if (!hasRole(session.roles, [...CMS_READ_ROLES]) || !(await hasCmsModuleAccess(session, "news"))) {
     return null;
   }
 
