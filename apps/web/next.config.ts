@@ -6,7 +6,8 @@ const supabaseHostname = process.env.NEXT_PUBLIC_SUPABASE_URL
   : null;
 
 const nextConfig: NextConfig = {
-  outputFileTracingRoot: resolve(__dirname),
+  // Monorepo root — required so Vercel/Next file tracing resolves workspace deps.
+  outputFileTracingRoot: resolve(__dirname, "../.."),
   // Circulars, tenders, downloads, etc. upload PDFs via Server Actions (default limit is 1 MB).
   experimental: {
     serverActions: {
