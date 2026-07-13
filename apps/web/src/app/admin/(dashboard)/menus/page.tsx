@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Menu } from "lucide-react";
 
 import { listMenusForAdmin } from "@/actions/menus";
-import { requireAdminSession } from "@/lib/auth/session";
+import { requireSiteStructureOrRedirect } from "@/lib/auth/site-structure-access";
 
 const LOCATION_LABELS: Record<string, string> = {
   header: "Header navigation",
@@ -11,7 +11,7 @@ const LOCATION_LABELS: Record<string, string> = {
 };
 
 export default async function AdminMenusPage() {
-  await requireAdminSession();
+  await requireSiteStructureOrRedirect();
   const menus = await listMenusForAdmin();
 
   return (

@@ -9,7 +9,8 @@ import {
   CONTENT_EDIT_ROLES,
   isUniversityWideCmsSession,
 } from "@/lib/auth/cms-roles";
-import { requireAdminSession, requireAdminWithRoles } from "@/lib/auth/session";
+import { hasCmsModuleAccess, requireAdminSessionForCmsModule } from "@/lib/auth/cms-module-access-server";
+import { requireAdminSession } from "@/lib/auth/session";
 import { Tables } from "@/lib/database/names";
 import type { ContentStatus, Download, DownloadVersion } from "@/lib/database/types";
 import {
@@ -123,6 +124,9 @@ export async function listDownloadsForAdmin(
   });
 
   const session = await requireAdminSession();
+  if (!(await hasCmsModuleAccess(session, "downloads"))) {
+    return emptyPaginatedResult(opts);
+  }
   const admin = createAdminClient();
   if (!admin) return emptyPaginatedResult(opts);
 
@@ -137,6 +141,9 @@ export async function listDownloadsForAdmin(
 
 export async function getDownloadById(id: string): Promise<Download | null> {
   const session = await requireAdminSession();
+  if (!(await hasCmsModuleAccess(session, "downloads"))) {
+    return null;
+  }
   const admin = createAdminClient();
   if (!admin) return null;
 
@@ -170,7 +177,7 @@ export async function listDownloadVersions(downloadId: string): Promise<Download
 
 export async function createDownloadAction(formData: FormData): Promise<ActionResult<{ id: string }>> {
   try {
-    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
+    const session = await requireAdminSessionForCmsModule("downloads", [...CONTENT_EDIT_ROLES]);
     const parsed = parseForm(formData);
     if (!parsed.success) return fail("Validation failed", parsed.error.flatten().fieldErrors);
 
@@ -229,7 +236,7 @@ export async function createDownloadAction(formData: FormData): Promise<ActionRe
 
 export async function updateDownloadAction(id: string, formData: FormData): Promise<ActionResult> {
   try {
-    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
+    const session = await requireAdminSessionForCmsModule("downloads", [...CONTENT_EDIT_ROLES]);
     const parsed = parseForm(formData);
     if (!parsed.success) return fail("Validation failed", parsed.error.flatten().fieldErrors);
 
@@ -308,7 +315,7 @@ export async function updateDownloadAction(id: string, formData: FormData): Prom
 
 export async function deleteDownloadAction(id: string): Promise<ActionResult> {
   try {
-    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
+    const session = await requireAdminSessionForCmsModule("downloads", [...CONTENT_EDIT_ROLES]);
     const admin = createAdminClient();
     if (!admin) return fail("Database not configured.");
 

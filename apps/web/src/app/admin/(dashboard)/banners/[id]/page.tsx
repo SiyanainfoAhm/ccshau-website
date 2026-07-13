@@ -4,14 +4,14 @@ import { notFound } from "next/navigation";
 import { getBannerById } from "@/actions/banners";
 import { BannerForm } from "@/components/admin/banner-form";
 import { DeleteBannerButton } from "@/components/admin/delete-banner-button";
-import { requireAdminSession } from "@/lib/auth/session";
+import { requireSiteStructureOrRedirect } from "@/lib/auth/site-structure-access";
 
 export default async function AdminEditBannerPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireAdminSession();
+  await requireSiteStructureOrRedirect();
   const { id } = await params;
   const banner = await getBannerById(id);
   if (!banner) notFound();

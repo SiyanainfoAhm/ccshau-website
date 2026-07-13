@@ -4,8 +4,9 @@ import { revalidatePath } from "next/cache";
 
 import { listDepartments } from "@/actions/pages";
 import { writeAuditLog } from "@/lib/auth/audit";
-import { CONTENT_EDIT_ROLES } from "@/lib/auth/cms-roles";
-import { requireAdminSession, requireAdminWithRoles } from "@/lib/auth/session";
+import { CONTENT_EDIT_ROLES, isUniversityWideCmsSession } from "@/lib/auth/cms-roles";
+import { hasCmsModuleAccess, requireAdminSessionForCmsModule } from "@/lib/auth/cms-module-access-server";
+import { requireAdminSession } from "@/lib/auth/session";
 import { Tables } from "@/lib/database/names";
 import type { Feedback, FeedbackStatus } from "@/lib/database/types";
 import { fail, ok, type ActionResult } from "@/lib/types/action-result";
@@ -38,6 +39,16 @@ function escapeIlikeTerm(value: string): string {
   return value.replace(/[%_\\]/g, "");
 }
 
+function assertFeedbackDepartmentAccess(
+  session: Awaited<ReturnType<typeof requireAdminSession>>,
+  feedback: Pick<Feedback, "department_id">,
+) {
+  if (isUniversityWideCmsSession(session)) return;
+  if (session.departmentId && feedback.department_id !== session.departmentId) {
+    throw new Error("You do not have permission to access this feedback ticket.");
+  }
+}
+
 export async function listFeedbackForAdmin(
   filters: FeedbackListFilters = {},
   options: AdminListOptions = {},
@@ -48,11 +59,17 @@ export async function listFeedbackForAdmin(
     allowedSorts: FEEDBACK_LIST_SORTS,
   });
 
-  await requireAdminSession();
+  const session = await requireAdminSession();
+  if (!(await hasCmsModuleAccess(session, "feedback"))) {
+    return emptyPaginatedResult(opts);
+  }
   const admin = createAdminClient();
   if (!admin) return emptyPaginatedResult(opts);
 
   let query = admin.from(Tables.feedback).select("*", { count: "exact" });
+  if (!isUniversityWideCmsSession(session) && session.departmentId) {
+    query = query.eq("department_id", session.departmentId);
+  }
   if (filters.status) {
     query = query.eq("status", filters.status);
   }
@@ -76,12 +93,23 @@ export async function listFeedbackForAdmin(
 }
 
 export async function getFeedbackById(id: string): Promise<Feedback | null> {
-  await requireAdminSession();
+  const session = await requireAdminSession();
+  if (!(await hasCmsModuleAccess(session, "feedback"))) {
+    return null;
+  }
   const admin = createAdminClient();
   if (!admin) return null;
 
   const { data } = await admin.from(Tables.feedback).select("*").eq("id", id).maybeSingle();
-  return (data as Feedback) ?? null;
+  if (!data) return null;
+
+  try {
+    assertFeedbackDepartmentAccess(session, data as Feedback);
+  } catch {
+    return null;
+  }
+
+  return data as Feedback;
 }
 
 export async function updateFeedbackAction(
@@ -89,7 +117,7 @@ export async function updateFeedbackAction(
   formData: FormData,
 ): Promise<ActionResult> {
   try {
-    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
+    const session = await requireAdminSessionForCmsModule("feedback", [...CONTENT_EDIT_ROLES]);
     const parsed = feedbackUpdateSchema.safeParse({
       status: formData.get("status"),
       category: formData.get("category") || undefined,
@@ -103,6 +131,15 @@ export async function updateFeedbackAction(
 
     const admin = createAdminClient();
     if (!admin) return fail("Database not configured.");
+
+    const { data: existing } = await admin
+      .from(Tables.feedback)
+      .select("department_id")
+      .eq("id", feedbackId)
+      .maybeSingle();
+
+    if (!existing) return fail("Feedback ticket not found.");
+    assertFeedbackDepartmentAccess(session, existing as Feedback);
 
     const { error } = await admin
       .from(Tables.feedback)

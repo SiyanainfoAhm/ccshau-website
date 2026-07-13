@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { getSecuritySettingsForAdmin } from "@/actions/settings";
 import { SecuritySettingsForm } from "@/components/admin/security-settings-form";
+import { canManageSiteStructure } from "@/lib/auth/cms-roles";
 import { requireAdminSession } from "@/lib/auth/session";
 
 export default async function AdminSettingsPage() {
@@ -9,6 +10,7 @@ export default async function AdminSettingsPage() {
   const isSuperAdmin = session.roles.some((r) => r.role === "super_admin");
   const isUniversityAdmin = session.roles.some((r) => r.role === "university_admin");
   const isDeptAdmin = session.roles.some((r) => r.role === "dept_admin");
+  const canManageStructure = canManageSiteStructure(session);
   const securitySettings = isSuperAdmin ? await getSecuritySettingsForAdmin() : null;
 
   return (
@@ -23,20 +25,24 @@ export default async function AdminSettingsPage() {
       )}
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <Link
-          href="/admin/menus"
-          className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm hover:border-emerald-300"
-        >
-          <p className="font-semibold text-slate-900">Menu manager</p>
-          <p className="mt-1 text-sm text-slate-500">Header, footer, and quick-link navigation</p>
-        </Link>
-        <Link
-          href="/admin/related-links"
-          className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm hover:border-emerald-300"
-        >
-          <p className="font-semibold text-slate-900">Related links</p>
-          <p className="mt-1 text-sm text-slate-500">Homepage partner and institutional links</p>
-        </Link>
+        {canManageStructure && (
+          <>
+            <Link
+              href="/admin/menus"
+              className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm hover:border-emerald-300"
+            >
+              <p className="font-semibold text-slate-900">Menu manager</p>
+              <p className="mt-1 text-sm text-slate-500">Header, footer, and quick-link navigation</p>
+            </Link>
+            <Link
+              href="/admin/related-links"
+              className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm hover:border-emerald-300"
+            >
+              <p className="font-semibold text-slate-900">Related links</p>
+              <p className="mt-1 text-sm text-slate-500">Homepage partner and institutional links</p>
+            </Link>
+          </>
+        )}
         {(isSuperAdmin || isUniversityAdmin || isDeptAdmin) && (
           <Link
             href="/admin/redirects"
@@ -48,6 +54,15 @@ export default async function AdminSettingsPage() {
         )}
         {isSuperAdmin && (
           <>
+            <Link
+              href="/admin/settings/department-modules"
+              className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm hover:border-emerald-300"
+            >
+              <p className="font-semibold text-slate-900">Department module access</p>
+              <p className="mt-1 text-sm text-slate-500">
+                Section-wise CMS permissions (pages, tenders, media, etc.)
+              </p>
+            </Link>
             <Link
               href="/admin/users"
               className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm hover:border-emerald-300"

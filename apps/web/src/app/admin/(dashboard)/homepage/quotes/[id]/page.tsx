@@ -2,14 +2,14 @@ import { notFound } from "next/navigation";
 
 import { getHomepageQuoteById } from "@/actions/homepage";
 import { DeleteHomepageQuoteButton, HomepageQuoteForm } from "@/components/admin/homepage-forms";
-import { requireAdminSession } from "@/lib/auth/session";
+import { requireSiteStructureOrRedirect } from "@/lib/auth/site-structure-access";
 
 export default async function AdminEditHomepageQuotePage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireAdminSession();
+  await requireSiteStructureOrRedirect();
   const { id } = await params;
   const quote = await getHomepageQuoteById(id);
   if (!quote) notFound();

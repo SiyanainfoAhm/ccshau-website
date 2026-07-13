@@ -1,15 +1,21 @@
 import { notFound } from "next/navigation";
 
 import { getTenderById, listCorrigendaForTender, listDepartments } from "@/actions/tenders";
+import { ContentReviewPanel } from "@/components/admin/content-review-panel";
 import { CorrigendumPanel } from "@/components/admin/corrigendum-panel";
 import { DeleteTenderButton } from "@/components/admin/delete-tender-button";
 import { TenderForm } from "@/components/admin/tender-form";
-import { canEditContent, CMS_READ_ROLES } from "@/lib/auth/cms-roles";
+import {
+  canEditContent,
+  canPublishContent,
+  CMS_READ_ROLES,
+} from "@/lib/auth/cms-roles";
 import { requireAdminWithRolesOrRedirect } from "@/lib/auth/session";
 
 export default async function EditTenderPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await requireAdminWithRolesOrRedirect([...CMS_READ_ROLES]);
   const canEdit = canEditContent(session);
+  const canPublish = canPublishContent(session);
   const { id } = await params;
   const [tender, departments, corrigenda] = await Promise.all([
     getTenderById(id),
@@ -18,6 +24,8 @@ export default async function EditTenderPage({ params }: { params: Promise<{ id:
   ]);
 
   if (!tender) notFound();
+
+  const showReview = tender.status === "pending_review" && canPublish;
 
   return (
     <div className="space-y-6">
@@ -32,9 +40,20 @@ export default async function EditTenderPage({ params }: { params: Promise<{ id:
         </div>
         {canEdit ? <DeleteTenderButton tenderId={tender.id} /> : null}
       </div>
+
+      {showReview ? (
+        <ContentReviewPanel
+          entityType="tender"
+          entityId={tender.id}
+          title={tender.title_en}
+          approveLabel="Approve & open"
+          approveMessage="Tender opened for bidding."
+        />
+      ) : null}
+
       {canEdit ? (
         <>
-          <TenderForm departments={departments} tender={tender} />
+          <TenderForm departments={departments} tender={tender} canPublish={canPublish} />
           <CorrigendumPanel tenderId={tender.id} corrigenda={corrigenda} />
         </>
       ) : (

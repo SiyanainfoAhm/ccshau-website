@@ -4,14 +4,14 @@ import { notFound } from "next/navigation";
 import { getRelatedLinkById } from "@/actions/related-links";
 import { DeleteRelatedLinkButton } from "@/components/admin/delete-related-link-button";
 import { RelatedLinkForm } from "@/components/admin/related-link-form";
-import { requireAdminSession } from "@/lib/auth/session";
+import { requireSiteStructureOrRedirect } from "@/lib/auth/site-structure-access";
 
 export default async function AdminEditRelatedLinkPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireAdminSession();
+  await requireSiteStructureOrRedirect();
   const { id } = await params;
   const link = await getRelatedLinkById(id);
   if (!link) notFound();

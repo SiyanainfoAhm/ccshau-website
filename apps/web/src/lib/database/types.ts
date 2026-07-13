@@ -25,9 +25,19 @@ export type MenuLocation = "header" | "footer" | "quick_links";
 
 export type NoticeType = "news" | "notice" | "corrigendum" | "cancellation";
 
-export type TenderStatus = "draft" | "open" | "closed" | "cancelled" | "archived";
+export type TenderStatus = "draft" | "pending_review" | "open" | "closed" | "cancelled" | "archived";
 
 export type FeedbackStatus = "new" | "in_progress" | "resolved" | "closed";
+
+/** CMS content modules governed by department/section permissions (Phase A). */
+export type CmsModule =
+  | "pages"
+  | "news"
+  | "circulars"
+  | "tenders"
+  | "downloads"
+  | "media"
+  | "feedback";
 
 export type PgSeminarRegistrationStatus = "submitted" | "under_review" | "approved" | "rejected";
 

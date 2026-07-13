@@ -6,7 +6,7 @@ import { Plus } from "lucide-react";
 import { listRelatedLinksForAdmin } from "@/actions/related-links";
 import { AdminListFooter } from "@/components/admin/admin-list-footer";
 import { AdminSortableTh } from "@/components/admin/admin-sortable-th";
-import { requireAdminSession } from "@/lib/auth/session";
+import { requireSiteStructureOrRedirect } from "@/lib/auth/site-structure-access";
 import { parseAdminListParams } from "@/lib/data/admin-list";
 
 const RELATED_LINKS_SORTS = ["title_en", "category", "sort_order", "is_active"] as const;
@@ -16,7 +16,7 @@ export default async function AdminRelatedLinksPage({
 }: {
   searchParams: Promise<Record<string, string | undefined>>;
 }) {
-  await requireAdminSession();
+  await requireSiteStructureOrRedirect();
   const params = await searchParams;
   const listParams = parseAdminListParams(params, {
     sortBy: "sort_order",

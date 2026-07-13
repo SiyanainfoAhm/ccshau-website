@@ -3,8 +3,8 @@
 import { revalidatePath } from "next/cache";
 
 import { writeAuditLog } from "@/lib/auth/audit";
-import { CONTENT_EDIT_ROLES } from "@/lib/auth/cms-roles";
-import { requireAdminSession, requireAdminWithRoles } from "@/lib/auth/session";
+import { SITE_STRUCTURE_ACCESS_ROLES } from "@/lib/auth/cms-roles";
+import { requireAdminWithRoles } from "@/lib/auth/session";
 import { Tables } from "@/lib/database/names";
 import type {
   HomepageCta,
@@ -129,7 +129,7 @@ export async function listHomepageQuotesForAdmin(
     allowedSorts: HOMEPAGE_QUOTES_SORTS,
   });
 
-  await requireAdminSession();
+  await requireAdminWithRoles([...SITE_STRUCTURE_ACCESS_ROLES]);
   const admin = createAdminClient();
   if (!admin) return emptyPaginatedResult(opts);
 
@@ -138,7 +138,7 @@ export async function listHomepageQuotesForAdmin(
 }
 
 export async function getHomepageQuoteById(id: string): Promise<HomepageQuote | null> {
-  await requireAdminSession();
+  await requireAdminWithRoles([...SITE_STRUCTURE_ACCESS_ROLES]);
   const admin = createAdminClient();
   if (!admin) return null;
   const { data } = await admin.from(Tables.homepageQuotes).select("*").eq("id", id).maybeSingle();
@@ -149,7 +149,7 @@ export async function createHomepageQuoteAction(
   formData: FormData,
 ): Promise<ActionResult<{ id: string }>> {
   try {
-    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
+    const session = await requireAdminWithRoles([...SITE_STRUCTURE_ACCESS_ROLES]);
     const parsed = homepageQuoteSchema.safeParse({
       authorEn: formData.get("authorEn"),
       authorHi: formData.get("authorHi") || undefined,
@@ -194,7 +194,7 @@ export async function createHomepageQuoteAction(
 
 export async function updateHomepageQuoteAction(id: string, formData: FormData): Promise<ActionResult> {
   try {
-    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
+    const session = await requireAdminWithRoles([...SITE_STRUCTURE_ACCESS_ROLES]);
     const parsed = homepageQuoteSchema.safeParse({
       authorEn: formData.get("authorEn"),
       authorHi: formData.get("authorHi") || undefined,
@@ -239,7 +239,7 @@ export async function updateHomepageQuoteAction(id: string, formData: FormData):
 
 export async function deleteHomepageQuoteAction(id: string): Promise<ActionResult> {
   try {
-    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
+    const session = await requireAdminWithRoles([...SITE_STRUCTURE_ACCESS_ROLES]);
     const admin = createAdminClient();
     if (!admin) return fail("Database not configured.");
     const { error } = await admin.from(Tables.homepageQuotes).delete().eq("id", id);
@@ -271,7 +271,7 @@ export async function listHomepageDignitariesForAdmin(
     allowedSorts: HOMEPAGE_DIGNITARIES_SORTS,
   });
 
-  await requireAdminSession();
+  await requireAdminWithRoles([...SITE_STRUCTURE_ACCESS_ROLES]);
   const admin = createAdminClient();
   if (!admin) return emptyPaginatedResult(opts);
 
@@ -280,7 +280,7 @@ export async function listHomepageDignitariesForAdmin(
 }
 
 export async function getHomepageDignitaryById(id: string): Promise<HomepageDignitary | null> {
-  await requireAdminSession();
+  await requireAdminWithRoles([...SITE_STRUCTURE_ACCESS_ROLES]);
   const admin = createAdminClient();
   if (!admin) return null;
   const { data } = await admin.from(Tables.homepageDignitaries).select("*").eq("id", id).maybeSingle();
@@ -291,7 +291,7 @@ export async function createHomepageDignitaryAction(
   formData: FormData,
 ): Promise<ActionResult<{ id: string }>> {
   try {
-    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
+    const session = await requireAdminWithRoles([...SITE_STRUCTURE_ACCESS_ROLES]);
     const parsed = parseDignitaryForm(formData);
     if (!parsed.success) return fail("Validation failed", parsed.error.flatten().fieldErrors);
 
@@ -353,7 +353,7 @@ export async function updateHomepageDignitaryAction(
   formData: FormData,
 ): Promise<ActionResult> {
   try {
-    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
+    const session = await requireAdminWithRoles([...SITE_STRUCTURE_ACCESS_ROLES]);
     const parsed = parseDignitaryForm(formData);
     if (!parsed.success) return fail("Validation failed", parsed.error.flatten().fieldErrors);
 
@@ -409,7 +409,7 @@ export async function updateHomepageDignitaryAction(
 
 export async function deleteHomepageDignitaryAction(id: string): Promise<ActionResult> {
   try {
-    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
+    const session = await requireAdminWithRoles([...SITE_STRUCTURE_ACCESS_ROLES]);
     const admin = createAdminClient();
     if (!admin) return fail("Database not configured.");
 
@@ -453,7 +453,7 @@ export async function listHomepageInitiativesForAdmin(
     allowedSorts: HOMEPAGE_INITIATIVES_SORTS,
   });
 
-  await requireAdminSession();
+  await requireAdminWithRoles([...SITE_STRUCTURE_ACCESS_ROLES]);
   const admin = createAdminClient();
   if (!admin) return emptyPaginatedResult(opts);
 
@@ -462,7 +462,7 @@ export async function listHomepageInitiativesForAdmin(
 }
 
 export async function getHomepageInitiativeById(id: string): Promise<HomepageInitiative | null> {
-  await requireAdminSession();
+  await requireAdminWithRoles([...SITE_STRUCTURE_ACCESS_ROLES]);
   const admin = createAdminClient();
   if (!admin) return null;
   const { data } = await admin.from(Tables.homepageInitiatives).select("*").eq("id", id).maybeSingle();
@@ -473,7 +473,7 @@ export async function createHomepageInitiativeAction(
   formData: FormData,
 ): Promise<ActionResult<{ id: string }>> {
   try {
-    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
+    const session = await requireAdminWithRoles([...SITE_STRUCTURE_ACCESS_ROLES]);
     const parsed = parseInitiativeForm(formData);
     if (!parsed.success) return fail("Validation failed", parsed.error.flatten().fieldErrors);
 
@@ -537,7 +537,7 @@ export async function updateHomepageInitiativeAction(
   formData: FormData,
 ): Promise<ActionResult> {
   try {
-    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
+    const session = await requireAdminWithRoles([...SITE_STRUCTURE_ACCESS_ROLES]);
     const parsed = parseInitiativeForm(formData);
     if (!parsed.success) return fail("Validation failed", parsed.error.flatten().fieldErrors);
 
@@ -595,7 +595,7 @@ export async function updateHomepageInitiativeAction(
 
 export async function deleteHomepageInitiativeAction(id: string): Promise<ActionResult> {
   try {
-    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
+    const session = await requireAdminWithRoles([...SITE_STRUCTURE_ACCESS_ROLES]);
     const admin = createAdminClient();
     if (!admin) return fail("Database not configured.");
 
@@ -629,7 +629,7 @@ export async function deleteHomepageInitiativeAction(id: string): Promise<Action
 // --- Farmers portal CTA ---
 
 export async function getHomepageCtaForAdmin(): Promise<HomepageCta | null> {
-  await requireAdminSession();
+  await requireAdminWithRoles([...SITE_STRUCTURE_ACCESS_ROLES]);
   const admin = createAdminClient();
   if (!admin) return null;
   const { data } = await admin.from(Tables.homepageCta).select("*").eq("id", 1).maybeSingle();
@@ -638,7 +638,7 @@ export async function getHomepageCtaForAdmin(): Promise<HomepageCta | null> {
 
 export async function updateHomepageCtaAction(formData: FormData): Promise<ActionResult> {
   try {
-    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
+    const session = await requireAdminWithRoles([...SITE_STRUCTURE_ACCESS_ROLES]);
     const parsed = homepageCtaSchema.safeParse({
       titleEn: formData.get("titleEn"),
       titleHi: formData.get("titleHi") || undefined,

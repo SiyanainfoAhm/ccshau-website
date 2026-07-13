@@ -11,7 +11,8 @@ import {
   isUniversityWideCmsSession,
 } from "@/lib/auth/cms-roles";
 import { hasRole } from "@/lib/auth/rbac";
-import { requireAdminSession, requireAdminWithRoles } from "@/lib/auth/session";
+import { hasCmsModuleAccess, requireAdminSessionForCmsModule } from "@/lib/auth/cms-module-access-server";
+import { requireAdminSession } from "@/lib/auth/session";
 import { Tables } from "@/lib/database/names";
 import type { AttachmentPath, Tender, TenderCorrigendum, TenderStatus } from "@/lib/database/types";
 import {
@@ -73,7 +74,7 @@ function resolvePublishedAt(
   existing?: { published_at?: string | null },
 ): string | null {
   const now = new Date().toISOString();
-  if (input.status === "draft") return null;
+  if (input.status === "draft" || input.status === "pending_review") return null;
   if (input.publishedAt) return new Date(input.publishedAt).toISOString();
   if (existing?.published_at) return existing.published_at;
   return now;
@@ -179,7 +180,7 @@ async function mergeCancellationDocument(
 
 export async function createTenderAction(formData: FormData): Promise<ActionResult<{ id: string }>> {
   try {
-    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
+    const session = await requireAdminSessionForCmsModule("tenders", [...CONTENT_EDIT_ROLES]);
     const parsed = parseTenderForm(formData);
     if (!parsed.success) {
       return fail("Validation failed", parsed.error.flatten().fieldErrors);
@@ -236,7 +237,7 @@ export async function updateTenderAction(
   formData: FormData,
 ): Promise<ActionResult<{ id: string }>> {
   try {
-    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
+    const session = await requireAdminSessionForCmsModule("tenders", [...CONTENT_EDIT_ROLES]);
     const parsed = parseTenderForm(formData);
     if (!parsed.success) {
       return fail("Validation failed", parsed.error.flatten().fieldErrors);
@@ -303,7 +304,7 @@ export async function updateTenderAction(
 
 export async function deleteTenderAction(tenderId: string): Promise<ActionResult> {
   try {
-    const session = await requireAdminWithRoles(["super_admin", "dept_admin"]);
+    const session = await requireAdminSessionForCmsModule("tenders", ["super_admin", "dept_admin"]);
     const admin = createAdminClient();
     if (!admin) return fail("Database not configured.");
 
@@ -355,7 +356,7 @@ export async function addCorrigendumAction(
   formData: FormData,
 ): Promise<ActionResult<{ id: string }>> {
   try {
-    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
+    const session = await requireAdminSessionForCmsModule("tenders", [...CONTENT_EDIT_ROLES]);
     const parsed = corrigendumFormSchema.safeParse({
       title: formData.get("title"),
       description: formData.get("description") || undefined,
@@ -430,7 +431,7 @@ export async function deleteCorrigendumAction(
   tenderId: string,
 ): Promise<ActionResult> {
   try {
-    const session = await requireAdminWithRoles(["super_admin", "dept_admin"]);
+    const session = await requireAdminSessionForCmsModule("tenders", ["super_admin", "dept_admin"]);
     const admin = createAdminClient();
     if (!admin) return fail("Database not configured.");
 
@@ -480,7 +481,7 @@ export async function listTendersForAdmin(
   });
 
   const session = await requireAdminSession();
-  if (!hasRole(session.roles, [...CMS_READ_ROLES])) {
+  if (!hasRole(session.roles, [...CMS_READ_ROLES]) || !(await hasCmsModuleAccess(session, "tenders"))) {
     return emptyPaginatedResult(opts);
   }
 
@@ -498,7 +499,7 @@ export async function listTendersForAdmin(
 
 export async function getTenderById(tenderId: string): Promise<Tender | null> {
   const session = await requireAdminSession();
-  if (!hasRole(session.roles, [...CMS_READ_ROLES])) {
+  if (!hasRole(session.roles, [...CMS_READ_ROLES]) || !(await hasCmsModuleAccess(session, "tenders"))) {
     return null;
   }
 

@@ -148,14 +148,17 @@ export function PublicContactPage({
                     </option>
                   ))}
                 </select>
-                <select name="departmentId" className={publicInputClass}>
-                  <option value="">Select department (optional)</option>
-                  {departments.map((dept) => (
-                    <option key={dept.id} value={dept.id}>
-                      {dept.name_en}
-                    </option>
-                  ))}
-                </select>
+                <label className="block text-sm">
+                  <span className={`font-medium ${publicHeadingClass}`}>Department</span>
+                  <select name="departmentId" required className={`mt-1 ${publicInputClass}`}>
+                    <option value="">Select department</option>
+                    {departments.map((dept) => (
+                      <option key={dept.id} value={dept.id}>
+                        {dept.name_en}
+                      </option>
+                    ))}
+                  </select>
+                </label>
                 <input
                   name="subject"
                   type="text"

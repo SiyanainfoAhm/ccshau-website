@@ -1,5 +1,6 @@
 import { listAuditLogs, type AuditLogRow } from "@/actions/audit";
 import { getAdminNavAccess, canSeeAdminNavHref } from "@/lib/auth/admin-nav-access";
+import { getAllowedCmsModulesForSession } from "@/lib/auth/cms-module-access-server";
 import {
   canManageUniversityContent,
   isCollegeOnlyUser,
@@ -57,7 +58,7 @@ export type AdminDashboardData = {
   stats: {
     pages: { total: number; published: number; draft: number; pendingReview: number };
     news?: { total: number; published: number; draft: number };
-    tenders?: { total: number; open: number; draft: number };
+    tenders?: { total: number; open: number; draft: number; pendingReview: number };
     circulars?: number;
     downloads?: number;
     mediaAlbums?: number;
@@ -101,7 +102,8 @@ export async function getAdminDashboardData(session: AdminSession): Promise<Admi
   const isSuperAdmin = isSuperAdminSession(session);
   const collegeRootId = session.collegeAssignment?.collegePageId;
   const noAccess = session.roles.length === 0 && !session.collegeAssignment;
-  const access = getAdminNavAccess(session);
+  const allowedCmsModules = await getAllowedCmsModulesForSession(session);
+  const access = getAdminNavAccess(session, allowedCmsModules);
 
   const pageFilter = collegeRootId
     ? (q: CountQuery) => q.eq("college_root_id", collegeRootId)
@@ -164,6 +166,7 @@ export async function getAdminDashboardData(session: AdminSession): Promise<Admi
       tendersTotal,
       tendersOpen,
       tendersDraft,
+      tendersPending,
       circulars,
       downloads,
       mediaAlbums,
@@ -178,6 +181,7 @@ export async function getAdminDashboardData(session: AdminSession): Promise<Admi
       countRows(Tables.tenders),
       countRows(Tables.tenders, (q) => q.eq("status", "open" satisfies TenderStatus)),
       countRows(Tables.tenders, (q) => q.eq("status", "draft")),
+      countRows(Tables.tenders, (q) => q.eq("status", "pending_review" satisfies TenderStatus)),
       countRows(Tables.circulars),
       countRows(Tables.downloads),
       countRows(Tables.mediaAlbums),
@@ -188,7 +192,7 @@ export async function getAdminDashboardData(session: AdminSession): Promise<Admi
     ]);
 
     stats.news = { total: newsTotal, published: newsPublished, draft: newsDraft };
-    stats.tenders = { total: tendersTotal, open: tendersOpen, draft: tendersDraft };
+    stats.tenders = { total: tendersTotal, open: tendersOpen, draft: tendersDraft, pendingReview: tendersPending };
     stats.circulars = circulars;
     stats.downloads = downloads;
     stats.mediaAlbums = mediaAlbums;
@@ -200,6 +204,21 @@ export async function getAdminDashboardData(session: AdminSession): Promise<Admi
     }
     if (tendersDraft > 0) {
       pipeline.push({ label: "Draft tenders", count: tendersDraft, href: "/admin/tenders", status: "draft" });
+    }
+    if (tendersPending > 0) {
+      pipeline.push({
+        label: "Tenders pending review",
+        count: tendersPending,
+        href: "/admin/tenders",
+        status: "pending_review",
+      });
+      attention.push({
+        id: "tenders-pending",
+        label: `${tendersPending} tender${tendersPending === 1 ? "" : "s"} awaiting review`,
+        detail: "Approve to open for bidding or return to draft.",
+        href: "/admin/tenders",
+        tone: "amber",
+      });
     }
 
     if (feedbackNew > 0) {

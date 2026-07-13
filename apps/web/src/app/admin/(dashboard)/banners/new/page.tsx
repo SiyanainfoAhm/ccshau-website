@@ -1,10 +1,10 @@
 import Link from "next/link";
 
 import { BannerForm } from "@/components/admin/banner-form";
-import { requireAdminSession } from "@/lib/auth/session";
+import { requireSiteStructureOrRedirect } from "@/lib/auth/site-structure-access";
 
 export default async function AdminNewBannerPage() {
-  await requireAdminSession();
+  await requireSiteStructureOrRedirect();
 
   return (
     <div className="space-y-6">

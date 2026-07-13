@@ -15,6 +15,7 @@ import {
 } from "@/lib/auth/college-scope";
 import { assertPageAccess, getPageCollegeRootId } from "@/lib/auth/college-scope-server";
 import { CMS_READ_ROLES, isUniversityWideCmsSession } from "@/lib/auth/cms-roles";
+import { hasCmsModuleAccess, getAllowedCmsModulesForSession } from "@/lib/auth/cms-module-access-server";
 import { hasRole } from "@/lib/auth/rbac";
 import {
   requireAdminSession,
@@ -435,13 +436,29 @@ export async function listPagesForAdmin(
 
   if (!canList) return emptyPaginatedResult(opts);
 
+  if (
+    hasUniversityCmsRole(session) &&
+    !isCollegeOnlyUser(session) &&
+    !(await hasCmsModuleAccess(session, "pages"))
+  ) {
+    return emptyPaginatedResult(opts);
+  }
+
   const admin = createAdminClient();
   if (!admin) return emptyPaginatedResult(opts);
 
   let query = admin.from(Tables.pages).select("*", { count: "exact" });
 
+  const allowedModules = await getAllowedCmsModulesForSession(session);
+  const strictDepartmentPages =
+    !isUniversityWideCmsSession(session) &&
+    !isCollegeOnlyUser(session) &&
+    Boolean(session.departmentId && allowedModules !== null);
+
   if (isCollegeOnlyUser(session) && session.collegeAssignment) {
     query = query.eq("college_root_id", session.collegeAssignment.collegePageId);
+  } else if (strictDepartmentPages) {
+    query = query.eq("department_id", session.departmentId!);
   } else if (
     !isUniversityWideCmsSession(session) &&
     hasUniversityCmsRole(session) &&
@@ -471,6 +488,14 @@ export async function getPageById(pageId: string): Promise<Page | null> {
     Boolean(session.collegeAssignment);
 
   if (!canView) return null;
+
+  if (
+    hasUniversityCmsRole(session) &&
+    !isCollegeOnlyUser(session) &&
+    !(await hasCmsModuleAccess(session, "pages"))
+  ) {
+    return null;
+  }
 
   try {
     return await assertPageAccess(session, pageId);

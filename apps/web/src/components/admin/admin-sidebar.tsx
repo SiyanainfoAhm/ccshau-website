@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import {
   ArrowRightLeft,
+  BarChart3,
   Building2,
   ClipboardList,
   Download,
@@ -41,6 +42,7 @@ export type AdminNavItem = {
 
 const baseNavItems: AdminNavItem[] = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
+  { href: "/admin/reports", label: "Reports", icon: BarChart3 },
   { href: "/admin/pages", label: "Pages", icon: FileText },
   { href: "/admin/news", label: "News & Notices", icon: Newspaper },
   { href: "/admin/circulars", label: "Circulars", icon: ScrollText },

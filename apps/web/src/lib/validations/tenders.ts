@@ -22,7 +22,7 @@ export const tenderFormSchema = z.object({
   descriptionHi: z.string().optional(),
   category: z.string().optional(),
   departmentId: z.string().uuid().optional().or(z.literal("")),
-  status: z.enum(["draft", "open", "closed", "cancelled", "archived"]),
+  status: z.enum(["draft", "pending_review", "open", "closed", "cancelled", "archived"]),
   publishedAt: z.string().optional(),
   closingDate: z.string().optional(),
   cancellationNoticeEn: z.string().optional(),

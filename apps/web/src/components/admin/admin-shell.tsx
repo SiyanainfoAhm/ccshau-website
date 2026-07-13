@@ -3,16 +3,18 @@ import type { ReactNode } from "react";
 import { AdminHeader } from "@/components/admin/admin-header";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
 import { getAdminNavAccess } from "@/lib/auth/admin-nav-access";
+import { getAllowedCmsModulesForSession } from "@/lib/auth/cms-module-access-server";
 import type { AdminSession } from "@/lib/auth/session";
 
-export function AdminShell({
+export async function AdminShell({
   session,
   children,
 }: {
   session: AdminSession;
   children: ReactNode;
 }) {
-  const access = getAdminNavAccess(session);
+  const allowedCmsModules = await getAllowedCmsModulesForSession(session);
+  const access = getAdminNavAccess(session, allowedCmsModules);
 
   return (
     <div className="flex min-h-screen bg-slate-50">

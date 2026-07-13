@@ -3,8 +3,8 @@
 import { revalidatePath } from "next/cache";
 
 import { writeAuditLog } from "@/lib/auth/audit";
-import { CONTENT_EDIT_ROLES } from "@/lib/auth/cms-roles";
-import { requireAdminSession, requireAdminWithRoles } from "@/lib/auth/session";
+import { SITE_STRUCTURE_ACCESS_ROLES } from "@/lib/auth/cms-roles";
+import { requireAdminWithRoles } from "@/lib/auth/session";
 import { Tables } from "@/lib/database/names";
 import type { RelatedLink } from "@/lib/database/types";
 import { fail, ok, type ActionResult } from "@/lib/types/action-result";
@@ -36,7 +36,7 @@ export async function listRelatedLinksForAdmin(
     allowedSorts: RELATED_LINKS_LIST_SORTS,
   });
 
-  await requireAdminSession();
+  await requireAdminWithRoles([...SITE_STRUCTURE_ACCESS_ROLES]);
   const admin = createAdminClient();
   if (!admin) return emptyPaginatedResult(opts);
 
@@ -45,7 +45,7 @@ export async function listRelatedLinksForAdmin(
 }
 
 export async function getRelatedLinkById(id: string): Promise<RelatedLink | null> {
-  await requireAdminSession();
+  await requireAdminWithRoles([...SITE_STRUCTURE_ACCESS_ROLES]);
   const admin = createAdminClient();
   if (!admin) return null;
 
@@ -57,7 +57,7 @@ export async function createRelatedLinkAction(
   formData: FormData,
 ): Promise<ActionResult<{ id: string }>> {
   try {
-    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
+    const session = await requireAdminWithRoles([...SITE_STRUCTURE_ACCESS_ROLES]);
     const parsed = parseRelatedLinkForm(formData);
     if (!parsed.success) {
       return fail("Validation failed", parsed.error.flatten().fieldErrors);
@@ -100,7 +100,7 @@ export async function createRelatedLinkAction(
 
 export async function updateRelatedLinkAction(id: string, formData: FormData): Promise<ActionResult> {
   try {
-    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
+    const session = await requireAdminWithRoles([...SITE_STRUCTURE_ACCESS_ROLES]);
     const parsed = parseRelatedLinkForm(formData);
     if (!parsed.success) {
       return fail("Validation failed", parsed.error.flatten().fieldErrors);
@@ -143,7 +143,7 @@ export async function updateRelatedLinkAction(id: string, formData: FormData): P
 
 export async function deleteRelatedLinkAction(id: string): Promise<ActionResult> {
   try {
-    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
+    const session = await requireAdminWithRoles([...SITE_STRUCTURE_ACCESS_ROLES]);
     const admin = createAdminClient();
     if (!admin) return fail("Database not configured.");
 

@@ -40,6 +40,12 @@ export const SETTINGS_ACCESS_ROLES = [
   "dept_admin",
 ] as const satisfies readonly UserRole[];
 
+/** Homepage, banners, menus, and related links — university-wide site structure. */
+export const SITE_STRUCTURE_ACCESS_ROLES = [
+  "super_admin",
+  "university_admin",
+] as const satisfies readonly UserRole[];
+
 export function sessionHasCmsRole(
   session: Pick<AdminSession, "roles">,
   allowed: readonly UserRole[],
@@ -53,6 +59,10 @@ export function canPublishContent(session: AdminSession): boolean {
 
 export function canEditContent(session: AdminSession): boolean {
   return sessionHasCmsRole(session, CONTENT_EDIT_ROLES);
+}
+
+export function canManageSiteStructure(session: AdminSession): boolean {
+  return sessionHasCmsRole(session, SITE_STRUCTURE_ACCESS_ROLES);
 }
 
 /** University-wide content access — bypasses department scoping on lists and records. */

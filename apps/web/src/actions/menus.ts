@@ -3,8 +3,8 @@
 import { revalidatePath } from "next/cache";
 
 import { writeAuditLog } from "@/lib/auth/audit";
-import { CONTENT_EDIT_ROLES } from "@/lib/auth/cms-roles";
-import { requireAdminSession, requireAdminWithRoles } from "@/lib/auth/session";
+import { SITE_STRUCTURE_ACCESS_ROLES } from "@/lib/auth/cms-roles";
+import { requireAdminWithRoles } from "@/lib/auth/session";
 import { Tables } from "@/lib/database/names";
 import type { Menu, MenuItem, MenuLocation, PageType } from "@/lib/database/types";
 import { fail, ok, type ActionResult } from "@/lib/types/action-result";
@@ -49,7 +49,7 @@ function toMenuItemRow(input: ReturnType<typeof menuItemFormSchema.parse>, menuI
 }
 
 export async function listMenusForAdmin(): Promise<MenuWithCount[]> {
-  await requireAdminSession();
+  await requireAdminWithRoles([...SITE_STRUCTURE_ACCESS_ROLES]);
   const admin = createAdminClient();
   if (!admin) return [];
 
@@ -69,7 +69,7 @@ export async function listMenusForAdmin(): Promise<MenuWithCount[]> {
 }
 
 export async function getMenuEditorData(location: MenuLocation): Promise<MenuEditorData | null> {
-  await requireAdminSession();
+  await requireAdminWithRoles([...SITE_STRUCTURE_ACCESS_ROLES]);
   const admin = createAdminClient();
   if (!admin) return null;
 
@@ -108,7 +108,7 @@ export async function createMenuItemAction(
   formData: FormData,
 ): Promise<ActionResult<{ id: string }>> {
   try {
-    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
+    const session = await requireAdminWithRoles([...SITE_STRUCTURE_ACCESS_ROLES]);
     const parsed = parseMenuItemForm(formData);
     if (!parsed.success) {
       return fail("Validation failed", parsed.error.flatten().fieldErrors);
@@ -152,7 +152,7 @@ export async function updateMenuItemAction(
   formData: FormData,
 ): Promise<ActionResult> {
   try {
-    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
+    const session = await requireAdminWithRoles([...SITE_STRUCTURE_ACCESS_ROLES]);
     const parsed = parseMenuItemForm(formData);
     if (!parsed.success) {
       return fail("Validation failed", parsed.error.flatten().fieldErrors);
@@ -196,7 +196,7 @@ export async function deleteMenuItemAction(
   location: MenuLocation,
 ): Promise<ActionResult> {
   try {
-    const session = await requireAdminWithRoles([...CONTENT_EDIT_ROLES]);
+    const session = await requireAdminWithRoles([...SITE_STRUCTURE_ACCESS_ROLES]);
     const admin = createAdminClient();
     if (!admin) return fail("Database not configured.");
 

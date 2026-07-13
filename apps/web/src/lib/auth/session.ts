@@ -2,10 +2,12 @@ import { redirect } from "next/navigation";
 
 import {
   canAccessAdmin,
+  isCollegeOnlyUser,
   type CollegeAssignment,
 } from "@/lib/auth/college-scope";
 import { getCollegeAssignmentForUser } from "@/lib/auth/college-scope-server";
 import { getAdminNavAccess, canAccessAdminPath } from "@/lib/auth/admin-nav-access";
+import { getAllowedCmsModulesForSession } from "@/lib/auth/cms-module-access-server";
 import { getUserRoles, highestRole, type UserRoleAssignment } from "@/lib/auth/rbac";
 import { Tables } from "@/lib/database/names";
 import type { UserRole } from "@/lib/database/types";
@@ -79,7 +81,8 @@ export async function requireAdminSession(): Promise<AdminSession> {
 /** Server-side admin route guard — redirects to dashboard when the path is not allowed. */
 export async function requireAdminPathOrRedirect(pathname: string): Promise<AdminSession> {
   const session = await requireAdminSession();
-  const access = getAdminNavAccess(session);
+  const allowedCmsModules = await getAllowedCmsModulesForSession(session);
+  const access = getAdminNavAccess(session, allowedCmsModules);
   if (!canAccessAdminPath(access, pathname)) {
     redirect("/admin");
   }
@@ -119,6 +122,10 @@ export async function requirePageEditSession(): Promise<AdminSession> {
   const { canEditPages } = await import("@/lib/auth/college-scope");
   if (!canEditPages(session)) {
     throw new Error("You do not have permission to edit pages.");
+  }
+  if (!isCollegeOnlyUser(session)) {
+    const { assertCmsModuleAccess } = await import("@/lib/auth/cms-module-access-server");
+    await assertCmsModuleAccess(session, "pages");
   }
   return session;
 }
