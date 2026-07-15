@@ -17,14 +17,18 @@ export async function getCaptchaClientConfig(): Promise<CaptchaClientConfig> {
   };
 }
 
+/**
+ * Login / feedback CAPTCHA gate.
+ * - Settings toggle OFF → bypass (return true)
+ * - Settings toggle ON → require a valid Google reCAPTCHA token
+ */
 export async function verifyCaptcha(token: string | undefined): Promise<boolean> {
   const enabled = await isCaptchaEnabled();
   if (!enabled) return true;
 
   const secret = process.env.CAPTCHA_SECRET_KEY;
   if (!secret) return false;
-
-  if (!token) return false;
+  if (!token?.trim()) return false;
 
   const body = new URLSearchParams({
     secret,

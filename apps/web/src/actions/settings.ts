@@ -91,6 +91,8 @@ export async function updateSecuritySettingsAction(formData: FormData): Promise<
     });
 
     revalidatePath("/admin/settings");
+    revalidatePath("/admin/login");
+    revalidatePath("/contact");
     return ok(undefined);
   } catch (e) {
     return fail(e instanceof Error ? e.message : "Failed to update settings.");

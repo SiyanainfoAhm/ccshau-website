@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { LoginForm } from "@/components/admin/login-form";
 import { getCaptchaClientConfig } from "@/lib/auth/captcha";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Admin Login",
   robots: { index: false, follow: false },
