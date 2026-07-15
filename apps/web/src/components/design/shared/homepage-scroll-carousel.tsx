@@ -32,8 +32,8 @@ export function HomepageScrollCarousel({
     variant === "heritage"
       ? "border-rose-200 bg-white/95 text-violet-700 shadow-md hover:bg-rose-50"
       : variant === "ministry"
-        ? "border-slate-300 bg-white text-[#146c43] shadow-md hover:bg-emerald-50"
-        : "border-emerald-200/80 bg-white/95 text-emerald-800 shadow-lg hover:bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/90 dark:text-amber-300 dark:hover:bg-emerald-900";
+        ? "border-slate-300 bg-white text-[#0c3b6e] shadow-md hover:bg-sky-50"
+        : "border-emerald-200/80 bg-white/95 text-emerald-800 shadow-lg hover:bg-sky-50 dark:border-emerald-800 dark:bg-emerald-950/90 dark:text-amber-300 dark:hover:bg-emerald-900";
 
   return (
     <div className="relative mt-10">

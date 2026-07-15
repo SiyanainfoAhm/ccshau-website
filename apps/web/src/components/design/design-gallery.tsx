@@ -47,7 +47,7 @@ const options = [
     href: "/design/option-c",
     icon: Layers,
     gradient: "from-white via-slate-50 to-emerald-50",
-    accent: "border-[#146c43]",
+    accent: "border-[#0c3b6e]",
     tag: "GOI accessibility reference",
     description:
       "GOI-style layout with tricolor bar, high contrast, and accessible forms — kept as an alternate reference.",

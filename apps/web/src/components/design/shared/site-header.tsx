@@ -23,7 +23,7 @@ const variantStyles: Record<HeaderVariant, string> = {
     "bg-white/95 text-slate-800 border-b-4 border-transparent shadow-md backdrop-blur-sm [border-image:linear-gradient(90deg,#fda4af,#fcd34d,#86efac,#7dd3fc,#c4b5fd)_1]",
   future:
     "bg-gradient-to-r from-[#0b3d2e] via-[#146c43] to-[#0d4a38] text-white border-b border-white/10",
-  ministry: "bg-white text-slate-900 border-b-4 border-[#146c43] shadow-sm",
+  ministry: "bg-white text-slate-900 border-b-4 border-[#0c3b6e] shadow-sm",
 };
 
 export function SiteHeader({
@@ -127,7 +127,7 @@ export function SiteHeader({
               type="button"
               onClick={toggle}
               aria-label={lang === "en" ? t("Switch to Hindi", "हिंदी में बदलें") : t("Switch to English", "अंग्रेज़ी में बदलें")}
-              className={`flex items-center gap-1 rounded-full px-3 py-1 font-medium transition ${isHeritage ? "bg-white/80 text-violet-700 shadow-sm ring-1 ring-violet-100 hover:bg-violet-50" : isLight ? "bg-emerald-50 text-emerald-800 hover:bg-emerald-100" : "bg-white/10 hover:bg-white/20"}`}
+              className={`flex items-center gap-1 rounded-full px-3 py-1 font-medium transition ${isHeritage ? "bg-white/80 text-violet-700 shadow-sm ring-1 ring-violet-100 hover:bg-violet-50" : isMinistry ? "bg-sky-50 text-[#0c3b6e] hover:bg-sky-100" : isLight ? "bg-emerald-50 text-emerald-800 hover:bg-emerald-100" : "bg-white/10 hover:bg-white/20"}`}
             >
               <Globe className="h-3.5 w-3.5" />
               {lang === "en" ? "हिंदी" : "English"}
@@ -138,14 +138,14 @@ export function SiteHeader({
             {isCollegeContext || isPgStudiesContext ? (
               <Link
                 href="/"
-                className={`hidden sm:inline ${isHeritage ? "text-[#9e4a5a] hover:underline" : isLight ? "text-emerald-700 hover:underline" : "text-amber-200 hover:text-white"}`}
+                className={`hidden sm:inline ${isHeritage ? "text-[#9e4a5a] hover:underline" : isMinistry ? "text-[#0c3b6e] hover:underline" : isLight ? "text-emerald-700 hover:underline" : "text-amber-200 hover:text-white"}`}
               >
                 {t("University Home", "विश्वविद्यालय होम")}
               </Link>
             ) : (
               <Link
                 href="/design"
-                className={`hidden sm:inline ${isHeritage ? "text-[#9e4a5a] hover:underline" : isLight ? "text-emerald-700 hover:underline" : "text-amber-200 hover:text-white"}`}
+                className={`hidden sm:inline ${isHeritage ? "text-[#9e4a5a] hover:underline" : isMinistry ? "text-[#0c3b6e] hover:underline" : isLight ? "text-emerald-700 hover:underline" : "text-amber-200 hover:text-white"}`}
               >
                 {t("Design Gallery", "डिज़ाइन गैलरी")}
               </Link>
@@ -164,7 +164,7 @@ export function SiteHeader({
           </div>
           <div className="min-w-0">
             <p
-              className={`font-display text-lg font-bold leading-tight md:text-xl ${isHeritage ? "text-slate-800" : isLight ? "text-emerald-900" : "text-white"}`}
+              className={`font-display text-lg font-bold leading-tight md:text-xl ${isHeritage ? "text-slate-800" : isMinistry ? "text-[#0c3b6e]" : isLight ? "text-emerald-900" : "text-white"}`}
             >
               {t(university.shortName, university.shortName)}
             </p>
@@ -212,7 +212,7 @@ export function SiteHeader({
         id="mobile-main-navigation"
         className={`${mobileOpen ? "block" : "hidden"} lg:block ${
           isMinistry
-            ? "border-t border-slate-200 bg-[#146c43]"
+            ? "border-t border-slate-200 bg-[#0c3b6e]"
             : isHeritage
               ? "border-t border-rose-100/80 bg-gradient-to-r from-rose-50/80 via-white to-sky-50/80"
               : isLight

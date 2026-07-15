@@ -20,7 +20,7 @@ export default function OptionCNewsSamplePage() {
           <div className="mx-auto max-w-3xl">
             <Link
               href="/design/option-c/news"
-              className="mb-4 inline-flex items-center gap-2 text-sm font-semibold text-[#146c43] hover:underline"
+              className="mb-4 inline-flex items-center gap-2 text-sm font-semibold text-[#0c3b6e] hover:underline"
             >
               <ArrowLeft className="h-4 w-4" aria-hidden /> Back to news
             </Link>
@@ -55,13 +55,13 @@ export default function OptionCNewsSamplePage() {
           <div className="mt-8 flex flex-wrap gap-3 not-prose">
             <button
               type="button"
-              className="ministry-focus inline-flex items-center gap-2 rounded-md bg-[#146c43] px-5 py-2.5 font-semibold text-white hover:bg-[#0b3d2e]"
+              className="ministry-focus inline-flex items-center gap-2 rounded-md bg-[#0c3b6e] px-5 py-2.5 font-semibold text-white hover:bg-[#082952]"
             >
               <Download className="h-4 w-4" aria-hidden /> Download PDF
             </button>
             <button
               type="button"
-              className="ministry-focus inline-flex items-center gap-2 rounded-md border-2 border-slate-300 px-5 py-2.5 font-semibold text-slate-700 hover:border-[#146c43]"
+              className="ministry-focus inline-flex items-center gap-2 rounded-md border-2 border-slate-300 px-5 py-2.5 font-semibold text-slate-700 hover:border-[#0c3b6e]"
             >
               <Share2 className="h-4 w-4" aria-hidden /> Share
             </button>

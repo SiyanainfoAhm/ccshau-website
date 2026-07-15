@@ -68,14 +68,14 @@ export function HeroCarousel({
 
   if (variant === "ministry") {
     return (
-      <section className="border-b-4 border-[#146c43] bg-slate-50">
+      <section className="border-b-4 border-[#0c3b6e] bg-slate-50">
         <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 lg:grid-cols-2 lg:items-center">
           <div className="animate-fade-up">
             <div className="flex flex-wrap gap-2">
               <span className="rounded bg-[#e8850c] px-3 py-1 text-xs font-bold uppercase text-white">
                 {t("A+ NAEAB", "ए+ एनएईएबी")}
               </span>
-              <span className="rounded border-2 border-[#146c43] bg-white px-3 py-1 text-xs font-bold uppercase text-[#146c43]">
+              <span className="rounded border-2 border-[#0c3b6e] bg-white px-3 py-1 text-xs font-bold uppercase text-[#0c3b6e]">
                 {t("ICAR Deemed University", "आईसीएआर मान्य")}
               </span>
             </div>
@@ -86,14 +86,14 @@ export function HeroCarousel({
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 href="/design/option-c/news"
-                className="ministry-focus inline-flex items-center gap-2 rounded-md bg-[#146c43] px-6 py-3 font-bold text-white hover:bg-[#0b3d2e]"
+                className="ministry-focus inline-flex items-center gap-2 rounded-md bg-[#0c3b6e] px-6 py-3 font-bold text-white hover:bg-[#082952]"
               >
                 {t("Latest Notices", "नवीनतम सूचनाएं")}
                 <ArrowRight className="h-4 w-4" aria-hidden />
               </Link>
               <Link
                 href="/design/option-c/tenders"
-                className="ministry-focus inline-flex items-center gap-2 rounded-md border-2 border-[#146c43] bg-white px-6 py-3 font-bold text-[#146c43] hover:bg-emerald-50"
+                className="ministry-focus inline-flex items-center gap-2 rounded-md border-2 border-[#0c3b6e] bg-white px-6 py-3 font-bold text-[#0c3b6e] hover:bg-sky-50"
               >
                 {t("Tenders", "निविदाएं")}
               </Link>
@@ -101,7 +101,7 @@ export function HeroCarousel({
           </div>
           <div className="relative aspect-[16/10] overflow-hidden rounded-md border-2 border-slate-300 bg-white shadow-md ring-1 ring-slate-200">
             <Image src={slide.image} alt={heroSlideAlt(slide, lang)} fill className="object-cover" priority />
-            <div className="absolute bottom-0 left-0 right-0 bg-[#146c43] px-4 py-2 text-center text-sm font-semibold text-white">
+            <div className="absolute bottom-0 left-0 right-0 bg-[#0c3b6e] px-4 py-2 text-center text-sm font-semibold text-white">
               {t(university.taglineEn, university.taglineHi)}
             </div>
           </div>

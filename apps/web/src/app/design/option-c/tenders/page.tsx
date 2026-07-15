@@ -19,7 +19,7 @@ export default function OptionCTendersPage() {
           <div className="overflow-hidden rounded-md border-2 border-slate-300 bg-white shadow-sm">
             <table className="w-full text-left text-sm">
               <caption className="sr-only">Active tenders and auctions at CCSHAU</caption>
-              <thead className="bg-[#146c43] text-white">
+              <thead className="bg-[#0c3b6e] text-white">
                 <tr>
                   <th className="px-5 py-4 font-bold" scope="col">
                     Title
@@ -40,10 +40,10 @@ export default function OptionCTendersPage() {
               </thead>
               <tbody>
                 {tenders.map((t) => (
-                  <tr key={t.id} className="border-t border-slate-200 hover:bg-emerald-50/40">
+                  <tr key={t.id} className="border-t border-slate-200 hover:bg-sky-50/40">
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
-                        <Gavel className="h-4 w-4 shrink-0 text-[#146c43]" aria-hidden />
+                        <Gavel className="h-4 w-4 shrink-0 text-[#0c3b6e]" aria-hidden />
                         <span className="font-semibold text-slate-900">{t.title}</span>
                       </div>
                     </td>
@@ -53,7 +53,7 @@ export default function OptionCTendersPage() {
                       <span
                         className={`rounded px-2.5 py-1 text-xs font-bold uppercase ${
                           t.status === "Open"
-                            ? "bg-emerald-100 text-[#146c43]"
+                            ? "bg-sky-100 text-[#0c3b6e]"
                             : "bg-slate-100 text-slate-600"
                         }`}
                       >
@@ -63,7 +63,7 @@ export default function OptionCTendersPage() {
                     <td className="px-5 py-4">
                       <button
                         type="button"
-                        className="ministry-focus inline-flex items-center gap-1 font-semibold text-[#146c43] hover:underline"
+                        className="ministry-focus inline-flex items-center gap-1 font-semibold text-[#0c3b6e] hover:underline"
                       >
                         <Download className="h-4 w-4" aria-hidden /> PDF
                       </button>

@@ -28,7 +28,7 @@ export default function OptionCNewsPage() {
               <button
                 key={cat}
                 type="button"
-                className="ministry-focus rounded-md border border-slate-200 bg-white px-4 py-1.5 text-sm font-semibold text-slate-700 hover:border-[#146c43] hover:text-[#146c43]"
+                className="ministry-focus rounded-md border border-slate-200 bg-white px-4 py-1.5 text-sm font-semibold text-slate-700 hover:border-[#0c3b6e] hover:text-[#0c3b6e]"
               >
                 {cat}
               </button>
@@ -39,9 +39,9 @@ export default function OptionCNewsPage() {
             {latestNews.map((item) => (
               <article
                 key={item.id}
-                className="ministry-card flex items-center gap-4 rounded-md border-l-4 border-l-[#146c43] p-5"
+                className="ministry-card flex items-center gap-4 rounded-md border-l-4 border-l-[#0c3b6e] p-5"
               >
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-[#146c43] text-white">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-[#0c3b6e] text-white">
                   <FileText className="h-5 w-5" aria-hidden />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -49,7 +49,7 @@ export default function OptionCNewsPage() {
                   <h2 className="font-semibold text-slate-900">
                     <Link
                       href={item.id === 1 ? "/design/option-c/news/sample" : "#"}
-                      className="hover:text-[#146c43] hover:underline"
+                      className="hover:text-[#0c3b6e] hover:underline"
                     >
                       {item.titleEn}
                     </Link>

@@ -77,7 +77,7 @@ export function StatsBar({ variant = "future" }: { variant?: "heritage" | "futur
               key={s.labelEn}
               className={`border-l-4 bg-slate-50 px-6 py-8 text-center ${MINISTRY_STAT_ACCENTS[i % MINISTRY_STAT_ACCENTS.length]}`}
             >
-              <p className="text-3xl font-bold text-[#146c43]">{s.value}</p>
+              <p className="text-3xl font-bold text-[#0c3b6e]">{s.value}</p>
               <p className="mt-1 text-sm font-medium text-slate-700">{t(s.labelEn, s.labelHi)}</p>
             </div>
           ))}
@@ -167,7 +167,7 @@ export function NewsSection({
             {t("Latest News & Notices", "नवीनतम समाचार और सूचनाएं")}
           </h2>
         </div>
-        <Link href={newsHref} className={`inline-flex items-center gap-1 font-semibold ${variant === "heritage" ? "text-[#b45368] hover:text-[#9e4a5a]" : variant === "ministry" ? "text-[#146c43] hover:underline" : "text-emerald-700 hover:text-emerald-900"}`}>
+        <Link href={newsHref} className={`inline-flex items-center gap-1 font-semibold ${variant === "heritage" ? "text-[#b45368] hover:text-[#9e4a5a]" : variant === "ministry" ? "text-[#0c3b6e] hover:underline" : "text-emerald-700 hover:text-emerald-900"}`}>
           {t("View all", "सभी देखें")}
           <ArrowUpRight className="h-4 w-4" />
         </Link>
@@ -194,7 +194,7 @@ export function NewsSection({
                   : variant === "heritage" && pastel
                     ? `border-l-4 ${pastel.border} bg-gradient-to-r ${pastel.bg} border border-slate-100 shadow-sm`
                     : variant === "ministry"
-                      ? "ministry-card border-l-4 border-l-[#146c43]"
+                      ? "ministry-card border-l-4 border-l-[#0c3b6e]"
                       : "border-slate-200 bg-white"
               }`}
               style={{ animationDelay: `${i * 80}ms` }}
@@ -206,7 +206,7 @@ export function NewsSection({
                     : variant === "heritage" && pastel
                       ? pastel.icon
                       : variant === "ministry"
-                        ? "bg-[#146c43] text-white"
+                        ? "bg-[#0c3b6e] text-white"
                         : "bg-emerald-100 text-emerald-800"
                 }`}
               >
@@ -297,7 +297,7 @@ export function CollegesGrid({
                 variant === "heritage"
                   ? `bg-gradient-to-br ${heritageColors[i % heritageColors.length]} text-slate-800 shadow-md ring-2 ring-white/70 hover:-translate-y-2 hover:shadow-xl`
                   : variant === "ministry"
-                    ? "ministry-card border-l-4 border-l-[#146c43] bg-white text-slate-800"
+                    ? "ministry-card border-l-4 border-l-[#0c3b6e] bg-white text-slate-800"
                     : `border-emerald-100 bg-white text-slate-800 shadow-md hover:border-emerald-300 hover:shadow-xl dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-50`
               }`}
               style={{ animationDelay: `${i * 60}ms` }}
@@ -320,7 +320,7 @@ export function CollegesGrid({
               <h3 className={`relative font-display text-base font-bold leading-tight ${variant === "future" ? "text-slate-800 dark:text-emerald-50" : ""}`}>
                 {t(college.nameEn, college.nameHi)}
               </h3>
-              <span className={`relative mt-4 inline-flex items-center gap-1 text-sm font-semibold ${variant === "heritage" || variant === "ministry" ? "text-[#146c43]" : "text-emerald-700 dark:text-amber-300"}`}>
+              <span className={`relative mt-4 inline-flex items-center gap-1 text-sm font-semibold ${variant === "heritage" ? "text-[#146c43]" : variant === "ministry" ? "text-[#0c3b6e]" : "text-emerald-700 dark:text-amber-300"}`}>
                 {t("Explore", "अन्वेषण")}
                 <ArrowUpRight className="h-4 w-4 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </span>
@@ -358,7 +358,7 @@ export function QuickLinksStrip({
               <Link
                 key={link.labelEn}
                 href={link.href}
-                className="ministry-focus rounded-md border border-slate-200 bg-white px-3 py-3 text-center text-sm font-semibold text-slate-700 hover:border-[#146c43] hover:bg-emerald-50 hover:text-[#146c43]"
+                className="ministry-focus rounded-md border border-slate-200 bg-white px-3 py-3 text-center text-sm font-semibold text-slate-700 hover:border-[#0c3b6e] hover:bg-sky-50 hover:text-[#0c3b6e]"
               >
                 {t(link.labelEn, link.labelHi ?? link.labelEn)}
               </Link>
@@ -479,7 +479,7 @@ export function QuotesSection({
     return (
       <section className="border-y-2 border-slate-200 bg-slate-50 py-12">
         <div className="mx-auto max-w-4xl px-4 text-center">
-          <p className="text-sm font-bold uppercase tracking-widest text-[#146c43]">
+          <p className="text-sm font-bold uppercase tracking-widest text-[#0c3b6e]">
             {t(quote.authorEn, quote.authorHi)}
           </p>
           <blockquote className="mt-6 font-display text-xl font-medium leading-relaxed text-slate-800 md:text-2xl">
@@ -491,7 +491,7 @@ export function QuotesSection({
                 key={i}
                 type="button"
                 onClick={() => setQuoteIndex(i)}
-                className={`h-2 rounded-full transition-all ${i === quoteIndex ? "w-8 bg-[#146c43]" : "w-2 bg-slate-300"}`}
+                className={`h-2 rounded-full transition-all ${i === quoteIndex ? "w-8 bg-[#0c3b6e]" : "w-2 bg-slate-300"}`}
                 aria-label={`Quote ${i + 1}`}
               />
             ))}
@@ -543,7 +543,7 @@ export function SpotlightSection({ variant = "future" }: { variant?: "heritage" 
   if (variant === "ministry") {
     return (
       <ScrollReveal>
-        <section className="border-y-4 border-[#146c43] bg-white py-14">
+        <section className="border-y-4 border-[#0c3b6e] bg-white py-14">
           <div className="mx-auto max-w-4xl px-4">
             <div className="rounded-md border-2 border-slate-200 bg-slate-50 p-8">
               <p className="text-sm font-bold uppercase tracking-widest text-[#e8850c]">
@@ -560,7 +560,7 @@ export function SpotlightSection({ variant = "future" }: { variant?: "heritage" 
               </p>
               <ul className="mt-6 grid gap-2 sm:grid-cols-2">
                 {["WCAG 2.1 AA contrast", "Skip to content", "हिंदी / English", "Font size controls"].map((item) => (
-                  <li key={item} className="flex items-center gap-2 text-sm font-medium text-[#146c43]">
+                  <li key={item} className="flex items-center gap-2 text-sm font-medium text-[#0c3b6e]">
                     <span className="h-2 w-2 rounded-full bg-[#e8850c]" aria-hidden />
                     {item}
                   </li>
@@ -656,7 +656,7 @@ export function DignitariesStrip({
       <div className="mx-auto max-w-7xl px-4">
         <p className={`mb-8 text-center text-xs font-bold uppercase tracking-[0.2em] ${
           variant === "ministry"
-            ? "text-[#146c43]"
+            ? "text-[#0c3b6e]"
             : variant === "future"
               ? "text-emerald-700 dark:text-emerald-400"
               : "text-violet-600"
@@ -683,7 +683,7 @@ export function DignitariesStrip({
                 variant === "heritage"
                   ? "ring-rose-200"
                   : variant === "ministry"
-                    ? "ring-[#146c43]/30"
+                    ? "ring-[#0c3b6e]/30"
                     : "ring-amber-300/60 dark:ring-amber-500/40"
               }`}>
                 <Image
@@ -788,7 +788,7 @@ export function NewsTicker({
   if (variant === "ministry") {
     const labels = items.map((h) => t(h.titleEn, h.titleHi));
     return (
-      <div className="border-b-2 border-[#146c43] bg-[#146c43] py-2.5 text-sm font-semibold text-white">
+      <div className="border-b-2 border-[#0c3b6e] bg-[#0c3b6e] py-2.5 text-sm font-semibold text-white">
         <div className="flex animate-marquee gap-12 whitespace-nowrap px-4">
           {[...labels, ...labels].map((item, i) => (
             <span key={i} className="flex items-center gap-3">
@@ -859,7 +859,7 @@ export function AboutSection({
               ? "rounded-3xl bg-gradient-to-br from-white to-emerald-50/80 shadow-xl shadow-emerald-100/50 ring-1 ring-emerald-100 dark:from-emerald-950/40 dark:to-emerald-900/20 dark:ring-emerald-800/50"
               : variant === "heritage"
                 ? "rounded-3xl border-2 border-transparent bg-white shadow-xl [border-image:linear-gradient(135deg,#fda4af,#fcd34d,#7dd3fc,#c4b5fd)_1]"
-                : "rounded-md border-2 border-[#146c43] bg-white shadow-md"
+                : "rounded-md border-2 border-[#0c3b6e] bg-white shadow-md"
           }`}
         >
           <div>
@@ -878,7 +878,7 @@ export function AboutSection({
                 variant === "heritage"
                   ? "rounded-xl bg-gradient-to-r from-rose-500 via-violet-500 to-sky-500 shadow-lg hover:opacity-90"
                   : variant === "ministry"
-                    ? "ministry-focus rounded-md bg-[#146c43] hover:bg-[#0b3d2e]"
+                    ? "ministry-focus rounded-md bg-[#0c3b6e] hover:bg-[#082952]"
                     : "rounded-xl bg-emerald-700 hover:bg-emerald-800"
               }`}
             >
@@ -895,7 +895,7 @@ export function AboutSection({
             />
             <div className={`absolute inset-0 bg-gradient-to-t to-transparent ${variant === "heritage" ? "from-slate-800/50" : variant === "ministry" ? "from-slate-800/40" : "from-[#0b3d2e]/80"}`} />
             <div className={`absolute bottom-4 left-4 right-4 rounded-xl p-4 ${variant === "heritage" ? "bg-gradient-to-r from-rose-50 via-amber-50 to-sky-50 shadow-lg ring-1 ring-white" : variant === "ministry" ? "bg-white/95 border border-slate-200 shadow-md" : "glass-panel"}`}>
-              <p className={`text-xs font-bold uppercase tracking-wider ${variant === "heritage" ? "text-violet-600" : variant === "ministry" ? "text-[#146c43]" : "text-amber-200"}`}>
+              <p className={`text-xs font-bold uppercase tracking-wider ${variant === "heritage" ? "text-violet-600" : variant === "ministry" ? "text-[#0c3b6e]" : "text-amber-200"}`}>
                 {t("Since 1970", "1970 से")}
               </p>
               <p className={`mt-1 font-display text-lg font-bold ${variant === "heritage" || variant === "ministry" ? "text-slate-800" : "text-white"}`}>
@@ -913,7 +913,7 @@ export function MinistryNotificationsSection() {
   const { t } = useLanguage();
 
   const columns = [
-    { key: "news" as const, titleEn: "News", titleHi: "समाचार", accent: "bg-[#146c43]" },
+    { key: "news" as const, titleEn: "News", titleHi: "समाचार", accent: "bg-[#0c3b6e]" },
     { key: "recruitment" as const, titleEn: "Recruitment", titleHi: "भर्ती", accent: "bg-[#e8850c]" },
     { key: "tenders" as const, titleEn: "Tenders / Auctions", titleHi: "निविदा / नीलामी", accent: "bg-slate-700" },
   ];
@@ -934,14 +934,14 @@ export function MinistryNotificationsSection() {
                 <ul className="space-y-3 p-5">
                   {heritageNotifications[col.key].map((item) => (
                     <li key={item}>
-                      <Link href="#" className="text-sm leading-snug text-slate-700 hover:text-[#146c43] hover:underline">
+                      <Link href="#" className="text-sm leading-snug text-slate-700 hover:text-[#0c3b6e] hover:underline">
                         {item}
                       </Link>
                     </li>
                   ))}
                 </ul>
                 <div className="border-t border-slate-100 px-5 py-3">
-                  <Link href="#" className="text-sm font-bold text-[#146c43] hover:underline">
+                  <Link href="#" className="text-sm font-bold text-[#0c3b6e] hover:underline">
                     {t("Read more", "और पढ़ें")} →
                   </Link>
                 </div>
@@ -1036,7 +1036,7 @@ export function NotificationsSection({
       titleHi: "समाचार",
       accent:
         variant === "ministry"
-          ? "bg-[#146c43]"
+          ? "bg-[#0c3b6e]"
           : variant === "heritage"
             ? "bg-gradient-to-r from-rose-500 to-pink-500"
             : "bg-gradient-to-r from-emerald-600 to-teal-600",
@@ -1186,7 +1186,7 @@ export function NotificationsSection({
                         href={item.href}
                         className={`text-sm leading-snug hover:underline ${
                           variant === "ministry"
-                            ? "text-slate-700 hover:text-[#146c43]"
+                            ? "text-slate-700 hover:text-[#0c3b6e]"
                             : variant === "heritage"
                               ? "text-slate-600 hover:text-violet-600"
                               : "text-slate-700 hover:text-emerald-700 dark:text-emerald-100/90 dark:hover:text-amber-300"
@@ -1210,7 +1210,7 @@ export function NotificationsSection({
                     href={col.readMoreHref}
                     className={`inline-flex items-center gap-1 text-sm font-bold hover:underline ${
                       variant === "ministry"
-                        ? "text-[#146c43]"
+                        ? "text-[#0c3b6e]"
                         : variant === "heritage"
                           ? "text-violet-600"
                           : "text-emerald-700 dark:text-amber-300"
@@ -1260,7 +1260,7 @@ export function FarmersPortalSection({
           variant === "heritage"
             ? "bg-gradient-to-r from-amber-50 via-rose-50 to-sky-50"
             : variant === "ministry"
-              ? "border-y-2 border-slate-200 bg-[#146c43]"
+              ? "border-y-2 border-slate-200 bg-[#0c3b6e]"
               : "bg-gradient-to-r from-[#0b3d2e] via-[#146c43] to-[#0d4a38]"
         }`}
       >
@@ -1290,7 +1290,7 @@ export function FarmersPortalSection({
                   variant === "heritage"
                     ? "text-slate-600"
                     : variant === "ministry"
-                      ? "text-emerald-100"
+                      ? "text-sky-100"
                       : "text-emerald-100/90"
                 }`}
               >
@@ -1304,7 +1304,7 @@ export function FarmersPortalSection({
               variant === "heritage"
                 ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg hover:from-amber-600 hover:to-orange-600"
                 : variant === "ministry"
-                  ? "bg-white text-[#146c43] hover:bg-emerald-50"
+                  ? "bg-white text-[#0c3b6e] hover:bg-sky-50"
                   : "gradient-gold text-emerald-950 shadow-lg hover:brightness-105"
             }`}
           >
@@ -1368,7 +1368,7 @@ export function MediaGallerySection({
             </div>
             <Link
               href={SELECTED_LAYOUT.routes.media}
-              className={`inline-flex items-center gap-1 font-semibold ${isHeritage ? "text-[#b45368] hover:text-[#9e4a5a]" : isMinistry ? "text-[#146c43] hover:underline" : "text-amber-300 hover:text-amber-200"}`}
+              className={`inline-flex items-center gap-1 font-semibold ${isHeritage ? "text-[#b45368] hover:text-[#9e4a5a]" : isMinistry ? "text-[#0c3b6e] hover:underline" : "text-amber-300 hover:text-amber-200"}`}
             >
               {t("Full gallery", "पूरी गैलरी")}
               <ArrowUpRight className="h-4 w-4" />
@@ -1406,7 +1406,7 @@ export function MediaGallerySection({
                       isHeritage
                         ? "bg-[#b45368] text-white"
                         : isMinistry
-                          ? "bg-[#146c43] text-white"
+                          ? "bg-[#0c3b6e] text-white"
                           : "bg-amber-400 text-emerald-950"
                     }`}
                   >
@@ -1476,7 +1476,7 @@ export function FlagshipsSection({
                   sizes="320px"
                   className="object-cover transition duration-500 group-hover:scale-105"
                 />
-                <div className={`absolute inset-0 bg-gradient-to-t to-transparent ${isMinistry ? "from-slate-900/60" : isHeritage ? "from-slate-800/70" : "from-[#0b3d2e]/90"}`} />
+                <div className={`absolute inset-0 bg-gradient-to-t to-transparent ${isMinistry ? "from-slate-900/60" : isHeritage ? "from-slate-800/70" : "from-[#082952]/90"}`} />
               </div>
               <div className="p-5">
                 <h3 className="font-display text-lg font-bold text-slate-900 dark:text-emerald-50">
@@ -1521,7 +1521,7 @@ export function PartnersSection({
     }`}>
       <div className="mx-auto max-w-7xl px-4">
         <p className={`mb-6 text-center text-xs font-bold uppercase tracking-[0.2em] ${
-          variant === "heritage" ? "text-violet-600" : variant === "ministry" ? "text-[#146c43]" : "text-emerald-700"
+          variant === "heritage" ? "text-violet-600" : variant === "ministry" ? "text-[#0c3b6e]" : "text-emerald-700"
         }`}>
           {t("Our Partners", "हमारे साझेदार")}
         </p>
@@ -1537,7 +1537,7 @@ export function PartnersSection({
                   variant === "heritage"
                     ? "text-slate-500 hover:text-violet-600"
                     : variant === "ministry"
-                      ? "text-slate-500 hover:text-[#146c43]"
+                      ? "text-slate-500 hover:text-[#0c3b6e]"
                       : "text-slate-400 hover:text-emerald-700 dark:text-emerald-600/60 dark:hover:text-emerald-400"
                 }`}
               >
@@ -1551,7 +1551,7 @@ export function PartnersSection({
                   variant === "heritage"
                     ? "text-slate-500 hover:text-violet-600"
                     : variant === "ministry"
-                      ? "text-slate-500 hover:text-[#146c43]"
+                      ? "text-slate-500 hover:text-[#0c3b6e]"
                       : "text-slate-400 hover:text-emerald-700 dark:text-emerald-600/60 dark:hover:text-emerald-400"
                 }`}
               >

@@ -141,7 +141,7 @@ export function SiteFooter({
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 md:grid-cols-2 lg:grid-cols-4">
         <div>
           <p
-            className={`font-display text-2xl font-bold ${isHeritage ? "text-gradient-heritage" : "text-[#146c43]"}`}
+            className={`font-display text-2xl font-bold ${isHeritage ? "text-gradient-heritage" : "text-[#0c3b6e]"}`}
           >
             {university.shortName}
           </p>
@@ -153,7 +153,7 @@ export function SiteFooter({
               <a
                 key={i}
                 href="#"
-                className={`rounded-full p-2 transition ${isHeritage ? "bg-gradient-to-br from-rose-100 to-violet-100 text-violet-600 hover:from-rose-200 hover:to-violet-200" : "bg-emerald-100 text-[#146c43] hover:bg-emerald-200"}`}
+                className={`rounded-full p-2 transition ${isHeritage ? "bg-gradient-to-br from-rose-100 to-violet-100 text-violet-600 hover:from-rose-200 hover:to-violet-200" : "bg-sky-100 text-[#0c3b6e] hover:bg-sky-200"}`}
               >
                 <Icon className="h-4 w-4" />
               </a>
@@ -163,7 +163,7 @@ export function SiteFooter({
 
         <div>
           <h3
-            className={`mb-4 font-semibold ${isHeritage ? "text-[#9e4a5a]" : "text-[#146c43]"}`}
+            className={`mb-4 font-semibold ${isHeritage ? "text-[#9e4a5a]" : "text-[#0c3b6e]"}`}
           >
             {t("Quick Links", "त्वरित लिंक")}
           </h3>
@@ -180,20 +180,20 @@ export function SiteFooter({
 
         <div>
           <h3
-            className={`mb-4 font-semibold ${isHeritage ? "text-[#9e4a5a]" : "text-[#146c43]"}`}
+            className={`mb-4 font-semibold ${isHeritage ? "text-[#9e4a5a]" : "text-[#0c3b6e]"}`}
           >
             {t("Visit Us", "हमसे मिलें")}
           </h3>
           <ul className="space-y-3 text-sm">
             <li className="flex gap-2">
               <MapPin
-                className={`mt-0.5 h-4 w-4 shrink-0 ${isHeritage ? "text-[#b45368]" : "text-[#146c43]"}`}
+                className={`mt-0.5 h-4 w-4 shrink-0 ${isHeritage ? "text-[#b45368]" : "text-[#0c3b6e]"}`}
               />
               {university.location}
             </li>
             <li className="flex gap-2">
               <Phone
-                className={`h-4 w-4 shrink-0 ${isHeritage ? "text-[#b45368]" : "text-[#146c43]"}`}
+                className={`h-4 w-4 shrink-0 ${isHeritage ? "text-[#b45368]" : "text-[#0c3b6e]"}`}
               />
               {university.phone}
             </li>
@@ -202,7 +202,7 @@ export function SiteFooter({
 
         <div>
           <h3
-            className={`mb-4 font-semibold ${isHeritage ? "text-[#9e4a5a]" : "text-[#146c43]"}`}
+            className={`mb-4 font-semibold ${isHeritage ? "text-[#9e4a5a]" : "text-[#0c3b6e]"}`}
           >
             {t("Important", "महत्वपूर्ण")}
           </h3>

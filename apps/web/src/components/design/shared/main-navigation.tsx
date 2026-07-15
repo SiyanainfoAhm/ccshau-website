@@ -229,7 +229,7 @@ function navLinkClass(
   }
 
   if (tone === "ministry") {
-    return `flex items-center gap-1 rounded-lg px-3 py-3 text-sm font-bold uppercase tracking-wide transition text-white hover:bg-white/15 ${isOpen || isActive ? "bg-white/15 text-amber-200" : ""} ${hi}`;
+    return `flex items-center gap-1 rounded-lg px-3 py-3 text-sm font-bold uppercase tracking-wide transition text-white hover:bg-white/15 ${isOpen || isActive ? "bg-[#082952] text-amber-200" : ""} ${hi}`;
   }
 
   return `flex items-center gap-1 rounded-lg px-3 py-3 text-sm font-bold uppercase tracking-wide transition text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 ${isOpen || isActive ? "bg-emerald-50 text-emerald-800" : ""} ${hi}`;

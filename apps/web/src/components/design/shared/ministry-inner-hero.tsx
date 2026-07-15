@@ -11,12 +11,12 @@ export function MinistryInnerHero({
   backHref?: string;
 }) {
   return (
-    <div className="border-b-4 border-[#146c43] bg-white">
+    <div className="border-b-4 border-[#0c3b6e] bg-white">
       <div className="goi-tricolor-bar" />
       <div className="mx-auto max-w-7xl px-4 py-10">
         <Link
           href={backHref}
-          className="mb-4 inline-flex items-center gap-2 text-sm font-semibold text-[#146c43] hover:underline"
+          className="mb-4 inline-flex items-center gap-2 text-sm font-semibold text-[#0c3b6e] hover:underline"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden />
           Back to home
