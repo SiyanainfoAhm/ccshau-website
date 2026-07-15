@@ -6,6 +6,7 @@ import { writeAuditLog } from "@/lib/auth/audit";
 import { SITE_STRUCTURE_ACCESS_ROLES } from "@/lib/auth/cms-roles";
 import { requireAdminWithRoles } from "@/lib/auth/session";
 import { Tables } from "@/lib/database/names";
+import { MENU_LOCATIONS } from "@/lib/validations/menus";
 import type { Menu, MenuItem, MenuLocation, PageType } from "@/lib/database/types";
 import { fail, ok, type ActionResult } from "@/lib/types/action-result";
 import { menuItemFormSchema } from "@/lib/validations/menus";
@@ -62,10 +63,12 @@ export async function listMenusForAdmin(): Promise<MenuWithCount[]> {
     countMap.set(row.menu_id, (countMap.get(row.menu_id) ?? 0) + 1);
   }
 
-  return (menus as Menu[]).map((menu) => ({
-    ...menu,
-    item_count: countMap.get(menu.id) ?? 0,
-  }));
+  return (menus as Menu[])
+    .filter((menu) => MENU_LOCATIONS.includes(menu.location))
+    .map((menu) => ({
+      ...menu,
+      item_count: countMap.get(menu.id) ?? 0,
+    }));
 }
 
 export async function getMenuEditorData(location: MenuLocation): Promise<MenuEditorData | null> {
