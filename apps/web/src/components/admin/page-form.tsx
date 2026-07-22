@@ -718,15 +718,37 @@ export function PageForm({
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-hindi"
               />
             </label>
-            <label className="block text-sm md:col-span-2">
-              <span className="font-medium text-slate-700">Photo URL</span>
-              <input
-                name="headImagePath"
-                defaultValue={page?.head_image_path ?? ""}
-                placeholder="https://..."
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-              />
-            </label>
+            <div className="space-y-3 md:col-span-2">
+              <label className="block text-sm">
+                <span className="font-medium text-slate-700">Photo URL</span>
+                <input
+                  name="headImagePath"
+                  defaultValue={page?.head_image_path ?? ""}
+                  placeholder="https://... or upload a photo below"
+                  disabled={!canEdit}
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 disabled:bg-slate-50"
+                />
+              </label>
+              {canEdit && (
+                <AdminFileUploadField
+                  name="headImageFile"
+                  kind="image"
+                  accept="image/*"
+                  label="Upload photo"
+                  hint="JPG, PNG or WebP. Uploaded file replaces the URL above."
+                  chooseLabel="Choose photo"
+                />
+              )}
+              {page?.head_image_path &&
+                page.head_image_path !== "pending" &&
+                getStoredFileUrl(page.head_image_path) && (
+                  <img
+                    src={getStoredFileUrl(page.head_image_path)!}
+                    alt="Current head officer photo"
+                    className="h-28 w-28 rounded-lg border border-emerald-100 object-cover"
+                  />
+                )}
+            </div>
             <label className="flex items-center gap-2 text-sm text-slate-700 md:col-span-2">
               <input
                 name="officeCtaEnabled"

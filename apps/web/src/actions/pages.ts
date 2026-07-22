@@ -41,6 +41,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import {
   removeStorageObjects,
   uploadPageFeaturedImage,
+  uploadPageHeadImage,
   uploadPageLogoImage,
 } from "@/lib/storage/upload";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -94,9 +95,15 @@ async function applyPageHeroImages(
   pageId: string,
   formData: FormData,
   parsed: ReturnType<typeof pageFormSchema.parse>,
-  existing?: Pick<Page, "featured_image_path" | "logo_image_path">,
-): Promise<ActionResult<{ featured_image_path: string | null; logo_image_path: string | null }>> {
-  const [featured, logo] = await Promise.all([
+  existing?: Pick<Page, "featured_image_path" | "logo_image_path" | "head_image_path">,
+): Promise<
+  ActionResult<{
+    featured_image_path: string | null;
+    logo_image_path: string | null;
+    head_image_path: string | null;
+  }>
+> {
+  const [featured, logo, head] = await Promise.all([
     resolvePageImagePath(
       admin,
       pageId,
@@ -115,14 +122,25 @@ async function applyPageHeroImages(
       existing?.logo_image_path,
       uploadPageLogoImage,
     ),
+    resolvePageImagePath(
+      admin,
+      pageId,
+      formData,
+      "headImageFile",
+      parsed.headImagePath,
+      existing?.head_image_path,
+      uploadPageHeadImage,
+    ),
   ]);
 
   if (!featured.success) return featured;
   if (!logo.success) return logo;
+  if (!head.success) return head;
 
   return ok({
     featured_image_path: featured.data,
     logo_image_path: logo.data,
+    head_image_path: head.data,
   });
 }
 
@@ -320,10 +338,11 @@ export async function createPageAction(formData: FormData): Promise<ActionResult
     if (error) return fail(error.message);
 
     const heroImages = await applyPageHeroImages(admin, data.id, formData, parsed.data);
-    if (!heroImages.success) return fail(heroImages.error ?? "Failed to save hero banner images.");
+    if (!heroImages.success) return fail(heroImages.error ?? "Failed to save page images.");
     if (
       heroImages.data.featured_image_path !== row.featured_image_path ||
-      heroImages.data.logo_image_path !== row.logo_image_path
+      heroImages.data.logo_image_path !== row.logo_image_path ||
+      heroImages.data.head_image_path !== row.head_image_path
     ) {
       const { error: imageUpdateError } = await admin
         .from(Tables.pages)
@@ -429,9 +448,10 @@ export async function updatePageAction(
     }
 
     const heroImages = await applyPageHeroImages(admin, pageId, formData, parsed.data, existing);
-    if (!heroImages.success) return fail(heroImages.error ?? "Failed to save hero banner images.");
+    if (!heroImages.success) return fail(heroImages.error ?? "Failed to save page images.");
     row.featured_image_path = heroImages.data.featured_image_path;
     row.logo_image_path = heroImages.data.logo_image_path;
+    row.head_image_path = heroImages.data.head_image_path;
 
     const { error } = await admin.from(Tables.pages).update(row).eq("id", pageId);
     if (error) return fail(error.message);

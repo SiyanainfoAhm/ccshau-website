@@ -17,6 +17,7 @@ import {
   pageGalleryImagePath,
   pageFeaturedImagePath,
   pageLogoImagePath,
+  pageHeadImagePath,
   pageNewsTickerFilePath,
   pageStudentCornerFilePath,
   newsAttachmentPath,
@@ -285,6 +286,28 @@ export async function uploadPageLogoImage(
 
   const bucket = STORAGE_BUCKETS.public;
   const path = pageLogoImagePath(pageId, sanitizeFileName(file.name));
+  const buffer = Buffer.from(await file.arrayBuffer());
+
+  const { error } = await admin.storage.from(bucket).upload(path, buffer, {
+    contentType: file.type,
+    upsert: true,
+  });
+
+  if (error) return fail(`Upload failed: ${error.message}`);
+  return ok(`${bucket}/${path}`);
+}
+
+export async function uploadPageHeadImage(
+  admin: SupabaseClient,
+  pageId: string,
+  file: File,
+): Promise<ActionResult<string>> {
+  const validationError = validateUploadFile(file);
+  if (validationError) return fail(validationError);
+  if (!file.type.startsWith("image/")) return fail("Head officer photo must be an image file.");
+
+  const bucket = STORAGE_BUCKETS.public;
+  const path = pageHeadImagePath(pageId, sanitizeFileName(file.name));
   const buffer = Buffer.from(await file.arrayBuffer());
 
   const { error } = await admin.storage.from(bucket).upload(path, buffer, {
