@@ -9,7 +9,7 @@ export function CmsHtmlContent({
 }) {
   return (
     <div
-      className={className}
+      className={["cms-html", className].filter(Boolean).join(" ")}
       dangerouslySetInnerHTML={{ __html: sanitizeCmsHtml(normalizeCmsHtml(html)) }}
     />
   );

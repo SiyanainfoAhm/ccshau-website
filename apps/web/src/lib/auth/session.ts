@@ -6,6 +6,8 @@ import {
   type CollegeAssignment,
 } from "@/lib/auth/college-scope";
 import { getCollegeAssignmentForUser } from "@/lib/auth/college-scope-server";
+import type { DepartmentPageAssignment } from "@/lib/auth/department-hod-scope";
+import { getDepartmentPageAssignmentForUser } from "@/lib/auth/department-hod-scope-server";
 import { getAdminNavAccess, canAccessAdminPath } from "@/lib/auth/admin-nav-access";
 import { getAllowedCmsModulesForSession } from "@/lib/auth/cms-module-access-server";
 import { getUserRoles, highestRole, type UserRoleAssignment } from "@/lib/auth/rbac";
@@ -14,7 +16,7 @@ import type { UserRole } from "@/lib/database/types";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
-export type { CollegeAssignment };
+export type { CollegeAssignment, DepartmentPageAssignment };
 
 export interface AdminSession {
   userId: string;
@@ -24,6 +26,7 @@ export interface AdminSession {
   primaryRole: UserRole | null;
   departmentId: string | null;
   collegeAssignment: CollegeAssignment | null;
+  departmentPageAssignment: DepartmentPageAssignment | null;
 }
 
 export async function getAdminSession(): Promise<AdminSession | null> {
@@ -35,7 +38,10 @@ export async function getAdminSession(): Promise<AdminSession | null> {
   if (!user?.email) return null;
 
   const roles = await getUserRoles(user.id);
-  const collegeAssignment = await getCollegeAssignmentForUser(user.id);
+  const [collegeAssignment, departmentPageAssignment] = await Promise.all([
+    getCollegeAssignmentForUser(user.id),
+    getDepartmentPageAssignmentForUser(user.id),
+  ]);
   const admin = createAdminClient();
 
   let displayName = user.email;
@@ -63,6 +69,7 @@ export async function getAdminSession(): Promise<AdminSession | null> {
     primaryRole: highestRole(roles),
     departmentId,
     collegeAssignment,
+    departmentPageAssignment,
   };
 
   if (!canAccessAdmin(session)) return null;
@@ -122,6 +129,10 @@ export async function requirePageEditSession(): Promise<AdminSession> {
   const { canEditPages } = await import("@/lib/auth/college-scope");
   if (!canEditPages(session)) {
     throw new Error("You do not have permission to edit pages.");
+  }
+  const { isDepartmentHodOnlyUser } = await import("@/lib/auth/department-hod-scope");
+  if (isDepartmentHodOnlyUser(session)) {
+    return session;
   }
   if (!isCollegeOnlyUser(session)) {
     const { assertCmsModuleAccess } = await import("@/lib/auth/cms-module-access-server");

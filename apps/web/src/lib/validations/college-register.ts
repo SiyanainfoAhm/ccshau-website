@@ -26,6 +26,8 @@ export const registerFacultySchema = z.object({
   email: z.string().email().optional().or(z.literal("")),
   experienceEn: z.string().optional(),
   experienceHi: z.string().optional(),
+  qualificationEn: z.string().optional(),
+  qualificationHi: z.string().optional(),
   detailContentEn: z.string().optional(),
   detailContentHi: z.string().optional(),
   staffSlug: z

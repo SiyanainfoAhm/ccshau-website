@@ -21,7 +21,13 @@ export async function AdminShell({
       <a href="#admin-main-content" className="skip-link">
         Skip to admin content
       </a>
-      <AdminSidebar access={access} collegeName={session.collegeAssignment?.collegeName} />
+      <AdminSidebar
+        access={access}
+        collegeName={
+          session.collegeAssignment?.collegeName ??
+          session.departmentPageAssignment?.departmentTitle
+        }
+      />
       <div className="flex min-w-0 flex-1 flex-col">
         <AdminHeader session={session} />
         <main id="admin-main-content" className="flex-1 p-6" tabIndex={-1}>

@@ -7,6 +7,7 @@ import { listPagesForAdmin } from "@/actions/pages";
 import { AdminListFooter } from "@/components/admin/admin-list-footer";
 import { PagesList } from "@/components/admin/pages-list";
 import { canDeletePages, canEditPages } from "@/lib/auth/college-scope";
+import { isDepartmentHodOnlyUser } from "@/lib/auth/department-hod-scope";
 import { requireAdminSession } from "@/lib/auth/session";
 import { parseAdminListParams } from "@/lib/data/admin-list";
 
@@ -25,7 +26,8 @@ export default async function AdminPagesListPage({
     allowedSorts: PAGES_SORTS,
   });
   const data = await listPagesForAdmin(listParams);
-  const canCreate = canEditPages(session);
+  const hodOnly = isDepartmentHodOnlyUser(session);
+  const canCreate = canEditPages(session) && !hodOnly;
   const canDelete = canDeletePages(session);
 
   return (
@@ -33,12 +35,20 @@ export default async function AdminPagesListPage({
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="font-display text-2xl font-bold text-slate-900">
-            {session.collegeAssignment ? "College pages" : "Pages"}
+            {hodOnly
+              ? "My department"
+              : session.collegeAssignment
+                ? "College pages"
+                : "Pages"}
           </h1>
           <p className="text-sm text-slate-500">
-            {session.collegeAssignment
-              ? `Managing ${session.collegeAssignment.collegeName}`
-              : "CMS-managed static and dynamic pages"}
+            {hodOnly
+              ? session.departmentPageAssignment?.departmentTitle
+                ? `Editing ${session.departmentPageAssignment.departmentTitle}`
+                : "Your assigned department page"
+              : session.collegeAssignment
+                ? `Managing ${session.collegeAssignment.collegeName}`
+                : "CMS-managed static and dynamic pages"}
           </p>
         </div>
         {canCreate && (

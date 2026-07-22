@@ -3,8 +3,10 @@ import { notFound, redirect } from "next/navigation";
 
 import { getUserById } from "@/actions/users";
 import { listCollegesForAdmin } from "@/lib/auth/college-scope-server";
+import { listDepartmentPagesForHodAssignment } from "@/lib/auth/department-hod-scope-server";
 import { listDepartments } from "@/actions/pages";
 import { CollegeAssignmentPanel } from "@/components/admin/college-assignment-panel";
+import { DepartmentHodAssignmentPanel } from "@/components/admin/department-hod-assignment-panel";
 import { UserProfileForm } from "@/components/admin/user-profile-form";
 import { UserRolesPanel } from "@/components/admin/user-roles-panel";
 import { requireAdminSession } from "@/lib/auth/session";
@@ -20,10 +22,11 @@ export default async function AdminEditUserPage({
   }
 
   const { id } = await params;
-  const [user, departments, colleges] = await Promise.all([
+  const [user, departments, colleges, departmentPages] = await Promise.all([
     getUserById(id),
     listDepartments(),
     listCollegesForAdmin(),
+    listDepartmentPagesForHodAssignment(session),
   ]);
   if (!user) notFound();
 
@@ -53,6 +56,19 @@ export default async function AdminEditUserPage({
           userId={user.id}
           assignment={user.college_assignment}
           colleges={colleges}
+        />
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold text-slate-900">Department HOD assignment</h2>
+        <p className="text-sm text-slate-500">
+          Grants login access to edit one college department page (content + faculty). Does not use
+          Home department (profile).
+        </p>
+        <DepartmentHodAssignmentPanel
+          userId={user.id}
+          assignment={user.department_hod_assignment}
+          departmentPages={departmentPages}
         />
       </section>
     </div>

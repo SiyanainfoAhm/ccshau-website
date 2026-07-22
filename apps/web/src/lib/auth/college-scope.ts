@@ -40,7 +40,12 @@ export function isCollegeOnlyUser(session: AdminSession): boolean {
 }
 
 export function canAccessAdmin(session: AdminSession): boolean {
-  return isSuperAdminSession(session) || hasUniversityCmsRole(session) || isCollegeScopedUser(session);
+  return (
+    isSuperAdminSession(session) ||
+    hasUniversityCmsRole(session) ||
+    isCollegeScopedUser(session) ||
+    Boolean(session.departmentPageAssignment)
+  );
 }
 
 /** PostgREST `.or()` filter — mirrors `assertPageAccess` for university CMS page lists. */
@@ -54,6 +59,7 @@ export function canEditPages(session: AdminSession): boolean {
   if (session.collegeAssignment && COLLEGE_EDIT_ROLES.includes(session.collegeAssignment.role)) {
     return true;
   }
+  if (session.departmentPageAssignment) return true;
   return false;
 }
 
@@ -73,6 +79,7 @@ export function canPublishPages(session: AdminSession): boolean {
   ) {
     return true;
   }
+  if (session.departmentPageAssignment) return true;
   return false;
 }
 

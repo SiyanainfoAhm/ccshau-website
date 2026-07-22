@@ -142,6 +142,8 @@ export interface PublicOfficeStaffMember {
   email?: string | null;
   experienceEn?: string | null;
   experienceHi?: string | null;
+  qualificationEn?: string | null;
+  qualificationHi?: string | null;
   detailContentEn?: string | null;
   detailContentHi?: string | null;
 }
@@ -178,6 +180,8 @@ export interface PublicCollegeSubsection {
   excerptHi: string | null;
   contentEn: string | null;
   contentHi: string | null;
+  featuredImageUrl?: string | null;
+  logoImageUrl?: string | null;
 }
 
 export interface PublicCollegeSection {
@@ -191,6 +195,8 @@ export interface PublicCollegeSection {
   excerptHi: string | null;
   contentEn: string | null;
   contentHi: string | null;
+  featuredImageUrl?: string | null;
+  logoImageUrl?: string | null;
   subsections: PublicCollegeSubsection[];
 }
 

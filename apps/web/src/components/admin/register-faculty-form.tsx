@@ -1,12 +1,16 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { registerFacultyAction } from "@/actions/college-register";
+import { translateFieldsEnToHiAction } from "@/actions/translate";
+import { AdminFileUploadField } from "@/components/admin/admin-file-upload-field";
 import { slugify } from "@/lib/utils/slug";
 import type { PageStaff } from "@/lib/database/types";
+import { getStoredFileUrl } from "@/lib/storage/upload";
 
 type DepartmentOption = {
   id: string;
@@ -35,13 +39,88 @@ export function RegisterFacultyForm({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [isTranslating, setIsTranslating] = useState(false);
   const [memberType, setMemberType] = useState<"hod" | "faculty">(faculty?.member_type ?? "faculty");
   const [nameEn, setNameEn] = useState(faculty?.name_en ?? "");
+  const [nameHi, setNameHi] = useState(faculty?.name_hi ?? "");
+  const [designationEn, setDesignationEn] = useState(faculty?.designation_en ?? "");
+  const [designationHi, setDesignationHi] = useState(faculty?.designation_hi ?? "");
+  const [specializationEn, setSpecializationEn] = useState(faculty?.specialization_en ?? "");
+  const [specializationHi, setSpecializationHi] = useState(faculty?.specialization_hi ?? "");
+  const [experienceEn, setExperienceEn] = useState(faculty?.experience_en ?? "");
+  const [experienceHi, setExperienceHi] = useState(faculty?.experience_hi ?? "");
+  const [qualificationEn, setQualificationEn] = useState(faculty?.qualification_en ?? "");
+  const [qualificationHi, setQualificationHi] = useState(faculty?.qualification_hi ?? "");
+  const [detailContentEn, setDetailContentEn] = useState(faculty?.detail_content_en ?? "");
+  const [detailContentHi, setDetailContentHi] = useState(faculty?.detail_content_hi ?? "");
   const [staffSlug, setStaffSlug] = useState(faculty?.staff_slug ?? "");
   const isEdit = Boolean(faculty);
+  const previewUrl =
+    faculty?.image_path && faculty.image_path !== "pending"
+      ? getStoredFileUrl(faculty.image_path)
+      : null;
+  const externalImageUrl =
+    faculty?.image_path?.startsWith("http://") || faculty?.image_path?.startsWith("https://")
+      ? faculty.image_path
+      : "";
 
   function handleNameBlur() {
     if (!staffSlug && nameEn) setStaffSlug(slugify(nameEn));
+  }
+
+  async function handleAutoTranslate(
+    fields: { key: string; text: string; format?: "text" | "html" }[],
+    apply: (translated: Record<string, string>) => void,
+  ) {
+    setError(null);
+    setIsTranslating(true);
+    try {
+      const result = await translateFieldsEnToHiAction(fields);
+      if (!result.success) {
+        setError(result.error);
+        return;
+      }
+      apply(result.data.translations);
+      if (result.data.warnings.length > 0) {
+        setError(result.data.warnings.join(" "));
+      } else if (Object.keys(result.data.translations).length === 0) {
+        setError("Nothing was translated. Enter English text first.");
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Translation failed.");
+    } finally {
+      setIsTranslating(false);
+    }
+  }
+
+  function handleTranslateListRow() {
+    return handleAutoTranslate(
+      [
+        { key: "nameHi", text: nameEn },
+        { key: "designationHi", text: designationEn },
+        { key: "specializationHi", text: specializationEn },
+      ],
+      (translated) => {
+        if (translated.nameHi) setNameHi(translated.nameHi);
+        if (translated.designationHi) setDesignationHi(translated.designationHi);
+        if (translated.specializationHi) setSpecializationHi(translated.specializationHi);
+      },
+    );
+  }
+
+  function handleTranslateProfile() {
+    return handleAutoTranslate(
+      [
+        { key: "experienceHi", text: experienceEn },
+        { key: "qualificationHi", text: qualificationEn },
+        { key: "detailContentHi", text: detailContentEn, format: "html" },
+      ],
+      (translated) => {
+        if (translated.experienceHi) setExperienceHi(translated.experienceHi);
+        if (translated.qualificationHi) setQualificationHi(translated.qualificationHi);
+        if (translated.detailContentHi) setDetailContentHi(translated.detailContentHi);
+      },
+    );
   }
 
   function handleSubmit(formData: FormData) {
@@ -73,6 +152,7 @@ export function RegisterFacultyForm({
   const sectionClass = inDialog
     ? "space-y-4 border-t border-slate-100 pt-4 first:border-t-0 first:pt-0"
     : "rounded-xl border border-slate-200 bg-white p-6 shadow-sm";
+  const translateDisabled = readOnly || isPending || isTranslating;
 
   return (
     <form action={readOnly ? undefined : handleSubmit} className={inDialog ? "space-y-4" : "mx-auto max-w-3xl space-y-6"}>
@@ -132,8 +212,24 @@ export function RegisterFacultyForm({
       </section>
 
       <section className={`${sectionClass} ${readOnly ? "pointer-events-none opacity-90" : ""}`}>
-        <h2 className="mb-4 text-lg font-semibold text-slate-900">Faculty list row</h2>
-        <p className="mb-4 text-xs text-slate-500">Shown in the department Faculty table (name, photo, designation, specialization).</p>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-semibold text-slate-900">Faculty list row</h2>
+            <p className="mt-1 text-xs text-slate-500">
+              Shown in the department Faculty table (name, photo, designation, specialization).
+            </p>
+          </div>
+          {!readOnly ? (
+            <button
+              type="button"
+              onClick={handleTranslateListRow}
+              disabled={translateDisabled}
+              className="rounded-lg border border-emerald-700 px-3 py-1.5 text-sm font-medium text-emerald-800 hover:bg-emerald-50 disabled:opacity-60"
+            >
+              {isTranslating ? "Translating…" : "Auto-translate to Hindi"}
+            </button>
+          ) : null}
+        </div>
         <div className="grid gap-4 md:grid-cols-2">
           <label className="block text-sm md:col-span-2">
             <span className="font-medium text-slate-700">Name (English)</span>
@@ -148,44 +244,101 @@ export function RegisterFacultyForm({
           </label>
           <label className="block text-sm md:col-span-2">
             <span className="font-medium text-slate-700">Name (Hindi)</span>
-            <input name="nameHi" defaultValue={faculty?.name_hi ?? ""} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-hindi" />
+            <input
+              name="nameHi"
+              value={nameHi}
+              onChange={(e) => setNameHi(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-hindi"
+            />
           </label>
           <label className="block text-sm">
             <span className="font-medium text-slate-700">Designation</span>
             <input
               name="designationEn"
               required
-              defaultValue={faculty?.designation_en ?? ""}
+              value={designationEn}
+              onChange={(e) => setDesignationEn(e.target.value)}
               placeholder={memberType === "hod" ? "Professor and Head" : "Assistant Professor"}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
             />
           </label>
           <label className="block text-sm">
             <span className="font-medium text-slate-700">Designation (Hindi)</span>
-            <input name="designationHi" defaultValue={faculty?.designation_hi ?? ""} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-hindi" />
+            <input
+              name="designationHi"
+              value={designationHi}
+              onChange={(e) => setDesignationHi(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-hindi"
+            />
           </label>
           <label className="block text-sm md:col-span-2">
             <span className="font-medium text-slate-700">Specialization</span>
             <textarea
               name="specializationEn"
               rows={2}
-              defaultValue={faculty?.specialization_en ?? ""}
+              value={specializationEn}
+              onChange={(e) => setSpecializationEn(e.target.value)}
               placeholder="Molecular Genetics, Genomics and Plant Biotechnology"
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
             />
           </label>
           <label className="block text-sm md:col-span-2">
-            <span className="font-medium text-slate-700">Photo URL</span>
-            <input name="imagePath" type="url" defaultValue={faculty?.image_path ?? ""} placeholder="https://..." className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" />
+            <span className="font-medium text-slate-700">Specialization (Hindi)</span>
+            <textarea
+              name="specializationHi"
+              rows={2}
+              value={specializationHi}
+              onChange={(e) => setSpecializationHi(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-hindi"
+            />
           </label>
+          <div className="space-y-2 md:col-span-2">
+            <span className="text-sm font-medium text-slate-700">Photo</span>
+            {previewUrl ? (
+              <div className="relative h-40 w-32 overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
+                <Image src={previewUrl} alt="" fill className="object-cover object-top" unoptimized />
+              </div>
+            ) : null}
+            {!readOnly ? (
+              <AdminFileUploadField
+                name="image"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                kind="image"
+                label={previewUrl ? "Replace photo" : "Upload photo"}
+                hint="JPEG, PNG, WebP or GIF"
+              />
+            ) : null}
+            <p className="text-xs text-slate-500">Or paste an external image URL:</p>
+            <input
+              name="imagePath"
+              type="url"
+              defaultValue={externalImageUrl}
+              placeholder="https://..."
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            />
+          </div>
         </div>
       </section>
 
       <section className={`${sectionClass} ${readOnly ? "pointer-events-none opacity-90" : ""}`}>
-        <h2 className="mb-4 text-lg font-semibold text-slate-900">Profile detail page</h2>
-        <p className="mb-4 text-xs text-slate-500">
-          Full CV-style content (education, publications, awards). Paste HTML or plain sections.
-        </p>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-semibold text-slate-900">Profile detail page</h2>
+            <p className="mt-1 text-xs text-slate-500">
+              Full CV-style content (education, publications, awards). Paste HTML or plain sections.
+            </p>
+          </div>
+          {!readOnly ? (
+            <button
+              type="button"
+              onClick={handleTranslateProfile}
+              disabled={translateDisabled}
+              className="rounded-lg border border-emerald-700 px-3 py-1.5 text-sm font-medium text-emerald-800 hover:bg-emerald-50 disabled:opacity-60"
+            >
+              {isTranslating ? "Translating…" : "Auto-translate to Hindi"}
+            </button>
+          ) : null}
+        </div>
         <div className="grid gap-4">
           <label className="block text-sm">
             <span className="font-medium text-slate-700">Profile URL slug</span>
@@ -211,9 +364,38 @@ export function RegisterFacultyForm({
             <span className="font-medium text-slate-700">Experience</span>
             <input
               name="experienceEn"
-              defaultValue={faculty?.experience_en ?? ""}
+              value={experienceEn}
+              onChange={(e) => setExperienceEn(e.target.value)}
               placeholder="e.g. 15 years"
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+            />
+          </label>
+          <label className="block text-sm">
+            <span className="font-medium text-slate-700">Experience (Hindi)</span>
+            <input
+              name="experienceHi"
+              value={experienceHi}
+              onChange={(e) => setExperienceHi(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-hindi"
+            />
+          </label>
+          <label className="block text-sm">
+            <span className="font-medium text-slate-700">Qualification</span>
+            <input
+              name="qualificationEn"
+              value={qualificationEn}
+              onChange={(e) => setQualificationEn(e.target.value)}
+              placeholder="e.g. Ph.D. (Agricultural Economics)"
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+            />
+          </label>
+          <label className="block text-sm">
+            <span className="font-medium text-slate-700">Qualification (Hindi)</span>
+            <input
+              name="qualificationHi"
+              value={qualificationHi}
+              onChange={(e) => setQualificationHi(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-hindi"
             />
           </label>
           <label className="block text-sm">
@@ -221,14 +403,21 @@ export function RegisterFacultyForm({
             <textarea
               name="detailContentEn"
               rows={12}
-              defaultValue={faculty?.detail_content_en ?? ""}
+              value={detailContentEn}
+              onChange={(e) => setDetailContentEn(e.target.value)}
               placeholder="<h3>Educational Qualifications</h3><table>...</table>"
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm"
             />
           </label>
           <label className="block text-sm">
             <span className="font-medium text-slate-700">Full profile (Hindi HTML)</span>
-            <textarea name="detailContentHi" rows={6} defaultValue={faculty?.detail_content_hi ?? ""} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm" />
+            <textarea
+              name="detailContentHi"
+              rows={6}
+              value={detailContentHi}
+              onChange={(e) => setDetailContentHi(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm font-hindi"
+            />
           </label>
         </div>
       </section>

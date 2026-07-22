@@ -72,9 +72,9 @@ async function handleAdminAuth(request: NextRequest): Promise<NextResponse> {
     return NextResponse.redirect(loginUrl);
   }
 
-  if (user && isLogin) {
-    return NextResponse.redirect(new URL("/admin", request.url));
-  }
+  // Do not redirect authenticated users away from /admin/login here.
+  // Supabase auth alone does not imply CMS access; the login page checks
+  // getAdminSession() and redirects only valid admin sessions.
 
   return response;
 }

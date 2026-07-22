@@ -21,6 +21,8 @@ export type UserRole =
 
 export type CollegeScopeRole = "college_admin" | "college_editor" | "college_viewer";
 
+export type DepartmentPageRole = "dept_hod";
+
 export type MenuLocation = "header" | "footer" | "quick_links";
 
 export type NoticeType = "news" | "notice" | "corrigendum" | "cancellation";
@@ -547,6 +549,8 @@ export interface PageStaff {
   email: string | null;
   experience_en: string | null;
   experience_hi: string | null;
+  qualification_en: string | null;
+  qualification_hi: string | null;
   detail_content_en: string | null;
   detail_content_hi: string | null;
   detail_href: string | null;

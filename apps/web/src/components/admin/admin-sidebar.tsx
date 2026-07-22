@@ -71,7 +71,14 @@ const collegeOnlyNavItems: AdminNavItem[] = [
   { href: "/admin/pages", label: "College pages", icon: FileText },
 ];
 
+const departmentHodOnlyNavItems: AdminNavItem[] = [
+  { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
+  { href: "/admin/pages", label: "My department", icon: FileText },
+  { href: "/admin/register/faculty", label: "Faculty", icon: Users },
+];
+
 export function getSidebarNavItems(access: AdminNavAccess): AdminNavItem[] {
+  if (access.isDepartmentHodOnly) return departmentHodOnlyNavItems;
   if (access.isCollegeOnly) return collegeOnlyNavItems;
 
   const visibleBase = baseNavItems.filter((item) => canSeeAdminNavHref(access, item.href));
@@ -126,7 +133,9 @@ export function AdminSidebar({
           <Link href="/admin" className="block">
             <p className="font-display text-xl font-bold text-gradient-gold">CCSHAU</p>
             <p className="mt-1 text-xs text-emerald-200/80">
-              {access.isCollegeOnly && collegeName ? collegeName : "Content Management"}
+              {(access.isCollegeOnly || access.isDepartmentHodOnly) && collegeName
+                ? collegeName
+                : "Content Management"}
             </p>
           </Link>
         </div>

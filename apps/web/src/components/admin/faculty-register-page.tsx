@@ -16,17 +16,25 @@ export function FacultyRegisterPage({
   faculty,
   canEdit = true,
   canDelete = true,
+  backHref,
+  backLabel,
+  hideDepartmentCta = false,
 }: {
   college: CollegeOption;
   departments: DepartmentOption[];
   faculty: FacultyListItem[];
   canEdit?: boolean;
   canDelete?: boolean;
+  backHref?: string;
+  backLabel?: string;
+  hideDepartmentCta?: boolean;
 }) {
   const router = useRouter();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formKey, setFormKey] = useState(0);
   const collegeBase = `/admin/register/${college.id}`;
+  const resolvedBackHref = backHref ?? collegeBase;
+  const resolvedBackLabel = backLabel ?? college.title_en;
 
   function openDialog() {
     setFormKey((k) => k + 1);
@@ -42,8 +50,8 @@ export function FacultyRegisterPage({
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <Link href={collegeBase} className="text-sm text-emerald-700 hover:underline">
-            ← {college.title_en}
+          <Link href={resolvedBackHref} className="text-sm text-emerald-700 hover:underline">
+            ← {resolvedBackLabel}
           </Link>
           <h1 className="mt-2 font-display text-2xl font-bold text-slate-900">Faculty</h1>
           <p className="text-sm text-slate-500">
@@ -65,7 +73,7 @@ export function FacultyRegisterPage({
         )}
       </div>
 
-      {canEdit && departments.length === 0 && (
+      {canEdit && departments.length === 0 && !hideDepartmentCta && (
         <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
           Register a department first before adding faculty.{" "}
           <Link href={`${collegeBase}/department`} className="font-medium underline">

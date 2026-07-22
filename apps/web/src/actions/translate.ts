@@ -20,13 +20,13 @@ export async function translateEnToHiAction(
 
 export async function translateFieldsEnToHiAction(
   fields: { key: string; text: string; format?: "text" | "html" }[],
-): Promise<ActionResult<Record<string, string>>> {
+): Promise<ActionResult<{ translations: Record<string, string>; warnings: string[] }>> {
   try {
     await requireAdminSession();
     const nonEmpty = fields.filter((field) => field.text.trim());
     if (nonEmpty.length === 0) return fail("Enter English text before translating.");
-    const translated = await translateFieldsEnToHi(nonEmpty);
-    return ok(translated);
+    const result = await translateFieldsEnToHi(nonEmpty);
+    return ok(result);
   } catch (e) {
     return fail(e instanceof Error ? e.message : "Translation failed.");
   }

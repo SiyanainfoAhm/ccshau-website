@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 
 import { LoginForm } from "@/components/admin/login-form";
 import { getCaptchaClientConfig } from "@/lib/auth/captcha";
+import { getAdminSession } from "@/lib/auth/session";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +13,11 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminLoginPage() {
+  const session = await getAdminSession();
+  if (session) {
+    redirect("/admin");
+  }
+
   const captcha = await getCaptchaClientConfig();
 
   return (

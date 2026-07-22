@@ -8,11 +8,16 @@ import {
 } from "@/actions/college-register";
 import { CollegeRegisterList } from "@/components/admin/college-register-list";
 import { isSuperAdminSession } from "@/lib/auth/college-scope";
+import { isDepartmentHodOnlyUser } from "@/lib/auth/department-hod-scope";
 
 export default async function CollegeRegisterHubPage() {
   const session = await requireCollegeRegisterAdminOrRedirect();
   const colleges = await getCollegesForRegisterForm();
   const canRegisterMicrosite = isSuperAdminSession(session);
+
+  if (isDepartmentHodOnlyUser(session) && session.departmentPageAssignment?.collegePageId) {
+    redirect(`/admin/register/${session.departmentPageAssignment.collegePageId}/faculty`);
+  }
 
   if (!canRegisterMicrosite && colleges.length === 1) {
     redirect(`/admin/register/${colleges[0].id}`);

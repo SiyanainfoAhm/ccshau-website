@@ -18,6 +18,7 @@ export interface PageLayoutConfig {
 
 export const LAYOUT_CONFIG_KEYS = [
   "hero",
+  "heroContactButton",
   "headOfficer",
   "contacts",
   "staff",
@@ -29,8 +30,40 @@ export const LAYOUT_CONFIG_KEYS = [
   "rightSidebar",
   "collegeTopMenu",
   "farmersCta",
-  "heroContactButton",
 ] as const satisfies readonly (keyof PageLayoutConfig)[];
+
+/** Layout toggles Department HOD may change on their assigned page. */
+export const DEPARTMENT_HOD_EDITABLE_LAYOUT_KEYS = [
+  "hero",
+  "heroContactButton",
+  "headOfficer",
+  "leftSidebar",
+  "rightSidebar",
+  "newsTicker",
+] as const satisfies readonly (keyof PageLayoutConfig)[];
+
+export function departmentHodHiddenLayoutKeys(): (keyof PageLayoutConfig)[] {
+  const editable = new Set<string>(DEPARTMENT_HOD_EDITABLE_LAYOUT_KEYS);
+  return LAYOUT_CONFIG_KEYS.filter((key) => !editable.has(key));
+}
+
+/** Keep non-editable layout toggles as stored when a Department HOD saves. */
+export function preserveDepartmentHodLockedLayoutKeys(
+  next: PageLayoutConfig,
+  existing: unknown,
+): PageLayoutConfig {
+  const previous = parseLayoutConfigJson(existing);
+  if (!previous) return next;
+  const editable = new Set<string>(DEPARTMENT_HOD_EDITABLE_LAYOUT_KEYS);
+  const merged = { ...next };
+  for (const key of LAYOUT_CONFIG_KEYS) {
+    if (editable.has(key)) continue;
+    if (typeof previous[key] === "boolean") {
+      merged[key] = previous[key]!;
+    }
+  }
+  return merged;
+}
 
 export const LAYOUT_PRESETS: Record<"college_home" | "office_portal" | "minimal", PageLayoutConfig> = {
   college_home: {
@@ -129,11 +162,10 @@ export function isCollegeLayoutPage(page: {
   layout_template?: string | null;
   layout_config?: unknown;
 }): boolean {
+  // Only real college microsites / college layout templates — not standard pages
+  // that happen to store a layout_config JSON blob.
   if (page.page_type === "college") return true;
-  if (page.layout_template === "office_portal" || page.layout_template === "college_home") {
-    return true;
-  }
-  return Boolean(parseLayoutConfigJson(page.layout_config));
+  return page.layout_template === "office_portal" || page.layout_template === "college_home";
 }
 
 export function readStoredLayoutConfig(

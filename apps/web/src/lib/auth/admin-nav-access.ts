@@ -12,11 +12,13 @@ import {
   sessionCanAccessCmsModule,
 } from "@/lib/auth/cms-module-access";
 import { isCollegeOnlyUser, isSuperAdminSession } from "@/lib/auth/college-scope";
+import { isDepartmentHodOnlyUser } from "@/lib/auth/department-hod-scope";
 import type { AdminSession } from "@/lib/auth/session";
 import type { CmsModule } from "@/lib/database/types";
 
 export type AdminNavAccess = {
   isCollegeOnly: boolean;
+  isDepartmentHodOnly: boolean;
   isSuperAdmin: boolean;
   isUniversityAdmin: boolean;
   isDeptAdmin: boolean;
@@ -42,6 +44,7 @@ export function getAdminNavAccess(
 
   return {
     isCollegeOnly: isCollegeOnlyUser(session),
+    isDepartmentHodOnly: isDepartmentHodOnlyUser(session),
     isSuperAdmin,
     isUniversityAdmin,
     isDeptAdmin,
@@ -108,11 +111,29 @@ function isCollegeOnlyPathAllowed(pathname: string): boolean {
   return pathname.startsWith("/admin/pages");
 }
 
+/** Department HOD: dashboard, own page edit, faculty register only. */
+function isDepartmentHodOnlyPathAllowed(pathname: string): boolean {
+  if (pathname === "/admin") return true;
+  if (pathname === "/admin/pages") return true;
+  if (pathname.startsWith("/admin/pages/") && pathname !== "/admin/pages/new") return true;
+  if (pathname === "/admin/register") return true;
+  if (pathname.startsWith("/admin/register/faculty")) return true;
+  // College faculty list under /admin/register/{collegeId}/faculty
+  if (/^\/admin\/register\/[^/]+\/faculty(\/|$)/.test(pathname)) return true;
+  // Hub redirect target — college detail page redirects HOD to faculty
+  if (/^\/admin\/register\/[^/]+$/.test(pathname)) return true;
+  return false;
+}
+
 function matchesPrefix(pathname: string, prefix: string): boolean {
   return pathname === prefix || pathname.startsWith(`${prefix}/`);
 }
 
 export function canAccessAdminPath(access: AdminNavAccess, pathname: string): boolean {
+  if (access.isDepartmentHodOnly) {
+    return isDepartmentHodOnlyPathAllowed(pathname);
+  }
+
   if (access.isCollegeOnly) {
     return isCollegeOnlyPathAllowed(pathname);
   }
@@ -149,6 +170,10 @@ export function canAccessAdminPath(access: AdminNavAccess, pathname: string): bo
 }
 
 export function canSeeAdminNavHref(access: AdminNavAccess, href: string): boolean {
+  if (access.isDepartmentHodOnly) {
+    return isDepartmentHodOnlyPathAllowed(href);
+  }
+
   if (access.isCollegeOnly) {
     return isCollegeOnlyPathAllowed(href);
   }

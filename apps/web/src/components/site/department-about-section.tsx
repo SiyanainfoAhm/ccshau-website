@@ -66,7 +66,11 @@ export function DepartmentAboutSection({
   const profileLink = detailHref ?? member?.detailHref ?? null;
   const canOpenProfile = Boolean(
     member &&
-      (profileLink || member.detailContentEn || member.detailContentHi || member.experienceEn),
+      (profileLink ||
+        member.detailContentEn ||
+        member.detailContentHi ||
+        member.experienceEn ||
+        member.qualificationEn),
   );
 
   return (

@@ -86,7 +86,13 @@ export const COLLEGE_ROLE_LABELS: Record<z.infer<typeof collegeScopeRoleEnum>, s
   college_viewer: "College Viewer",
 };
 
+export const DEPARTMENT_HOD_ROLE_LABEL = "Department HOD";
+
 export const assignCollegeSchema = z.object({
   collegePageId: z.string().uuid("Select a college"),
   collegeRole: collegeScopeRoleEnum,
+});
+
+export const assignDepartmentHodSchema = z.object({
+  departmentPageId: z.string().uuid("Select a department page"),
 });

@@ -43,6 +43,11 @@ export function homepageInitiativeImagePath(initiativeId: string, fileName: stri
   return `homepage/initiatives/${initiativeId}/${safe}`;
 }
 
+export function facultyImagePath(staffId: string, fileName: string): string {
+  const safe = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
+  return `faculty/${staffId}/${safe}`;
+}
+
 export function circularFilePath(circularId: string, fileName: string): string {
   const safe = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
   return `circulars/${circularId}/${safe}`;
@@ -75,6 +80,16 @@ export function mediaItemPath(albumId: string, itemId: string, fileName: string)
 export function pageGalleryImagePath(pageId: string, itemId: string, fileName: string): string {
   const safe = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
   return `pages/gallery/${pageId}/${itemId}/${safe}`;
+}
+
+export function pageFeaturedImagePath(pageId: string, fileName: string): string {
+  const safe = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
+  return `pages/hero/${pageId}/featured/${safe}`;
+}
+
+export function pageLogoImagePath(pageId: string, fileName: string): string {
+  const safe = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
+  return `pages/hero/${pageId}/logo/${safe}`;
 }
 
 export function pageNewsTickerFilePath(pageId: string, itemId: string, fileName: string): string {

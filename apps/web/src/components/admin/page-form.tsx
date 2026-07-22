@@ -2,18 +2,20 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 
 import { createPageAction, updatePageAction } from "@/actions/pages";
 import { translateFieldsEnToHiAction } from "@/actions/translate";
+import { AdminFileUploadField } from "@/components/admin/admin-file-upload-field";
 import { LayoutConfigAdminPanel } from "@/components/admin/layout-config-admin-panel";
 import { OfficePortalAdminPanel } from "@/components/admin/office-portal-admin-panel";
 import type { Page, PageContactLine, PageGalleryItem, PageNewsTickerItem, PageStudentCornerItem, PageSidebarItem, PageStaff } from "@/lib/database/types";
 import { contentStatusOptions } from "@/lib/auth/content-status-options";
 import {
   applyLayoutConfigToFormData,
-  isCollegeLayoutPage,
   LAYOUT_CONFIG_KEYS,
+  departmentHodHiddenLayoutKeys,
+  isCollegeLayoutPage,
   readStoredLayoutConfig,
   presetForLayoutTemplate,
   type PageLayoutConfig,
@@ -27,6 +29,7 @@ import {
   resolvePublicPagePath,
 } from "@/lib/pages/resolve-public-path";
 import { slugify } from "@/lib/utils/slug";
+import { getStoredFileUrl } from "@/lib/storage/upload";
 
 interface Department {
   id: string;
@@ -51,6 +54,8 @@ export function PageForm({
   allowCollegeRoot = true,
   canEdit = true,
   canPublish = true,
+  initialSuccess = null,
+  lockPageStructure = false,
 }: {
   departments: Department[];
   parentPages: ParentOption[];
@@ -66,10 +71,15 @@ export function PageForm({
   allowCollegeRoot?: boolean;
   canEdit?: boolean;
   canPublish?: boolean;
+  /** Shown once after create redirect (?saved=1). */
+  initialSuccess?: string | null;
+  /** Department HOD: Template / Layout / Parent cannot be changed. */
+  lockPageStructure?: boolean;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(initialSuccess);
   const [titleEn, setTitleEn] = useState(page?.title_en ?? "");
   const [titleHi, setTitleHi] = useState(page?.title_hi ?? "");
   const [slug, setSlug] = useState(page?.slug ?? "");
@@ -82,27 +92,33 @@ export function PageForm({
   const [headRoleEn, setHeadRoleEn] = useState(page?.head_role_en ?? "");
   const [headRoleHi, setHeadRoleHi] = useState(page?.head_role_hi ?? "");
   const [isTranslating, setIsTranslating] = useState(false);
-  const initialLayoutTemplate =
-    page?.layout_template && page.layout_template !== "standard"
-      ? page.layout_template
-      : "college_home";
+  // Use stored template as-is. Do not coerce standard pages to college_home.
+  const initialLayoutTemplate = (page?.layout_template ?? "standard") as Page["layout_template"];
 
-  const [pageType, setPageType] = useState<Page["page_type"]>(() =>
-    page ? (isCollegeLayoutPage(page) ? "college" : page.page_type ?? "standard") : "standard",
-  );
+  const [pageType, setPageType] = useState<Page["page_type"]>(page?.page_type ?? "standard");
   const [layoutTemplate, setLayoutTemplate] = useState<Page["layout_template"]>(
     initialLayoutTemplate,
   );
   const [layoutConfig, setLayoutConfig] = useState<PageLayoutConfig>(() =>
     page
       ? readStoredLayoutConfig(page.layout_config, initialLayoutTemplate)
-      : presetForLayoutTemplate("college_home"),
+      : presetForLayoutTemplate("standard"),
   );
   const [parentId, setParentId] = useState(page?.parent_id ?? "");
   const collegeContact = parseCollegeContactFromLines(officePortalData?.contactLines ?? []);
   const [contactLocationEnabled, setContactLocationEnabled] = useState(() =>
     Boolean(collegeContact.addressEn || collegeContact.phone || collegeContact.email),
   );
+
+  useEffect(() => {
+    if (!initialSuccess || typeof window === "undefined") return;
+    // Drop ?saved=1 so a refresh does not re-show the create banner.
+    const url = new URL(window.location.href);
+    if (url.searchParams.has("saved")) {
+      url.searchParams.delete("saved");
+      window.history.replaceState({}, "", url.pathname + url.search);
+    }
+  }, [initialSuccess]);
 
   function handleTitleBlur() {
     if (!page && titleEn && !slug) {
@@ -122,7 +138,14 @@ export function PageForm({
         setError(result.error);
         return;
       }
-      apply(result.data);
+      apply(result.data.translations);
+      if (result.data.warnings.length > 0) {
+        setError(result.data.warnings.join(" "));
+      } else if (Object.keys(result.data.translations).length === 0) {
+        setError("Nothing was translated. Enter English text first.");
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Translation failed.");
     } finally {
       setIsTranslating(false);
     }
@@ -163,6 +186,7 @@ export function PageForm({
 
   function handleSubmit(formData: FormData) {
     setError(null);
+    setSuccess(null);
 
     const selected = parentPages.find((p) => p.id === parentId);
     const isCollegeRoot =
@@ -179,6 +203,9 @@ export function PageForm({
         ? { ...layoutConfig, contacts: contactLocationEnabled }
         : layoutConfig;
       applyLayoutConfigToFormData(formData, configForSave);
+    } else {
+      // Preserve stored template for standard CMS pages (do not force college_home → standard wipe).
+      formData.set("layoutTemplate", page?.layout_template ?? "standard");
     }
 
     startTransition(async () => {
@@ -188,10 +215,17 @@ export function PageForm({
 
       if (!result.success) {
         setError(result.error);
+        setSuccess(null);
         return;
       }
 
-      router.push(page ? `/admin/pages/${page.id}` : `/admin/pages/${result.data.id}`);
+      if (page) {
+        setSuccess("Page updated successfully.");
+        router.refresh();
+        return;
+      }
+
+      router.push(`/admin/pages/${result.data.id}?saved=1`);
       router.refresh();
     });
   }
@@ -209,7 +243,12 @@ export function PageForm({
       : resolvePublicPagePath(slug, effectivePageType)
     : null;
 
-  const showLayoutTemplate = pageType === "college" || isCollegeHierarchyChild;
+  const showLayoutTemplate =
+    pageType === "college" ||
+    isCollegeHierarchyChild ||
+    layoutTemplate === "office_portal" ||
+    layoutTemplate === "college_home" ||
+    Boolean(page && isCollegeLayoutPage(page));
   const showCollegeLayout = showLayoutTemplate;
   const showHeadOfficerFields = showCollegeLayout && layoutConfig.headOfficer;
   const showOfficeDataPanel =
@@ -222,6 +261,15 @@ export function PageForm({
       layoutConfig.leftSidebar ||
       layoutConfig.rightSidebar);
   const showFarmersCtaField = showCollegeLayout && layoutConfig.farmersCta;
+  const showHeroBannerFields = showCollegeLayout && layoutConfig.hero;
+  const heroPreviewUrl =
+    page?.featured_image_path && page.featured_image_path !== "pending"
+      ? getStoredFileUrl(page.featured_image_path)
+      : null;
+  const logoPreviewUrl =
+    page?.logo_image_path && page.logo_image_path !== "pending"
+      ? getStoredFileUrl(page.logo_image_path)
+      : null;
 
   return (
     <div className="space-y-6">
@@ -235,9 +283,10 @@ export function PageForm({
             ? layoutTemplate === "standard"
               ? "college_home"
               : layoutTemplate
-            : "standard"
+            : (page?.layout_template ?? "standard")
         }
       />
+      {lockPageStructure ? <input type="hidden" name="parentId" value={parentId} /> : null}
       <input type="hidden" name="layoutConfigJson" value={JSON.stringify(layoutConfig)} />
       {LAYOUT_CONFIG_KEYS.map((key) => (
         <input
@@ -248,19 +297,30 @@ export function PageForm({
         />
       ))}
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+        <div role="alert" className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
           {error}
+        </div>
+      )}
+      {success && (
+        <div role="status" className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+          {success}
         </div>
       )}
 
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <h2 className="mb-4 text-lg font-semibold text-slate-900">Page type</h2>
+        {lockPageStructure && (
+          <p className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+            Department HOD cannot change Template, Layout template, or Parent page. You can toggle
+            Hero banner, Hero contact button, Head officer / Dean, Left sidebar, Right sidebar, and News section below.
+          </p>
+        )}
         <div className="grid gap-4 md:grid-cols-2">
           <label className="block text-sm">
             <span className="font-medium text-slate-700">Template</span>
             <select
               value={pageType}
-              disabled={!canEdit}
+              disabled={!canEdit || lockPageStructure}
               onChange={(e) => {
                 const next = e.target.value as Page["page_type"];
                 setPageType(next);
@@ -272,7 +332,7 @@ export function PageForm({
                   setLayoutConfig(presetForLayoutTemplate("college_home"));
                 }
               }}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 disabled:bg-slate-50 disabled:text-slate-500"
             >
               <option value="standard">Standard page (/pages/slug)</option>
               {allowCollegeRoot && (
@@ -285,12 +345,13 @@ export function PageForm({
               <span className="font-medium text-slate-700">Layout template</span>
               <select
                 value={layoutTemplate}
+                disabled={lockPageStructure}
                 onChange={(e) => {
                   const next = e.target.value as Page["layout_template"];
                   setLayoutTemplate(next);
                   setLayoutConfig(presetForLayoutTemplate(next));
                 }}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 disabled:bg-slate-50 disabled:text-slate-500"
               >
                 <option value="college_home">College home (hero + content)</option>
                 <option value="office_portal">Office portal (sidebars + contacts)</option>
@@ -302,8 +363,9 @@ export function PageForm({
             <select
               name="parentId"
               value={parentId}
+              disabled={lockPageStructure}
               onChange={(e) => setParentId(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 disabled:bg-slate-50 disabled:text-slate-500"
             >
               <option value="">— None (top level) —</option>
               {parentPages
@@ -331,9 +393,82 @@ export function PageForm({
         <LayoutConfigAdminPanel
           layoutConfig={layoutConfig}
           onChange={setLayoutConfig}
-          hiddenKeys={isCollegeRoot ? ["contacts"] : []}
+          hiddenKeys={[
+            ...(isCollegeRoot ? (["contacts"] as const) : []),
+            ...(lockPageStructure ? departmentHodHiddenLayoutKeys() : []),
+          ]}
           readOnly={!canEdit}
         />
+      )}
+
+      {showHeroBannerFields && (
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50/40 p-6 shadow-sm">
+          <h2 className="mb-1 text-lg font-semibold text-slate-900">Hero banner images</h2>
+          <p className="mb-4 text-sm text-slate-600">
+            Upload or paste a URL for the large banner at the top of the public page. If you leave
+            this empty, the college banner image is used instead.
+          </p>
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="space-y-3">
+              <label className="block text-sm">
+                <span className="font-medium text-slate-700">Banner background image</span>
+                <input
+                  name="featuredImagePath"
+                  defaultValue={page?.featured_image_path ?? ""}
+                  placeholder="https://... or bucket/path"
+                  disabled={!canEdit}
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-xs disabled:bg-slate-50"
+                />
+              </label>
+              {canEdit && (
+                <AdminFileUploadField
+                  name="featuredImageFile"
+                  kind="image"
+                  accept="image/*"
+                  label="Upload banner image"
+                  hint="JPG, PNG or WebP. Recommended width 1600px or wider."
+                  chooseLabel="Choose banner image"
+                />
+              )}
+              {heroPreviewUrl && (
+                <img
+                  src={heroPreviewUrl}
+                  alt="Current hero banner preview"
+                  className="h-28 w-full rounded-lg border border-emerald-100 object-cover"
+                />
+              )}
+            </div>
+            <div className="space-y-3">
+              <label className="block text-sm">
+                <span className="font-medium text-slate-700">Logo on banner (optional)</span>
+                <input
+                  name="logoImagePath"
+                  defaultValue={page?.logo_image_path ?? ""}
+                  placeholder="https://... or bucket/path"
+                  disabled={!canEdit}
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-xs disabled:bg-slate-50"
+                />
+              </label>
+              {canEdit && (
+                <AdminFileUploadField
+                  name="logoImageFile"
+                  kind="image"
+                  accept="image/*"
+                  label="Upload logo"
+                  hint="Shown centered on the hero banner."
+                  chooseLabel="Choose logo"
+                />
+              )}
+              {logoPreviewUrl && (
+                <img
+                  src={logoPreviewUrl}
+                  alt="Current hero logo preview"
+                  className="h-28 w-28 rounded-lg border border-emerald-100 bg-white object-contain p-2"
+                />
+              )}
+            </div>
+          </div>
+        </div>
       )}
 
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -348,6 +483,11 @@ export function PageForm({
             {isTranslating ? "Translating…" : "Auto-translate to Hindi"}
           </button>
         </div>
+        {error && (
+          <div role="alert" className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+            {error}
+          </div>
+        )}
         <div className="grid gap-4 md:grid-cols-2">
           <div>
             <label className="mb-1 block text-sm font-medium text-slate-700">Title (English)</label>
@@ -377,8 +517,10 @@ export function PageForm({
               value={slug}
               onChange={(e) => setSlug(e.target.value)}
               pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm"
+              disabled={lockPageStructure}
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm disabled:bg-slate-50 disabled:text-slate-500"
             />
+            {lockPageStructure ? <input type="hidden" name="slug" value={slug} /> : null}
           </div>
           <div className="md:col-span-2">
             <label className="mb-1 block text-sm font-medium text-slate-700">Excerpt (English)</label>
@@ -422,35 +564,6 @@ export function PageForm({
           </div>
         </div>
       </div>
-
-      {isCollegeRoot && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-6 shadow-sm">
-          <h2 className="mb-4 text-lg font-semibold text-slate-900">College images</h2>
-          <p className="mb-4 text-sm text-slate-600">
-            Paste a Supabase storage path or a full https:// image URL.
-          </p>
-          <div className="grid gap-4 md:grid-cols-2">
-            <label className="block text-sm">
-              <span className="font-medium text-slate-700">Hero background image</span>
-              <input
-                name="featuredImagePath"
-                defaultValue={page?.featured_image_path ?? ""}
-                placeholder="https://... or bucket/path"
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-xs"
-              />
-            </label>
-            <label className="block text-sm">
-              <span className="font-medium text-slate-700">College logo</span>
-              <input
-                name="logoImagePath"
-                defaultValue={page?.logo_image_path ?? ""}
-                placeholder="https://... or bucket/path"
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-xs"
-              />
-            </label>
-          </div>
-        </div>
-      )}
 
       {isCollegeRoot && (
         <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -560,6 +673,11 @@ export function PageForm({
               {isTranslating ? "Translating…" : "Auto-translate to Hindi"}
             </button>
           </div>
+          {error && (
+            <div role="alert" className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+              {error}
+            </div>
+          )}
           <div className="grid gap-4 md:grid-cols-2">
             <label className="block text-sm">
               <span className="font-medium text-slate-700">Name (English)</span>
@@ -725,7 +843,7 @@ export function PageForm({
         studentCornerItems={officePortalData.studentCornerItems}
         sidebarItems={officePortalData.sidebarItems}
         showContacts={layoutConfig.contacts && !isCollegeRoot}
-        showStaff={layoutConfig.staff}
+        showStaff={layoutConfig.staff && !lockPageStructure}
         showGallery={layoutConfig.gallery}
         showNewsTicker={layoutConfig.newsTicker}
         showStudentCorner={layoutConfig.studentCorner}

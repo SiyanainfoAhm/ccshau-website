@@ -61,6 +61,13 @@ export async function assertPageAccess(
   const page = data as Page;
   const collegeRootId = page.college_root_id ?? (await getPageCollegeRootId(page));
 
+  if (session.departmentPageAssignment) {
+    if (session.departmentPageAssignment.departmentPageId !== page.id) {
+      throw new Error("You do not have permission to access this department page.");
+    }
+    return page;
+  }
+
   if (isCollegeOnlyUser(session)) {
     if (!collegeRootId || session.collegeAssignment?.collegePageId !== collegeRootId) {
       throw new Error("You do not have permission to access this college page.");

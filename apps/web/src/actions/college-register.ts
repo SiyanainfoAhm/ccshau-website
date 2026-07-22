@@ -26,11 +26,59 @@ import {
   updateDepartmentSchema,
   updateFacultySchema,
 } from "@/lib/validations/college-register";
+import { removeStorageObjects, uploadFacultyImage } from "@/lib/storage/upload";
 import { createAdminClient } from "@/lib/supabase/admin";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+function getFacultyImageFile(formData: FormData): File | null {
+  const file = formData.get("image");
+  return file instanceof File && file.size > 0 ? file : null;
+}
+
+function isStoredFacultyImagePath(path: string): boolean {
+  return path !== "pending" && !path.startsWith("http://") && !path.startsWith("https://");
+}
+
+async function resolveFacultyImagePath(
+  admin: SupabaseClient,
+  staffId: string,
+  formData: FormData,
+  imagePathInput: string | undefined,
+  existingPath: string | null | undefined,
+): Promise<ActionResult<string | null>> {
+  const imageFile = getFacultyImageFile(formData);
+
+  if (imageFile) {
+    if (existingPath && isStoredFacultyImagePath(existingPath)) {
+      await removeStorageObjects(admin, [existingPath]);
+    }
+    const upload = await uploadFacultyImage(admin, staffId, imageFile);
+    if (!upload.success) return upload;
+    return ok(upload.data);
+  }
+
+  const url = imagePathInput?.trim();
+  if (url) {
+    if (existingPath && isStoredFacultyImagePath(existingPath) && url !== existingPath) {
+      await removeStorageObjects(admin, [existingPath]);
+    }
+    return ok(url);
+  }
+
+  if (existingPath && existingPath !== "pending") {
+    return ok(existingPath);
+  }
+
+  return ok(null);
+}
 
 export async function getCollegesForRegisterForm() {
   const session = await requireAdminSession();
-  if (!isSuperAdminSession(session) && !session.collegeAssignment) {
+  if (
+    !isSuperAdminSession(session) &&
+    !session.collegeAssignment &&
+    !session.departmentPageAssignment
+  ) {
     return [];
   }
   return listCollegesForRegister(session);
@@ -43,8 +91,16 @@ export async function getCollegeForRegisterHub(collegePageId: string) {
 
 export async function getDepartmentsForRegisterForm(collegePageId?: string) {
   const session = await requireAdminSession();
-  if (!isSuperAdminSession(session) && !session.collegeAssignment) {
+  if (
+    !isSuperAdminSession(session) &&
+    !session.collegeAssignment &&
+    !session.departmentPageAssignment
+  ) {
     return [];
+  }
+  if (session.departmentPageAssignment) {
+    const depts = await listDepartmentsForRegister(session, collegePageId);
+    return depts.filter((d) => d.id === session.departmentPageAssignment!.departmentPageId);
   }
   if (collegePageId) {
     await assertCollegeRegisterAccess(session, collegePageId);
@@ -54,8 +110,16 @@ export async function getDepartmentsForRegisterForm(collegePageId?: string) {
 
 export async function getFacultyListForRegister(collegePageId?: string) {
   const session = await requireAdminSession();
-  if (!isSuperAdminSession(session) && !session.collegeAssignment) {
+  if (
+    !isSuperAdminSession(session) &&
+    !session.collegeAssignment &&
+    !session.departmentPageAssignment
+  ) {
     return [];
+  }
+  if (session.departmentPageAssignment) {
+    const list = await listFacultyForRegister(session, collegePageId);
+    return list.filter((f) => f.page_id === session.departmentPageAssignment!.departmentPageId);
   }
   if (collegePageId) {
     await assertCollegeRegisterAccess(session, collegePageId);
@@ -65,7 +129,11 @@ export async function getFacultyListForRegister(collegePageId?: string) {
 
 async function requireRegisterSession() {
   const session = await requireAdminSession();
-  if (!isSuperAdminSession(session) && !session.collegeAssignment) {
+  if (
+    !isSuperAdminSession(session) &&
+    !session.collegeAssignment &&
+    !session.departmentPageAssignment
+  ) {
     throw new Error("You do not have permission to register college content.");
   }
   return session;
@@ -76,6 +144,9 @@ export async function registerDepartmentAction(
 ): Promise<ActionResult<{ id: string; slug: string }>> {
   try {
     const session = await requireRegisterSession();
+    if (session.departmentPageAssignment) {
+      return fail("Department HOD cannot create departments.");
+    }
     if (!canEditPages(session)) {
       return fail("You do not have permission to add departments.");
     }
@@ -171,6 +242,8 @@ export async function registerFacultyAction(
       email: formData.get("email") || undefined,
       experienceEn: formData.get("experienceEn") || undefined,
       experienceHi: formData.get("experienceHi") || undefined,
+      qualificationEn: formData.get("qualificationEn") || undefined,
+      qualificationHi: formData.get("qualificationHi") || undefined,
       detailContentEn: formData.get("detailContentEn") || undefined,
       detailContentHi: formData.get("detailContentHi") || undefined,
       staffSlug: formData.get("staffSlug"),
@@ -228,6 +301,8 @@ export async function registerFacultyAction(
         email: input.email || null,
         experience_en: input.experienceEn || null,
         experience_hi: input.experienceHi || null,
+        qualification_en: input.qualificationEn || null,
+        qualification_hi: input.qualificationHi || null,
         detail_content_en: input.detailContentEn || null,
         detail_content_hi: input.detailContentHi || null,
         detail_href: detailPath,
@@ -238,6 +313,23 @@ export async function registerFacultyAction(
       .single();
 
     if (error || !data) return fail(error?.message ?? "Failed to register faculty.");
+
+    const imageResult = await resolveFacultyImagePath(
+      admin,
+      data.id,
+      formData,
+      input.imagePath,
+      input.imagePath || null,
+    );
+    if (!imageResult.success) return imageResult;
+
+    if (imageResult.data && imageResult.data !== (input.imagePath || null)) {
+      const { error: imageError } = await admin
+        .from(Tables.pageStaff)
+        .update({ image_path: imageResult.data })
+        .eq("id", data.id);
+      if (imageError) return fail(imageError.message);
+    }
 
     await writeAuditLog({
       userId: session.userId,
@@ -317,10 +409,12 @@ export async function updateDepartmentAction(
       return fail("This page is not a department.");
     }
 
+    const nextSlug = session.departmentPageAssignment ? existing.slug : input.slug;
+
     const { data: slugTaken } = await admin
       .from(Tables.pages)
       .select("id")
-      .eq("slug", input.slug)
+      .eq("slug", nextSlug)
       .neq("id", departmentId)
       .maybeSingle();
 
@@ -331,7 +425,7 @@ export async function updateDepartmentAction(
       .update({
         title_en: input.titleEn,
         title_hi: input.titleHi || null,
-        slug: input.slug,
+        slug: nextSlug,
         excerpt_en: input.excerptEn || null,
         content_en: input.contentEn || null,
         updated_by: session.userId,
@@ -362,6 +456,9 @@ export async function updateDepartmentAction(
 export async function deleteDepartmentAction(departmentId: string): Promise<ActionResult> {
   try {
     const session = await requireRegisterSession();
+    if (session.departmentPageAssignment) {
+      return fail("Department HOD cannot delete departments.");
+    }
     if (!canDeletePages(session)) {
       return fail("You do not have permission to delete departments.");
     }
@@ -444,6 +541,8 @@ export async function updateFacultyAction(
       email: formData.get("email") || undefined,
       experienceEn: formData.get("experienceEn") || undefined,
       experienceHi: formData.get("experienceHi") || undefined,
+      qualificationEn: formData.get("qualificationEn") || undefined,
+      qualificationHi: formData.get("qualificationHi") || undefined,
       detailContentEn: formData.get("detailContentEn") || undefined,
       detailContentHi: formData.get("detailContentHi") || undefined,
       staffSlug: formData.get("staffSlug"),
@@ -497,6 +596,15 @@ export async function updateFacultyAction(
     const detailPath = await buildFacultyDetailPath(input.departmentPageId, input.staffSlug);
     const sortOrder = input.memberType === "hod" ? 0 : input.sortOrder;
 
+    const imageResult = await resolveFacultyImagePath(
+      admin,
+      staffId,
+      formData,
+      input.imagePath,
+      existingRow.image_path,
+    );
+    if (!imageResult.success) return imageResult;
+
     const { error } = await admin
       .from(Tables.pageStaff)
       .update({
@@ -509,11 +617,13 @@ export async function updateFacultyAction(
         designation_hi: input.designationHi || null,
         specialization_en: input.specializationEn || null,
         specialization_hi: input.specializationHi || null,
-        image_path: input.imagePath || null,
+        image_path: imageResult.data,
         mobile: input.mobile || null,
         email: input.email || null,
         experience_en: input.experienceEn || null,
         experience_hi: input.experienceHi || null,
+        qualification_en: input.qualificationEn || null,
+        qualification_hi: input.qualificationHi || null,
         detail_content_en: input.detailContentEn || null,
         detail_content_hi: input.detailContentHi || null,
         detail_href: detailPath,
@@ -544,7 +654,7 @@ export async function updateFacultyAction(
 export async function deleteFacultyAction(staffId: string): Promise<ActionResult> {
   try {
     const session = await requireRegisterSession();
-    if (!canDeletePages(session)) {
+    if (!canDeletePages(session) && !session.departmentPageAssignment) {
       return fail("You do not have permission to delete faculty.");
     }
 
@@ -583,10 +693,14 @@ export async function deleteFacultyAction(staffId: string): Promise<ActionResult
   }
 }
 
-/** Super admin or college staff — register / microsite setup. */
+/** Super admin, college staff, or Department HOD — register / microsite setup. */
 export async function requireCollegeRegisterAdmin() {
   const session = await requireAdminSession();
-  if (!isSuperAdminSession(session) && !session.collegeAssignment) {
+  if (
+    !isSuperAdminSession(session) &&
+    !session.collegeAssignment &&
+    !session.departmentPageAssignment
+  ) {
     throw new Error("Insufficient permissions.");
   }
   return session;
@@ -594,7 +708,11 @@ export async function requireCollegeRegisterAdmin() {
 
 export async function requireCollegeRegisterAdminOrRedirect() {
   const session = await requireAdminSession();
-  if (!isSuperAdminSession(session) && !session.collegeAssignment) {
+  if (
+    !isSuperAdminSession(session) &&
+    !session.collegeAssignment &&
+    !session.departmentPageAssignment
+  ) {
     redirect("/admin");
   }
   return session;

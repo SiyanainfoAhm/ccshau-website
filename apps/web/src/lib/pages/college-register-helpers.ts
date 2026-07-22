@@ -49,6 +49,10 @@ export async function listCollegesForRegister(session: AdminSession): Promise<Co
 
   if (!isSuperAdminSession(session) && session.collegeAssignment) {
     query = query.eq("id", session.collegeAssignment.collegePageId);
+  } else if (!isSuperAdminSession(session) && session.departmentPageAssignment?.collegePageId) {
+    query = query.eq("id", session.departmentPageAssignment.collegePageId);
+  } else if (!isSuperAdminSession(session) && session.departmentPageAssignment) {
+    return [];
   }
 
   const { data } = await query;
@@ -114,6 +118,8 @@ export async function listDepartmentsForRegister(
     query = query.eq("college_root_id", collegePageId);
   } else if (!isSuperAdminSession(session) && session.collegeAssignment) {
     query = query.eq("college_root_id", session.collegeAssignment.collegePageId);
+  } else if (!isSuperAdminSession(session) && session.departmentPageAssignment) {
+    query = query.eq("id", session.departmentPageAssignment.departmentPageId);
   }
 
   const { data: deptPages } = await query;

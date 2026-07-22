@@ -14,14 +14,20 @@ import { ContentReviewPanel } from "@/components/admin/content-review-panel";
 import { PageForm } from "@/components/admin/page-form";
 import { StatusBadge } from "@/components/admin/status-badge";
 import { canPublishContent } from "@/lib/auth/cms-roles";
-import { canCreateCollegeRoot, canEditPages } from "@/lib/auth/college-scope";
+import { canCreateCollegeRoot, canEditPages, canPublishPages } from "@/lib/auth/college-scope";
 import { requireAdminSession } from "@/lib/auth/session";
 import { buildAdminParentPageOptions, resolvePagePublicPath } from "@/lib/pages/resolve-public-path";
-import { isCollegeLayoutPage } from "@/lib/pages/layout-config";
 
-export default async function EditPagePage({ params }: { params: Promise<{ id: string }> }) {
+export default async function EditPagePage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ saved?: string }>;
+}) {
   const session = await requireAdminSession();
   const { id } = await params;
+  const { saved } = await searchParams;
   const [page, departments, allPages] = await Promise.all([
     getPageById(id),
     listDepartments(),
@@ -31,7 +37,8 @@ export default async function EditPagePage({ params }: { params: Promise<{ id: s
   if (!page) notFound();
 
   const canEdit = canEditPages(session);
-  const showReview = page.status === "pending_review" && canPublishContent(session);
+  const canPublish = canPublishPages(session) || canPublishContent(session);
+  const showReview = page.status === "pending_review" && canPublish;
   const parentPages = buildAdminParentPageOptions(allPages);
   const pageById = new Map(allPages.map((p) => [p.id, p]));
   const publicPath = resolvePagePublicPath(page, pageById);
@@ -54,7 +61,7 @@ export default async function EditPagePage({ params }: { params: Promise<{ id: s
           </h1>
           <p className="text-sm text-slate-500">/{page.slug}</p>
         </div>
-        {page.status === "published" && (page.page_type === "college" || isCollegeLayoutPage(page)) && (
+        {page.status === "published" && (
           <Link
             href={publicPath}
             target="_blank"
@@ -77,7 +84,11 @@ export default async function EditPagePage({ params }: { params: Promise<{ id: s
           officePortalData={{ contactLines, staff, galleryItems, newsTickerItems, studentCornerItems, sidebarItems }}
           allowCollegeRoot={canCreateCollegeRoot(session)}
           canEdit={canEdit}
-          canPublish={canPublishContent(session)}
+          canPublish={canPublish}
+          initialSuccess={saved === "1" ? "Page created successfully." : null}
+          lockPageStructure={
+            session.departmentPageAssignment?.departmentPageId === page.id
+          }
         />
       ) : (
         <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">

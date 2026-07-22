@@ -28,7 +28,9 @@ import { fail, ok, type ActionResult } from "@/lib/types/action-result";
 import { slugify } from "@/lib/utils/slug";
 import {
   layoutConfigFromForm,
+  preserveDepartmentHodLockedLayoutKeys,
   resolveLayoutTemplateFromForm,
+  type PageLayoutConfig,
 } from "@/lib/pages/layout-config";
 import { resolvePagePublicPath, getPagePathAncestors, resolveCollegeRootPageType, isCollegesContainerSlug } from "@/lib/pages/resolve-public-path";
 import { syncCollegeContactLines } from "@/lib/pages/college-contact-seed";
@@ -36,6 +38,93 @@ import { pageFormSchema } from "@/lib/validations/pages";
 import { emptyPaginatedResult, mergeAdminListOptions, runPaginatedQuery } from "@/lib/data/admin-list";
 import type { PaginatedResult } from "@/lib/data/pagination";
 import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  removeStorageObjects,
+  uploadPageFeaturedImage,
+  uploadPageLogoImage,
+} from "@/lib/storage/upload";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+function getPageImageFile(formData: FormData, fieldName: string): File | null {
+  const file = formData.get(fieldName);
+  return file instanceof File && file.size > 0 ? file : null;
+}
+
+function isStoredPageImagePath(path: string): boolean {
+  return path !== "pending" && !path.startsWith("http://") && !path.startsWith("https://");
+}
+
+async function resolvePageImagePath(
+  admin: SupabaseClient,
+  pageId: string,
+  formData: FormData,
+  fileField: string,
+  pathInput: string | undefined,
+  existingPath: string | null | undefined,
+  upload: (admin: SupabaseClient, pageId: string, file: File) => Promise<ActionResult<string>>,
+): Promise<ActionResult<string | null>> {
+  const imageFile = getPageImageFile(formData, fileField);
+
+  if (imageFile) {
+    if (existingPath && isStoredPageImagePath(existingPath)) {
+      await removeStorageObjects(admin, [existingPath]);
+    }
+    const result = await upload(admin, pageId, imageFile);
+    if (!result.success) return result;
+    return ok(result.data);
+  }
+
+  const url = pathInput?.trim();
+  if (url) {
+    if (existingPath && isStoredPageImagePath(existingPath) && url !== existingPath) {
+      await removeStorageObjects(admin, [existingPath]);
+    }
+    return ok(url);
+  }
+
+  if (existingPath && existingPath !== "pending") {
+    return ok(existingPath);
+  }
+
+  return ok(null);
+}
+
+async function applyPageHeroImages(
+  admin: SupabaseClient,
+  pageId: string,
+  formData: FormData,
+  parsed: ReturnType<typeof pageFormSchema.parse>,
+  existing?: Pick<Page, "featured_image_path" | "logo_image_path">,
+): Promise<ActionResult<{ featured_image_path: string | null; logo_image_path: string | null }>> {
+  const [featured, logo] = await Promise.all([
+    resolvePageImagePath(
+      admin,
+      pageId,
+      formData,
+      "featuredImageFile",
+      parsed.featuredImagePath,
+      existing?.featured_image_path,
+      uploadPageFeaturedImage,
+    ),
+    resolvePageImagePath(
+      admin,
+      pageId,
+      formData,
+      "logoImageFile",
+      parsed.logoImagePath,
+      existing?.logo_image_path,
+      uploadPageLogoImage,
+    ),
+  ]);
+
+  if (!featured.success) return featured;
+  if (!logo.success) return logo;
+
+  return ok({
+    featured_image_path: featured.data,
+    logo_image_path: logo.data,
+  });
+}
 
 function parsePageForm(formData: FormData) {
   return pageFormSchema.safeParse({
@@ -194,6 +283,9 @@ async function assertParentInCollegeScope(
 export async function createPageAction(formData: FormData): Promise<ActionResult<{ id: string }>> {
   try {
     const session = await requirePageEditSession();
+    if (session.departmentPageAssignment) {
+      return fail("Department HOD cannot create new pages.");
+    }
     const parsed = parsePageForm(formData);
     if (!parsed.success) {
       return fail("Validation failed", parsed.error.flatten().fieldErrors);
@@ -226,6 +318,19 @@ export async function createPageAction(formData: FormData): Promise<ActionResult
 
     const { data, error } = await admin.from(Tables.pages).insert(row).select("id").single();
     if (error) return fail(error.message);
+
+    const heroImages = await applyPageHeroImages(admin, data.id, formData, parsed.data);
+    if (!heroImages.success) return fail(heroImages.error ?? "Failed to save hero banner images.");
+    if (
+      heroImages.data.featured_image_path !== row.featured_image_path ||
+      heroImages.data.logo_image_path !== row.logo_image_path
+    ) {
+      const { error: imageUpdateError } = await admin
+        .from(Tables.pages)
+        .update(heroImages.data)
+        .eq("id", data.id);
+      if (imageUpdateError) return fail(imageUpdateError.message);
+    }
 
     if (row.page_type === "college") {
       try {
@@ -284,6 +389,20 @@ export async function updatePageAction(
     const parentSlug = await resolveParentSlug(admin, parsed.data.parentId || null);
     const row = toPageRow(parsed.data, session.userId, formData, parentSlug);
 
+    // Department HOD cannot change page structure fields.
+    if (session.departmentPageAssignment) {
+      row.page_type = existing.page_type;
+      row.layout_template = existing.layout_template;
+      row.parent_id = existing.parent_id;
+      row.slug = existing.slug;
+      if (row.layout_config) {
+        row.layout_config = preserveDepartmentHodLockedLayoutKeys(
+          row.layout_config as PageLayoutConfig,
+          existing.layout_config,
+        );
+      }
+    }
+
     if (
       isCollegesContainerSlug(parentSlug) &&
       (existing.page_type === "college" || existing.layout_template === "college_home") &&
@@ -308,6 +427,11 @@ export async function updatePageAction(
     ) {
       return fail("Cannot change a college microsite to a standard page.");
     }
+
+    const heroImages = await applyPageHeroImages(admin, pageId, formData, parsed.data, existing);
+    if (!heroImages.success) return fail(heroImages.error ?? "Failed to save hero banner images.");
+    row.featured_image_path = heroImages.data.featured_image_path;
+    row.logo_image_path = heroImages.data.logo_image_path;
 
     const { error } = await admin.from(Tables.pages).update(row).eq("id", pageId);
     if (error) return fail(error.message);
@@ -432,13 +556,15 @@ export async function listPagesForAdmin(
   const session = await requireAdminSession();
   const canList =
     hasRole(session.roles, [...CMS_READ_ROLES]) ||
-    Boolean(session.collegeAssignment);
+    Boolean(session.collegeAssignment) ||
+    Boolean(session.departmentPageAssignment);
 
   if (!canList) return emptyPaginatedResult(opts);
 
   if (
     hasUniversityCmsRole(session) &&
     !isCollegeOnlyUser(session) &&
+    !session.departmentPageAssignment &&
     !(await hasCmsModuleAccess(session, "pages"))
   ) {
     return emptyPaginatedResult(opts);
@@ -453,9 +579,12 @@ export async function listPagesForAdmin(
   const strictDepartmentPages =
     !isUniversityWideCmsSession(session) &&
     !isCollegeOnlyUser(session) &&
+    !session.departmentPageAssignment &&
     Boolean(session.departmentId && allowedModules !== null);
 
-  if (isCollegeOnlyUser(session) && session.collegeAssignment) {
+  if (session.departmentPageAssignment) {
+    query = query.eq("id", session.departmentPageAssignment.departmentPageId);
+  } else if (isCollegeOnlyUser(session) && session.collegeAssignment) {
     query = query.eq("college_root_id", session.collegeAssignment.collegePageId);
   } else if (strictDepartmentPages) {
     query = query.eq("department_id", session.departmentId!);
@@ -485,13 +614,15 @@ export async function getPageById(pageId: string): Promise<Page | null> {
   const session = await requireAdminSession();
   const canView =
     hasRole(session.roles, [...CMS_READ_ROLES]) ||
-    Boolean(session.collegeAssignment);
+    Boolean(session.collegeAssignment) ||
+    Boolean(session.departmentPageAssignment);
 
   if (!canView) return null;
 
   if (
     hasUniversityCmsRole(session) &&
     !isCollegeOnlyUser(session) &&
+    !session.departmentPageAssignment &&
     !(await hasCmsModuleAccess(session, "pages"))
   ) {
     return null;

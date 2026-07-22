@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import type { AdminSession } from "@/lib/auth/session";
-import { COLLEGE_ROLE_LABELS, ROLE_LABELS } from "@/lib/validations/users";
+import { COLLEGE_ROLE_LABELS, DEPARTMENT_HOD_ROLE_LABEL, ROLE_LABELS } from "@/lib/validations/users";
 
 function formatSessionRole(session: AdminSession): string {
   if (session.primaryRole) {
@@ -13,6 +13,9 @@ function formatSessionRole(session: AdminSession): string {
   }
   if (session.collegeAssignment) {
     return COLLEGE_ROLE_LABELS[session.collegeAssignment.role];
+  }
+  if (session.departmentPageAssignment) {
+    return DEPARTMENT_HOD_ROLE_LABEL;
   }
   return "no role";
 }

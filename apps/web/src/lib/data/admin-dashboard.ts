@@ -6,10 +6,12 @@ import {
   isCollegeOnlyUser,
   isSuperAdminSession,
 } from "@/lib/auth/college-scope";
+import { isDepartmentHodOnlyUser } from "@/lib/auth/department-hod-scope";
 import type { AdminSession } from "@/lib/auth/session";
 import { Tables } from "@/lib/database/names";
 import type { ContentStatus, FeedbackStatus, TenderStatus } from "@/lib/database/types";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { DEPARTMENT_HOD_ROLE_LABEL } from "@/lib/validations/users";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type CountQuery = any;
@@ -84,6 +86,7 @@ function roleLabel(session: AdminSession): string {
     };
     return map[session.collegeAssignment.role] ?? "College Staff";
   }
+  if (session.departmentPageAssignment) return DEPARTMENT_HOD_ROLE_LABEL;
   const role = session.primaryRole;
   const map: Record<string, string> = {
     university_admin: "University Admin",
@@ -98,16 +101,21 @@ function roleLabel(session: AdminSession): string {
 export async function getAdminDashboardData(session: AdminSession): Promise<AdminDashboardData> {
   const admin = createAdminClient();
   const collegeOnly = isCollegeOnlyUser(session);
+  const hodOnly = isDepartmentHodOnlyUser(session);
   const canCreate = canManageUniversityContent(session);
   const isSuperAdmin = isSuperAdminSession(session);
   const collegeRootId = session.collegeAssignment?.collegePageId;
-  const noAccess = session.roles.length === 0 && !session.collegeAssignment;
+  const departmentPageId = session.departmentPageAssignment?.departmentPageId;
+  const noAccess =
+    session.roles.length === 0 && !session.collegeAssignment && !session.departmentPageAssignment;
   const allowedCmsModules = await getAllowedCmsModulesForSession(session);
   const access = getAdminNavAccess(session, allowedCmsModules);
 
-  const pageFilter = collegeRootId
-    ? (q: CountQuery) => q.eq("college_root_id", collegeRootId)
-    : undefined;
+  const pageFilter = departmentPageId
+    ? (q: CountQuery) => q.eq("id", departmentPageId)
+    : collegeRootId
+      ? (q: CountQuery) => q.eq("college_root_id", collegeRootId)
+      : undefined;
 
   const pagesPublished = await countRows(Tables.pages, (q) =>
     (pageFilter ? pageFilter(q) : q).eq("status", "published" satisfies ContentStatus),
@@ -158,7 +166,7 @@ export async function getAdminDashboardData(session: AdminSession): Promise<Admi
     });
   }
 
-  if (!collegeOnly && admin) {
+  if (!collegeOnly && !hodOnly && admin) {
     const [
       newsTotal,
       newsPublished,
@@ -299,7 +307,25 @@ export async function getAdminDashboardData(session: AdminSession): Promise<Admi
     }
   }
 
-  if (collegeOnly && admin && collegeRootId) {
+  if (hodOnly && admin && departmentPageId) {
+    const { data: deptPage } = await admin
+      .from(Tables.pages)
+      .select("id, title_en, slug, status, updated_at")
+      .eq("id", departmentPageId)
+      .maybeSingle();
+
+    recentActivity = deptPage
+      ? [
+          {
+            id: deptPage.id,
+            title: deptPage.title_en,
+            meta: new Date(deptPage.updated_at).toLocaleString("en-IN"),
+            href: `/admin/pages/${deptPage.id}`,
+            status: deptPage.status,
+          },
+        ]
+      : [];
+  } else if (collegeOnly && admin && collegeRootId) {
     const { data: collegePages } = await admin
       .from(Tables.pages)
       .select("id, title_en, slug, status, updated_at")
@@ -358,8 +384,13 @@ export async function getAdminDashboardData(session: AdminSession): Promise<Admi
     addAction("Banner slide", "Homepage carousel image", "/admin/banners/new");
   }
 
-  addAction("Manage pages", "Edit site structure & content", "/admin/pages");
-  if (!collegeOnly) {
+  if (hodOnly && departmentPageId) {
+    addAction("Edit department page", "Update content & office portal", `/admin/pages/${departmentPageId}`, "primary");
+    addAction("Manage faculty", "HOD and faculty profiles", "/admin/register/faculty");
+  } else {
+    addAction("Manage pages", "Edit site structure & content", "/admin/pages");
+  }
+  if (!collegeOnly && !hodOnly) {
     addAction("Feedback inbox", "Visitor enquiries", "/admin/feedback");
     addAction("Homepage CMS", "Quotes, dignitaries, CTA", "/admin/homepage");
     addAction("Menus", "Header & footer links", "/admin/menus");

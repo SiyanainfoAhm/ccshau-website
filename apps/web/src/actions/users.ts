@@ -8,13 +8,14 @@ import {
   requiresDepartmentForRole,
   USER_ADMIN_ROLES,
 } from "@/lib/auth/cms-roles";
-import { requireAdminWithRoles } from "@/lib/auth/session";
+import { requireAdminSession, requireAdminWithRoles } from "@/lib/auth/session";
 import { Tables } from "@/lib/database/names";
 import type { CollegeScopeRole, Profile, UserRole, UserRoleRow } from "@/lib/database/types";
 import { fail, ok, type ActionResult } from "@/lib/types/action-result";
 import {
   assignRoleSchema,
   assignCollegeSchema,
+  assignDepartmentHodSchema,
   inviteUserSchema,
   updateUserSchema,
 } from "@/lib/validations/users";
@@ -44,10 +45,19 @@ export interface CollegeAssignmentView {
   role: CollegeScopeRole;
 }
 
+export interface DepartmentHodAssignmentView {
+  department_page_id: string;
+  department_title: string;
+  department_slug: string;
+  college_title: string | null;
+  role: "dept_hod";
+}
+
 export interface AdminUserListItem extends Profile {
   department_name: string | null;
   role_assignments: RoleAssignmentView[];
   college_assignment: CollegeAssignmentView | null;
+  department_hod_assignment: DepartmentHodAssignmentView | null;
 }
 
 export type AdminUserDetail = AdminUserListItem;
@@ -69,6 +79,7 @@ function mapUserWithRoles(
   roles: UserRoleRow[],
   deptMap: Map<string, string>,
   collegeAssignment: CollegeAssignmentView | null,
+  departmentHodAssignment: DepartmentHodAssignmentView | null,
 ): AdminUserListItem {
   return {
     ...profile,
@@ -80,6 +91,7 @@ function mapUserWithRoles(
       department_name: r.department_id ? (deptMap.get(r.department_id) ?? null) : null,
     })),
     college_assignment: collegeAssignment,
+    department_hod_assignment: departmentHodAssignment,
   };
 }
 
@@ -105,6 +117,56 @@ async function getCollegeAssignmentsMap() {
   return map;
 }
 
+async function getDepartmentHodAssignmentsMap() {
+  const admin = createAdminClient();
+  if (!admin) return new Map<string, DepartmentHodAssignmentView>();
+
+  const { data } = await admin
+    .from(Tables.userDepartmentPages)
+    .select(
+      "user_id, department_page_id, role, page:department_page_id (title_en, slug, college_root_id)",
+    );
+
+  const map = new Map<string, DepartmentHodAssignmentView>();
+  const collegeIds = [
+    ...new Set(
+      (data ?? [])
+        .map((row) => {
+          const page = row.page as unknown as { college_root_id: string | null } | null;
+          return page?.college_root_id ?? null;
+        })
+        .filter((id): id is string => Boolean(id)),
+    ),
+  ];
+  const collegeTitles = new Map<string, string>();
+  if (collegeIds.length) {
+    const { data: colleges } = await admin
+      .from(Tables.pages)
+      .select("id, title_en")
+      .in("id", collegeIds);
+    for (const c of colleges ?? []) collegeTitles.set(c.id, c.title_en);
+  }
+
+  for (const row of data ?? []) {
+    const page = row.page as unknown as {
+      title_en: string;
+      slug: string;
+      college_root_id: string | null;
+    } | null;
+    if (!page) continue;
+    map.set(row.user_id, {
+      department_page_id: row.department_page_id,
+      department_title: page.title_en,
+      department_slug: page.slug,
+      college_title: page.college_root_id
+        ? (collegeTitles.get(page.college_root_id) ?? null)
+        : null,
+      role: "dept_hod",
+    });
+  }
+  return map;
+}
+
 const USERS_LIST_SORTS = ["display_name", "email", "created_at", "is_active"] as const;
 
 function escapeIlikeTerm(value: string): string {
@@ -125,7 +187,11 @@ export async function listUsersForAdmin(
   if (!admin) return emptyPaginatedResult(opts);
 
   const { from, to } = paginationRange(opts.page, opts.pageSize);
-  const [deptMap, collegeMap] = await Promise.all([getDepartmentNameMap(), getCollegeAssignmentsMap()]);
+  const [deptMap, collegeMap, hodMap] = await Promise.all([
+    getDepartmentNameMap(),
+    getCollegeAssignmentsMap(),
+    getDepartmentHodAssignmentsMap(),
+  ]);
 
   let profileQuery = admin.from(Tables.profiles).select("*", { count: "exact" });
 
@@ -185,6 +251,7 @@ export async function listUsersForAdmin(
       rolesByUser.get(profile.id) ?? [],
       deptMap,
       collegeMap.get(profile.id) ?? null,
+      hodMap.get(profile.id) ?? null,
     ),
   );
 
@@ -201,11 +268,12 @@ export async function getUserById(id: string): Promise<AdminUserDetail | null> {
   const admin = createAdminClient();
   if (!admin) return null;
 
-  const [profileRes, rolesRes, deptMap, collegeMap] = await Promise.all([
+  const [profileRes, rolesRes, deptMap, collegeMap, hodMap] = await Promise.all([
     admin.from(Tables.profiles).select("*").eq("id", id).maybeSingle(),
     admin.from(Tables.userRoles).select("*").eq("user_id", id),
     getDepartmentNameMap(),
     getCollegeAssignmentsMap(),
+    getDepartmentHodAssignmentsMap(),
   ]);
 
   if (!profileRes.data) return null;
@@ -215,6 +283,7 @@ export async function getUserById(id: string): Promise<AdminUserDetail | null> {
     (rolesRes.data ?? []) as UserRoleRow[],
     deptMap,
     collegeMap.get(id) ?? null,
+    hodMap.get(id) ?? null,
   );
 }
 
@@ -556,5 +625,121 @@ export async function revokeCollegeAction(userId: string): Promise<ActionResult>
     return ok(undefined);
   } catch (e) {
     return fail(e instanceof Error ? e.message : "Failed to revoke college assignment.");
+  }
+}
+
+function parseAssignDepartmentHodForm(formData: FormData) {
+  return assignDepartmentHodSchema.safeParse({
+    departmentPageId: formData.get("departmentPageId"),
+  });
+}
+
+async function requireHodAssignSession() {
+  const session = await requireAdminSession();
+  const { sessionCanManageDepartmentHodAssignments } = await import(
+    "@/lib/auth/department-hod-scope"
+  );
+  if (!sessionCanManageDepartmentHodAssignments(session)) {
+    throw new Error("Insufficient permissions.");
+  }
+  return session;
+}
+
+export async function assignDepartmentHodAction(
+  userId: string,
+  formData: FormData,
+): Promise<ActionResult> {
+  try {
+    const session = await requireHodAssignSession();
+    const parsed = parseAssignDepartmentHodForm(formData);
+    if (!parsed.success) {
+      return fail("Validation failed", parsed.error.flatten().fieldErrors);
+    }
+
+    const admin = createAdminClient();
+    if (!admin) return fail("Database not configured.");
+
+    const { data: page } = await admin
+      .from(Tables.pages)
+      .select("id, layout_template, college_root_id")
+      .eq("id", parsed.data.departmentPageId)
+      .maybeSingle();
+
+    if (!page || page.layout_template !== "office_portal" || !page.college_root_id) {
+      return fail("Select a valid college department page.");
+    }
+    if (page.college_root_id === page.id) {
+      return fail("Select a department page, not the college home.");
+    }
+    if (
+      session.collegeAssignment &&
+      session.collegeAssignment.collegePageId !== page.college_root_id
+    ) {
+      return fail("That department is outside your college assignment.");
+    }
+
+    const { error } = await admin.from(Tables.userDepartmentPages).upsert(
+      {
+        user_id: userId,
+        department_page_id: parsed.data.departmentPageId,
+        role: "dept_hod",
+      },
+      { onConflict: "user_id" },
+    );
+
+    if (error) return fail(error.message);
+
+    await writeAuditLog({
+      userId: session.userId,
+      action: "update",
+      entityType: "user_department_page",
+      entityId: userId,
+      details: { departmentPageId: parsed.data.departmentPageId },
+    });
+
+    revalidatePath("/admin/users");
+    revalidatePath(`/admin/users/${userId}`);
+    return ok(undefined);
+  } catch (e) {
+    return fail(e instanceof Error ? e.message : "Failed to assign Department HOD.");
+  }
+}
+
+export async function revokeDepartmentHodAction(userId: string): Promise<ActionResult> {
+  try {
+    const session = await requireHodAssignSession();
+    const admin = createAdminClient();
+    if (!admin) return fail("Database not configured.");
+
+    if (session.collegeAssignment) {
+      const { data: existing } = await admin
+        .from(Tables.userDepartmentPages)
+        .select("department_page_id, page:department_page_id (college_root_id)")
+        .eq("user_id", userId)
+        .maybeSingle();
+      const page = existing?.page as unknown as { college_root_id: string | null } | null;
+      if (
+        page?.college_root_id &&
+        page.college_root_id !== session.collegeAssignment.collegePageId
+      ) {
+        return fail("You cannot revoke a HOD outside your college.");
+      }
+    }
+
+    const { error } = await admin.from(Tables.userDepartmentPages).delete().eq("user_id", userId);
+    if (error) return fail(error.message);
+
+    await writeAuditLog({
+      userId: session.userId,
+      action: "delete",
+      entityType: "user_department_page",
+      entityId: userId,
+    });
+
+    revalidatePath("/admin/users");
+    revalidatePath(`/admin/users/${userId}`);
+    return ok(undefined);
+  } catch (e) {
+    return fail(e instanceof Error ? e.message : "Failed to revoke Department HOD assignment.");
   }
 }

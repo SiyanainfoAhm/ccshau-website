@@ -577,6 +577,7 @@ export async function getPublishedPageBySlug(slug: string): Promise<PublicPage |
 }
 
 function mapCollegeSubsection(page: Page): PublicCollegeSubsection {
+  const base = mapPublicPage(page);
   return {
     pageId: page.id,
     slug: page.slug,
@@ -587,10 +588,13 @@ function mapCollegeSubsection(page: Page): PublicCollegeSubsection {
     excerptHi: page.excerpt_hi,
     contentEn: page.content_en,
     contentHi: page.content_hi,
+    featuredImageUrl: base.featuredImageUrl,
+    logoImageUrl: base.logoImageUrl,
   };
 }
 
 function mapCollegeSection(page: Page, subsections: Page[]): PublicCollegeSection {
+  const base = mapPublicPage(page);
   return {
     pageId: page.id,
     slug: page.slug,
@@ -602,6 +606,8 @@ function mapCollegeSection(page: Page, subsections: Page[]): PublicCollegeSectio
     excerptHi: page.excerpt_hi,
     contentEn: page.content_en,
     contentHi: page.content_hi,
+    featuredImageUrl: base.featuredImageUrl,
+    logoImageUrl: base.logoImageUrl,
     subsections: subsections.map(mapCollegeSubsection),
   };
 }
@@ -742,6 +748,8 @@ export async function getOfficePortalDataForPage(
       email: row.email,
       experienceEn: row.experience_en,
       experienceHi: row.experience_hi,
+      qualificationEn: row.qualification_en,
+      qualificationHi: row.qualification_hi,
       detailContentEn: row.detail_content_en,
       detailContentHi: row.detail_content_hi,
     })),
@@ -1067,6 +1075,8 @@ export async function getPublishedFacultyProfile(
       email: staffRow.email,
       experienceEn: staffRow.experience_en,
       experienceHi: staffRow.experience_hi,
+      qualificationEn: staffRow.qualification_en,
+      qualificationHi: staffRow.qualification_hi,
       detailContentEn: staffRow.detail_content_en,
       detailContentHi: staffRow.detail_content_hi,
     },

@@ -34,6 +34,8 @@ function headOfficerAsMember(
     email: null,
     experienceEn: null,
     experienceHi: null,
+    qualificationEn: null,
+    qualificationHi: null,
     detailContentEn: null,
     detailContentHi: null,
   };

@@ -8,6 +8,7 @@ import {
 } from "@/actions/college-register";
 import { FacultyRegisterPage } from "@/components/admin/faculty-register-page";
 import { canDeletePages, canEditPages } from "@/lib/auth/college-scope";
+import { isDepartmentHodOnlyUser } from "@/lib/auth/department-hod-scope";
 
 export default async function CollegeFacultyRegisterPage({
   params,
@@ -16,7 +17,8 @@ export default async function CollegeFacultyRegisterPage({
 }) {
   const session = await requireCollegeRegisterAdminOrRedirect();
   const canEdit = canEditPages(session);
-  const canDelete = canDeletePages(session);
+  const canDelete = canDeletePages(session) || Boolean(session.departmentPageAssignment);
+  const hodOnly = isDepartmentHodOnlyUser(session);
   const { collegeId } = await params;
   const [college, departments, faculty] = await Promise.all([
     getCollegeForRegisterHub(collegeId),
@@ -33,6 +35,9 @@ export default async function CollegeFacultyRegisterPage({
       faculty={faculty}
       canEdit={canEdit}
       canDelete={canDelete}
+      backHref={hodOnly ? "/admin" : undefined}
+      backLabel={hodOnly ? "Dashboard" : undefined}
+      hideDepartmentCta={hodOnly}
     />
   );
 }

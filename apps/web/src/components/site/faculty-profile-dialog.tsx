@@ -78,6 +78,12 @@ export function FacultyProfileDialog({
                 </p>
               )}
               <dl className="mt-4 flex flex-wrap justify-center gap-4 text-sm text-slate-600 md:justify-start">
+                {member.qualificationEn && (
+                  <div>
+                    {t("Qualification", "योग्यता")}:{" "}
+                    {pickBilingual(lang, member.qualificationEn, member.qualificationHi)}
+                  </div>
+                )}
                 {member.experienceEn && (
                   <div>
                     {t("Experience", "अनुभव")}: {pickBilingual(lang, member.experienceEn, member.experienceHi)}

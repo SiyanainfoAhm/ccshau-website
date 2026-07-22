@@ -7,6 +7,7 @@ import {
   corrigendumAttachmentPath,
   downloadFilePath,
   downloadVersionPath,
+  facultyImagePath,
   getMediaBucket,
   getStorageBucket,
   homepageDignitaryImagePath,
@@ -14,6 +15,8 @@ import {
   mediaAlbumCoverPath,
   mediaItemPath,
   pageGalleryImagePath,
+  pageFeaturedImagePath,
+  pageLogoImagePath,
   pageNewsTickerFilePath,
   pageStudentCornerFilePath,
   newsAttachmentPath,
@@ -205,6 +208,28 @@ export async function uploadHomepageDignitaryImage(
   return ok(`${bucket}/${path}`);
 }
 
+export async function uploadFacultyImage(
+  admin: SupabaseClient,
+  staffId: string,
+  file: File,
+): Promise<ActionResult<string>> {
+  const validationError = validateUploadFile(file);
+  if (validationError) return fail(validationError);
+  if (!file.type.startsWith("image/")) return fail("Photo must be an image file.");
+
+  const bucket = STORAGE_BUCKETS.public;
+  const path = facultyImagePath(staffId, sanitizeFileName(file.name));
+  const buffer = Buffer.from(await file.arrayBuffer());
+
+  const { error } = await admin.storage.from(bucket).upload(path, buffer, {
+    contentType: file.type,
+    upsert: true,
+  });
+
+  if (error) return fail(`Upload failed: ${error.message}`);
+  return ok(`${bucket}/${path}`);
+}
+
 export async function uploadHomepageInitiativeImage(
   admin: SupabaseClient,
   initiativeId: string,
@@ -216,6 +241,50 @@ export async function uploadHomepageInitiativeImage(
 
   const bucket = STORAGE_BUCKETS.public;
   const path = homepageInitiativeImagePath(initiativeId, sanitizeFileName(file.name));
+  const buffer = Buffer.from(await file.arrayBuffer());
+
+  const { error } = await admin.storage.from(bucket).upload(path, buffer, {
+    contentType: file.type,
+    upsert: true,
+  });
+
+  if (error) return fail(`Upload failed: ${error.message}`);
+  return ok(`${bucket}/${path}`);
+}
+
+export async function uploadPageFeaturedImage(
+  admin: SupabaseClient,
+  pageId: string,
+  file: File,
+): Promise<ActionResult<string>> {
+  const validationError = validateUploadFile(file);
+  if (validationError) return fail(validationError);
+  if (!file.type.startsWith("image/")) return fail("Hero banner must be an image file.");
+
+  const bucket = STORAGE_BUCKETS.public;
+  const path = pageFeaturedImagePath(pageId, sanitizeFileName(file.name));
+  const buffer = Buffer.from(await file.arrayBuffer());
+
+  const { error } = await admin.storage.from(bucket).upload(path, buffer, {
+    contentType: file.type,
+    upsert: true,
+  });
+
+  if (error) return fail(`Upload failed: ${error.message}`);
+  return ok(`${bucket}/${path}`);
+}
+
+export async function uploadPageLogoImage(
+  admin: SupabaseClient,
+  pageId: string,
+  file: File,
+): Promise<ActionResult<string>> {
+  const validationError = validateUploadFile(file);
+  if (validationError) return fail(validationError);
+  if (!file.type.startsWith("image/")) return fail("Logo must be an image file.");
+
+  const bucket = STORAGE_BUCKETS.public;
+  const path = pageLogoImagePath(pageId, sanitizeFileName(file.name));
   const buffer = Buffer.from(await file.arrayBuffer());
 
   const { error } = await admin.storage.from(bucket).upload(path, buffer, {

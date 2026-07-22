@@ -51,6 +51,7 @@ export const Tables = {
   profiles: ccshauTable("profiles"),
   userRoles: ccshauTable("user_roles"),
   userColleges: ccshauTable("user_colleges"),
+  userDepartmentPages: ccshauTable("user_department_pages"),
   pages: ccshauTable("pages"),
   menus: ccshauTable("menus"),
   menuItems: ccshauTable("menu_items"),

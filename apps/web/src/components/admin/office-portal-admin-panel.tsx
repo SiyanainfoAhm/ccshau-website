@@ -18,6 +18,7 @@ import {
   deletePageStaffAction,
   updatePageSidebarItemAction,
 } from "@/actions/office-portal";
+import { translateFieldsEnToHiAction } from "@/actions/translate";
 import { AdminFileUploadField } from "@/components/admin/admin-file-upload-field";
 import type {
   PageContactLine,
@@ -638,7 +639,6 @@ export function OfficePortalAdminPanel({
           isPending={isPending}
           setError={setError}
           canEdit={canEdit}
-          onAdd={(formData) => runAction(() => createPageSidebarItemAction(pageId, formData))}
           onDelete={(id) => runAction(() => deletePageSidebarItemAction(pageId, id))}
         />
       )}
@@ -652,7 +652,6 @@ export function OfficePortalAdminPanel({
           isPending={isPending}
           setError={setError}
           canEdit={canEdit}
-          onAdd={(formData) => runAction(() => createPageSidebarItemAction(pageId, formData))}
           onDelete={(id) => runAction(() => deletePageSidebarItemAction(pageId, id))}
         />
       )}
@@ -677,22 +676,74 @@ function SidebarItemForm({
   onSubmit: (formData: FormData) => void;
   onCancel?: () => void;
 }) {
+  const [labelEn, setLabelEn] = useState(item?.label_en ?? "");
+  const [labelHi, setLabelHi] = useState(item?.label_hi ?? "");
+  const [contentEn, setContentEn] = useState(item?.content_en ?? "");
+  const [contentHi, setContentHi] = useState(item?.content_hi ?? "");
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [translateError, setTranslateError] = useState<string | null>(null);
+
+  async function handleAutoTranslate() {
+    setTranslateError(null);
+    setIsTranslating(true);
+    try {
+      const result = await translateFieldsEnToHiAction([
+        { key: "labelHi", text: labelEn },
+        { key: "contentHi", text: contentEn, format: "html" },
+      ]);
+      if (!result.success) {
+        setTranslateError(result.error);
+        return;
+      }
+      if (result.data.translations.labelHi) setLabelHi(result.data.translations.labelHi);
+      if (result.data.translations.contentHi) setContentHi(result.data.translations.contentHi);
+      if (result.data.warnings.length > 0) {
+        setTranslateError(result.data.warnings.join(" "));
+      } else if (Object.keys(result.data.translations).length === 0) {
+        setTranslateError("Enter English label or content before translating.");
+      }
+    } catch (e) {
+      setTranslateError(e instanceof Error ? e.message : "Translation failed.");
+    } finally {
+      setIsTranslating(false);
+    }
+  }
+
   return (
     <form
       className="grid gap-3 border-t border-slate-100 pt-4 sm:grid-cols-2"
-      action={onSubmit}
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSubmit(new FormData(e.currentTarget));
+      }}
     >
       <input type="hidden" name="side" value={side} />
+      <div className="flex flex-wrap items-center justify-between gap-2 sm:col-span-2">
+        <p className="text-sm font-medium text-slate-700">Sidebar link details</p>
+        <button
+          type="button"
+          onClick={handleAutoTranslate}
+          disabled={isPending || isTranslating}
+          className="rounded-lg border border-emerald-700 px-3 py-1.5 text-sm font-medium text-emerald-800 hover:bg-emerald-50 disabled:opacity-60"
+        >
+          {isTranslating ? "Translating…" : "Auto-translate to Hindi"}
+        </button>
+      </div>
+      {translateError && (
+        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 sm:col-span-2">{translateError}</p>
+      )}
       <input
         name="labelEn"
         required
-        defaultValue={item?.label_en ?? ""}
+        value={labelEn}
+        onChange={(e) => setLabelEn(e.target.value)}
         placeholder="Label (English)"
         className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
       />
       <input
         name="labelHi"
-        defaultValue={item?.label_hi ?? ""}
+        value={labelHi}
+        onChange={(e) => setLabelHi(e.target.value)}
         placeholder="Label (Hindi)"
         className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-hindi"
       />
@@ -709,7 +760,8 @@ function SidebarItemForm({
         <textarea
           name="contentEn"
           rows={4}
-          defaultValue={item?.content_en ?? ""}
+          value={contentEn}
+          onChange={(e) => setContentEn(e.target.value)}
           placeholder="HTML content shown in main area when URL is empty"
           className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
         />
@@ -719,7 +771,8 @@ function SidebarItemForm({
         <textarea
           name="contentHi"
           rows={4}
-          defaultValue={item?.content_hi ?? ""}
+          value={contentHi}
+          onChange={(e) => setContentHi(e.target.value)}
           placeholder="Hindi HTML content"
           className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-hindi"
         />
@@ -761,7 +814,6 @@ function SidebarEditor({
   isPending,
   setError,
   canEdit = true,
-  onAdd,
   onDelete,
 }: {
   title: string;
@@ -771,12 +823,13 @@ function SidebarEditor({
   isPending: boolean;
   setError: (value: string | null) => void;
   canEdit?: boolean;
-  onAdd: (formData: FormData) => void;
   onDelete: (id: string) => void;
 }) {
   const router = useRouter();
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [addFormSeed, setAddFormSeed] = useState(0);
   const [isEditPending, startEditTransition] = useTransition();
+  const [isAddPending, startAddTransition] = useTransition();
 
   function handleUpdate(itemId: string, formData: FormData) {
     setError(null);
@@ -791,7 +844,20 @@ function SidebarEditor({
     });
   }
 
-  const pending = isPending || isEditPending;
+  function handleAdd(formData: FormData) {
+    setError(null);
+    startAddTransition(async () => {
+      const result = await createPageSidebarItemAction(pageId, formData);
+      if (!result.success) {
+        setError(result.error ?? "Save failed.");
+        return;
+      }
+      setAddFormSeed((seed) => seed + 1);
+      router.refresh();
+    });
+  }
+
+  const pending = isPending || isEditPending || isAddPending;
 
   return (
     <section className="rounded-xl border border-emerald-200 bg-white p-6 shadow-sm">
@@ -855,11 +921,12 @@ function SidebarEditor({
       </ul>
       {canEdit && (
       <SidebarItemForm
+        key={`add-${side}-${addFormSeed}`}
         side={side}
         defaultSortOrder={items.length + 1}
         isPending={pending}
         submitLabel={`Add ${side} link`}
-        onSubmit={onAdd}
+        onSubmit={handleAdd}
       />
       )}
     </section>

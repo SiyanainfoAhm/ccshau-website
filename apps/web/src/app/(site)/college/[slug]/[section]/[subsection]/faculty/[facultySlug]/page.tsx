@@ -84,6 +84,14 @@ export default async function FacultyDetailPage({
                   </p>
                 )}
                 <dl className="mt-4 flex flex-wrap justify-center gap-4 text-sm text-slate-600 md:justify-start">
+                  {staff.qualificationEn && (
+                    <div>
+                      <dt className="sr-only">Qualification</dt>
+                      <dd>
+                        Qualification: {pickBilingual(lang, staff.qualificationEn, staff.qualificationHi)}
+                      </dd>
+                    </div>
+                  )}
                   {staff.experienceEn && (
                     <div>
                       <dt className="sr-only">Experience</dt>

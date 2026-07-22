@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { writeAuditLog } from "@/lib/auth/audit";
 import { assertPageAccess } from "@/lib/auth/college-scope-server";
+import { isDepartmentHodOnlyUser } from "@/lib/auth/department-hod-scope";
 import { requireAdminSession, requirePageEditSession } from "@/lib/auth/session";
 import { Tables } from "@/lib/database/names";
 import type {
@@ -156,6 +157,9 @@ export async function createPageStaffAction(
 ): Promise<ActionResult<{ id: string }>> {
   try {
     const session = await requireOfficePageAccess(pageId, true);
+    if (isDepartmentHodOnlyUser(session)) {
+      return fail("Add faculty from Admin → Faculty, not from the page Staff directory.");
+    }
     const parsed = pageStaffSchema.safeParse({
       nameEn: formData.get("nameEn"),
       nameHi: formData.get("nameHi") || undefined,
@@ -209,6 +213,9 @@ export async function createPageStaffAction(
 export async function deletePageStaffAction(pageId: string, id: string): Promise<ActionResult> {
   try {
     const session = await requireOfficePageAccess(pageId, true);
+    if (isDepartmentHodOnlyUser(session)) {
+      return fail("Manage faculty from Admin → Faculty, not from the page Staff directory.");
+    }
     const admin = createAdminClient();
     if (!admin) return fail("Database not configured.");
     const { error } = await admin.from(Tables.pageStaff).delete().eq("id", id);

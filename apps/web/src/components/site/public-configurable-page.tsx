@@ -243,8 +243,10 @@ export function PublicConfigurablePage({
       : null;
 
   const heroImage =
+    contentPage?.featuredImageUrl ??
     college.featuredImageUrl ??
     "https://images.unsplash.com/photo-1560438154-779a4a5e3e38?auto=format&fit=crop&w=1600&q=80";
+  const heroLogo = contentPage?.logoImageUrl ?? college.logoImageUrl;
 
   const isRootPage = !contentPage;
   const showHeadOfficer =
@@ -275,7 +277,7 @@ export function PublicConfigurablePage({
   const showStudentCorner =
     layoutConfig.studentCorner && (studentCornerItems?.length ?? 0) > 0 && !selectedSidebar;
 
-  const heroMinHeight = layoutConfig.heroContactButton || college.logoImageUrl ? "min-h-[420px]" : "min-h-[320px]";
+  const heroMinHeight = layoutConfig.heroContactButton || heroLogo ? "min-h-[420px]" : "min-h-[320px]";
 
   return (
     <>
@@ -303,10 +305,10 @@ export function PublicConfigurablePage({
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/40 to-black/25" />
           <div className="relative mx-auto flex max-w-4xl flex-col items-center px-4 py-14 text-center text-white md:py-16">
-            {college.logoImageUrl && (
+            {heroLogo && (
               <div className="mb-4 overflow-hidden rounded-xl bg-white p-2 shadow-xl dark:bg-emerald-950/40">
                 <Image
-                  src={college.logoImageUrl}
+                  src={heroLogo}
                   alt={buildImageAlt({ titleEn: `${title} logo`, titleHi: college.titleHi ? `${college.titleHi} लोगो` : null, lang })}
                   width={96}
                   height={96}
