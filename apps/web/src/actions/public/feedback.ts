@@ -6,6 +6,11 @@ import { verifyCaptcha } from "@/lib/auth/captcha";
 import { generateFeedbackTicketNumber } from "@/lib/data/public";
 import { Tables } from "@/lib/database/names";
 import { sendFeedbackReceivedEmail } from "@/lib/power-automate/send";
+import {
+  checkRateLimit,
+  clientIpFromHeaders,
+  PUBLIC_FEEDBACK_RATE,
+} from "@/lib/security/rate-limit";
 import { fail, ok, type ActionResult } from "@/lib/types/action-result";
 import { publicFeedbackSchema } from "@/lib/validations/public-feedback";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -13,6 +18,17 @@ import { createAdminClient } from "@/lib/supabase/admin";
 export async function submitPublicFeedbackAction(
   formData: FormData,
 ): Promise<ActionResult<{ ticketNumber: string }>> {
+  const headerStore = await headers();
+  const ipAddress = clientIpFromHeaders(headerStore);
+  const rate = checkRateLimit(
+    `feedback:ip:${ipAddress}`,
+    PUBLIC_FEEDBACK_RATE.limit,
+    PUBLIC_FEEDBACK_RATE.windowMs,
+  );
+  if (!rate.ok) {
+    return fail(`Too many submissions. Please try again in ${rate.retryAfterSec} seconds.`);
+  }
+
   const parsed = publicFeedbackSchema.safeParse({
     submitterName: formData.get("submitterName"),
     email: formData.get("email"),
@@ -38,8 +54,6 @@ export async function submitPublicFeedbackAction(
   const ticketNumber = await generateFeedbackTicketNumber();
   if (!ticketNumber) return fail("Could not generate ticket number. Please try again.");
 
-  const headerStore = await headers();
-  const ipAddress = headerStore.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
   const userAgent = headerStore.get("user-agent");
 
   let departmentName: string | null = null;
@@ -62,7 +76,7 @@ export async function submitPublicFeedbackAction(
     subject: parsed.data.subject,
     message: parsed.data.message,
     status: "new",
-    ip_address: ipAddress,
+    ip_address: ipAddress === "unknown" ? null : ipAddress,
     user_agent: userAgent,
   });
 

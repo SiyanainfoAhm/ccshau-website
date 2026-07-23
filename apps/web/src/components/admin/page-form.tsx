@@ -4,12 +4,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 
-import { createPageAction, updatePageAction } from "@/actions/pages";
+import { createPageAction, updatePageAction, type AdminParentPageOption } from "@/actions/pages";
 import { translateFieldsEnToHiAction } from "@/actions/translate";
 import { AdminFileUploadField } from "@/components/admin/admin-file-upload-field";
 import { LayoutConfigAdminPanel } from "@/components/admin/layout-config-admin-panel";
-import { OfficePortalAdminPanel } from "@/components/admin/office-portal-admin-panel";
-import type { Page, PageContactLine, PageGalleryItem, PageNewsTickerItem, PageStudentCornerItem, PageSidebarItem, PageStaff } from "@/lib/database/types";
+import { LazyOfficePortalAdminPanel } from "@/components/admin/lazy-office-portal-admin-panel";
+import { ParentPagePicker } from "@/components/admin/parent-page-picker";
+import type { Page, PageContactLine } from "@/lib/database/types";
 import { contentStatusOptions } from "@/lib/auth/content-status-options";
 import {
   applyLayoutConfigToFormData,
@@ -21,7 +22,6 @@ import {
   type PageLayoutConfig,
 } from "@/lib/pages/layout-config";
 import { parseCollegeContactFromLines } from "@/lib/pages/college-contact-seed";
-import type { PagePathAncestors } from "@/lib/pages/resolve-public-path";
 import {
   ancestorsForChildPage,
   isCollegesContainerSlug,
@@ -37,20 +37,10 @@ interface Department {
   name_en: string;
 }
 
-interface ParentOption {
-  id: string;
-  slug: string;
-  title_en: string;
-  page_type: Page["page_type"];
-  publicPath: string;
-  ancestors: PagePathAncestors;
-}
-
 export function PageForm({
   departments,
-  parentPages,
+  initialParentOption = null,
   page,
-  officePortalData,
   allowCollegeRoot = true,
   canEdit = true,
   canPublish = true,
@@ -58,16 +48,9 @@ export function PageForm({
   lockPageStructure = false,
 }: {
   departments: Department[];
-  parentPages: ParentOption[];
+  /** Current parent option only — picker searches the rest on demand (P1). */
+  initialParentOption?: AdminParentPageOption | null;
   page?: Page;
-  officePortalData?: {
-    contactLines: PageContactLine[];
-    staff: PageStaff[];
-    galleryItems: PageGalleryItem[];
-    newsTickerItems: PageNewsTickerItem[];
-    studentCornerItems: PageStudentCornerItem[];
-    sidebarItems: PageSidebarItem[];
-  };
   allowCollegeRoot?: boolean;
   canEdit?: boolean;
   canPublish?: boolean;
@@ -104,11 +87,14 @@ export function PageForm({
       ? readStoredLayoutConfig(page.layout_config, initialLayoutTemplate)
       : presetForLayoutTemplate("standard"),
   );
-  const [parentId, setParentId] = useState(page?.parent_id ?? "");
-  const collegeContact = parseCollegeContactFromLines(officePortalData?.contactLines ?? []);
-  const [contactLocationEnabled, setContactLocationEnabled] = useState(() =>
-    Boolean(collegeContact.addressEn || collegeContact.phone || collegeContact.email),
+  const [selectedParent, setSelectedParent] = useState<AdminParentPageOption | null>(
+    initialParentOption,
   );
+  const parentId = selectedParent?.id ?? "";
+  const [collegeContactLines, setCollegeContactLines] = useState<PageContactLine[]>([]);
+  const collegeContact = parseCollegeContactFromLines(collegeContactLines);
+  const [contactLocationEnabled, setContactLocationEnabled] = useState(false);
+  const [contactSeedKey, setContactSeedKey] = useState(0);
 
   useEffect(() => {
     if (!initialSuccess || typeof window === "undefined") return;
@@ -188,7 +174,7 @@ export function PageForm({
     setError(null);
     setSuccess(null);
 
-    const selected = parentPages.find((p) => p.id === parentId);
+    const selected = selectedParent;
     const isCollegeRoot =
       pageType === "college" && (!parentId || isCollegesContainerSlug(selected?.slug));
     const submittedPageType = isCollegeRoot ? "college" : parentId ? "standard" : pageType;
@@ -230,16 +216,16 @@ export function PageForm({
     });
   }
 
-  const selectedParent = parentPages.find((p) => p.id === parentId);
-  const isCollegesContainerParent = isCollegesContainerSlug(selectedParent?.slug);
+  const selectedParentForPath = selectedParent;
+  const isCollegesContainerParent = isCollegesContainerSlug(selectedParentForPath?.slug);
   const isCollegeRoot = pageType === "college" && (!parentId || isCollegesContainerParent);
   const isCollegeHierarchyChild = Boolean(
-    selectedParent && isParentUnderCollege(selectedParent),
+    selectedParentForPath && isParentUnderCollege(selectedParentForPath),
   );
   const effectivePageType = isCollegeRoot ? "college" : parentId ? "standard" : pageType;
   const previewPath = slug
-    ? selectedParent
-      ? resolvePublicPagePath(slug, effectivePageType, ancestorsForChildPage(selectedParent))
+    ? selectedParentForPath
+      ? resolvePublicPagePath(slug, effectivePageType, ancestorsForChildPage(selectedParentForPath))
       : resolvePublicPagePath(slug, effectivePageType)
     : null;
 
@@ -319,8 +305,14 @@ export function PageForm({
           <label className="block text-sm">
             <span className="font-medium text-slate-700">Template</span>
             <select
-              value={pageType}
-              disabled={!canEdit || lockPageStructure}
+              value={
+                parentId && !isCollegesContainerParent ? "standard" : pageType
+              }
+              disabled={
+                !canEdit ||
+                lockPageStructure ||
+                Boolean(parentId && !isCollegesContainerParent)
+              }
               onChange={(e) => {
                 const next = e.target.value as Page["page_type"];
                 setPageType(next);
@@ -334,11 +326,22 @@ export function PageForm({
               }}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 disabled:bg-slate-50 disabled:text-slate-500"
             >
-              <option value="standard">Standard page (/pages/slug)</option>
-              {allowCollegeRoot && (
+              <option value="standard">
+                {isCollegeHierarchyChild
+                  ? "Nested page (URL follows parent)"
+                  : "Standard page (/pages/slug)"}
+              </option>
+              {(allowCollegeRoot || page?.page_type === "college" || isCollegeRoot) && (
                 <option value="college">College landing (/college/slug)</option>
               )}
             </select>
+            {parentId && !isCollegesContainerParent ? (
+              <span className="mt-1 block text-xs text-slate-500">
+                Nested under a parent — Template stays Standard. Public URL is built from the
+                parent chain (see below). Use <span className="font-medium">Layout template</span>{" "}
+                for Office portal / College home.
+              </span>
+            ) : null}
           </label>
           {showLayoutTemplate && (
             <label className="block text-sm">
@@ -360,25 +363,23 @@ export function PageForm({
           )}
           <label className="block text-sm md:col-span-2">
             <span className="font-medium text-slate-700">Parent page</span>
-            <select
+            <ParentPagePicker
               name="parentId"
-              value={parentId}
-              disabled={lockPageStructure}
-              onChange={(e) => setParentId(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 disabled:bg-slate-50 disabled:text-slate-500"
-            >
-              <option value="">— None (top level) —</option>
-              {parentPages
-                .filter((p) => p.id !== page?.id)
-                .map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.title_en} ({p.publicPath})
-                  </option>
-                ))}
-            </select>
+              value={selectedParent}
+              excludePageId={page?.id ?? null}
+              disabled={lockPageStructure || !canEdit}
+              onChange={(next) => {
+                setSelectedParent(next);
+                const underCollegesContainer = isCollegesContainerSlug(next?.slug);
+                if (next && !underCollegesContainer && pageType === "college") {
+                  setPageType("standard");
+                }
+              }}
+            />
             <span className="mt-1 block text-xs text-slate-500">
-              Child of a college → college tab (or dropdown if it has sub-pages). Child of a
-              section (e.g. Department) → item inside that section&apos;s dropdown menu.
+              Search by title or slug. Child of a college → college tab (or dropdown if it has
+              sub-pages). Child of a section (e.g. Department) → item inside that section&apos;s
+              dropdown menu.
             </span>
           </label>
         </div>
@@ -589,7 +590,7 @@ export function PageForm({
             value={contactLocationEnabled ? "on" : "off"}
           />
           {contactLocationEnabled && (
-          <div className="grid gap-4">
+          <div key={contactSeedKey} className="grid gap-4">
             <label className="block text-sm">
               <span className="font-medium text-slate-700">Mailing address (English)</span>
               <textarea
@@ -855,15 +856,9 @@ export function PageForm({
       </div>
     </form>
 
-    {showOfficeDataPanel && page && officePortalData && (
-      <OfficePortalAdminPanel
+    {showOfficeDataPanel && page ? (
+      <LazyOfficePortalAdminPanel
         pageId={page.id}
-        contactLines={officePortalData.contactLines}
-        staff={officePortalData.staff}
-        galleryItems={officePortalData.galleryItems}
-        newsTickerItems={officePortalData.newsTickerItems}
-        studentCornerItems={officePortalData.studentCornerItems}
-        sidebarItems={officePortalData.sidebarItems}
         showContacts={layoutConfig.contacts && !isCollegeRoot}
         showStaff={layoutConfig.staff && !lockPageStructure}
         showGallery={layoutConfig.gallery}
@@ -872,8 +867,16 @@ export function PageForm({
         showLeftSidebar={layoutConfig.leftSidebar}
         showRightSidebar={layoutConfig.rightSidebar}
         canEdit={canEdit}
+        onContactLinesLoaded={(lines) => {
+          setCollegeContactLines(lines);
+          const parsed = parseCollegeContactFromLines(lines);
+          if (parsed.addressEn || parsed.phone || parsed.email) {
+            setContactLocationEnabled(true);
+          }
+          setContactSeedKey((key) => key + 1);
+        }}
       />
-    )}
+    ) : null}
 
     {showOfficeDataPanel && !page && (
       <div className="mx-auto max-w-3xl rounded-xl border border-dashed border-emerald-200 bg-emerald-50/50 px-6 py-8 text-center text-sm text-emerald-900">

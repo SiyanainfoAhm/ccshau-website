@@ -7,6 +7,7 @@ import { SiteHeader } from "@/components/design/shared/site-header";
 import { PublicCollegeContactPage } from "@/components/site/public-college-contact-page";
 import { PublicPgSeminarRegistrationForm } from "@/components/site/public-pg-seminar-registration-form";
 import { PublicPgStudiesSectionContent } from "@/components/site/public-pg-studies-section-content";
+import { getCaptchaClientConfig } from "@/lib/auth/captcha";
 import {
   getOfficePortalDataByPageId,
   getPageGalleryItemsByPageId,
@@ -39,7 +40,10 @@ export default async function PgStudiesSectionPage({
   if (!data) notFound();
 
   const { hub, section: sectionPage } = data;
-  const office = await getOfficePortalDataByPageId(hub.pageId);
+  const [office, captcha] = await Promise.all([
+    getOfficePortalDataByPageId(hub.pageId),
+    getCaptchaClientConfig(),
+  ]);
   const galleryImages =
     sectionPage.layoutConfig.gallery
       ? await getPageGalleryItemsByPageId(sectionPage.pageId)
@@ -72,7 +76,7 @@ export default async function PgStudiesSectionPage({
             contactLines={office?.contactLines ?? []}
           />
         ) : sectionPage.urlSegment === "seminar-registration" ? (
-          <PublicPgSeminarRegistrationForm hub={hub} />
+          <PublicPgSeminarRegistrationForm hub={hub} captcha={captcha} />
         ) : (
           <PublicPgStudiesSectionContent
             hub={hub}

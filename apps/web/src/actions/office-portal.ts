@@ -68,6 +68,35 @@ export async function listPageContactLinesForAdmin(pageId: string): Promise<Page
   return (data ?? []) as PageContactLine[];
 }
 
+/** Client-side lazy load for page edit (P1) — avoids blocking RSC on 6 office-portal queries. */
+export async function loadOfficePortalDataForAdminAction(pageId: string): Promise<{
+  contactLines: PageContactLine[];
+  staff: PageStaff[];
+  galleryItems: PageGalleryItem[];
+  newsTickerItems: PageNewsTickerItem[];
+  studentCornerItems: PageStudentCornerItem[];
+  sidebarItems: PageSidebarItem[];
+}> {
+  await requireOfficePageAccess(pageId);
+  const [contactLines, staff, galleryItems, newsTickerItems, studentCornerItems, sidebarItems] =
+    await Promise.all([
+      listPageContactLinesForAdmin(pageId),
+      listPageStaffForAdmin(pageId),
+      listPageGalleryItemsForAdmin(pageId),
+      listPageNewsTickerItemsForAdmin(pageId),
+      listPageStudentCornerItemsForAdmin(pageId),
+      listPageSidebarItemsForAdmin(pageId),
+    ]);
+  return {
+    contactLines,
+    staff,
+    galleryItems,
+    newsTickerItems,
+    studentCornerItems,
+    sidebarItems,
+  };
+}
+
 export async function createPageContactLineAction(
   pageId: string,
   formData: FormData,
@@ -123,7 +152,11 @@ export async function deletePageContactLineAction(
     const session = await requireOfficePageAccess(pageId, true);
     const admin = createAdminClient();
     if (!admin) return fail("Database not configured.");
-    const { error } = await admin.from(Tables.pageContactLines).delete().eq("id", id);
+    const { error } = await admin
+      .from(Tables.pageContactLines)
+      .delete()
+      .eq("id", id)
+      .eq("page_id", pageId);
     if (error) return fail(error.message);
     await writeAuditLog({
       userId: session.userId,
@@ -218,7 +251,11 @@ export async function deletePageStaffAction(pageId: string, id: string): Promise
     }
     const admin = createAdminClient();
     if (!admin) return fail("Database not configured.");
-    const { error } = await admin.from(Tables.pageStaff).delete().eq("id", id);
+    const { error } = await admin
+      .from(Tables.pageStaff)
+      .delete()
+      .eq("id", id)
+      .eq("page_id", pageId);
     if (error) return fail(error.message);
     await writeAuditLog({
       userId: session.userId,
@@ -365,7 +402,11 @@ export async function deletePageSidebarItemAction(
     const session = await requireOfficePageAccess(pageId, true);
     const admin = createAdminClient();
     if (!admin) return fail("Database not configured.");
-    const { error } = await admin.from(Tables.pageSidebarItems).delete().eq("id", id);
+    const { error } = await admin
+      .from(Tables.pageSidebarItems)
+      .delete()
+      .eq("id", id)
+      .eq("page_id", pageId);
     if (error) return fail(error.message);
     await writeAuditLog({
       userId: session.userId,
@@ -486,7 +527,11 @@ export async function deletePageGalleryItemAction(
       .eq("page_id", pageId)
       .maybeSingle();
 
-    const { error } = await admin.from(Tables.pageGalleryItems).delete().eq("id", id);
+    const { error } = await admin
+      .from(Tables.pageGalleryItems)
+      .delete()
+      .eq("id", id)
+      .eq("page_id", pageId);
     if (error) return fail(error.message);
 
     if (row) {
@@ -608,7 +653,11 @@ export async function deletePageNewsTickerItemAction(
       .eq("page_id", pageId)
       .maybeSingle();
 
-    const { error } = await admin.from(Tables.pageNewsTickerItems).delete().eq("id", id);
+    const { error } = await admin
+      .from(Tables.pageNewsTickerItems)
+      .delete()
+      .eq("id", id)
+      .eq("page_id", pageId);
     if (error) return fail(error.message);
 
     if (row?.file_path && !row.file_path.startsWith("http")) {
@@ -740,7 +789,11 @@ export async function deletePageStudentCornerItemAction(
       .eq("page_id", pageId)
       .maybeSingle();
 
-    const { error } = await admin.from(Tables.pageStudentCornerItems).delete().eq("id", id);
+    const { error } = await admin
+      .from(Tables.pageStudentCornerItems)
+      .delete()
+      .eq("id", id)
+      .eq("page_id", pageId);
     if (error) return fail(error.message);
 
     if (row?.file_path && !row.file_path.startsWith("http")) {

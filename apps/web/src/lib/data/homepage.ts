@@ -1,3 +1,5 @@
+import { unstable_cache } from "next/cache";
+
 import type { PublicPageSummary } from "@/lib/data/public-types";
 import { Tables } from "@/lib/database/names";
 import type {
@@ -117,7 +119,15 @@ function cmsSlugMatchesLegacy(cmsSlug: string, legacySlug: string, aliases?: str
   return aliases?.includes(cmsSlug) ?? false;
 }
 
-export async function getHomepageContent(): Promise<HomepageContent> {
+const HOMEPAGE_QUOTE_SELECT = "id, author_en, author_hi, quote_en, quote_hi, sort_order, is_active";
+const HOMEPAGE_DIGNITARY_SELECT =
+  "id, name_en, name_hi, role_en, role_hi, image_path, sort_order, is_active";
+const HOMEPAGE_INITIATIVE_SELECT =
+  "id, title_en, title_hi, description_en, description_hi, image_path, link_slug, link_href, sort_order, is_active";
+const HOMEPAGE_CTA_SELECT =
+  "id, title_en, title_hi, subtitle_en, subtitle_hi, button_en, button_hi, link_href, is_active";
+
+async function loadHomepageContent(): Promise<HomepageContent> {
   const admin = createAdminClient();
 
   if (!admin) {
@@ -135,23 +145,28 @@ export async function getHomepageContent(): Promise<HomepageContent> {
   const [quotesRes, dignitariesRes, initiativesRes, ctaRes] = await Promise.all([
     admin
       .from(Tables.homepageQuotes)
-      .select("*")
+      .select(HOMEPAGE_QUOTE_SELECT)
       .eq("is_active", true)
       .order("sort_order")
       .order("author_en"),
     admin
       .from(Tables.homepageDignitaries)
-      .select("*")
+      .select(HOMEPAGE_DIGNITARY_SELECT)
       .eq("is_active", true)
       .order("sort_order")
       .order("name_en"),
     admin
       .from(Tables.homepageInitiatives)
-      .select("*")
+      .select(HOMEPAGE_INITIATIVE_SELECT)
       .eq("is_active", true)
       .order("sort_order")
       .order("title_en"),
-    admin.from(Tables.homepageCta).select("*").eq("id", 1).eq("is_active", true).maybeSingle(),
+    admin
+      .from(Tables.homepageCta)
+      .select(HOMEPAGE_CTA_SELECT)
+      .eq("id", 1)
+      .eq("is_active", true)
+      .maybeSingle(),
   ]);
 
   const quotes = ((quotesRes.data ?? []) as HomepageQuote[]).map(mapQuote);
@@ -172,6 +187,12 @@ export async function getHomepageContent(): Promise<HomepageContent> {
     cta: ctaRow ? mapCta(ctaRow) : null,
   };
 }
+
+export const getHomepageContent = unstable_cache(
+  loadHomepageContent,
+  ["ccshau-homepage-content"],
+  { revalidate: 60, tags: ["public-homepage"] },
+);
 
 export function resolveHomepageColleges(cmsPages: PublicPageSummary[]): HomepageCollege[] {
   const cmsBySlug = new Map(cmsPages.map((page) => [page.slug, page]));

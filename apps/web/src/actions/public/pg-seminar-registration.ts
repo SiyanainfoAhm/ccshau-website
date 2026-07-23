@@ -2,7 +2,13 @@
 
 import { headers } from "next/headers";
 
+import { verifyCaptcha } from "@/lib/auth/captcha";
 import { Tables } from "@/lib/database/names";
+import {
+  checkRateLimit,
+  clientIpFromHeaders,
+  PUBLIC_SEMINAR_RATE,
+} from "@/lib/security/rate-limit";
 import { fail, ok, type ActionResult } from "@/lib/types/action-result";
 import {
   parseYesNo,
@@ -30,6 +36,17 @@ async function generateRegistrationNumber(): Promise<string | null> {
 export async function submitPgSeminarRegistrationAction(
   formData: FormData,
 ): Promise<ActionResult<{ registrationNumber: string }>> {
+  const headerStore = await headers();
+  const ipAddress = clientIpFromHeaders(headerStore);
+  const rate = checkRateLimit(
+    `seminar:ip:${ipAddress}`,
+    PUBLIC_SEMINAR_RATE.limit,
+    PUBLIC_SEMINAR_RATE.windowMs,
+  );
+  if (!rate.ok) {
+    return fail(`Too many submissions. Please try again in ${rate.retryAfterSec} seconds.`);
+  }
+
   const parsed = pgSeminarRegistrationSchema.safeParse({
     studentName: formData.get("studentName"),
     admissionNumber: formData.get("admissionNumber"),
@@ -57,10 +74,15 @@ export async function submitPgSeminarRegistrationAction(
     fundingAgencyName: formData.get("fundingAgencyName") || undefined,
     combinedWithOtherPurpose: parseYesNo(formData.get("combinedWithOtherPurpose")),
     otherRelevantInfo: formData.get("otherRelevantInfo") || undefined,
+    captchaToken: formData.get("captchaToken") || undefined,
   });
 
   if (!parsed.success) {
     return fail("Validation failed", parsed.error.flatten().fieldErrors);
+  }
+
+  if (!(await verifyCaptcha(parsed.data.captchaToken))) {
+    return fail("CAPTCHA verification failed. Please try again.");
   }
 
   const admin = createAdminClient();
@@ -71,10 +93,7 @@ export async function submitPgSeminarRegistrationAction(
     return fail("Could not generate registration number. Please try again.");
   }
 
-  const headerStore = await headers();
-  const ipAddress = headerStore.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
   const userAgent = headerStore.get("user-agent");
-
   const data = parsed.data;
 
   const { error } = await admin.from(Tables.pgSeminarRegistrations).insert({
@@ -106,7 +125,7 @@ export async function submitPgSeminarRegistrationAction(
     combined_with_other_purpose: yesNoToBoolean(data.combinedWithOtherPurpose),
     other_relevant_info: data.otherRelevantInfo || null,
     status: "submitted",
-    ip_address: ipAddress,
+    ip_address: ipAddress === "unknown" ? null : ipAddress,
     user_agent: userAgent,
   });
 

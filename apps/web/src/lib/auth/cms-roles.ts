@@ -118,6 +118,20 @@ export function canActOnDepartmentContent(
   return session.departmentId === departmentId;
 }
 
+/**
+ * Force department_id from the session for scoped editors so form tampering
+ * cannot create/update content under another department.
+ */
+export function resolveScopedDepartmentId(
+  session: AdminSession,
+  formDepartmentId: string | null | undefined,
+): string | null {
+  if (!isUniversityWideCmsSession(session) && session.departmentId) {
+    return session.departmentId;
+  }
+  return formDepartmentId || null;
+}
+
 export function roleAssignmentCanActOnDepartment(
   assignments: UserRoleAssignment[],
   departmentId: string | null | undefined,

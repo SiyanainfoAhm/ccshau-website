@@ -9,6 +9,7 @@ import {
   CMS_READ_ROLES,
   CONTENT_EDIT_ROLES,
   isUniversityWideCmsSession,
+  resolveScopedDepartmentId,
 } from "@/lib/auth/cms-roles";
 import { hasRole } from "@/lib/auth/rbac";
 import { hasCmsModuleAccess, requireAdminSessionForCmsModule } from "@/lib/auth/cms-module-access-server";
@@ -58,7 +59,25 @@ function parseRemovedPaths(raw?: string): string[] {
   }
 }
 
-function toNewsRow(input: ReturnType<typeof newsFormSchema.parse>, userId: string) {
+async function assertNewsAccess(
+  session: Awaited<ReturnType<typeof requireAdminSession>>,
+  news: Pick<NewsItem, "department_id">,
+): Promise<string | null> {
+  if (
+    !isUniversityWideCmsSession(session) &&
+    session.departmentId &&
+    news.department_id !== session.departmentId
+  ) {
+    return "You do not have access to this news item.";
+  }
+  return null;
+}
+
+function toNewsRow(
+  input: ReturnType<typeof newsFormSchema.parse>,
+  userId: string,
+  departmentId: string | null,
+) {
   const publishedAt = input.status === "published" ? new Date().toISOString() : null;
   return {
     slug: input.slug,
@@ -68,7 +87,7 @@ function toNewsRow(input: ReturnType<typeof newsFormSchema.parse>, userId: strin
     body_hi: input.bodyHi || null,
     notice_type: input.noticeType as NoticeType,
     category: input.category || null,
-    department_id: input.departmentId || null,
+    department_id: departmentId,
     status: input.status as ContentStatus,
     published_at: publishedAt,
     expires_at: input.expiresAt ? new Date(input.expiresAt).toISOString() : null,
@@ -122,8 +141,9 @@ export async function createNewsAction(formData: FormData): Promise<ActionResult
     const admin = createAdminClient();
     if (!admin) return fail("Database not configured.");
 
+    const departmentId = resolveScopedDepartmentId(session, parsed.data.departmentId);
     const row = {
-      ...toNewsRow(parsed.data, session.userId),
+      ...toNewsRow(parsed.data, session.userId, departmentId),
       attachment_paths: [] as AttachmentPath[],
       created_by: session.userId,
     };
@@ -174,11 +194,15 @@ export async function updateNewsAction(
 
     const { data: existing } = await admin
       .from(Tables.news)
-      .select("attachment_paths")
+      .select("attachment_paths, department_id")
       .eq("id", newsId)
       .maybeSingle();
+    if (!existing) return fail("News item not found.");
 
-    const currentAttachments = (existing?.attachment_paths ?? []) as AttachmentPath[];
+    const accessError = await assertNewsAccess(session, existing as Pick<NewsItem, "department_id">);
+    if (accessError) return fail(accessError);
+
+    const currentAttachments = (existing.attachment_paths ?? []) as AttachmentPath[];
     const attachments = await mergeAttachments(
       admin,
       newsId,
@@ -188,8 +212,9 @@ export async function updateNewsAction(
     );
     if (!attachments.success) return fail(attachments.error);
 
+    const departmentId = resolveScopedDepartmentId(session, parsed.data.departmentId);
     const row = {
-      ...toNewsRow(parsed.data, session.userId),
+      ...toNewsRow(parsed.data, session.userId, departmentId),
       attachment_paths: attachments.data,
     };
 
@@ -220,11 +245,15 @@ export async function deleteNewsAction(newsId: string): Promise<ActionResult> {
 
     const { data: item } = await admin
       .from(Tables.news)
-      .select("attachment_paths")
+      .select("attachment_paths, department_id")
       .eq("id", newsId)
       .maybeSingle();
+    if (!item) return fail("News item not found.");
 
-    const paths = ((item?.attachment_paths ?? []) as AttachmentPath[]).map((a) => a.path);
+    const accessError = await assertNewsAccess(session, item as Pick<NewsItem, "department_id">);
+    if (accessError) return fail(accessError);
+
+    const paths = ((item.attachment_paths ?? []) as AttachmentPath[]).map((a) => a.path);
     if (paths.length > 0) await removeStorageObjects(admin, paths);
 
     const { error } = await admin.from(Tables.news).delete().eq("id", newsId);
@@ -289,5 +318,15 @@ export async function getNewsById(newsId: string): Promise<NewsItem | null> {
   if (!admin) return null;
 
   const { data } = await admin.from(Tables.news).select("*").eq("id", newsId).maybeSingle();
-  return (data as NewsItem) ?? null;
+  if (!data) return null;
+
+  if (
+    !isUniversityWideCmsSession(session) &&
+    session.departmentId &&
+    data.department_id !== session.departmentId
+  ) {
+    return null;
+  }
+
+  return data as NewsItem;
 }

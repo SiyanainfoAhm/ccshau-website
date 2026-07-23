@@ -6,8 +6,16 @@ dns.setDefaultResultOrder("ipv4first");
 
 import { writeAuditLog } from "@/lib/auth/audit";
 import { verifyCaptcha } from "@/lib/auth/captcha";
-import { getLockoutMessage, isAccountLocked, recordLoginAttempt } from "@/lib/auth/lockout";
+import {
+  checkAccountLockout,
+  checkIpLoginLockout,
+  getIpLockoutMessage,
+  getLockoutMessage,
+  getLockoutUnavailableMessage,
+  recordLoginAttempt,
+} from "@/lib/auth/lockout";
 import { sendLockoutAlert } from "@/lib/power-automate/send";
+import { checkRateLimit, LOGIN_IP_RATE } from "@/lib/security/rate-limit";
 import { loginSchema } from "@/lib/validations/auth";
 import { getPublicSupabaseEnv } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
@@ -42,12 +50,45 @@ export async function POST(request: Request) {
 
   const { email, password, captchaToken } = parsed.data;
 
+  const ipRate = checkRateLimit(
+    `login:ip:${ip ?? "unknown"}`,
+    LOGIN_IP_RATE.limit,
+    LOGIN_IP_RATE.windowMs,
+  );
+  if (!ipRate.ok) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: `Too many login attempts. Try again in ${ipRate.retryAfterSec} seconds.`,
+      },
+      { status: 429 },
+    );
+  }
+
   if (!(await verifyCaptcha(captchaToken))) {
     return NextResponse.json({ success: false, error: "CAPTCHA verification failed" }, { status: 400 });
   }
 
-  if (await isAccountLocked(email)) {
+  const emailLock = await checkAccountLockout(email);
+  if (emailLock === "unavailable") {
+    return NextResponse.json(
+      { success: false, error: getLockoutUnavailableMessage() },
+      { status: 503 },
+    );
+  }
+  if (emailLock === "locked") {
     return NextResponse.json({ success: false, error: getLockoutMessage() }, { status: 423 });
+  }
+
+  const ipLock = await checkIpLoginLockout(ip);
+  if (ipLock === "unavailable") {
+    return NextResponse.json(
+      { success: false, error: getLockoutUnavailableMessage() },
+      { status: 503 },
+    );
+  }
+  if (ipLock === "locked") {
+    return NextResponse.json({ success: false, error: getIpLockoutMessage() }, { status: 423 });
   }
 
   const env = getPublicSupabaseEnv();
@@ -61,8 +102,14 @@ export async function POST(request: Request) {
   const { data, error } = await authClient.auth.signInWithPassword({ email, password });
 
   if (error || !data.user || !data.session) {
-    const failures = await recordLoginAttempt(email, false, ip);
-    if (failures >= 5) {
+    const recorded = await recordLoginAttempt(email, false, ip);
+    if (recorded.unavailable) {
+      return NextResponse.json(
+        { success: false, error: getLockoutUnavailableMessage() },
+        { status: 503 },
+      );
+    }
+    if (recorded.failures >= 5) {
       await writeAuditLog({
         userId: null,
         action: "lockout",
@@ -93,7 +140,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 
-  await recordLoginAttempt(email, true, ip);
+  const recorded = await recordLoginAttempt(email, true, ip);
+  if (recorded.unavailable) {
+    return NextResponse.json(
+      { success: false, error: getLockoutUnavailableMessage() },
+      { status: 503 },
+    );
+  }
+
   await writeAuditLog({
     userId: data.user.id,
     action: "login",

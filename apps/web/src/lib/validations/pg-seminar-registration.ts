@@ -39,6 +39,7 @@ export const pgSeminarRegistrationSchema = z
     fundingAgencyName: z.string().optional(),
     combinedWithOtherPurpose: yesNo,
     otherRelevantInfo: z.string().optional(),
+    captchaToken: z.string().optional(),
   })
   .superRefine((data, ctx) => {
     if (data.durationFrom && data.durationTo && data.durationTo < data.durationFrom) {

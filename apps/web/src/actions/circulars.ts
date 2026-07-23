@@ -8,6 +8,7 @@ import {
   canPublishContent,
   CONTENT_EDIT_ROLES,
   isUniversityWideCmsSession,
+  resolveScopedDepartmentId,
 } from "@/lib/auth/cms-roles";
 import { hasCmsModuleAccess, requireAdminSessionForCmsModule } from "@/lib/auth/cms-module-access-server";
 import { requireAdminSession } from "@/lib/auth/session";
@@ -38,12 +39,16 @@ function getFile(formData: FormData): File | null {
   return file instanceof File && file.size > 0 ? file : null;
 }
 
-function toRow(input: ReturnType<typeof circularFormSchema.parse>, userId: string) {
+function toRow(
+  input: ReturnType<typeof circularFormSchema.parse>,
+  userId: string,
+  departmentId: string | null,
+) {
   return {
     circular_number: input.circularNumber || null,
     title_en: input.titleEn,
     title_hi: input.titleHi || null,
-    department_id: input.departmentId || null,
+    department_id: departmentId,
     status: input.status as ContentStatus,
     published_at: input.status === "published" ? new Date().toISOString() : null,
     updated_by: userId,
@@ -136,7 +141,14 @@ export async function createCircularAction(formData: FormData): Promise<ActionRe
 
     const { data, error } = await admin
       .from(Tables.circulars)
-      .insert({ ...toRow(parsed.data, session.userId), created_by: session.userId })
+      .insert({
+        ...toRow(
+          parsed.data,
+          session.userId,
+          resolveScopedDepartmentId(session, parsed.data.departmentId),
+        ),
+        created_by: session.userId,
+      })
       .select("id")
       .single();
     if (error) return fail(error.message);
@@ -227,7 +239,11 @@ export async function updateCircularAction(id: string, formData: FormData): Prom
     const { error } = await admin
       .from(Tables.circulars)
       .update({
-        ...toRow(parsed.data, session.userId),
+        ...toRow(
+          parsed.data,
+          session.userId,
+          resolveScopedDepartmentId(session, parsed.data.departmentId),
+        ),
         file_path: filePath,
         file_name: fileName,
         file_size: fileSize,

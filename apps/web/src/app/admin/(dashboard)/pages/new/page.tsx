@@ -1,9 +1,8 @@
-import { listAllPagesForAdmin, listDepartments } from "@/actions/pages";
+import { listDepartments } from "@/actions/pages";
 import { PageForm } from "@/components/admin/page-form";
 import { canPublishContent } from "@/lib/auth/cms-roles";
 import { canCreateCollegeRoot, canEditPages } from "@/lib/auth/college-scope";
 import { requireAdminSession } from "@/lib/auth/session";
-import { buildAdminParentPageOptions } from "@/lib/pages/resolve-public-path";
 
 export default async function NewPagePage() {
   const session = await requireAdminSession();
@@ -15,8 +14,7 @@ export default async function NewPagePage() {
     );
   }
 
-  const [departments, allPages] = await Promise.all([listDepartments(), listAllPagesForAdmin()]);
-  const parentPages = buildAdminParentPageOptions(allPages);
+  const departments = await listDepartments();
 
   return (
     <div className="space-y-6">
@@ -26,7 +24,7 @@ export default async function NewPagePage() {
       </div>
       <PageForm
         departments={departments}
-        parentPages={parentPages}
+        initialParentOption={null}
         allowCollegeRoot={canCreateCollegeRoot(session)}
         canPublish={canPublishContent(session)}
       />

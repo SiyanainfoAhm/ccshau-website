@@ -1,3 +1,5 @@
+import { cache } from "react";
+
 import type { AdminSession } from "@/lib/auth/session";
 import { isSuperAdminSession } from "@/lib/auth/college-scope";
 import type { DepartmentPageAssignment } from "@/lib/auth/department-hod-scope";
@@ -7,51 +9,51 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 export type { DepartmentPageAssignment };
 
-export async function getDepartmentPageAssignmentForUser(
-  userId: string,
-): Promise<DepartmentPageAssignment | null> {
-  const admin = createAdminClient();
-  if (!admin) return null;
+export const getDepartmentPageAssignmentForUser = cache(
+  async (userId: string): Promise<DepartmentPageAssignment | null> => {
+    const admin = createAdminClient();
+    if (!admin) return null;
 
-  const { data } = await admin
-    .from(Tables.userDepartmentPages)
-    .select(
-      "department_page_id, role, page:department_page_id (title_en, slug, college_root_id)",
-    )
-    .eq("user_id", userId)
-    .maybeSingle();
-
-  if (!data) return null;
-
-  const page = data.page as unknown as {
-    title_en: string;
-    slug: string;
-    college_root_id: string | null;
-  } | null;
-  if (!page) return null;
-
-  let collegeTitle: string | null = null;
-  let collegeSlug: string | null = null;
-  if (page.college_root_id) {
-    const { data: college } = await admin
-      .from(Tables.pages)
-      .select("title_en, slug")
-      .eq("id", page.college_root_id)
+    const { data } = await admin
+      .from(Tables.userDepartmentPages)
+      .select(
+        "department_page_id, role, page:department_page_id (title_en, slug, college_root_id)",
+      )
+      .eq("user_id", userId)
       .maybeSingle();
-    collegeTitle = college?.title_en ?? null;
-    collegeSlug = college?.slug ?? null;
-  }
 
-  return {
-    departmentPageId: data.department_page_id,
-    departmentTitle: page.title_en,
-    departmentSlug: page.slug,
-    collegePageId: page.college_root_id,
-    collegeTitle,
-    collegeSlug,
-    role: data.role as DepartmentPageRole,
-  };
-}
+    if (!data) return null;
+
+    const page = data.page as unknown as {
+      title_en: string;
+      slug: string;
+      college_root_id: string | null;
+    } | null;
+    if (!page) return null;
+
+    let collegeTitle: string | null = null;
+    let collegeSlug: string | null = null;
+    if (page.college_root_id) {
+      const { data: college } = await admin
+        .from(Tables.pages)
+        .select("title_en, slug")
+        .eq("id", page.college_root_id)
+        .maybeSingle();
+      collegeTitle = college?.title_en ?? null;
+      collegeSlug = college?.slug ?? null;
+    }
+
+    return {
+      departmentPageId: data.department_page_id,
+      departmentTitle: page.title_en,
+      departmentSlug: page.slug,
+      collegePageId: page.college_root_id,
+      collegeTitle,
+      collegeSlug,
+      role: data.role as DepartmentPageRole,
+    };
+  },
+);
 
 /** College department pages (office_portal under a college) available for HOD assignment. */
 export async function listDepartmentPagesForHodAssignment(

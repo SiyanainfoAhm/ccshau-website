@@ -8,6 +8,7 @@ import {
   canPublishContent,
   CONTENT_EDIT_ROLES,
   isUniversityWideCmsSession,
+  resolveScopedDepartmentId,
 } from "@/lib/auth/cms-roles";
 import { hasCmsModuleAccess, requireAdminSessionForCmsModule } from "@/lib/auth/cms-module-access-server";
 import { requireAdminSession } from "@/lib/auth/session";
@@ -55,6 +56,7 @@ function usesPublicBucket(
 function toRow(
   input: ReturnType<typeof downloadFormSchema.parse>,
   userId: string,
+  departmentId: string | null,
   existing?: { published_at?: string | null },
 ) {
   const now = new Date().toISOString();
@@ -71,7 +73,7 @@ function toRow(
     category: input.category || null,
     version: input.version || null,
     tags: parseDownloadTags(input.tags),
-    department_id: input.departmentId || null,
+    department_id: departmentId,
     status: input.status as ContentStatus,
     is_public: input.isPublic !== "false",
     expires_at: input.expiresAt ? new Date(input.expiresAt).toISOString() : null,
@@ -162,7 +164,9 @@ export async function getDownloadById(id: string): Promise<Download | null> {
 }
 
 export async function listDownloadVersions(downloadId: string): Promise<DownloadVersion[]> {
-  await requireAdminSession();
+  const download = await getDownloadById(downloadId);
+  if (!download) return [];
+
   const admin = createAdminClient();
   if (!admin) return [];
 
@@ -191,7 +195,8 @@ export async function createDownloadAction(formData: FormData): Promise<ActionRe
     const admin = createAdminClient();
     if (!admin) return fail("Database not configured.");
 
-    const row = toRow(parsed.data, session.userId);
+    const departmentId = resolveScopedDepartmentId(session, parsed.data.departmentId);
+    const row = toRow(parsed.data, session.userId, departmentId);
 
     const { data, error } = await admin
       .from(Tables.downloads)
@@ -258,7 +263,10 @@ export async function updateDownloadAction(id: string, formData: FormData): Prom
     if (accessError) return accessError;
 
     const download = existing as Download;
-    const row = toRow(parsed.data, session.userId, { published_at: download.published_at });
+    const departmentId = resolveScopedDepartmentId(session, parsed.data.departmentId);
+    const row = toRow(parsed.data, session.userId, departmentId, {
+      published_at: download.published_at,
+    });
     const usePublicBucket = usesPublicBucket(row.status, row.is_public);
 
     let filePath = download.file_path;

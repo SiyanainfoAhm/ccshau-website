@@ -2,21 +2,19 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import {
-  listPageContactLinesForAdmin,
-  listPageGalleryItemsForAdmin,
-  listPageNewsTickerItemsForAdmin,
-  listPageStudentCornerItemsForAdmin,
-  listPageSidebarItemsForAdmin,
-  listPageStaffForAdmin,
-} from "@/actions/office-portal";
-import { getPageById, listAllPagesForAdmin, listDepartments } from "@/actions/pages";
+  getPageById,
+  getParentPageOptionForAdmin,
+  listDepartments,
+  resolveAdminPagePublicPath,
+} from "@/actions/pages";
 import { ContentReviewPanel } from "@/components/admin/content-review-panel";
 import { PageForm } from "@/components/admin/page-form";
-import { StatusBadge } from "@/components/admin/status-badge";
+import { PageReviewPreview } from "@/components/admin/page-review-preview";
 import { canPublishContent } from "@/lib/auth/cms-roles";
 import { canCreateCollegeRoot, canEditPages, canPublishPages } from "@/lib/auth/college-scope";
 import { requireAdminSession } from "@/lib/auth/session";
-import { buildAdminParentPageOptions, resolvePagePublicPath } from "@/lib/pages/resolve-public-path";
+
+export const dynamic = "force-dynamic";
 
 export default async function EditPagePage({
   params,
@@ -28,29 +26,19 @@ export default async function EditPagePage({
   const session = await requireAdminSession();
   const { id } = await params;
   const { saved } = await searchParams;
-  const [page, departments, allPages] = await Promise.all([
-    getPageById(id),
-    listDepartments(),
-    listAllPagesForAdmin(),
-  ]);
+  const canEdit = canEditPages(session);
+
+  const [page, departments] = await Promise.all([getPageById(id), listDepartments()]);
 
   if (!page) notFound();
 
-  const canEdit = canEditPages(session);
+  const [publicPath, initialParentOption] = await Promise.all([
+    resolveAdminPagePublicPath(page),
+    page.parent_id ? getParentPageOptionForAdmin(page.parent_id) : Promise.resolve(null),
+  ]);
+
   const canPublish = canPublishPages(session) || canPublishContent(session);
   const showReview = page.status === "pending_review" && canPublish;
-  const parentPages = buildAdminParentPageOptions(allPages);
-  const pageById = new Map(allPages.map((p) => [p.id, p]));
-  const publicPath = resolvePagePublicPath(page, pageById);
-  const [contactLines, staff, galleryItems, newsTickerItems, studentCornerItems, sidebarItems] =
-    await Promise.all([
-    listPageContactLinesForAdmin(page.id),
-    listPageStaffForAdmin(page.id),
-    listPageGalleryItemsForAdmin(page.id),
-    listPageNewsTickerItemsForAdmin(page.id),
-    listPageStudentCornerItemsForAdmin(page.id),
-    listPageSidebarItemsForAdmin(page.id),
-  ]);
 
   return (
     <div className="space-y-6">
@@ -79,9 +67,8 @@ export default async function EditPagePage({
       {canEdit ? (
         <PageForm
           departments={departments}
-          parentPages={parentPages}
+          initialParentOption={initialParentOption}
           page={page}
-          officePortalData={{ contactLines, staff, galleryItems, newsTickerItems, studentCornerItems, sidebarItems }}
           allowCollegeRoot={canCreateCollegeRoot(session)}
           canEdit={canEdit}
           canPublish={canPublish}
@@ -91,13 +78,7 @@ export default async function EditPagePage({
           }
         />
       ) : (
-        <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="flex flex-wrap items-center gap-3">
-            <h2 className="text-lg font-semibold text-slate-900">{page.title_en}</h2>
-            <StatusBadge status={page.status} />
-          </div>
-          {page.excerpt_en ? <p className="text-sm text-slate-600">{page.excerpt_en}</p> : null}
-        </div>
+        <PageReviewPreview page={page} publicPath={publicPath} />
       )}
     </div>
   );

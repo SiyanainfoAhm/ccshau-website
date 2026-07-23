@@ -15,7 +15,11 @@ export default async function AdminDashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = (await headers()).get("x-admin-pathname") ?? "/admin";
-  const session = await requireAdminPathOrRedirect(pathname);
+  const { session, access } = await requireAdminPathOrRedirect(pathname);
 
-  return <AdminShell session={session}>{children}</AdminShell>;
+  return (
+    <AdminShell session={session} access={access}>
+      {children}
+    </AdminShell>
+  );
 }

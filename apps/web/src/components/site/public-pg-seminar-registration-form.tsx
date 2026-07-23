@@ -7,6 +7,12 @@ import { ArrowLeft } from "lucide-react";
 
 import { submitPgSeminarRegistrationAction } from "@/actions/public/pg-seminar-registration";
 import { useLanguage } from "@/components/design/shared/language-context";
+import {
+  getRecaptchaToken,
+  RecaptchaWidget,
+  resetRecaptcha,
+} from "@/components/shared/recaptcha-widget";
+import type { CaptchaClientConfig } from "@/lib/auth/captcha";
 import type { PublicPgStudiesHub } from "@/lib/data/public-types";
 import { buildImageAlt } from "@/lib/a11y/image-alt";
 import { getPgStudiesHubPath } from "@/lib/pages/routes";
@@ -51,7 +57,13 @@ function YesNoRadios({ name, legend }: { name: string; legend: string }) {
   );
 }
 
-export function PublicPgSeminarRegistrationForm({ hub }: { hub: PublicPgStudiesHub }) {
+export function PublicPgSeminarRegistrationForm({
+  hub,
+  captcha,
+}: {
+  hub: PublicPgStudiesHub;
+  captcha: CaptchaClientConfig;
+}) {
   const { lang, t } = useLanguage();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -71,11 +83,20 @@ export function PublicPgSeminarRegistrationForm({ hub }: { hub: PublicPgStudiesH
   function handleSubmit(formData: FormData) {
     setError(null);
     setFieldErrors({});
+    if (captcha.required) {
+      const token = getRecaptchaToken();
+      if (!token) {
+        setError(t("Please complete the CAPTCHA.", "कृपया कैप्चा पूरा करें।"));
+        return;
+      }
+      formData.set("captchaToken", token);
+    }
     startTransition(async () => {
       const result = await submitPgSeminarRegistrationAction(formData);
       if (!result.success) {
         setError(result.error);
         if (result.fieldErrors) setFieldErrors(result.fieldErrors);
+        if (captcha.required) resetRecaptcha();
         return;
       }
       setRegistrationNumber(result.data.registrationNumber);
@@ -452,7 +473,10 @@ export function PublicPgSeminarRegistrationForm({ hub }: { hub: PublicPgStudiesH
               </div>
             </div>
 
-            <div className="mt-8 flex justify-end">
+            <div className="mt-8 flex flex-col items-end gap-4">
+              {captcha.required && captcha.siteKey ? (
+                <RecaptchaWidget siteKey={captcha.siteKey} />
+              ) : null}
               <button
                 type="submit"
                 disabled={isPending}

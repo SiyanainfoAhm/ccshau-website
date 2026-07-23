@@ -4,6 +4,7 @@ import { getNewsById, listDepartments } from "@/actions/news";
 import { ContentReviewPanel } from "@/components/admin/content-review-panel";
 import { NewsForm } from "@/components/admin/news-form";
 import { StatusBadge } from "@/components/admin/status-badge";
+import { CmsHtmlContent } from "@/components/site/cms-html-content";
 import {
   canEditContent,
   canPublishContent,
@@ -48,10 +49,7 @@ export default async function EditNewsPage({ params }: { params: Promise<{ id: s
             <StatusBadge status={news.status} />
           </div>
           {news.body_en ? (
-            <div
-              className="prose prose-slate max-w-none text-sm"
-              dangerouslySetInnerHTML={{ __html: news.body_en }}
-            />
+            <CmsHtmlContent html={news.body_en} className="prose prose-slate max-w-none text-sm" />
           ) : (
             <p className="text-sm text-slate-500">No body content.</p>
           )}

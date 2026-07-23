@@ -203,7 +203,7 @@ Existing workflow: `.github/workflows/ci.yml`
 | File management | Supabase Storage |
 | Audit logs | `ccshau_audit_logs` |
 | Cloud hosting | Vercel + Supabase Cloud |
-| Weekly backups | Supabase automated backups |
+| Weekly backups | Supabase Pro automated daily DB backups (+ Storage inventory — see [docs/ops/backup-restore-guide.md](../ops/backup-restore-guide.md)) |
 | Source code handover | Git repo + SQL migrations + env docs |
 
 ---

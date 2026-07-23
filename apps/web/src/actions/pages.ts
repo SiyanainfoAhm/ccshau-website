@@ -20,10 +20,19 @@ import { hasRole } from "@/lib/auth/rbac";
 import {
   requireAdminSession,
   requirePageEditSession,
+  type AdminSession,
 } from "@/lib/auth/session";
 import { Tables } from "@/lib/database/names";
 import type { ContentStatus, Page, PageType } from "@/lib/database/types";
 import { syncPublishedCollegeToMenu, removeCollegeFromMenu } from "@/lib/pages/college-menu";
+import {
+  buildAdminParentPageOptions,
+  getPagePathAncestors,
+  isCollegesContainerSlug,
+  resolveCollegeRootPageType,
+  resolvePagePublicPath,
+  type PagePathAncestors,
+} from "@/lib/pages/resolve-public-path";
 import { fail, ok, type ActionResult } from "@/lib/types/action-result";
 import { slugify } from "@/lib/utils/slug";
 import {
@@ -32,7 +41,6 @@ import {
   resolveLayoutTemplateFromForm,
   type PageLayoutConfig,
 } from "@/lib/pages/layout-config";
-import { resolvePagePublicPath, getPagePathAncestors, resolveCollegeRootPageType, isCollegesContainerSlug } from "@/lib/pages/resolve-public-path";
 import { syncCollegeContactLines } from "@/lib/pages/college-contact-seed";
 import { pageFormSchema } from "@/lib/validations/pages";
 import { emptyPaginatedResult, mergeAdminListOptions, runPaginatedQuery } from "@/lib/data/admin-list";
@@ -564,6 +572,52 @@ export async function suggestSlugAction(title: string): Promise<string> {
 
 const PAGES_LIST_SORTS = ["title_en", "slug", "status", "page_type", "updated_at", "created_at"] as const;
 
+/** Columns needed for the admin pages table — avoid select("*"). */
+const PAGES_LIST_COLUMNS =
+  "id, title_en, slug, status, page_type, updated_at, created_at, parent_id, department_id, college_root_id";
+
+/** Minimal columns for parent-page dropdown + public path resolution. */
+const PARENT_PAGE_OPTION_COLUMNS = "id, slug, title_en, page_type, parent_id";
+
+export type ParentPageOptionRow = {
+  id: string;
+  slug: string;
+  title_en: string;
+  page_type: PageType;
+  parent_id: string | null;
+};
+
+function applyPagesListScope(
+  query: any,
+  session: AdminSession,
+  allowedModules: Awaited<ReturnType<typeof getAllowedCmsModulesForSession>>,
+) {
+  const strictDepartmentPages =
+    !isUniversityWideCmsSession(session) &&
+    !isCollegeOnlyUser(session) &&
+    !session.departmentPageAssignment &&
+    Boolean(session.departmentId && allowedModules !== null);
+
+  if (session.departmentPageAssignment) {
+    return query.eq("id", session.departmentPageAssignment.departmentPageId);
+  }
+  if (isCollegeOnlyUser(session) && session.collegeAssignment) {
+    return query.eq("college_root_id", session.collegeAssignment.collegePageId);
+  }
+  if (strictDepartmentPages) {
+    return query.eq("department_id", session.departmentId!);
+  }
+  if (
+    !isUniversityWideCmsSession(session) &&
+    hasUniversityCmsRole(session) &&
+    !isCollegeOnlyUser(session) &&
+    session.departmentId
+  ) {
+    return query.or(universityCmsPageListOrFilter(session.departmentId));
+  }
+  return query;
+}
+
 export async function listPagesForAdmin(
   options: import("@/lib/data/admin-list").AdminListOptions = {},
 ): Promise<PaginatedResult<Page>> {
@@ -593,29 +647,9 @@ export async function listPagesForAdmin(
   const admin = createAdminClient();
   if (!admin) return emptyPaginatedResult(opts);
 
-  let query = admin.from(Tables.pages).select("*", { count: "exact" });
-
   const allowedModules = await getAllowedCmsModulesForSession(session);
-  const strictDepartmentPages =
-    !isUniversityWideCmsSession(session) &&
-    !isCollegeOnlyUser(session) &&
-    !session.departmentPageAssignment &&
-    Boolean(session.departmentId && allowedModules !== null);
-
-  if (session.departmentPageAssignment) {
-    query = query.eq("id", session.departmentPageAssignment.departmentPageId);
-  } else if (isCollegeOnlyUser(session) && session.collegeAssignment) {
-    query = query.eq("college_root_id", session.collegeAssignment.collegePageId);
-  } else if (strictDepartmentPages) {
-    query = query.eq("department_id", session.departmentId!);
-  } else if (
-    !isUniversityWideCmsSession(session) &&
-    hasUniversityCmsRole(session) &&
-    !isCollegeOnlyUser(session) &&
-    session.departmentId
-  ) {
-    query = query.or(universityCmsPageListOrFilter(session.departmentId));
-  }
+  let query = admin.from(Tables.pages).select(PAGES_LIST_COLUMNS, { count: "exact" });
+  query = applyPagesListScope(query, session, allowedModules);
 
   if (opts.search) {
     const term = `%${opts.search}%`;
@@ -625,9 +659,177 @@ export async function listPagesForAdmin(
   return runPaginatedQuery<Page>(query, opts);
 }
 
-export async function listAllPagesForAdmin(): Promise<Page[]> {
-  const result = await listPagesForAdmin({ page: 1, pageSize: 5000 });
-  return result.items;
+/** Slim page rows for parent picker / path ancestry (not full page bodies). */
+export async function listParentPageOptionsForAdmin(): Promise<ParentPageOptionRow[]> {
+  const session = await requireAdminSession();
+  if (!(await assertCanListParentPages(session))) return [];
+
+  const admin = createAdminClient();
+  if (!admin) return [];
+
+  const allowedModules = await getAllowedCmsModulesForSession(session);
+  let query = admin
+    .from(Tables.pages)
+    .select(PARENT_PAGE_OPTION_COLUMNS)
+    .order("title_en", { ascending: true })
+    .limit(5000);
+
+  query = applyPagesListScope(query, session, allowedModules);
+
+  const { data, error } = await query;
+  if (error || !data) return [];
+  return data as ParentPageOptionRow[];
+}
+
+export type AdminParentPageOption = {
+  id: string;
+  slug: string;
+  title_en: string;
+  page_type: PageType;
+  parent_id: string | null;
+  publicPath: string;
+  ancestors: PagePathAncestors;
+};
+
+async function assertCanListParentPages(session: AdminSession): Promise<boolean> {
+  const canList =
+    hasRole(session.roles, [...CMS_READ_ROLES]) ||
+    Boolean(session.collegeAssignment) ||
+    Boolean(session.departmentPageAssignment);
+  if (!canList) return false;
+  if (
+    hasUniversityCmsRole(session) &&
+    !isCollegeOnlyUser(session) &&
+    !session.departmentPageAssignment &&
+    !(await hasCmsModuleAccess(session, "pages"))
+  ) {
+    return false;
+  }
+  return true;
+}
+
+async function fetchParentRowsByIds(ids: string[]): Promise<ParentPageOptionRow[]> {
+  if (!ids.length) return [];
+  const admin = createAdminClient();
+  if (!admin) return [];
+  const { data } = await admin
+    .from(Tables.pages)
+    .select(PARENT_PAGE_OPTION_COLUMNS)
+    .in("id", ids);
+  return (data ?? []) as ParentPageOptionRow[];
+}
+
+/** Attach parent/grandparent rows so publicPath + ancestors resolve without loading all pages. */
+async function enrichParentPageOptions(
+  matches: ParentPageOptionRow[],
+): Promise<AdminParentPageOption[]> {
+  if (!matches.length) return [];
+
+  const byId = new Map(matches.map((row) => [row.id, row]));
+
+  for (let depth = 0; depth < 2; depth += 1) {
+    const missing = [
+      ...new Set(
+        [...byId.values()]
+          .map((row) => row.parent_id)
+          .filter((id): id is string => Boolean(id) && !byId.has(id!)),
+      ),
+    ];
+    if (!missing.length) break;
+    for (const row of await fetchParentRowsByIds(missing)) {
+      byId.set(row.id, row);
+    }
+  }
+
+  const built = buildAdminParentPageOptions([...byId.values()]);
+  const matchIds = new Set(matches.map((row) => row.id));
+  return built
+    .filter((option) => matchIds.has(option.id))
+    .map((option) => ({
+      ...option,
+      parent_id: byId.get(option.id)?.parent_id ?? null,
+    }));
+}
+
+/**
+ * Searchable parent-page picker (P1). Empty search returns a small seed list.
+ * Does not ship full page HTML bodies.
+ */
+export async function searchParentPageOptionsForAdmin(
+  search = "",
+  excludePageId: string | null = null,
+  limit = 40,
+): Promise<AdminParentPageOption[]> {
+  const session = await requireAdminSession();
+  if (!(await assertCanListParentPages(session))) return [];
+
+  const admin = createAdminClient();
+  if (!admin) return [];
+
+  const allowedModules = await getAllowedCmsModulesForSession(session);
+  const safeLimit = Math.min(Math.max(limit, 1), 100);
+
+  let query = admin
+    .from(Tables.pages)
+    .select(PARENT_PAGE_OPTION_COLUMNS)
+    .order("title_en", { ascending: true })
+    .limit(safeLimit);
+
+  query = applyPagesListScope(query, session, allowedModules);
+  if (excludePageId) query = query.neq("id", excludePageId);
+
+  const term = search.trim();
+  if (term) {
+    const pattern = `%${term}%`;
+    query = query.or(`title_en.ilike.${pattern},slug.ilike.${pattern}`);
+  }
+
+  const { data, error } = await query;
+  if (error || !data) return [];
+  return enrichParentPageOptions(data as ParentPageOptionRow[]);
+}
+
+/** Resolve one parent option (current selection on edit). */
+export async function getParentPageOptionForAdmin(
+  pageId: string,
+): Promise<AdminParentPageOption | null> {
+  const session = await requireAdminSession();
+  if (!(await assertCanListParentPages(session))) return null;
+
+  const rows = await fetchParentRowsByIds([pageId]);
+  if (!rows[0]) return null;
+  const [option] = await enrichParentPageOptions(rows);
+  return option ?? null;
+}
+
+/** Public path for admin header without loading every page. */
+export async function resolveAdminPagePublicPath(
+  page: Pick<Page, "id" | "slug" | "page_type" | "parent_id">,
+): Promise<string> {
+  const chain: ParentPageOptionRow[] = [
+    {
+      id: page.id,
+      slug: page.slug,
+      title_en: page.slug,
+      page_type: page.page_type,
+      parent_id: page.parent_id,
+    },
+  ];
+  if (page.parent_id) {
+    const parents = await fetchParentRowsByIds([page.parent_id]);
+    chain.push(...parents);
+    const grandparentId = parents[0]?.parent_id;
+    if (grandparentId) {
+      chain.push(...(await fetchParentRowsByIds([grandparentId])));
+    }
+  }
+  const pageById = new Map(chain.map((row) => [row.id, row]));
+  return resolvePagePublicPath(page, pageById);
+}
+
+/** @deprecated Prefer searchParentPageOptionsForAdmin for parent pickers. */
+export async function listAllPagesForAdmin(): Promise<ParentPageOptionRow[]> {
+  return listParentPageOptionsForAdmin();
 }
 
 export async function getPageById(pageId: string): Promise<Page | null> {
@@ -650,7 +852,11 @@ export async function getPageById(pageId: string): Promise<Page | null> {
 
   try {
     return await assertPageAccess(session, pageId);
-  } catch {
+  } catch (e) {
+    // Distinguish missing rows from permission failures for clearer admin UX.
+    const message = e instanceof Error ? e.message : "";
+    if (message === "Page not found.") return null;
+    console.error("[getPageById]", pageId, message || e);
     return null;
   }
 }

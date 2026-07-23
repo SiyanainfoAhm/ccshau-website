@@ -25,7 +25,7 @@ import {
   tenderAttachmentPath,
   tenderCancellationPath,
 } from "@/lib/storage/config";
-import { sanitizeFileName, validateUploadFile } from "@/lib/storage/validate";
+import { prepareValidatedUpload, sanitizeFileName } from "@/lib/storage/validate";
 import { fail, ok, type ActionResult } from "@/lib/types/action-result";
 
 export function getPublicFileUrl(bucket: string, path: string): string | null {
@@ -53,13 +53,11 @@ export async function uploadNewsAttachments(
   const bucket = getStorageBucket(isPublished);
 
   for (const file of files) {
-    const validationError = validateUploadFile(file);
-    if (validationError) return fail(validationError);
+    const prepared = await prepareValidatedUpload(file);
+    if (!prepared.ok) return fail(prepared.error);
 
     const path = newsAttachmentPath(newsId, sanitizeFileName(file.name));
-    const buffer = Buffer.from(await file.arrayBuffer());
-
-    const { error } = await admin.storage.from(bucket).upload(path, buffer, {
+    const { error } = await admin.storage.from(bucket).upload(path, prepared.buffer, {
       contentType: file.type,
       upsert: true,
     });
@@ -81,13 +79,11 @@ async function uploadFilesToStorage(
   const uploaded: AttachmentPath[] = [];
 
   for (const file of files) {
-    const validationError = validateUploadFile(file);
-    if (validationError) return fail(validationError);
+    const prepared = await prepareValidatedUpload(file);
+    if (!prepared.ok) return fail(prepared.error);
 
     const path = pathForFile(file);
-    const buffer = Buffer.from(await file.arrayBuffer());
-
-    const { error } = await admin.storage.from(bucket).upload(path, buffer, {
+    const { error } = await admin.storage.from(bucket).upload(path, prepared.buffer, {
       contentType: file.type,
       upsert: true,
     });
@@ -170,15 +166,13 @@ export async function uploadBannerImage(
   bannerId: string,
   file: File,
 ): Promise<ActionResult<string>> {
-  const validationError = validateUploadFile(file);
-  if (validationError) return fail(validationError);
+  const prepared = await prepareValidatedUpload(file);
+  if (!prepared.ok) return fail(prepared.error);
   if (!file.type.startsWith("image/")) return fail("Banner must be an image file.");
 
   const bucket = STORAGE_BUCKETS.public;
   const path = bannerImagePath(bannerId, sanitizeFileName(file.name));
-  const buffer = Buffer.from(await file.arrayBuffer());
-
-  const { error } = await admin.storage.from(bucket).upload(path, buffer, {
+  const { error } = await admin.storage.from(bucket).upload(path, prepared.buffer, {
     contentType: file.type,
     upsert: true,
   });
@@ -192,15 +186,13 @@ export async function uploadHomepageDignitaryImage(
   dignitaryId: string,
   file: File,
 ): Promise<ActionResult<string>> {
-  const validationError = validateUploadFile(file);
-  if (validationError) return fail(validationError);
+  const prepared = await prepareValidatedUpload(file);
+  if (!prepared.ok) return fail(prepared.error);
   if (!file.type.startsWith("image/")) return fail("Photo must be an image file.");
 
   const bucket = STORAGE_BUCKETS.public;
   const path = homepageDignitaryImagePath(dignitaryId, sanitizeFileName(file.name));
-  const buffer = Buffer.from(await file.arrayBuffer());
-
-  const { error } = await admin.storage.from(bucket).upload(path, buffer, {
+  const { error } = await admin.storage.from(bucket).upload(path, prepared.buffer, {
     contentType: file.type,
     upsert: true,
   });
@@ -214,15 +206,13 @@ export async function uploadFacultyImage(
   staffId: string,
   file: File,
 ): Promise<ActionResult<string>> {
-  const validationError = validateUploadFile(file);
-  if (validationError) return fail(validationError);
+  const prepared = await prepareValidatedUpload(file);
+  if (!prepared.ok) return fail(prepared.error);
   if (!file.type.startsWith("image/")) return fail("Photo must be an image file.");
 
   const bucket = STORAGE_BUCKETS.public;
   const path = facultyImagePath(staffId, sanitizeFileName(file.name));
-  const buffer = Buffer.from(await file.arrayBuffer());
-
-  const { error } = await admin.storage.from(bucket).upload(path, buffer, {
+  const { error } = await admin.storage.from(bucket).upload(path, prepared.buffer, {
     contentType: file.type,
     upsert: true,
   });
@@ -236,15 +226,13 @@ export async function uploadHomepageInitiativeImage(
   initiativeId: string,
   file: File,
 ): Promise<ActionResult<string>> {
-  const validationError = validateUploadFile(file);
-  if (validationError) return fail(validationError);
+  const prepared = await prepareValidatedUpload(file);
+  if (!prepared.ok) return fail(prepared.error);
   if (!file.type.startsWith("image/")) return fail("Banner must be an image file.");
 
   const bucket = STORAGE_BUCKETS.public;
   const path = homepageInitiativeImagePath(initiativeId, sanitizeFileName(file.name));
-  const buffer = Buffer.from(await file.arrayBuffer());
-
-  const { error } = await admin.storage.from(bucket).upload(path, buffer, {
+  const { error } = await admin.storage.from(bucket).upload(path, prepared.buffer, {
     contentType: file.type,
     upsert: true,
   });
@@ -258,15 +246,13 @@ export async function uploadPageFeaturedImage(
   pageId: string,
   file: File,
 ): Promise<ActionResult<string>> {
-  const validationError = validateUploadFile(file);
-  if (validationError) return fail(validationError);
+  const prepared = await prepareValidatedUpload(file);
+  if (!prepared.ok) return fail(prepared.error);
   if (!file.type.startsWith("image/")) return fail("Hero banner must be an image file.");
 
   const bucket = STORAGE_BUCKETS.public;
   const path = pageFeaturedImagePath(pageId, sanitizeFileName(file.name));
-  const buffer = Buffer.from(await file.arrayBuffer());
-
-  const { error } = await admin.storage.from(bucket).upload(path, buffer, {
+  const { error } = await admin.storage.from(bucket).upload(path, prepared.buffer, {
     contentType: file.type,
     upsert: true,
   });
@@ -280,15 +266,13 @@ export async function uploadPageLogoImage(
   pageId: string,
   file: File,
 ): Promise<ActionResult<string>> {
-  const validationError = validateUploadFile(file);
-  if (validationError) return fail(validationError);
+  const prepared = await prepareValidatedUpload(file);
+  if (!prepared.ok) return fail(prepared.error);
   if (!file.type.startsWith("image/")) return fail("Logo must be an image file.");
 
   const bucket = STORAGE_BUCKETS.public;
   const path = pageLogoImagePath(pageId, sanitizeFileName(file.name));
-  const buffer = Buffer.from(await file.arrayBuffer());
-
-  const { error } = await admin.storage.from(bucket).upload(path, buffer, {
+  const { error } = await admin.storage.from(bucket).upload(path, prepared.buffer, {
     contentType: file.type,
     upsert: true,
   });
@@ -302,15 +286,13 @@ export async function uploadPageHeadImage(
   pageId: string,
   file: File,
 ): Promise<ActionResult<string>> {
-  const validationError = validateUploadFile(file);
-  if (validationError) return fail(validationError);
+  const prepared = await prepareValidatedUpload(file);
+  if (!prepared.ok) return fail(prepared.error);
   if (!file.type.startsWith("image/")) return fail("Head officer photo must be an image file.");
 
   const bucket = STORAGE_BUCKETS.public;
   const path = pageHeadImagePath(pageId, sanitizeFileName(file.name));
-  const buffer = Buffer.from(await file.arrayBuffer());
-
-  const { error } = await admin.storage.from(bucket).upload(path, buffer, {
+  const { error } = await admin.storage.from(bucket).upload(path, prepared.buffer, {
     contentType: file.type,
     upsert: true,
   });
@@ -325,16 +307,14 @@ export async function uploadPageGalleryImage(
   file: File,
   itemId?: string,
 ): Promise<ActionResult<string>> {
-  const validationError = validateUploadFile(file);
-  if (validationError) return fail(validationError);
+  const prepared = await prepareValidatedUpload(file);
+  if (!prepared.ok) return fail(prepared.error);
   if (!file.type.startsWith("image/")) return fail("Gallery file must be an image.");
 
   const bucket = STORAGE_BUCKETS.public;
   const id = itemId ?? crypto.randomUUID();
   const path = pageGalleryImagePath(pageId, id, sanitizeFileName(file.name));
-  const buffer = Buffer.from(await file.arrayBuffer());
-
-  const { error } = await admin.storage.from(bucket).upload(path, buffer, {
+  const { error } = await admin.storage.from(bucket).upload(path, prepared.buffer, {
     contentType: file.type,
     upsert: true,
   });
@@ -349,14 +329,12 @@ export async function uploadPageNewsTickerFile(
   itemId: string,
   file: File,
 ): Promise<ActionResult<string>> {
-  const validationError = validateUploadFile(file);
-  if (validationError) return fail(validationError);
+  const prepared = await prepareValidatedUpload(file);
+  if (!prepared.ok) return fail(prepared.error);
 
   const bucket = STORAGE_BUCKETS.public;
   const path = pageNewsTickerFilePath(pageId, itemId, sanitizeFileName(file.name));
-  const buffer = Buffer.from(await file.arrayBuffer());
-
-  const { error } = await admin.storage.from(bucket).upload(path, buffer, {
+  const { error } = await admin.storage.from(bucket).upload(path, prepared.buffer, {
     contentType: file.type,
     upsert: true,
   });
@@ -371,14 +349,12 @@ export async function uploadPageStudentCornerFile(
   itemId: string,
   file: File,
 ): Promise<ActionResult<string>> {
-  const validationError = validateUploadFile(file);
-  if (validationError) return fail(validationError);
+  const prepared = await prepareValidatedUpload(file);
+  if (!prepared.ok) return fail(prepared.error);
 
   const bucket = STORAGE_BUCKETS.public;
   const path = pageStudentCornerFilePath(pageId, itemId, sanitizeFileName(file.name));
-  const buffer = Buffer.from(await file.arrayBuffer());
-
-  const { error } = await admin.storage.from(bucket).upload(path, buffer, {
+  const { error } = await admin.storage.from(bucket).upload(path, prepared.buffer, {
     contentType: file.type,
     upsert: true,
   });
@@ -393,11 +369,10 @@ export async function uploadSingleDocument(
   bucket: string,
   storagePath: string,
 ): Promise<ActionResult<string>> {
-  const validationError = validateUploadFile(file);
-  if (validationError) return fail(validationError);
+  const prepared = await prepareValidatedUpload(file);
+  if (!prepared.ok) return fail(prepared.error);
 
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const { error } = await admin.storage.from(bucket).upload(storagePath, buffer, {
+  const { error } = await admin.storage.from(bucket).upload(storagePath, prepared.buffer, {
     contentType: file.type,
     upsert: true,
   });

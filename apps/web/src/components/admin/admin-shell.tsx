@@ -1,21 +1,25 @@
+"use client";
+
 import type { ReactNode } from "react";
 
 import { AdminHeader } from "@/components/admin/admin-header";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
-import { getAdminNavAccess } from "@/lib/auth/admin-nav-access";
-import { getAllowedCmsModulesForSession } from "@/lib/auth/cms-module-access-server";
+import type { AdminNavAccess } from "@/lib/auth/admin-nav-access";
 import type { AdminSession } from "@/lib/auth/session";
 
-export async function AdminShell({
+/**
+ * Client shell so sidebar/header identity stays stable across soft navigations.
+ * Layout still re-runs auth on the server; only the main children slot suspends.
+ */
+export function AdminShell({
   session,
+  access,
   children,
 }: {
   session: AdminSession;
+  access: AdminNavAccess;
   children: ReactNode;
 }) {
-  const allowedCmsModules = await getAllowedCmsModulesForSession(session);
-  const access = getAdminNavAccess(session, allowedCmsModules);
-
   return (
     <div className="flex min-h-screen bg-slate-50">
       <a href="#admin-main-content" className="skip-link">

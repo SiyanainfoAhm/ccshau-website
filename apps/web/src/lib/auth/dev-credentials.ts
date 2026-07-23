@@ -1,23 +1,18 @@
-/** Local development only — pre-filled on admin login */
-export const DEV_SUPER_ADMIN = {
-  email: "cms.admin@hau.ac.in",
-  password: "Admin@123",
-} as const;
+/**
+ * Dev login helpers.
+ * Never ship real passwords in the client bundle — only an optional email prefill
+ * when running a true local `next dev` (NODE_ENV === "development").
+ */
+export const DEV_SUPER_ADMIN_EMAIL = "cms.admin@hau.ac.in";
+export const DEV_CONTENT_EDITOR_EMAIL = "test.editor@ccshau.test";
 
-export const DEV_CONTENT_EDITOR = {
-  email: "test.editor@ccshau.test",
-  password: "Admin@123",
-} as const;
-
-export function getDevLoginPrefill() {
+export function getDevLoginPrefillEmail(): string | null {
+  if (process.env.NODE_ENV !== "development") return null;
   const role = process.env.NEXT_PUBLIC_DEV_LOGIN_ROLE;
-  if (role === "content_editor") return DEV_CONTENT_EDITOR;
-  return DEV_SUPER_ADMIN;
+  if (role === "content_editor") return DEV_CONTENT_EDITOR_EMAIL;
+  return DEV_SUPER_ADMIN_EMAIL;
 }
 
 export function isDevLoginPrefillEnabled(): boolean {
-  return (
-    process.env.NODE_ENV === "development" ||
-    process.env.NEXT_PUBLIC_DEV_PREFILL_LOGIN === "true"
-  );
+  return process.env.NODE_ENV === "development";
 }

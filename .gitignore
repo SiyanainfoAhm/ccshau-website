@@ -41,5 +41,8 @@ next-env.d.ts
 # Testing
 coverage/
 
+# Local / off-site backup outputs (never commit dumps or media copies)
+backups/
+
 .vercel
 .env*

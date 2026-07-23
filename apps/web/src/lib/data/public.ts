@@ -1,3 +1,5 @@
+import { unstable_cache } from "next/cache";
+
 import { Functions, Tables } from "@/lib/database/names";
 import type {
   AttachmentPath,
@@ -146,6 +148,19 @@ function mapPublicPage(page: Page): PublicPage {
   };
 }
 
+const MENU_ITEM_PUBLIC_SELECT =
+  "id, menu_id, parent_id, label_en, label_hi, href, page_id, sort_order, is_active, open_in_new_tab";
+const BANNER_PUBLIC_SELECT =
+  "title, image_path, target_url, alt_text, start_date, end_date, priority, is_active";
+const NEWS_LIST_PUBLIC_SELECT =
+  "id, slug, title_en, title_hi, category, notice_type, published_at, attachment_paths";
+const CIRCULAR_PUBLIC_SELECT =
+  "id, circular_number, title_en, title_hi, published_at, department_id, file_name, file_path";
+const TENDER_LIST_PUBLIC_SELECT =
+  "id, slug, tender_number, title_en, title_hi, description_en, description_hi, category, status, closing_date, published_at, department_id, cancelled_at, cancellation_notice_en, cancellation_notice_hi, cancellation_document_path, cancellation_document_name, document_paths";
+const DOWNLOAD_PUBLIC_SELECT =
+  "id, title_en, title_hi, category, version, department_id, tags, file_name, file_path, download_count, expires_at";
+
 function mockHeaderNav(): PublicNavItem[] {
   return mockNavItems.map((item) => ({
     labelEn: item.labelEn,
@@ -167,13 +182,13 @@ function mockQuickLinkItems(): PublicQuickLink[] {
   }));
 }
 
-export async function getActiveBanners(): Promise<PublicHeroSlide[]> {
+export async function getActiveBannersUncached(): Promise<PublicHeroSlide[]> {
   const admin = createAdminClient();
   if (!admin) return [];
 
   const { data } = await admin
     .from(Tables.banners)
-    .select("*")
+    .select(BANNER_PUBLIC_SELECT)
     .eq("is_active", true)
     .order("priority", { ascending: false });
 
@@ -198,6 +213,12 @@ export async function getActiveBanners(): Promise<PublicHeroSlide[]> {
   return slides;
 }
 
+export const getActiveBanners = unstable_cache(
+  getActiveBannersUncached,
+  ["ccshau-public-active-banners"],
+  { revalidate: 60, tags: ["public-banners"] },
+);
+
 export async function getPublishedNews(options?: {
   limit?: number;
   category?: string;
@@ -207,7 +228,7 @@ export async function getPublishedNews(options?: {
 
   let query = admin
     .from(Tables.news)
-    .select("*")
+    .select(NEWS_LIST_PUBLIC_SELECT)
     .eq("status", "published")
     .order("published_at", { ascending: false });
 
@@ -224,8 +245,8 @@ export async function getPublishedNews(options?: {
     slug: item.slug,
     titleEn: item.title_en,
     titleHi: item.title_hi,
-    bodyEn: item.body_en,
-    bodyHi: item.body_hi,
+    bodyEn: null,
+    bodyHi: null,
     category: item.category,
     noticeType: item.notice_type,
     publishedAt: item.published_at,
@@ -247,7 +268,7 @@ export async function getPublishedNewsPage(options: {
 
   let query = admin
     .from(Tables.news)
-    .select("*", { count: "exact" })
+    .select(NEWS_LIST_PUBLIC_SELECT, { count: "exact" })
     .eq("status", "published")
     .order("published_at", { ascending: false });
 
@@ -263,8 +284,8 @@ export async function getPublishedNewsPage(options: {
     slug: item.slug,
     titleEn: item.title_en,
     titleHi: item.title_hi,
-    bodyEn: item.body_en,
-    bodyHi: item.body_hi,
+    bodyEn: null,
+    bodyHi: null,
     category: item.category,
     noticeType: item.notice_type,
     publishedAt: item.published_at,
@@ -359,7 +380,7 @@ export async function getPublicTenders(options?: {
 
   let query = admin
     .from(Tables.tenders)
-    .select("*")
+    .select(TENDER_LIST_PUBLIC_SELECT)
     .in("status", options?.status ? [options.status] : [...PUBLIC_TENDER_STATUSES])
     .order("published_at", { ascending: false });
 
@@ -399,7 +420,7 @@ export async function getPublicTendersPage(options: {
   const { from, to } = paginationRange(page, pageSize);
   let query = admin
     .from(Tables.tenders)
-    .select("*", { count: "exact" })
+    .select(TENDER_LIST_PUBLIC_SELECT, { count: "exact" })
     .in("status", statuses)
     .order("published_at", { ascending: false });
 
@@ -495,7 +516,7 @@ async function getMenuLinks(location: "header" | "footer" | "quick_links"): Prom
   const [{ data: items }, { data: pages }] = await Promise.all([
     admin
       .from(Tables.menuItems)
-      .select("*")
+      .select(MENU_ITEM_PUBLIC_SELECT)
       .eq("menu_id", menu.id)
       .eq("is_active", true)
       .order("sort_order"),
@@ -517,7 +538,7 @@ async function getMenuLinks(location: "header" | "footer" | "quick_links"): Prom
     }));
 }
 
-export async function getPublicSiteChrome(): Promise<PublicSiteChrome> {
+async function loadPublicSiteChrome(): Promise<PublicSiteChrome> {
   const admin = createAdminClient();
   if (!admin) {
     return {
@@ -540,7 +561,7 @@ export async function getPublicSiteChrome(): Promise<PublicSiteChrome> {
     const [{ data: headerItems }, { data: pages }] = await Promise.all([
       admin
         .from(Tables.menuItems)
-        .select("*")
+        .select(MENU_ITEM_PUBLIC_SELECT)
         .eq("menu_id", headerMenu.id)
         .eq("is_active", true)
         .order("sort_order"),
@@ -560,6 +581,12 @@ export async function getPublicSiteChrome(): Promise<PublicSiteChrome> {
 
   return { headerNav, quickLinks, footerLinks };
 }
+
+export const getPublicSiteChrome = unstable_cache(
+  loadPublicSiteChrome,
+  ["ccshau-public-site-chrome"],
+  { revalidate: 60, tags: ["public-chrome"] },
+);
 
 export async function getPublishedPageBySlug(slug: string): Promise<PublicPage | null> {
   const admin = createAdminClient();
@@ -1141,7 +1168,7 @@ export async function getPublishedCirculars(options?: {
 
   const { data } = await admin
     .from(Tables.circulars)
-    .select("*")
+    .select(CIRCULAR_PUBLIC_SELECT)
     .eq("status", "published")
     .order("published_at", { ascending: false });
 
@@ -1263,7 +1290,7 @@ export async function getPublishedDownloadsPage(options: {
 
   let query = admin
     .from(Tables.downloads)
-    .select("*", { count: "exact" })
+    .select(DOWNLOAD_PUBLIC_SELECT, { count: "exact" })
     .eq("status", "published")
     .eq("is_public", true)
     .or(`expires_at.is.null,expires_at.gt.${now}`)

@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { redirect } from "next/navigation";
 
 import {
@@ -22,26 +23,38 @@ function isModuleRestrictionBypass(session: AdminSession): boolean {
   return false;
 }
 
+const loadAllowedCmsModules = cache(
+  async (
+    userId: string,
+    departmentId: string | null,
+    bypass: boolean,
+  ): Promise<CmsModule[] | null> => {
+    if (bypass) return null;
+    if (!departmentId) return null;
+
+    const admin = createAdminClient();
+    if (!admin) return null;
+
+    const { data, error } = await admin
+      .from(Tables.departmentModules)
+      .select("module")
+      .eq("department_id", departmentId);
+
+    if (error || !data?.length) return null;
+
+    return data.map((row) => row.module as CmsModule);
+  },
+);
+
 /** `null` = unrestricted (all content modules). Array = explicit allow-list. */
 export async function getAllowedCmsModulesForSession(
   session: AdminSession,
 ): Promise<CmsModule[] | null> {
-  if (isModuleRestrictionBypass(session)) return null;
-
-  const departmentId = resolveSessionDepartmentId(session);
-  if (!departmentId) return null;
-
-  const admin = createAdminClient();
-  if (!admin) return null;
-
-  const { data, error } = await admin
-    .from(Tables.departmentModules)
-    .select("module")
-    .eq("department_id", departmentId);
-
-  if (error || !data?.length) return null;
-
-  return data.map((row) => row.module as CmsModule);
+  return loadAllowedCmsModules(
+    session.userId,
+    resolveSessionDepartmentId(session),
+    isModuleRestrictionBypass(session),
+  );
 }
 
 export async function hasCmsModuleAccess(

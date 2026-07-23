@@ -1,3 +1,5 @@
+import { cache } from "react";
+
 import { getAllowedCmsModulesForSession } from "@/lib/auth/cms-module-access-server";
 import type { AdminSession } from "@/lib/auth/session";
 import { Tables } from "@/lib/database/names";
@@ -14,30 +16,30 @@ import {
 
 export type { CollegeAssignment };
 
-export async function getCollegeAssignmentForUser(
-  userId: string,
-): Promise<CollegeAssignment | null> {
-  const admin = createAdminClient();
-  if (!admin) return null;
+export const getCollegeAssignmentForUser = cache(
+  async (userId: string): Promise<CollegeAssignment | null> => {
+    const admin = createAdminClient();
+    if (!admin) return null;
 
-  const { data } = await admin
-    .from(Tables.userColleges)
-    .select("college_page_id, role, college:college_page_id (title_en, slug)")
-    .eq("user_id", userId)
-    .maybeSingle();
+    const { data } = await admin
+      .from(Tables.userColleges)
+      .select("college_page_id, role, college:college_page_id (title_en, slug)")
+      .eq("user_id", userId)
+      .maybeSingle();
 
-  if (!data) return null;
+    if (!data) return null;
 
-  const college = data.college as unknown as { title_en: string; slug: string } | null;
-  if (!college) return null;
+    const college = data.college as unknown as { title_en: string; slug: string } | null;
+    if (!college) return null;
 
-  return {
-    collegePageId: data.college_page_id,
-    collegeName: college.title_en,
-    collegeSlug: college.slug,
-    role: data.role as CollegeScopeRole,
-  };
-}
+    return {
+      collegePageId: data.college_page_id,
+      collegeName: college.title_en,
+      collegeSlug: college.slug,
+      role: data.role as CollegeScopeRole,
+    };
+  },
+);
 
 export async function getPageCollegeRootId(page: Pick<Page, "id" | "college_root_id">): Promise<string | null> {
   if (page.college_root_id) return page.college_root_id;
@@ -82,9 +84,8 @@ export async function assertPageAccess(
     const strictDepartmentScope = Boolean(session.departmentId && allowedModules !== null);
 
     if (strictDepartmentScope) {
-      if (collegeRootId) {
-        throw new Error("You do not have permission to access this college page.");
-      }
+      // Match listPagesForAdmin: department_id must match. Do not 404 pages that
+      // appear in the list solely because college_root_id is also set.
       if (page.department_id !== session.departmentId) {
         throw new Error("You do not have permission to access this page.");
       }

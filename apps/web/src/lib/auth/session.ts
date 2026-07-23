@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { redirect } from "next/navigation";
 
 import {
@@ -8,11 +9,15 @@ import {
 import { getCollegeAssignmentForUser } from "@/lib/auth/college-scope-server";
 import type { DepartmentPageAssignment } from "@/lib/auth/department-hod-scope";
 import { getDepartmentPageAssignmentForUser } from "@/lib/auth/department-hod-scope-server";
-import { getAdminNavAccess, canAccessAdminPath } from "@/lib/auth/admin-nav-access";
+import {
+  getAdminNavAccess,
+  canAccessAdminPath,
+  type AdminNavAccess,
+} from "@/lib/auth/admin-nav-access";
 import { getAllowedCmsModulesForSession } from "@/lib/auth/cms-module-access-server";
 import { getUserRoles, highestRole, type UserRoleAssignment } from "@/lib/auth/rbac";
 import { Tables } from "@/lib/database/names";
-import type { UserRole } from "@/lib/database/types";
+import type { CmsModule, UserRole } from "@/lib/database/types";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
@@ -29,7 +34,8 @@ export interface AdminSession {
   departmentPageAssignment: DepartmentPageAssignment | null;
 }
 
-export async function getAdminSession(): Promise<AdminSession | null> {
+/** One session resolution per RSC request (layout + page + actions share it). */
+export const getAdminSession = cache(async (): Promise<AdminSession | null> => {
   const supabase = await createClient();
   const {
     data: { user },
@@ -75,7 +81,7 @@ export async function getAdminSession(): Promise<AdminSession | null> {
   if (!canAccessAdmin(session)) return null;
 
   return session;
-}
+});
 
 export async function requireAdminSession(): Promise<AdminSession> {
   const session = await getAdminSession();
@@ -85,15 +91,23 @@ export async function requireAdminSession(): Promise<AdminSession> {
   return session;
 }
 
+export type AdminPathGuardResult = {
+  session: AdminSession;
+  allowedCmsModules: CmsModule[] | null;
+  access: AdminNavAccess;
+};
+
 /** Server-side admin route guard — redirects to dashboard when the path is not allowed. */
-export async function requireAdminPathOrRedirect(pathname: string): Promise<AdminSession> {
+export async function requireAdminPathOrRedirect(
+  pathname: string,
+): Promise<AdminPathGuardResult> {
   const session = await requireAdminSession();
   const allowedCmsModules = await getAllowedCmsModulesForSession(session);
   const access = getAdminNavAccess(session, allowedCmsModules);
   if (!canAccessAdminPath(access, pathname)) {
     redirect("/admin");
   }
-  return session;
+  return { session, allowedCmsModules, access };
 }
 
 function sessionHasAllowedRole(session: AdminSession, allowed: UserRole[]): boolean {

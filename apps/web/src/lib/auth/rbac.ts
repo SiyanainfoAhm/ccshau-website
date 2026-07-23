@@ -1,3 +1,5 @@
+import { cache } from "react";
+
 import type { UserRole } from "@/lib/database/types";
 import { Tables } from "@/lib/database/names";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -7,7 +9,7 @@ export interface UserRoleAssignment {
   departmentId: string | null;
 }
 
-export async function getUserRoles(userId: string): Promise<UserRoleAssignment[]> {
+export const getUserRoles = cache(async (userId: string): Promise<UserRoleAssignment[]> => {
   const admin = createAdminClient();
   if (!admin) return [];
 
@@ -20,7 +22,7 @@ export async function getUserRoles(userId: string): Promise<UserRoleAssignment[]
     role: row.role as UserRole,
     departmentId: row.department_id,
   }));
-}
+});
 
 export function hasRole(
   assignments: UserRoleAssignment[],

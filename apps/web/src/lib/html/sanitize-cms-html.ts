@@ -1,9 +1,14 @@
 /** Strip risky markup from admin-authored CMS HTML before rendering. */
+import DOMPurify from "isomorphic-dompurify";
+
 export function sanitizeCmsHtml(html: string): string {
-  return html
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
-    .replace(/\son\w+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, "")
-    .replace(/javascript:/gi, "");
+  if (!html) return "";
+  return DOMPurify.sanitize(html, {
+    USE_PROFILES: { html: true },
+    FORBID_TAGS: ["script", "iframe", "object", "embed", "form", "link", "meta", "base", "math", "svg"],
+    FORBID_ATTR: ["srcdoc"],
+    ALLOW_DATA_ATTR: false,
+  });
 }
 
 const HAS_HTML_TAG = /<[a-z][\s\S]*>/i;

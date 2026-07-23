@@ -1,6 +1,12 @@
 export function AdminPageLoading() {
   return (
-    <div className="space-y-6" aria-busy="true" aria-label="Loading page">
+    <div
+      className="space-y-6"
+      aria-busy="true"
+      aria-live="polite"
+      aria-label="Loading admin content"
+    >
+      <p className="sr-only">Loading page content. Navigation stays available.</p>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="space-y-2">
           <div className="h-8 w-48 animate-pulse rounded-lg bg-slate-200" />

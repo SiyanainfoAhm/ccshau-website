@@ -65,3 +65,12 @@ npx supabase db push
 - Rotate **service role** key if it was shared in chat or email
 - Use anon key only in browser; service role only on server (Vercel env)
 - Enable RLS on all `ccshau_*` tables (Phase 2+)
+
+---
+
+## Backups (Pro)
+
+Org is on **Pro** — Supabase runs **daily automatic database backups** (Dashboard → **Database** → **Backups**).
+
+Full ops guide (Storage inventory, GitHub Action secrets, restore drill):  
+[docs/ops/backup-restore-guide.md](../ops/backup-restore-guide.md)

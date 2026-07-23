@@ -8,15 +8,16 @@ import {
   RecaptchaWidget,
   resetRecaptcha,
 } from "@/components/shared/recaptcha-widget";
-import { getDevLoginPrefill, isDevLoginPrefillEnabled } from "@/lib/auth/dev-credentials";
+import { getDevLoginPrefillEmail, isDevLoginPrefillEnabled } from "@/lib/auth/dev-credentials";
 import type { CaptchaClientConfig } from "@/lib/auth/captcha";
 
-const devPrefill = isDevLoginPrefillEnabled() ? getDevLoginPrefill() : null;
+const devPrefillEmail =
+  isDevLoginPrefillEnabled() ? getDevLoginPrefillEmail() : null;
 
 export function LoginForm({ captcha }: { captcha: CaptchaClientConfig }) {
   const router = useRouter();
-  const [email, setEmail] = useState(devPrefill?.email ?? "");
-  const [password, setPassword] = useState(devPrefill?.password ?? "");
+  const [email, setEmail] = useState(devPrefillEmail ?? "");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -85,7 +86,7 @@ export function LoginForm({ captcha }: { captcha: CaptchaClientConfig }) {
         </label>
         <input
           id="password"
-          type={devPrefill ? "text" : "password"}
+          type="password"
           autoComplete="current-password"
           required
           minLength={8}
@@ -105,9 +106,9 @@ export function LoginForm({ captcha }: { captcha: CaptchaClientConfig }) {
         {loading ? "Signing in…" : "Sign in to CMS"}
       </button>
 
-      {devPrefill && (
+      {devPrefillEmail && (
         <p className="text-center text-xs text-slate-500">
-          Dev mode: credentials pre-filled in the fields above.
+          Dev mode: email pre-filled. Enter the password manually.
         </p>
       )}
     </form>

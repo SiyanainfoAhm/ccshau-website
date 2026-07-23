@@ -7,6 +7,7 @@ import { SETTINGS_ACCESS_ROLES } from "@/lib/auth/cms-roles";
 import { requireAdminWithRoles } from "@/lib/auth/session";
 import { Tables } from "@/lib/database/names";
 import type { UrlRedirect } from "@/lib/database/types";
+import { clearActiveRedirectCache } from "@/lib/redirects/lookup";
 import { fail, ok, type ActionResult } from "@/lib/types/action-result";
 import { redirectFormSchema } from "@/lib/validations/redirects";
 import { emptyPaginatedResult, mergeAdminListOptions, runPaginatedQuery, type AdminListOptions } from "@/lib/data/admin-list";
@@ -85,6 +86,7 @@ export async function createRedirectAction(formData: FormData): Promise<ActionRe
     });
 
     revalidatePath("/admin/redirects");
+    clearActiveRedirectCache();
     return ok({ id: data.id });
   } catch (e) {
     return fail(e instanceof Error ? e.message : "Failed to create redirect.");
@@ -125,6 +127,7 @@ export async function updateRedirectAction(id: string, formData: FormData): Prom
 
     revalidatePath("/admin/redirects");
     revalidatePath(`/admin/redirects/${id}`);
+    clearActiveRedirectCache();
     return ok(undefined);
   } catch (e) {
     return fail(e instanceof Error ? e.message : "Failed to update redirect.");
@@ -148,6 +151,7 @@ export async function deleteRedirectAction(id: string): Promise<ActionResult> {
     });
 
     revalidatePath("/admin/redirects");
+    clearActiveRedirectCache();
     return ok(undefined);
   } catch (e) {
     return fail(e instanceof Error ? e.message : "Failed to delete redirect.");

@@ -12,7 +12,26 @@ import {
   isSupabaseConfigured,
 } from "@/lib/supabase/env";
 
-export async function GET() {
+function wantsDetailedHealth(request: Request): boolean {
+  if (process.env.NODE_ENV !== "production") return true;
+  if (process.env.HEALTH_DETAILED === "true") return true;
+
+  const secret = process.env.CRON_SECRET ?? process.env.HEALTH_CHECK_SECRET;
+  if (!secret) return false;
+
+  const auth = request.headers.get("authorization");
+  return auth === `Bearer ${secret}`;
+}
+
+/** Production default: liveness only. Detailed posture requires auth or HEALTH_DETAILED. */
+export async function GET(request: Request) {
+  if (!wantsDetailedHealth(request)) {
+    return Response.json({
+      status: "ok",
+      timestamp: new Date().toISOString(),
+    });
+  }
+
   const missingEnv = getMissingPublicEnvVars();
   let supabaseStatus: "configured" | "missing" | "connected" | "error" =
     isSupabaseConfigured() ? "configured" : "missing";
@@ -54,7 +73,7 @@ export async function GET() {
     environment: {
       siteUrl: getSiteUrl(),
       supabase: supabaseStatus,
-      supabaseProjectId: process.env.SUPABASE_PROJECT_ID ?? "fvveqziyusjgqejowkfp",
+      supabaseProjectId: process.env.SUPABASE_PROJECT_ID ?? null,
       schemaVersion,
       supabaseError,
       missingEnvVars: missingEnv,
