@@ -71,7 +71,7 @@ Also run **Supabase Dashboard → Advisors** (Security) and file any open RLS/fu
 |-------|------|
 | Contact/feedback: CAPTCHA when enforced + rate limit (~5 / 15 min / IP) | ☐ |
 | PG seminar registration: CAPTCHA widget + server verify + rate limit (~3 / 15 min / IP) | ☐ |
-| Production with CAPTCHA keys: cannot bypass via admin toggle unless `CAPTCHA_ALLOW_DISABLE=true` | ☐ |
+| Admin Settings "Enable CAPTCHA" ON → login/feedback require CAPTCHA; OFF → bypass | ☐ |
 | Security headers present (`CSP`, `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `HSTS`) | ☐ |
 | Uploads reject content that fails magic-byte sniff vs declared MIME | ☐ |
 | Login lockout **fails closed** if service-role admin client missing (503) | ☐ |

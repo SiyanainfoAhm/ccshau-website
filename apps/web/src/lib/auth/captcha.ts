@@ -7,46 +7,28 @@ export interface CaptchaClientConfig {
   siteKey: string | null;
 }
 
-function captchaKeysConfigured(): boolean {
-  return Boolean(process.env.CAPTCHA_SECRET_KEY && process.env.NEXT_PUBLIC_CAPTCHA_SITE_KEY);
-}
-
 /**
- * Whether CAPTCHA must be verified.
- * - Admin toggle ON → enforce
- * - Production with keys configured → enforce even if toggle OFF
- *   (set CAPTCHA_ALLOW_DISABLE=true to permit disabling in prod)
+ * CAPTCHA is driven only by Admin → Settings → "Enable CAPTCHA".
+ * When the toggle is off, login and public forms bypass CAPTCHA entirely.
  */
-export async function isCaptchaEnforced(): Promise<boolean> {
-  if (await isCaptchaEnabled()) return true;
-
-  if (
-    process.env.NODE_ENV === "production" &&
-    process.env.CAPTCHA_ALLOW_DISABLE !== "true" &&
-    captchaKeysConfigured()
-  ) {
-    return true;
-  }
-
-  return false;
-}
-
 export async function getCaptchaClientConfig(): Promise<CaptchaClientConfig> {
-  const enforced = await isCaptchaEnforced();
+  const enabled = await isCaptchaEnabled();
   const siteKey = process.env.NEXT_PUBLIC_CAPTCHA_SITE_KEY ?? null;
 
   return {
-    required: enforced && Boolean(siteKey),
-    siteKey: enforced ? siteKey : null,
+    required: enabled && Boolean(siteKey),
+    siteKey: enabled ? siteKey : null,
   };
 }
 
 /**
  * Login / public-form CAPTCHA gate.
- * Returns false when enforcement is on and the token is missing/invalid.
+ * - Settings toggle OFF → bypass (return true)
+ * - Settings toggle ON → require a valid Google reCAPTCHA token
  */
 export async function verifyCaptcha(token: string | undefined): Promise<boolean> {
-  if (!(await isCaptchaEnforced())) return true;
+  const enabled = await isCaptchaEnabled();
+  if (!enabled) return true;
 
   const secret = process.env.CAPTCHA_SECRET_KEY;
   if (!secret) return false;
