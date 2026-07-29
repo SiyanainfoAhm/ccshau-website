@@ -157,7 +157,7 @@ const NEWS_LIST_PUBLIC_SELECT =
 const CIRCULAR_PUBLIC_SELECT =
   "id, circular_number, title_en, title_hi, published_at, department_id, file_name, file_path";
 const TENDER_LIST_PUBLIC_SELECT =
-  "id, slug, tender_number, title_en, title_hi, description_en, description_hi, category, status, closing_date, published_at, department_id, cancelled_at, cancellation_notice_en, cancellation_notice_hi, cancellation_document_path, cancellation_document_name, document_paths";
+  "id, slug, tender_number, title_en, title_hi, description_en, description_hi, category, status, closing_date, published_at, department_id, document_paths";
 const DOWNLOAD_PUBLIC_SELECT =
   "id, title_en, title_hi, category, version, department_id, tags, file_name, file_path, download_count, expires_at";
 

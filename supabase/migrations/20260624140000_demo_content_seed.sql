@@ -147,6 +147,42 @@ INSERT INTO ccshau_tenders (
     '<p>Tender for comprehensive annual maintenance of CCTV and access control systems across the Hisar campus.</p>',
     '<p>हिसार परिसर में सीसीटीवी प्रणाली के वार्षिक रखरखाव हेतु निविदा।</p>',
     'services', 'open', now(), now() + interval '21 days'
+  ),
+  (
+    'TND/HAU/2026/RDS-001',
+    'auction-notice-rds-seed-farm',
+    'Auction Notice RDS Seed Farm',
+    'नीलामी सूचना आरडीएस सीड फार्म',
+    '<p>Public auction notice for farm produce / materials at RDS Seed Farm, CCSHAU Hisar.</p>',
+    '<p>सीसीएसएचएयू हिसार आरडीएस सीड फार्म पर नीलामी सूचना।</p>',
+    'other', 'open', TIMESTAMPTZ '2026-06-18 10:00:00+05:30', TIMESTAMPTZ '2026-08-18 17:00:00+05:30'
+  ),
+  (
+    'TND/HAU/2026/COA-002',
+    'public-auction-college-of-agriculture',
+    'Public Auction Notice College of Agriculture',
+    'सार्वजनिक नीलामी सूचना कृषि महाविद्यालय',
+    '<p>Public auction notice issued by College of Agriculture, CCSHAU Hisar.</p>',
+    '<p>कृषि महाविद्यालय, सीसीएसएचएयू हिसार द्वारा सार्वजनिक नीलामी सूचना।</p>',
+    'other', 'open', TIMESTAMPTZ '2026-06-18 10:00:00+05:30', TIMESTAMPTZ '2026-08-18 17:00:00+05:30'
+  ),
+  (
+    'TND/HAU/2026/KVK-003',
+    'tender-notice-kvk-yamunanagar',
+    'Tender Notice KVK Yamunanagar',
+    'निविदा सूचना केवीके यमुनानगर',
+    '<p>Sealed tenders are invited for works/supplies at KVK Yamunanagar.</p>',
+    '<p>केवीके यमुनानगर हेतु निविदा आमंत्रित।</p>',
+    'works', 'open', TIMESTAMPTZ '2026-06-18 10:00:00+05:30', TIMESTAMPTZ '2026-08-18 17:00:00+05:30'
+  ),
+  (
+    'TND/HAU/2026/NCRS-004',
+    'tender-notice-ncrs-gokalpura',
+    'Tender Notice NCRS Gokalpura',
+    'निविदा सूचना एनसीआरएस गोकालपुरा',
+    '<p>Tender notice for procurement/works at NCRS Gokalpura.</p>',
+    '<p>एनसीआरएस गोकालपुरा हेतु निविदा सूचना।</p>',
+    'goods', 'open', TIMESTAMPTZ '2026-06-12 10:00:00+05:30', TIMESTAMPTZ '2026-08-12 17:00:00+05:30'
   )
 ON CONFLICT (slug) DO NOTHING;
 

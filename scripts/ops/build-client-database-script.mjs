@@ -199,6 +199,15 @@ ${included.map((f) => `1. \`${f}\``).join("\n")}
 ## Migrations also packaged as demo seed (${seedIncluded.length})
 
 ${seedIncluded.map((f) => `1. \`${f}\``).join("\n")}
+
+## Security locks (Phase A)
+
+Included via \`20260723140000_security_phase_a_locks.sql\`:
+
+- \`ccshau_download_versions\` — RLS enabled; \`anon\` / \`authenticated\` have no table grants; \`service_role\` only
+- Sensitive RPCs (\`ccshau_get_vault_secret\`, \`ccshau_write_audit_log\`, \`ccshau_archive_expired_*\`, \`ccshau_generate_ticket_number\`) — \`EXECUTE\` for \`service_role\` only
+
+Verify after apply with \`03_verify_schema.sql\` (security section at bottom).
 `;
 
 writeFileSync(join(outDir, "SCHEMA_INVENTORY.md"), inv);

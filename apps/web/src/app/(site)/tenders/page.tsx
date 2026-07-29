@@ -9,6 +9,8 @@ export const metadata = {
   description: "Open and archived tenders from CCSHAU Hisar",
 };
 
+const TENDERS_PAGE_SIZE = 10;
+
 export default async function TendersPage({
   searchParams,
 }: {
@@ -24,6 +26,7 @@ export default async function TendersPage({
   const [data, departments] = await Promise.all([
     getPublicTendersPage({
       page: parsePageParam(pageParam),
+      pageSize: TENDERS_PAGE_SIZE,
       status: status as "open" | "closed" | "archived" | "cancelled" | "all",
       category: category || undefined,
       departmentId: department || undefined,

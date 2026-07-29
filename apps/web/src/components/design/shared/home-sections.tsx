@@ -1117,12 +1117,7 @@ export function NotificationsSection({
             href: `${tendersPath}/${item.slug}`,
             date: formatNoticeDate(item.publishedAt ?? item.closingDate),
           }))
-        : heritageNotifications.tenders.map((item) => ({
-            key: item,
-            label: item,
-            href: "#",
-            date: "",
-          })),
+        : [],
     circulars:
       circularItems && circularItems.length > 0
         ? circularItems.map((item) => ({
@@ -1180,30 +1175,38 @@ export function NotificationsSection({
                   {t(col.titleEn, col.titleHi)}
                 </h3>
                 <ul className="space-y-3 p-5">
-                  {itemsByColumn[col.key].map((item) => (
-                    <li key={item.key}>
-                      <Link
-                        href={item.href}
-                        className={`text-sm leading-snug hover:underline ${
-                          variant === "ministry"
-                            ? "text-slate-700 hover:text-[#0c3b6e]"
-                            : variant === "heritage"
-                              ? "text-slate-600 hover:text-violet-600"
-                              : "text-slate-700 hover:text-emerald-700 dark:text-emerald-100/90 dark:hover:text-amber-300"
-                        }`}
-                      >
-                        {item.label}
-                        {"meta" in item && item.meta ? (
-                          <span className="mt-0.5 block text-xs font-medium text-rose-600/80 dark:text-rose-300/80">
-                            {item.meta}
-                          </span>
-                        ) : null}
-                        {item.date ? (
-                          <span className="mt-0.5 block text-xs text-slate-400">{item.date}</span>
-                        ) : null}
-                      </Link>
+                  {itemsByColumn[col.key].length === 0 ? (
+                    <li className="text-sm text-slate-400">
+                      {col.key === "tenders"
+                        ? t("No tenders available.", "कोई निविदा उपलब्ध नहीं है।")
+                        : t("No items available.", "कोई आइटम उपलब्ध नहीं है।")}
                     </li>
-                  ))}
+                  ) : (
+                    itemsByColumn[col.key].map((item) => (
+                      <li key={item.key}>
+                        <Link
+                          href={item.href}
+                          className={`text-sm leading-snug hover:underline ${
+                            variant === "ministry"
+                              ? "text-slate-700 hover:text-[#0c3b6e]"
+                              : variant === "heritage"
+                                ? "text-slate-600 hover:text-violet-600"
+                                : "text-slate-700 hover:text-emerald-700 dark:text-emerald-100/90 dark:hover:text-amber-300"
+                          }`}
+                        >
+                          {item.label}
+                          {"meta" in item && item.meta ? (
+                            <span className="mt-0.5 block text-xs font-medium text-rose-600/80 dark:text-rose-300/80">
+                              {item.meta}
+                            </span>
+                          ) : null}
+                          {item.date ? (
+                            <span className="mt-0.5 block text-xs text-slate-400">{item.date}</span>
+                          ) : null}
+                        </Link>
+                      </li>
+                    ))
+                  )}
                 </ul>
                 <div className="border-t border-slate-100 px-5 py-3 dark:border-emerald-900/40">
                   <Link
