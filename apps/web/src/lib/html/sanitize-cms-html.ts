@@ -1,14 +1,44 @@
 /** Strip risky markup from admin-authored CMS HTML before rendering. */
-import DOMPurify from "isomorphic-dompurify";
+import sanitizeHtml from "sanitize-html";
+
+const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
+  allowedTags: sanitizeHtml.defaults.allowedTags.concat([
+    "img",
+    "h1",
+    "h2",
+    "span",
+    "div",
+    "section",
+    "article",
+    "figure",
+    "figcaption",
+    "table",
+    "thead",
+    "tbody",
+    "tr",
+    "th",
+    "td",
+    "colgroup",
+    "col",
+  ]),
+  allowedAttributes: {
+    ...sanitizeHtml.defaults.allowedAttributes,
+    "*": ["class", "id", "style", "title", "lang", "dir"],
+    a: ["href", "name", "target", "rel", "class", "title"],
+    img: ["src", "alt", "title", "width", "height", "class", "loading"],
+    td: ["colspan", "rowspan", "class", "style"],
+    th: ["colspan", "rowspan", "class", "style", "scope"],
+    col: ["span", "width", "style"],
+  },
+  allowedSchemes: ["http", "https", "mailto", "tel"],
+  allowProtocolRelative: false,
+  // Match prior DOMPurify policy for CMS content.
+  disallowedTagsMode: "discard",
+};
 
 export function sanitizeCmsHtml(html: string): string {
   if (!html) return "";
-  return DOMPurify.sanitize(html, {
-    USE_PROFILES: { html: true },
-    FORBID_TAGS: ["script", "iframe", "object", "embed", "form", "link", "meta", "base", "math", "svg"],
-    FORBID_ATTR: ["srcdoc"],
-    ALLOW_DATA_ATTR: false,
-  });
+  return sanitizeHtml(html, SANITIZE_OPTIONS);
 }
 
 const HAS_HTML_TAG = /<[a-z][\s\S]*>/i;

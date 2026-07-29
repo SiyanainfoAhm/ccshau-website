@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import {
@@ -9,22 +8,18 @@ import {
   RecaptchaWidget,
   resetRecaptcha,
 } from "@/components/shared/recaptcha-widget";
-import { getDevLoginPrefillEmail, isDevLoginPrefillEnabled } from "@/lib/auth/dev-credentials";
 import type { CaptchaClientConfig } from "@/lib/auth/captcha";
 
-const devPrefillEmail =
-  isDevLoginPrefillEnabled() ? getDevLoginPrefillEmail() : null;
-
-export function LoginForm({ captcha }: { captcha: CaptchaClientConfig }) {
-  const router = useRouter();
-  const [email, setEmail] = useState(devPrefillEmail ?? "");
-  const [password, setPassword] = useState("");
+export function ForgotPasswordForm({ captcha }: { captcha: CaptchaClientConfig }) {
+  const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setSuccess(null);
     setLoading(true);
 
     try {
@@ -35,21 +30,22 @@ export function LoginForm({ captcha }: { captcha: CaptchaClientConfig }) {
         return;
       }
 
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch("/api/auth/password-reset-request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, captchaToken }),
+        body: JSON.stringify({ email, captchaToken }),
       });
-      const data = (await res.json()) as { success?: boolean; error?: string };
+      const data = (await res.json()) as { success?: boolean; error?: string; message?: string };
 
       if (!res.ok || !data.success) {
-        setError(data.error ?? "Login failed");
+        setError(data.error ?? "Could not send reset email.");
         if (captcha.required) resetRecaptcha();
         return;
       }
 
-      router.push("/admin");
-      router.refresh();
+      setSuccess(data.message ?? "If an account exists for that email, a reset link has been sent.");
+      setEmail("");
+      if (captcha.required) resetRecaptcha();
     } catch {
       setError("Network error. Please try again.");
       if (captcha.required) resetRecaptcha();
@@ -66,6 +62,12 @@ export function LoginForm({ captcha }: { captcha: CaptchaClientConfig }) {
         </div>
       )}
 
+      {success && (
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+          {success}
+        </div>
+      )}
+
       <div>
         <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-slate-700">
           Email
@@ -77,46 +79,25 @@ export function LoginForm({ captcha }: { captcha: CaptchaClientConfig }) {
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-slate-900 outline-none ring-emerald-500/0 transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
-        />
-      </div>
-
-      <div>
-        <label htmlFor="password" className="mb-1.5 block text-sm font-medium text-slate-700">
-          Password
-        </label>
-        <input
-          id="password"
-          type="password"
-          autoComplete="current-password"
-          required
-          minLength={8}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
           className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
         />
-        <p className="mt-1.5 text-right text-sm">
-          <Link href="/admin/forgot-password" className="font-medium text-[#0b3d2e] hover:underline">
-            Forgot password?
-          </Link>
-        </p>
       </div>
 
       {captcha.required && captcha.siteKey && <RecaptchaWidget siteKey={captcha.siteKey} />}
 
       <button
         type="submit"
-        disabled={loading}
+        disabled={loading || Boolean(success)}
         className="w-full rounded-lg bg-[#0b3d2e] px-4 py-3 font-semibold text-white transition hover:bg-[#0d4a38] disabled:opacity-60"
       >
-        {loading ? "Signing in…" : "Sign in to CMS"}
+        {loading ? "Sending…" : "Send reset link"}
       </button>
 
-      {devPrefillEmail && (
-        <p className="text-center text-xs text-slate-500">
-          Dev mode: email pre-filled. Enter the password manually.
-        </p>
-      )}
+      <p className="text-center text-sm text-slate-600">
+        <Link href="/admin/login" className="font-medium text-[#0b3d2e] hover:underline">
+          Back to sign in
+        </Link>
+      </p>
     </form>
   );
 }

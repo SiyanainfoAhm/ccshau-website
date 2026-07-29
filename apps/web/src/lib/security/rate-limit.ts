@@ -63,3 +63,9 @@ export const PUBLIC_SEMINAR_RATE = { limit: 3, windowMs: 15 * 60 * 1000 } as con
 
 /** Login attempts per IP (email lockout is separate) */
 export const LOGIN_IP_RATE = { limit: 30, windowMs: 15 * 60 * 1000 } as const;
+
+/** Password reset requests per IP */
+export const PASSWORD_RESET_IP_RATE = { limit: 5, windowMs: 15 * 60 * 1000 } as const;
+
+/** Password reset requests per email */
+export const PASSWORD_RESET_EMAIL_RATE = { limit: 3, windowMs: 15 * 60 * 1000 } as const;

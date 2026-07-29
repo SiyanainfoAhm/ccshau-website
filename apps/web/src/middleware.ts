@@ -34,8 +34,15 @@ async function handleAdminAuth(request: NextRequest): Promise<NextResponse> {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-admin-pathname", pathname);
 
+  const isPublicAuthPage =
+    pathname === "/admin/login" ||
+    pathname === "/admin/forgot-password" ||
+    pathname === "/admin/reset-password";
+
+  const isRecoveryFlow = request.cookies.get("ccshau_recovery")?.value === "1";
+
   if (!env) {
-    if (pathname !== "/admin/login") {
+    if (!isPublicAuthPage) {
       return NextResponse.redirect(new URL("/admin/login", request.url));
     }
     return NextResponse.next({ request: { headers: requestHeaders } });
@@ -64,12 +71,15 @@ async function handleAdminAuth(request: NextRequest): Promise<NextResponse> {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const isLogin = pathname === "/admin/login";
-
-  if (!user && !isLogin) {
+  if (!user && !isPublicAuthPage) {
     const loginUrl = new URL("/admin/login", request.url);
     loginUrl.searchParams.set("next", pathname);
     return NextResponse.redirect(loginUrl);
+  }
+
+  // Recovery sessions may only use the reset-password page until password is updated.
+  if (user && isRecoveryFlow && pathname !== "/admin/reset-password") {
+    return NextResponse.redirect(new URL("/admin/reset-password", request.url));
   }
 
   // Do not redirect authenticated users away from /admin/login here.
