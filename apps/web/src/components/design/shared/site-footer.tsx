@@ -19,7 +19,7 @@ export function SiteFooter({
   const { t } = useLanguage();
   const chrome = usePublicSiteChrome();
   // Prefer CMS Quick Links menu (all active items). Footer menu is a separate column source.
-  const footerLinks =
+  const footerLinks: PublicQuickLink[] =
     quickLinksProp ??
     chrome?.quickLinks ??
     chrome?.footerLinks ??
