@@ -20,6 +20,7 @@ export interface PublicQuickLink {
   labelEn: string;
   labelHi: string | null;
   href: string;
+  openInNewTab?: boolean;
 }
 
 export interface PublicSidebarLink {

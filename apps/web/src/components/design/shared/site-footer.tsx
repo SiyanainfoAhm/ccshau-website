@@ -18,8 +18,10 @@ export function SiteFooter({
 }) {
   const { t } = useLanguage();
   const chrome = usePublicSiteChrome();
+  // Prefer CMS Quick Links menu (all active items). Footer menu is a separate column source.
   const footerLinks =
     quickLinksProp ??
+    chrome?.quickLinks ??
     chrome?.footerLinks ??
     quickLinks.map((label) => ({ labelEn: label, labelHi: null, href: "#" }));
   const isHeritage = variant === "heritage";
@@ -54,21 +56,28 @@ export function SiteFooter({
             </div>
           </div>
 
-          <div>
+          <div className="lg:col-span-1">
             <h3 className="mb-4 text-sm font-bold uppercase tracking-wider text-amber-300">
               {t("Quick Links", "त्वरित लिंक")}
             </h3>
-            <ul className="grid grid-cols-2 gap-x-4 gap-y-2.5 text-sm">
-              {footerLinks.slice(0, 8).map((link) => (
-                <li key={link.labelEn}>
-                  <Link
-                    href={link.href}
-                    className="text-emerald-100/85 transition hover:text-amber-200 hover:underline"
-                  >
-                    {t(link.labelEn, link.labelHi ?? link.labelEn)}
-                  </Link>
-                </li>
-              ))}
+            <ul className="grid grid-cols-1 gap-x-4 gap-y-2 text-sm sm:grid-cols-2">
+              {footerLinks.map((link, index) => {
+                const isExternal =
+                  link.openInNewTab === true || /^https?:\/\//i.test(link.href);
+                return (
+                  <li key={`${link.href}-${link.labelEn}-${index}`}>
+                    <Link
+                      href={link.href}
+                      {...(isExternal
+                        ? { target: "_blank", rel: "noopener noreferrer" }
+                        : {})}
+                      className="text-emerald-100/85 transition hover:text-amber-200 hover:underline"
+                    >
+                      {t(link.labelEn, link.labelHi ?? link.labelEn)}
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </div>
 

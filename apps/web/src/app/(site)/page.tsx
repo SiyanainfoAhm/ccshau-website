@@ -37,6 +37,7 @@ export default async function HomePage() {
   const [
     banners,
     news,
+    tickerNews,
     recruitmentNews,
     tenders,
     circulars,
@@ -49,6 +50,7 @@ export default async function HomePage() {
   ] = await Promise.all([
     getActiveBanners(),
     getPublishedNews({ limit: 8 }),
+    getPublishedNews({ featuredOnly: true, limit: 100 }),
     getPublishedNews({ limit: 5, category: "recruitment" }),
     getPublicTenders({ status: "open", limit: 5 }),
     getPublishedCirculars(),
@@ -60,9 +62,11 @@ export default async function HomePage() {
     getHomepageContent(),
   ]);
 
-  const tickerHeadlines = news.map((item) => ({
+  const tickerHeadlines = tickerNews.map((item) => ({
     titleEn: item.titleEn,
     titleHi: item.titleHi ?? item.titleEn,
+    href: `/news/${item.slug}`,
+    isNew: true,
   }));
 
   const notificationNews = news

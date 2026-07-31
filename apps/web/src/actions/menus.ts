@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 import { writeAuditLog } from "@/lib/auth/audit";
 import { SITE_STRUCTURE_ACCESS_ROLES } from "@/lib/auth/cms-roles";
@@ -22,6 +22,13 @@ export interface MenuEditorData {
   pages: { id: string; slug: string; title_en: string; page_type?: PageType }[];
 }
 
+function revalidateMenuPublic(location: MenuLocation) {
+  revalidatePath(`/admin/menus/${location}`);
+  revalidatePath("/admin/menus");
+  revalidatePath("/");
+  revalidateTag("public-chrome", "max");
+}
+
 function parseMenuItemForm(formData: FormData) {
   return menuItemFormSchema.safeParse({
     labelEn: formData.get("labelEn"),
@@ -31,7 +38,8 @@ function parseMenuItemForm(formData: FormData) {
     parentId: formData.get("parentId") || "",
     sortOrder: formData.get("sortOrder") ?? 0,
     openInNewTab: formData.get("openInNewTab") === "on",
-    isActive: formData.get("isActive") !== "off",
+    // Unchecked checkboxes are omitted from FormData — must treat missing as false.
+    isActive: formData.get("isActive") === "on",
   });
 }
 
@@ -140,8 +148,7 @@ export async function createMenuItemAction(
       details: { location, label: parsed.data.labelEn },
     });
 
-    revalidatePath(`/admin/menus/${location}`);
-    revalidatePath("/admin/menus");
+    revalidateMenuPublic(location);
     return ok({ id: data.id });
   } catch (e) {
     return fail(e instanceof Error ? e.message : "Create failed.");
@@ -187,7 +194,7 @@ export async function updateMenuItemAction(
       details: { location, label: parsed.data.labelEn },
     });
 
-    revalidatePath(`/admin/menus/${location}`);
+    revalidateMenuPublic(location);
     return ok(undefined);
   } catch (e) {
     return fail(e instanceof Error ? e.message : "Update failed.");
@@ -214,8 +221,7 @@ export async function deleteMenuItemAction(
       details: { location },
     });
 
-    revalidatePath(`/admin/menus/${location}`);
-    revalidatePath("/admin/menus");
+    revalidateMenuPublic(location);
     return ok(undefined);
   } catch (e) {
     return fail(e instanceof Error ? e.message : "Delete failed.");

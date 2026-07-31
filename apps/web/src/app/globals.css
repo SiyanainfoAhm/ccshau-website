@@ -570,7 +570,7 @@ body:not(.high-contrast) :where(a, button, input, select, textarea, [tabindex]:n
 }
 
 .animate-marquee {
-  animation: marquee 30s linear infinite;
+  animation: marquee var(--marquee-duration, 18s) linear infinite;
 }
 
 @keyframes ken-burns {

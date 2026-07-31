@@ -153,7 +153,7 @@ const MENU_ITEM_PUBLIC_SELECT =
 const BANNER_PUBLIC_SELECT =
   "title, image_path, target_url, alt_text, start_date, end_date, priority, is_active";
 const NEWS_LIST_PUBLIC_SELECT =
-  "id, slug, title_en, title_hi, category, notice_type, published_at, attachment_paths";
+  "id, slug, title_en, title_hi, category, notice_type, published_at, expires_at, is_featured, is_pinned, attachment_paths";
 const CIRCULAR_PUBLIC_SELECT =
   "id, circular_number, title_en, title_hi, published_at, department_id, file_name, file_path";
 const TENDER_LIST_PUBLIC_SELECT =
@@ -222,6 +222,8 @@ export const getActiveBanners = unstable_cache(
 export async function getPublishedNews(options?: {
   limit?: number;
   category?: string;
+  /** When true, only homepage-featured news (for yellow ticker). */
+  featuredOnly?: boolean;
 }): Promise<PublicNewsItem[]> {
   const admin = createAdminClient();
   if (!admin) return [];
@@ -230,28 +232,38 @@ export async function getPublishedNews(options?: {
     .from(Tables.news)
     .select(NEWS_LIST_PUBLIC_SELECT)
     .eq("status", "published")
+    .order("is_pinned", { ascending: false })
     .order("published_at", { ascending: false });
 
   if (options?.category) {
     query = query.eq("category", options.category);
+  }
+  if (options?.featuredOnly) {
+    query = query.eq("is_featured", true);
   }
   if (options?.limit) {
     query = query.limit(options.limit);
   }
 
   const { data } = await query;
-  return (data as NewsItem[] ?? []).map((item) => ({
-    id: item.id,
-    slug: item.slug,
-    titleEn: item.title_en,
-    titleHi: item.title_hi,
-    bodyEn: null,
-    bodyHi: null,
-    category: item.category,
-    noticeType: item.notice_type,
-    publishedAt: item.published_at,
-    attachmentPaths: mapAttachments(item.attachment_paths ?? []),
-  }));
+  const now = Date.now();
+  return ((data as NewsItem[] ?? [])
+    .filter((item) => {
+      if (!item.expires_at) return true;
+      return new Date(item.expires_at).getTime() > now;
+    })
+    .map((item) => ({
+      id: item.id,
+      slug: item.slug,
+      titleEn: item.title_en,
+      titleHi: item.title_hi,
+      bodyEn: null,
+      bodyHi: null,
+      category: item.category,
+      noticeType: item.notice_type,
+      publishedAt: item.published_at,
+      attachmentPaths: mapAttachments(item.attachment_paths ?? []),
+    })));
 }
 
 export async function getPublishedNewsPage(options: {
@@ -530,11 +542,12 @@ async function getMenuLinks(location: "header" | "footer" | "quick_links"): Prom
   if (location === "header") return [];
 
   return (items as MenuItem[])
-    .filter((i) => !i.parent_id)
+    .filter((i) => !i.parent_id && i.is_active)
     .map((item) => ({
       labelEn: item.label_en,
       labelHi: item.label_hi,
       href: resolveMenuHref(item, pageById),
+      openInNewTab: item.open_in_new_tab ?? undefined,
     }));
 }
 

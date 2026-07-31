@@ -188,12 +188,18 @@ function MenuItemForm({
             <input
               name="openInNewTab"
               type="checkbox"
+              value="on"
               defaultChecked={item?.open_in_new_tab ?? false}
             />
             Open in new tab
           </label>
           <label className="flex items-center gap-2">
-            <input name="isActive" type="checkbox" defaultChecked={item?.is_active ?? true} />
+            <input
+              name="isActive"
+              type="checkbox"
+              value="on"
+              defaultChecked={item?.is_active ?? true}
+            />
             Active
           </label>
         </div>

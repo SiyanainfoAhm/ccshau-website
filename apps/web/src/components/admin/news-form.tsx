@@ -22,14 +22,18 @@ export function NewsForm({
   departments,
   news,
   canPublish = true,
+  initialSuccess = null,
 }: {
   departments: Department[];
   news?: NewsItem;
   canPublish?: boolean;
+  /** Shown once after create redirect (?saved=1). */
+  initialSuccess?: string | null;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(initialSuccess);
   const [titleEn, setTitleEn] = useState(news?.title_en ?? "");
   const [slug, setSlug] = useState(news?.slug ?? "");
   const { removed, remove, removedJson } = useAttachmentRemovals(news?.attachment_paths ?? []);
@@ -42,6 +46,7 @@ export function NewsForm({
 
   function handleSubmit(formData: FormData) {
     setError(null);
+    setSuccess(null);
     formData.set("removedAttachments", removedJson);
 
     startTransition(async () => {
@@ -54,7 +59,13 @@ export function NewsForm({
         return;
       }
 
-      router.push(news ? `/admin/news/${news.id}` : `/admin/news/${result.data.id}`);
+      if (news) {
+        setSuccess("News updated successfully.");
+        router.refresh();
+        return;
+      }
+
+      router.push(`/admin/news/${result.data.id}?saved=1`);
       router.refresh();
     });
   }
@@ -71,6 +82,11 @@ export function NewsForm({
         </div>
       )}
 
+      {success && (
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+          {success}
+        </div>
+      )}
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <h2 className="mb-4 text-lg font-semibold text-slate-900">News content</h2>
         <div className="grid gap-4 md:grid-cols-2">

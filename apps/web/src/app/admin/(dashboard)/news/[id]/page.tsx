@@ -12,9 +12,16 @@ import {
 } from "@/lib/auth/cms-roles";
 import { requireAdminWithRolesOrRedirect } from "@/lib/auth/session";
 
-export default async function EditNewsPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function EditNewsPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ saved?: string }>;
+}) {
   const session = await requireAdminWithRolesOrRedirect([...CMS_READ_ROLES]);
   const { id } = await params;
+  const { saved } = await searchParams;
   const [news, departments] = await Promise.all([getNewsById(id), listDepartments()]);
 
   if (!news) notFound();
@@ -41,6 +48,7 @@ export default async function EditNewsPage({ params }: { params: Promise<{ id: s
           departments={departments}
           news={news}
           canPublish={canPublishContent(session)}
+          initialSuccess={saved === "1" ? "News created successfully." : null}
         />
       ) : (
         <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
