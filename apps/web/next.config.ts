@@ -81,7 +81,7 @@ const nextConfig: NextConfig = {
       // Next.js + reCAPTCHA require inline/eval in practice for widgets and hydration.
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com https://www.gstatic.com",
       `connect-src 'self' https://www.google.com https://www.gstatic.com${supabaseOrigin ? ` ${supabaseOrigin}` : ""}`,
-      "frame-src https://www.google.com https://www.gstatic.com",
+      "frame-src https://www.google.com https://maps.google.com https://www.gstatic.com",
       "upgrade-insecure-requests",
     ].join("; ");
 

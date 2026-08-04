@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useState, useTransition } from "react";
 
 import { loadOfficePortalDataForAdminAction } from "@/actions/office-portal";
 import { OfficePortalAdminPanel } from "@/components/admin/office-portal-admin-panel";
@@ -47,7 +47,19 @@ export function LazyOfficePortalAdminPanel({
 }) {
   const [data, setData] = useState<OfficePortalData | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
+
+  const reload = useCallback(async () => {
+    try {
+      const next = await loadOfficePortalDataForAdminAction(pageId);
+      setData(next);
+      setError(null);
+      onContactLinesLoaded?.(next.contactLines);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to reload office portal data.");
+      throw e;
+    }
+  }, [pageId, onContactLinesLoaded]);
 
   useEffect(() => {
     let cancelled = false;
@@ -56,6 +68,7 @@ export function LazyOfficePortalAdminPanel({
         const next = await loadOfficePortalDataForAdminAction(pageId);
         if (cancelled) return;
         setData(next);
+        setError(null);
         onContactLinesLoaded?.(next.contactLines);
       } catch (e) {
         if (cancelled) return;
@@ -69,7 +82,7 @@ export function LazyOfficePortalAdminPanel({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pageId]);
 
-  if (error) {
+  if (error && !data) {
     return (
       <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
         {error}
@@ -77,7 +90,7 @@ export function LazyOfficePortalAdminPanel({
     );
   }
 
-  if (!data || isPending) {
+  if (!data) {
     return (
       <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-6 py-8 text-center text-sm text-slate-600">
         Loading office portal sections…
@@ -102,6 +115,7 @@ export function LazyOfficePortalAdminPanel({
       showLeftSidebar={showLeftSidebar}
       showRightSidebar={showRightSidebar}
       canEdit={canEdit}
+      onReload={reload}
     />
   );
 }

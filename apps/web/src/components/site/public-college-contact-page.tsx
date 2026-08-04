@@ -27,14 +27,15 @@ function buildMapEmbedSrc(
   mapLat: number | null,
   mapLng: number | null,
 ) {
+  // Use www.google.com (allowed by CSP frame-src), not maps.google.com.
   if (mapLat != null && mapLng != null) {
-    return `https://maps.google.com/maps?q=${mapLat},${mapLng}&t=k&z=17&ie=UTF8&iwloc=&output=embed`;
+    return `https://www.google.com/maps?q=${mapLat},${mapLng}&t=k&z=17&ie=UTF8&iwloc=&output=embed`;
   }
 
   const mapQuery = encodeURIComponent(
     [collegeName, address].filter(Boolean).join(", ") || `${collegeName}, Hisar, Haryana`,
   );
-  return `https://maps.google.com/maps?q=${mapQuery}&t=k&z=17&ie=UTF8&iwloc=&output=embed`;
+  return `https://www.google.com/maps?q=${mapQuery}&t=k&z=17&ie=UTF8&iwloc=&output=embed`;
 }
 
 export function PublicCollegeContactPage({

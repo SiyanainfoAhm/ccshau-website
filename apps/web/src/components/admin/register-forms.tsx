@@ -6,6 +6,7 @@ import { useState, useTransition } from "react";
 import { GraduationCap } from "lucide-react";
 
 import { registerDepartmentAction } from "@/actions/college-register";
+import { translateFieldsEnToHiAction } from "@/actions/translate";
 import type { CollegeOption } from "@/lib/pages/college-register-helpers";
 import { slugify } from "@/lib/utils/slug";
 
@@ -41,13 +42,39 @@ export function RegisterDepartmentForm({
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [isTranslating, setIsTranslating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [titleEn, setTitleEn] = useState(department?.titleEn ?? "");
+  const [titleHi, setTitleHi] = useState(department?.titleHi ?? "");
   const [slug, setSlug] = useState(department?.slug ?? "");
   const isEdit = Boolean(department);
 
   function handleTitleBlur() {
     if (!isEdit && !slug && titleEn) setSlug(slugify(titleEn));
+  }
+
+  async function handleAutoTranslate() {
+    setError(null);
+    setIsTranslating(true);
+    try {
+      const result = await translateFieldsEnToHiAction([{ key: "titleHi", text: titleEn }]);
+      if (!result.success) {
+        setError(result.error);
+        return;
+      }
+      if (result.data.translations.titleHi) {
+        setTitleHi(result.data.translations.titleHi);
+      }
+      if (result.data.warnings.length > 0) {
+        setError(result.data.warnings.join(" "));
+      } else if (Object.keys(result.data.translations).length === 0) {
+        setError("Nothing was translated. Enter English department name first.");
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Translation failed.");
+    } finally {
+      setIsTranslating(false);
+    }
   }
 
   function handleSubmit(formData: FormData) {
@@ -70,19 +97,33 @@ export function RegisterDepartmentForm({
     });
   }
 
+  const translateDisabled = readOnly || isPending || isTranslating;
+
   return (
     <form action={readOnly ? undefined : handleSubmit} className={inDialog ? "space-y-6" : "mx-auto max-w-2xl space-y-6"}>
       {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
 
       <fieldset disabled={readOnly} className={readOnly ? "contents" : undefined}>
       <section className={`rounded-xl border border-slate-200 bg-white p-6 shadow-sm ${inDialog ? "border-0 p-0 shadow-none" : ""} ${readOnly ? "pointer-events-none opacity-90" : ""}`}>
-        {!inDialog && (
-          <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-slate-900">
-            <GraduationCap className="h-5 w-5 text-emerald-700" aria-hidden />
-            Department details
-          </h2>
-        )}
-        <div className="grid gap-4">
+        <div className={`mb-4 flex flex-wrap items-center justify-between gap-3 ${inDialog ? "mb-0" : ""}`}>
+          {!inDialog && (
+            <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
+              <GraduationCap className="h-5 w-5 text-emerald-700" aria-hidden />
+              Department details
+            </h2>
+          )}
+          {!readOnly && (
+            <button
+              type="button"
+              onClick={handleAutoTranslate}
+              disabled={translateDisabled}
+              className={`rounded-lg border border-emerald-700 px-3 py-1.5 text-sm font-medium text-emerald-800 hover:bg-emerald-50 disabled:opacity-60 ${inDialog ? "ml-auto" : ""}`}
+            >
+              {isTranslating ? "Translating…" : "Auto-translate to Hindi"}
+            </button>
+          )}
+        </div>
+        <div className={`grid gap-4 ${inDialog ? "mt-4" : ""}`}>
           {!isEdit && defaultCollegeId ? (
             <input type="hidden" name="collegePageId" value={defaultCollegeId} />
           ) : !isEdit ? (
@@ -131,7 +172,8 @@ export function RegisterDepartmentForm({
             <span className="font-medium text-slate-700">Department name (Hindi)</span>
             <input
               name="titleHi"
-              defaultValue={department?.titleHi ?? ""}
+              value={titleHi}
+              onChange={(e) => setTitleHi(e.target.value)}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-hindi"
             />
           </label>

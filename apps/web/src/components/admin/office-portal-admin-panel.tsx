@@ -248,6 +248,7 @@ export function OfficePortalAdminPanel({
   showLeftSidebar = true,
   showRightSidebar = true,
   canEdit = true,
+  onReload,
 }: {
   pageId: string;
   contactLines: PageContactLine[];
@@ -264,29 +265,43 @@ export function OfficePortalAdminPanel({
   showLeftSidebar?: boolean;
   showRightSidebar?: boolean;
   canEdit?: boolean;
+  /** Re-fetch lazy office-portal lists after mutations (client-held state). */
+  onReload?: () => Promise<void>;
 }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [galleryFormSeed, setGalleryFormSeed] = useState(0);
   const [newsTickerFormSeed, setNewsTickerFormSeed] = useState(0);
   const [studentCornerFormSeed, setStudentCornerFormSeed] = useState(0);
 
   const leftItems = sidebarItems.filter((item) => item.side === "left");
   const rightItems = sidebarItems.filter((item) => item.side === "right");
 
-  function refresh() {
+  async function refreshLists() {
+    if (onReload) {
+      await onReload();
+    }
     router.refresh();
   }
 
-  function runAction(action: () => Promise<{ success: boolean; error?: string }>) {
+  function runAction(
+    action: () => Promise<{ success: boolean; error?: string }>,
+    successMessage?: string,
+    onDone?: () => void,
+  ) {
     setError(null);
+    setSuccess(null);
     startTransition(async () => {
       const result = await action();
       if (!result.success) {
         setError(result.error ?? "Save failed.");
         return;
       }
-      refresh();
+      onDone?.();
+      await refreshLists();
+      if (successMessage) setSuccess(successMessage);
     });
   }
 
@@ -300,6 +315,11 @@ export function OfficePortalAdminPanel({
       )}
       {error && (
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
+      )}
+      {success && (
+        <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
+          {success}
+        </p>
       )}
 
       {showContacts && (
@@ -319,7 +339,15 @@ export function OfficePortalAdminPanel({
                 <DeleteButton
                   label="contact line"
                   onConfirm={async () => {
-                    await deletePageContactLineAction(pageId, line.id);
+                    setError(null);
+                    setSuccess(null);
+                    const result = await deletePageContactLineAction(pageId, line.id);
+                    if (!result.success) {
+                      setError(result.error ?? "Delete failed.");
+                      return;
+                    }
+                    await refreshLists();
+                    setSuccess("Contact line deleted.");
                   }}
                 />
                 )}
@@ -330,7 +358,10 @@ export function OfficePortalAdminPanel({
           <form
             className="mt-4 grid gap-3 border-t border-slate-100 pt-4 sm:grid-cols-2"
             action={(formData) =>
-              runAction(() => createPageContactLineAction(pageId, formData))
+              runAction(
+                () => createPageContactLineAction(pageId, formData),
+                "Contact line added successfully.",
+              )
             }
           >
             <input name="labelEn" required placeholder="Label (English)" className="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
@@ -363,7 +394,15 @@ export function OfficePortalAdminPanel({
                 <DeleteButton
                   label="staff row"
                   onConfirm={async () => {
-                    await deletePageStaffAction(pageId, row.id);
+                    setError(null);
+                    setSuccess(null);
+                    const result = await deletePageStaffAction(pageId, row.id);
+                    if (!result.success) {
+                      setError(result.error ?? "Delete failed.");
+                      return;
+                    }
+                    await refreshLists();
+                    setSuccess("Staff member deleted.");
                   }}
                 />
                 )}
@@ -373,7 +412,12 @@ export function OfficePortalAdminPanel({
           {canEdit && (
           <form
             className="mt-4 grid gap-3 border-t border-slate-100 pt-4 sm:grid-cols-2"
-            action={(formData) => runAction(() => createPageStaffAction(pageId, formData))}
+            action={(formData) =>
+              runAction(
+                () => createPageStaffAction(pageId, formData),
+                "Staff member added successfully.",
+              )
+            }
           >
             <input name="nameEn" required placeholder="Name (English)" className="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
             <input name="nameHi" placeholder="Name (Hindi)" className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-hindi" />
@@ -423,7 +467,15 @@ export function OfficePortalAdminPanel({
                 <DeleteButton
                   label="gallery image"
                   onConfirm={async () => {
-                    await deletePageGalleryItemAction(pageId, item.id);
+                    setError(null);
+                    setSuccess(null);
+                    const result = await deletePageGalleryItemAction(pageId, item.id);
+                    if (!result.success) {
+                      setError(result.error ?? "Delete failed.");
+                      return;
+                    }
+                    await refreshLists();
+                    setSuccess("Gallery image deleted.");
                   }}
                 />
                 )}
@@ -432,8 +484,15 @@ export function OfficePortalAdminPanel({
           </ul>
           {canEdit && (
           <form
+            key={`gallery-add-${galleryFormSeed}`}
             className="mt-4 grid gap-3 border-t border-slate-100 pt-4 sm:grid-cols-2"
-            action={(formData) => runAction(() => createPageGalleryItemAction(pageId, formData))}
+            action={(formData) =>
+              runAction(
+                () => createPageGalleryItemAction(pageId, formData),
+                "Gallery image added successfully.",
+                () => setGalleryFormSeed((seed) => seed + 1),
+              )
+            }
           >
             <div className="sm:col-span-2">
               <span className="mb-1 block text-sm font-medium text-slate-700">Upload image</span>
@@ -540,7 +599,15 @@ export function OfficePortalAdminPanel({
                 <DeleteButton
                   label="news headline"
                   onConfirm={async () => {
-                    await deletePageNewsTickerItemAction(pageId, item.id);
+                    setError(null);
+                    setSuccess(null);
+                    const result = await deletePageNewsTickerItemAction(pageId, item.id);
+                    if (!result.success) {
+                      setError(result.error ?? "Delete failed.");
+                      return;
+                    }
+                    await refreshLists();
+                    setSuccess("News headline deleted.");
                   }}
                 />
                 )}
@@ -555,9 +622,13 @@ export function OfficePortalAdminPanel({
             defaultSortOrder={newsTickerItems.length + 1}
             onSuccess={() => {
               setNewsTickerFormSeed((seed) => seed + 1);
-              refresh();
+              setSuccess("News headline added successfully.");
+              void refreshLists();
             }}
-            onError={setError}
+            onError={(message) => {
+              setSuccess(null);
+              setError(message || null);
+            }}
           />
           )}
         </section>
@@ -607,7 +678,15 @@ export function OfficePortalAdminPanel({
                   <DeleteButton
                     label="student corner item"
                     onConfirm={async () => {
-                      await deletePageStudentCornerItemAction(pageId, item.id);
+                      setError(null);
+                      setSuccess(null);
+                      const result = await deletePageStudentCornerItemAction(pageId, item.id);
+                      if (!result.success) {
+                        setError(result.error ?? "Delete failed.");
+                        return;
+                      }
+                      await refreshLists();
+                      setSuccess("Student corner item deleted.");
                     }}
                   />
                   )}
@@ -622,9 +701,13 @@ export function OfficePortalAdminPanel({
             defaultSortOrder={studentCornerItems.length + 1}
             onSuccess={() => {
               setStudentCornerFormSeed((seed) => seed + 1);
-              refresh();
+              setSuccess("Student corner item added successfully.");
+              void refreshLists();
             }}
-            onError={setError}
+            onError={(message) => {
+              setSuccess(null);
+              setError(message || null);
+            }}
           />
           )}
         </section>
@@ -637,9 +720,19 @@ export function OfficePortalAdminPanel({
           items={leftItems}
           pageId={pageId}
           isPending={isPending}
-          setError={setError}
+          setError={(message) => {
+            setSuccess(null);
+            setError(message);
+          }}
+          setSuccess={setSuccess}
           canEdit={canEdit}
-          onDelete={(id) => runAction(() => deletePageSidebarItemAction(pageId, id))}
+          onReload={refreshLists}
+          onDelete={(id) =>
+            runAction(
+              () => deletePageSidebarItemAction(pageId, id),
+              "Sidebar link deleted.",
+            )
+          }
         />
       )}
 
@@ -650,9 +743,19 @@ export function OfficePortalAdminPanel({
           items={rightItems}
           pageId={pageId}
           isPending={isPending}
-          setError={setError}
+          setError={(message) => {
+            setSuccess(null);
+            setError(message);
+          }}
+          setSuccess={setSuccess}
           canEdit={canEdit}
-          onDelete={(id) => runAction(() => deletePageSidebarItemAction(pageId, id))}
+          onReload={refreshLists}
+          onDelete={(id) =>
+            runAction(
+              () => deletePageSidebarItemAction(pageId, id),
+              "Sidebar link deleted.",
+            )
+          }
         />
       )}
     </div>
@@ -813,8 +916,10 @@ function SidebarEditor({
   pageId,
   isPending,
   setError,
+  setSuccess,
   canEdit = true,
   onDelete,
+  onReload,
 }: {
   title: string;
   side: "left" | "right";
@@ -822,10 +927,11 @@ function SidebarEditor({
   pageId: string;
   isPending: boolean;
   setError: (value: string | null) => void;
+  setSuccess: (value: string | null) => void;
   canEdit?: boolean;
   onDelete: (id: string) => void;
+  onReload: () => Promise<void>;
 }) {
-  const router = useRouter();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [addFormSeed, setAddFormSeed] = useState(0);
   const [isEditPending, startEditTransition] = useTransition();
@@ -833,6 +939,7 @@ function SidebarEditor({
 
   function handleUpdate(itemId: string, formData: FormData) {
     setError(null);
+    setSuccess(null);
     startEditTransition(async () => {
       const result = await updatePageSidebarItemAction(pageId, itemId, formData);
       if (!result.success) {
@@ -840,12 +947,14 @@ function SidebarEditor({
         return;
       }
       setEditingId(null);
-      router.refresh();
+      await onReload();
+      setSuccess("Sidebar link updated successfully.");
     });
   }
 
   function handleAdd(formData: FormData) {
     setError(null);
+    setSuccess(null);
     startAddTransition(async () => {
       const result = await createPageSidebarItemAction(pageId, formData);
       if (!result.success) {
@@ -853,7 +962,12 @@ function SidebarEditor({
         return;
       }
       setAddFormSeed((seed) => seed + 1);
-      router.refresh();
+      await onReload();
+      setSuccess(
+        side === "left"
+          ? "Left sidebar link added successfully."
+          : "Right sidebar link added successfully.",
+      );
     });
   }
 
