@@ -1,12 +1,11 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Calendar, Play } from "lucide-react";
+import { ArrowLeft, Calendar } from "lucide-react";
 
 import { SiteFooter } from "@/components/design/shared/site-footer";
 import { SiteHeader } from "@/components/design/shared/site-header";
-import { buildImageAlt } from "@/lib/a11y/image-alt";
-import { publicCardClass, publicEmptyStateClass, publicMainClass } from "@/lib/design/public-page-classes";
+import { PublicMediaAlbumGrid } from "@/components/site/public-media-album-grid";
+import { publicEmptyStateClass, publicMainClass } from "@/lib/design/public-page-classes";
 import { getMediaAlbumBySlug } from "@/lib/data/public";
 import { SELECTED_LAYOUT } from "@/lib/design/selected-layout";
 
@@ -65,55 +64,9 @@ export default async function MediaAlbumPage({
 
         <div className="mx-auto max-w-7xl px-4 py-10">
           {album.items.length === 0 ? (
-            <p className={publicEmptyStateClass}>
-              No media items in this album yet.
-            </p>
+            <p className={publicEmptyStateClass}>No media items in this album yet.</p>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {album.items.map((item) => (
-                <figure
-                  key={item.id}
-                  className={`overflow-hidden ${publicCardClass} shadow-sm`}
-                >
-                  <div className="relative aspect-[4/3] bg-slate-100">
-                    {item.mediaType === "video" ? (
-                      item.url ? (
-                        <video
-                          src={item.url}
-                          controls
-                          className="h-full w-full object-cover"
-                          poster={item.thumbnailUrl ?? undefined}
-                        />
-                      ) : (
-                        <div className="flex h-full items-center justify-center">
-                          <Play className="h-12 w-12 text-slate-400" />
-                        </div>
-                      )
-                    ) : item.url ? (
-                      <Image
-                        src={item.url}
-                        alt={buildImageAlt({
-                          altEn: item.captionEn,
-                          altHi: item.captionHi,
-                          titleEn: item.titleEn,
-                          titleHi: item.titleHi,
-                          contextEn: `${album.titleEn} media`,
-                        })}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 768px) 100vw, 33vw"
-                      />
-                    ) : null}
-                  </div>
-                  {(item.titleEn || item.captionEn) && (
-                    <figcaption className="p-4 text-sm">
-                      {item.titleEn && <p className="font-semibold text-slate-900">{item.titleEn}</p>}
-                      {item.captionEn && <p className="mt-1 text-slate-600">{item.captionEn}</p>}
-                    </figcaption>
-                  )}
-                </figure>
-              ))}
-            </div>
+            <PublicMediaAlbumGrid items={album.items} albumTitleEn={album.titleEn} />
           )}
         </div>
       </main>

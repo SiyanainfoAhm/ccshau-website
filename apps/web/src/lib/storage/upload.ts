@@ -25,7 +25,11 @@ import {
   tenderAttachmentPath,
   tenderCancellationPath,
 } from "@/lib/storage/config";
-import { prepareValidatedUpload, sanitizeFileName } from "@/lib/storage/validate";
+import {
+  prepareValidatedMediaUpload,
+  prepareValidatedUpload,
+  sanitizeFileName,
+} from "@/lib/storage/validate";
 import { fail, ok, type ActionResult } from "@/lib/types/action-result";
 
 export function getPublicFileUrl(bucket: string, path: string): string | null {
@@ -148,6 +152,9 @@ export async function removeStorageObjects(
   const byBucket = new Map<string, string[]>();
 
   for (const fullPath of attachmentPaths) {
+    // External video URLs are stored as absolute http(s) values — not storage paths.
+    if (fullPath.startsWith("http://") || fullPath.startsWith("https://")) continue;
+    if (fullPath === "pending") continue;
     const slash = fullPath.indexOf("/");
     if (slash === -1) continue;
     const bucket = fullPath.slice(0, slash);
@@ -453,10 +460,14 @@ export async function uploadMediaItemFile(
   const isImage = file.type.startsWith("image/");
   if (!isVideo && !isImage) return fail("Media must be an image or video file.");
 
-  return uploadSingleDocument(
-    admin,
-    file,
-    bucket,
-    mediaItemPath(albumId, itemId, sanitizeFileName(file.name)),
-  );
+  const prepared = await prepareValidatedMediaUpload(file);
+  if (!prepared.ok) return fail(prepared.error);
+
+  const storagePath = mediaItemPath(albumId, itemId, sanitizeFileName(file.name));
+  const { error } = await admin.storage.from(bucket).upload(storagePath, prepared.buffer, {
+    contentType: file.type,
+    upsert: true,
+  });
+  if (error) return fail(`Upload failed: ${error.message}`);
+  return ok(`${bucket}/${storagePath}`);
 }

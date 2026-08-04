@@ -59,6 +59,7 @@ function parseItemForm(formData: FormData) {
     captionHi: formData.get("captionHi") || undefined,
     mediaType: formData.get("mediaType"),
     sortOrder: formData.get("sortOrder") ?? 0,
+    videoUrl: formData.get("videoUrl") || undefined,
   });
 }
 
@@ -329,14 +330,56 @@ export async function addMediaItemAction(
     if (!parsed.success) return fail("Validation failed", parsed.error.flatten().fieldErrors);
 
     const file = formData.get("mediaFile");
-    if (!(file instanceof File) || file.size === 0) return fail("Media file is required.");
+    const hasFile = file instanceof File && file.size > 0;
+    const videoUrl = parsed.data.videoUrl?.trim() || "";
+    const hasUrl = Boolean(videoUrl);
+    const mediaType =
+      parsed.data.mediaType ??
+      (hasFile && file instanceof File && file.type.startsWith("video/") ? "video" : "image");
+
+    if (mediaType === "image") {
+      if (!hasFile) return fail("Image file is required.");
+      if (hasUrl) return fail("Image items use file upload only.");
+    } else {
+      if (hasFile && hasUrl) return fail("Provide either a video file or a video URL, not both.");
+      if (!hasFile && !hasUrl) return fail("Upload a video file or paste a video URL.");
+    }
 
     const admin = createAdminClient();
     if (!admin) return fail("Database not configured.");
 
-    const mediaType =
-      parsed.data.mediaType ??
-      (file.type.startsWith("video/") ? "video" : "image");
+    if (hasUrl) {
+      const { data, error } = await admin
+        .from(Tables.mediaItems)
+        .insert({
+          album_id: albumId,
+          title_en: parsed.data.titleEn || null,
+          title_hi: parsed.data.titleHi || null,
+          caption_en: parsed.data.captionEn || null,
+          caption_hi: parsed.data.captionHi || null,
+          media_type: "video",
+          storage_path: videoUrl,
+          sort_order: parsed.data.sortOrder,
+        })
+        .select("id")
+        .single();
+      if (error || !data) return fail(error?.message ?? "Failed to add video URL.");
+
+      await writeAuditLog({
+        userId: session.userId,
+        action: "create",
+        entityType: "media_item",
+        entityId: data.id,
+        details: { albumId, source: "url" },
+      });
+
+      revalidatePath(`/admin/media/${albumId}`);
+      revalidatePath("/admin/media");
+      revalidatePath("/media");
+      return ok({ id: data.id });
+    }
+
+    if (!(file instanceof File) || file.size === 0) return fail("Media file is required.");
 
     const { data, error } = await admin
       .from(Tables.mediaItems)
@@ -370,11 +413,12 @@ export async function addMediaItemAction(
       action: "create",
       entityType: "media_item",
       entityId: data.id,
-      details: { albumId },
+      details: { albumId, source: "upload" },
     });
 
     revalidatePath(`/admin/media/${albumId}`);
     revalidatePath("/admin/media");
+    revalidatePath("/media");
     return ok({ id: data.id });
   } catch (e) {
     return fail(e instanceof Error ? e.message : "Add item failed.");

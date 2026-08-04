@@ -21,4 +21,9 @@ export const mediaItemFormSchema = z.object({
   captionHi: z.string().optional(),
   mediaType: z.enum(["image", "video"]),
   sortOrder: z.coerce.number().int().min(0).default(0),
+  videoUrl: z
+    .string()
+    .trim()
+    .optional()
+    .refine((v) => !v || /^https?:\/\//i.test(v), "Video URL must start with http:// or https://"),
 });

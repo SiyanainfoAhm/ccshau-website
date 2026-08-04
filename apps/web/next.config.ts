@@ -11,10 +11,11 @@ const nextConfig: NextConfig = {
   // Circulars, tenders, downloads, etc. upload PDFs via Server Actions (default limit is 1 MB).
   experimental: {
     serverActions: {
-      bodySizeLimit: "26mb",
+      // Media-centre album videos allow up to 100 MB (images/docs stay well under this).
+      bodySizeLimit: "105mb",
     },
     // Middleware/proxy buffers multipart bodies before Server Actions; default is 10 MB.
-    proxyClientMaxBodySize: "26mb",
+    proxyClientMaxBodySize: "105mb",
   },
   async redirects() {
     return [

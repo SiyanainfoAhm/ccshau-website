@@ -6,13 +6,17 @@ const DOC_MIME = [
   "application/vnd.ms-excel",
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 ] as const;
+const VIDEO_MIME = ["video/mp4", "video/webm"] as const;
 
 export const ALLOWED_UPLOAD_MIME = [...IMAGE_MIME, ...DOC_MIME] as const;
+export const ALLOWED_MEDIA_UPLOAD_MIME = [...IMAGE_MIME, ...VIDEO_MIME] as const;
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const MAX_DOC_BYTES = 25 * 1024 * 1024;
+const MAX_VIDEO_BYTES = 100 * 1024 * 1024;
 
 type AllowedMime = (typeof ALLOWED_UPLOAD_MIME)[number];
+type AllowedMediaMime = (typeof ALLOWED_MEDIA_UPLOAD_MIME)[number];
 
 /** Detect MIME from file magic bytes (not client-declared Content-Type). */
 export function sniffUploadMime(buffer: Buffer): string | null {
@@ -38,6 +42,20 @@ export function sniffUploadMime(buffer: Buffer): string | null {
     buffer.toString("ascii", 8, 12) === "WEBP"
   ) {
     return "image/webp";
+  }
+  // ISO BMFF (MP4 / many .m4v variants) — "ftyp" at offset 4
+  if (buffer.length >= 8 && buffer.toString("ascii", 4, 8) === "ftyp") {
+    return "video/mp4";
+  }
+  // EBML / Matroska (WebM)
+  if (
+    buffer.length >= 4 &&
+    buffer[0] === 0x1a &&
+    buffer[1] === 0x45 &&
+    buffer[2] === 0xdf &&
+    buffer[3] === 0xa3
+  ) {
+    return "video/webm";
   }
   if (buffer.toString("ascii", 0, 5) === "%PDF-") {
     return "application/pdf";
@@ -95,6 +113,20 @@ export function validateUploadFile(file: File): string | null {
   return null;
 }
 
+/** Images + album videos (MP4/WebM up to 100 MB). */
+export function validateMediaUploadFile(file: File): string | null {
+  if (!ALLOWED_MEDIA_UPLOAD_MIME.includes(file.type as AllowedMediaMime)) {
+    return `File type not allowed: ${file.type || "unknown"}. Use JPEG/PNG/WebP/GIF or MP4/WebM.`;
+  }
+
+  const max = file.type.startsWith("video/") ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
+  if (file.size > max) {
+    return `File too large: ${file.name} (max ${Math.round(max / 1024 / 1024)} MB)`;
+  }
+
+  return null;
+}
+
 /** Reject uploads whose content does not match the declared MIME type. */
 export function assertUploadMagicBytes(file: File, buffer: Buffer): string | null {
   const sniffed = sniffUploadMime(buffer);
@@ -115,6 +147,19 @@ export async function prepareValidatedUpload(
   file: File,
 ): Promise<{ ok: true; buffer: Buffer } | { ok: false; error: string }> {
   const typeError = validateUploadFile(file);
+  if (typeError) return { ok: false, error: typeError };
+
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const magicError = assertUploadMagicBytes(file, buffer);
+  if (magicError) return { ok: false, error: magicError };
+
+  return { ok: true, buffer };
+}
+
+export async function prepareValidatedMediaUpload(
+  file: File,
+): Promise<{ ok: true; buffer: Buffer } | { ok: false; error: string }> {
+  const typeError = validateMediaUploadFile(file);
   if (typeError) return { ok: false, error: typeError };
 
   const buffer = Buffer.from(await file.arrayBuffer());
