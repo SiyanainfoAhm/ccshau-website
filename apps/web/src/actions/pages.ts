@@ -587,11 +587,16 @@ export type ParentPageOptionRow = {
   parent_id: string | null;
 };
 
-function applyPagesListScope(
-  query: any,
+type PagesScopeQuery<T> = {
+  eq: (column: string, value: string) => T;
+  or: (filters: string) => T;
+};
+
+function applyPagesListScope<T extends PagesScopeQuery<T>>(
+  query: T,
   session: AdminSession,
   allowedModules: Awaited<ReturnType<typeof getAllowedCmsModulesForSession>>,
-) {
+): T {
   const strictDepartmentPages =
     !isUniversityWideCmsSession(session) &&
     !isCollegeOnlyUser(session) &&
