@@ -6,6 +6,7 @@ import { useState, useTransition } from "react";
 
 import { registerCollegeAction } from "@/actions/college-wizard";
 import { suggestSlugAction } from "@/actions/pages";
+import { translateFieldsEnToHiAction } from "@/actions/translate";
 import { COLLEGE_ROLE_LABELS } from "@/lib/validations/users";
 import { slugify } from "@/lib/utils/slug";
 
@@ -22,10 +23,22 @@ export function CollegeWizardForm({
   const isDirectorate = defaultBlueprint === "directorate";
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [isTranslating, setIsTranslating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [titleEn, setTitleEn] = useState("");
+  const [titleHi, setTitleHi] = useState("");
   const [slug, setSlug] = useState("");
   const [shortPrefix, setShortPrefix] = useState("");
+  const [excerptEn, setExcerptEn] = useState("");
+  const [excerptHi, setExcerptHi] = useState("");
+  const [contentEn, setContentEn] = useState("");
+  const [contentHi, setContentHi] = useState("");
+  const [headNameEn, setHeadNameEn] = useState("");
+  const [headNameHi, setHeadNameHi] = useState("");
+  const [headRoleEn, setHeadRoleEn] = useState("");
+  const [headRoleHi, setHeadRoleHi] = useState("");
+  const [addressEn, setAddressEn] = useState("");
+  const [addressHi, setAddressHi] = useState("");
   const [assignUser, setAssignUser] = useState("");
 
   function handleTitleBlur() {
@@ -49,6 +62,68 @@ export function CollegeWizardForm({
     }
   }
 
+  async function handleAutoTranslate(
+    fields: { key: string; text: string; format?: "text" | "html" }[],
+    apply: (translated: Record<string, string>) => void,
+  ) {
+    setError(null);
+    setIsTranslating(true);
+    try {
+      const result = await translateFieldsEnToHiAction(fields);
+      if (!result.success) {
+        setError(result.error);
+        return;
+      }
+      apply(result.data.translations);
+      if (result.data.warnings.length > 0) {
+        setError(result.data.warnings.join(" "));
+      } else if (Object.keys(result.data.translations).length === 0) {
+        setError("Nothing was translated. Enter English text first.");
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Translation failed.");
+    } finally {
+      setIsTranslating(false);
+    }
+  }
+
+  function handleTranslateIdentityAndContent() {
+    return handleAutoTranslate(
+      [
+        { key: "titleHi", text: titleEn },
+        { key: "excerptHi", text: excerptEn },
+        { key: "contentHi", text: contentEn, format: "html" },
+      ],
+      (translated) => {
+        if (translated.titleHi) setTitleHi(translated.titleHi);
+        if (translated.excerptHi) setExcerptHi(translated.excerptHi);
+        if (translated.contentHi) setContentHi(translated.contentHi);
+      },
+    );
+  }
+
+  function handleTranslateHeadOfficer() {
+    return handleAutoTranslate(
+      [
+        { key: "headNameHi", text: headNameEn },
+        { key: "headRoleHi", text: headRoleEn },
+      ],
+      (translated) => {
+        if (translated.headNameHi) setHeadNameHi(translated.headNameHi);
+        if (translated.headRoleHi) setHeadRoleHi(translated.headRoleHi);
+      },
+    );
+  }
+
+  function handleTranslateAddress() {
+    return handleAutoTranslate(
+      [{ key: "addressHi", text: addressEn }],
+      (translated) => {
+        if (translated.addressHi) setAddressHi(translated.addressHi);
+      },
+    );
+  }
+
   function handleSubmit(formData: FormData) {
     setError(null);
     startTransition(async () => {
@@ -62,6 +137,8 @@ export function CollegeWizardForm({
     });
   }
 
+  const translateDisabled = isPending || isTranslating;
+
   return (
     <form action={handleSubmit} className="mx-auto max-w-3xl space-y-6">
       <input type="hidden" name="micrositeBlueprint" value={defaultBlueprint} />
@@ -72,9 +149,19 @@ export function CollegeWizardForm({
       )}
 
       <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="mb-4 text-lg font-semibold text-slate-900">
-          {isDirectorate ? "Directorate identity" : "College identity"}
-        </h2>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold text-slate-900">
+            {isDirectorate ? "Directorate identity" : "College identity"}
+          </h2>
+          <button
+            type="button"
+            onClick={handleTranslateIdentityAndContent}
+            disabled={translateDisabled}
+            className="rounded-lg border border-emerald-700 px-3 py-1.5 text-sm font-medium text-emerald-800 hover:bg-emerald-50 disabled:opacity-60"
+          >
+            {isTranslating ? "Translating…" : "Auto-translate to Hindi"}
+          </button>
+        </div>
         <div className="grid gap-4 md:grid-cols-2">
           <label className="block text-sm md:col-span-2">
             <span className="font-medium text-slate-700">English title</span>
@@ -91,7 +178,9 @@ export function CollegeWizardForm({
             <span className="font-medium text-slate-700">Hindi title</span>
             <input
               name="titleHi"
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+              value={titleHi}
+              onChange={(e) => setTitleHi(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-hindi"
             />
           </label>
           <label className="block text-sm">
@@ -136,21 +225,59 @@ export function CollegeWizardForm({
         <div className="grid gap-4">
           <label className="block text-sm">
             <span className="font-medium text-slate-700">Excerpt (English)</span>
-            <textarea name="excerptEn" rows={2} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" />
+            <textarea
+              name="excerptEn"
+              rows={2}
+              value={excerptEn}
+              onChange={(e) => setExcerptEn(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+            />
+          </label>
+          <label className="block text-sm">
+            <span className="font-medium text-slate-700">Excerpt (Hindi)</span>
+            <textarea
+              name="excerptHi"
+              rows={2}
+              value={excerptHi}
+              onChange={(e) => setExcerptHi(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-hindi"
+            />
           </label>
           <label className="block text-sm">
             <span className="font-medium text-slate-700">About content (English HTML)</span>
-            <textarea name="contentEn" rows={6} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm" />
+            <textarea
+              name="contentEn"
+              rows={6}
+              value={contentEn}
+              onChange={(e) => setContentEn(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm"
+            />
           </label>
           <label className="block text-sm">
             <span className="font-medium text-slate-700">About content (Hindi HTML)</span>
-            <textarea name="contentHi" rows={4} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm" />
+            <textarea
+              name="contentHi"
+              rows={4}
+              value={contentHi}
+              onChange={(e) => setContentHi(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm font-hindi"
+            />
           </label>
         </div>
       </section>
 
       <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="mb-4 text-lg font-semibold text-slate-900">Branding & head officer</h2>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold text-slate-900">Branding & head officer</h2>
+          <button
+            type="button"
+            onClick={handleTranslateHeadOfficer}
+            disabled={translateDisabled}
+            className="rounded-lg border border-emerald-700 px-3 py-1.5 text-sm font-medium text-emerald-800 hover:bg-emerald-50 disabled:opacity-60"
+          >
+            {isTranslating ? "Translating…" : "Auto-translate to Hindi"}
+          </button>
+        </div>
         <div className="grid gap-4 md:grid-cols-2">
           <label className="block text-sm md:col-span-2">
             <span className="font-medium text-slate-700">Featured image URL</span>
@@ -162,11 +289,40 @@ export function CollegeWizardForm({
           </label>
           <label className="block text-sm">
             <span className="font-medium text-slate-700">Head name (EN)</span>
-            <input name="headNameEn" className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" />
+            <input
+              name="headNameEn"
+              value={headNameEn}
+              onChange={(e) => setHeadNameEn(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+            />
+          </label>
+          <label className="block text-sm">
+            <span className="font-medium text-slate-700">Head name (HI)</span>
+            <input
+              name="headNameHi"
+              value={headNameHi}
+              onChange={(e) => setHeadNameHi(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-hindi"
+            />
           </label>
           <label className="block text-sm">
             <span className="font-medium text-slate-700">Head role (EN)</span>
-            <input name="headRoleEn" placeholder="Dean" className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" />
+            <input
+              name="headRoleEn"
+              value={headRoleEn}
+              onChange={(e) => setHeadRoleEn(e.target.value)}
+              placeholder="Dean"
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+            />
+          </label>
+          <label className="block text-sm">
+            <span className="font-medium text-slate-700">Head role (HI)</span>
+            <input
+              name="headRoleHi"
+              value={headRoleHi}
+              onChange={(e) => setHeadRoleHi(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-hindi"
+            />
           </label>
           <label className="block text-sm md:col-span-2">
             <span className="font-medium text-slate-700">Head photo URL</span>
@@ -176,7 +332,17 @@ export function CollegeWizardForm({
       </section>
 
       <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="mb-4 text-lg font-semibold text-slate-900">Contact & location</h2>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold text-slate-900">Contact & location</h2>
+          <button
+            type="button"
+            onClick={handleTranslateAddress}
+            disabled={translateDisabled}
+            className="rounded-lg border border-emerald-700 px-3 py-1.5 text-sm font-medium text-emerald-800 hover:bg-emerald-50 disabled:opacity-60"
+          >
+            {isTranslating ? "Translating…" : "Auto-translate to Hindi"}
+          </button>
+        </div>
         <p className="mb-4 text-sm text-slate-600">
           Shown on the college contact page and home contact block.
         </p>
@@ -187,13 +353,21 @@ export function CollegeWizardForm({
               name="addressEn"
               required
               rows={3}
+              value={addressEn}
+              onChange={(e) => setAddressEn(e.target.value)}
               placeholder="College name, CCS HAU, Hisar - 125004, Haryana, India"
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
             />
           </label>
           <label className="block text-sm">
             <span className="font-medium text-slate-700">Mailing address (Hindi, optional)</span>
-            <textarea name="addressHi" rows={2} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" />
+            <textarea
+              name="addressHi"
+              rows={2}
+              value={addressHi}
+              onChange={(e) => setAddressHi(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-hindi"
+            />
           </label>
           <div className="grid gap-4 md:grid-cols-2">
             <label className="block text-sm">
