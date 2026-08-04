@@ -8,6 +8,7 @@ import { staffPhotoAlt } from "@/lib/a11y/image-alt";
 import { useModalA11y } from "@/lib/a11y/use-modal-a11y";
 import { useLanguage } from "@/components/design/shared/language-context";
 import { FacultyProfileContent } from "@/components/site/faculty-profile-content";
+import { FacultyProfilePrintButton } from "@/components/site/faculty-profile-print-button";
 import type { PublicOfficeStaffMember } from "@/lib/data/public-types";
 import { pickBilingual } from "@/lib/i18n/pick-bilingual";
 
@@ -32,11 +33,11 @@ export function FacultyProfileDialog({
     lang === "hi" && member.detailContentHi ? member.detailContentHi : member.detailContentEn;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center p-4 sm:items-center">
+    <div className="faculty-profile-dialog-root fixed inset-0 z-50 flex items-start justify-center p-4 sm:items-center">
       <button
         type="button"
         aria-label="Close dialog"
-        className="absolute inset-0 bg-slate-900/50"
+        className="faculty-profile-no-print absolute inset-0 bg-slate-900/50"
         onClick={onClose}
       />
       <div
@@ -45,23 +46,26 @@ export function FacultyProfileDialog({
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className="relative z-10 flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl outline-none"
+        className="faculty-profile-print-root relative z-10 flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl outline-none"
       >
         <div className="flex shrink-0 items-start justify-between gap-4 border-b border-emerald-100 bg-emerald-50 px-6 py-4">
           <h2 id={titleId} className={`font-display text-lg font-bold text-slate-900 ${lang === "hi" ? "font-hindi" : ""}`}>
             {pickBilingual(lang, member.nameEn, member.nameHi)}
           </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg p-1.5 text-slate-500 hover:bg-white/80 hover:text-slate-700"
-            aria-label="Close"
-          >
-            <X className="h-5 w-5" aria-hidden />
-          </button>
+          <div className="flex shrink-0 items-center gap-2">
+            <FacultyProfilePrintButton />
+            <button
+              type="button"
+              onClick={onClose}
+              className="faculty-profile-no-print rounded-lg p-1.5 text-slate-500 hover:bg-white/80 hover:text-slate-700"
+              aria-label="Close"
+            >
+              <X className="h-5 w-5" aria-hidden />
+            </button>
+          </div>
         </div>
 
-        <div className="overflow-y-auto">
+        <div className="faculty-profile-print-body overflow-y-auto">
           <div className="border-b border-slate-100 bg-white px-6 py-6 md:flex md:items-center md:gap-6">
             {member.imageUrl ? (
               <div className="relative mx-auto h-28 w-28 shrink-0 overflow-hidden rounded-full border-4 border-emerald-50 md:mx-0">

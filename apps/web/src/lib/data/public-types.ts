@@ -235,10 +235,18 @@ export interface PublicPgStudiesHub extends PublicPage {
   topSections: PublicPgStudiesSection[];
 }
 
+export interface PublicSocialLink {
+  platform: "twitter" | "facebook" | "youtube" | "blogger" | "instagram";
+  labelEn: string;
+  labelHi: string;
+  href: string;
+}
+
 export interface PublicSiteChrome {
   headerNav: PublicNavItem[];
   quickLinks: PublicQuickLink[];
   footerLinks: PublicQuickLink[];
+  socialLinks: PublicSocialLink[];
 }
 
 export interface PublicCircularItem {

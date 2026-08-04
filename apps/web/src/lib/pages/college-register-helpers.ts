@@ -22,6 +22,7 @@ export interface DepartmentOption {
   college_title: string;
   college_slug: string;
   section_slug: string;
+  sort_order: number;
 }
 
 export const DEFAULT_DEPARTMENT_SIDEBAR = [
@@ -110,9 +111,11 @@ export async function listDepartmentsForRegister(
 
   let query = admin
     .from(Tables.pages)
-    .select("id, slug, title_en, college_root_id, parent_id, layout_template")
+    .select("id, slug, title_en, college_root_id, parent_id, layout_template, sort_order")
     .eq("layout_template", "office_portal")
-    .not("college_root_id", "is", null);
+    .not("college_root_id", "is", null)
+    .order("sort_order")
+    .order("title_en");
 
   if (collegePageId) {
     query = query.eq("college_root_id", collegePageId);
@@ -149,9 +152,15 @@ export async function listDepartmentsForRegister(
         college_title: college?.title_en ?? "",
         college_slug: college?.slug ?? "",
         section_slug: section?.slug ?? "",
+        sort_order: (p.sort_order as number | null) ?? 0,
       };
     })
-    .sort((a, b) => a.college_title.localeCompare(b.college_title) || a.title_en.localeCompare(b.title_en));
+    .sort(
+      (a, b) =>
+        a.college_title.localeCompare(b.college_title) ||
+        a.sort_order - b.sort_order ||
+        a.title_en.localeCompare(b.title_en),
+    );
 }
 
 export interface FacultyListItem {
@@ -163,6 +172,7 @@ export interface FacultyListItem {
   staff_slug: string | null;
   detail_href: string | null;
   is_active: boolean;
+  sort_order: number;
   department_title: string;
   department_slug: string;
   college_title: string;
@@ -198,6 +208,7 @@ export async function listFacultyForRegister(
     staff_slug: string | null;
     detail_href: string | null;
     is_active: boolean;
+    sort_order: number;
   }>).map((row) => {
     const dept = deptById.get(row.page_id)!;
     return {
@@ -209,6 +220,7 @@ export async function listFacultyForRegister(
       staff_slug: row.staff_slug,
       detail_href: row.detail_href,
       is_active: row.is_active,
+      sort_order: row.sort_order ?? 0,
       department_title: dept.title_en,
       department_slug: dept.slug,
       college_title: dept.college_title,
@@ -319,6 +331,7 @@ export function departmentInsertRow(
     slug: string;
     excerptEn?: string;
     contentEn?: string;
+    sortOrder?: number;
   },
   parentId: string,
   userId: string,
@@ -338,6 +351,7 @@ export function departmentInsertRow(
     status: "published" as const,
     published_at: new Date().toISOString(),
     office_cta_enabled: true,
+    sort_order: input.sortOrder ?? 0,
     created_by: userId,
     updated_by: userId,
     content_owner_id: userId,

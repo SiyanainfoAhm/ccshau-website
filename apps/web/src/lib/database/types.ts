@@ -108,6 +108,11 @@ export interface SiteSettings {
   id: number;
   captcha_enabled: boolean;
   email_enabled: boolean;
+  social_twitter_url: string | null;
+  social_facebook_url: string | null;
+  social_youtube_url: string | null;
+  social_blogger_url: string | null;
+  social_instagram_url: string | null;
   updated_at: string;
   updated_by: string | null;
 }

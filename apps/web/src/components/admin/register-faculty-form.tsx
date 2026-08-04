@@ -292,6 +292,22 @@ export function RegisterFacultyForm({
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-hindi"
             />
           </label>
+          <label className="block text-sm">
+            <span className="font-medium text-slate-700">Display order</span>
+            <input
+              name="sortOrder"
+              type="number"
+              min={0}
+              step={1}
+              defaultValue={
+                faculty?.sort_order ?? (memberType === "hod" ? 0 : 1)
+              }
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+            />
+            <span className="mt-1 block text-xs text-slate-500">
+              Lower numbers appear first on the public Faculty list (e.g. 1, 2, 3…).
+            </span>
+          </label>
           <div className="space-y-2 md:col-span-2">
             <span className="text-sm font-medium text-slate-700">Photo</span>
             {previewUrl ? (

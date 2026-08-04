@@ -65,6 +65,8 @@ import {
   type PageLayoutConfig,
 } from "@/lib/pages/layout-config";
 import { getStoredFileUrl } from "@/lib/storage/upload";
+import { getSiteSettings } from "@/lib/settings/site-settings";
+import { socialLinksFromSettings } from "@/lib/social/public-social-links";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 function mapAttachments(paths: AttachmentPath[]) {
@@ -558,6 +560,7 @@ async function loadPublicSiteChrome(): Promise<PublicSiteChrome> {
       headerNav: mockHeaderNav(),
       quickLinks: mockQuickLinkItems(),
       footerLinks: mockQuickLinkItems(),
+      socialLinks: [],
     };
   }
 
@@ -587,12 +590,18 @@ async function loadPublicSiteChrome(): Promise<PublicSiteChrome> {
     }
   }
 
-  const [quickLinks, footerLinks] = await Promise.all([
+  const [quickLinks, footerLinks, siteSettings] = await Promise.all([
     getMenuLinks("quick_links"),
     getMenuLinks("footer"),
+    getSiteSettings(),
   ]);
 
-  return { headerNav, quickLinks, footerLinks };
+  return {
+    headerNav,
+    quickLinks,
+    footerLinks,
+    socialLinks: socialLinksFromSettings(siteSettings),
+  };
 }
 
 export const getPublicSiteChrome = unstable_cache(

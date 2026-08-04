@@ -19,6 +19,7 @@ type DepartmentEditData = {
   slug: string;
   excerptEn: string | null;
   contentEn: string | null;
+  sortOrder?: number;
 };
 
 export function RegisterDepartmentForm({
@@ -186,6 +187,20 @@ export function RegisterDepartmentForm({
               onChange={(e) => setSlug(e.target.value)}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
             />
+          </label>
+          <label className="block text-sm">
+            <span className="font-medium text-slate-700">Display order</span>
+            <input
+              name="sortOrder"
+              type="number"
+              min={0}
+              step={1}
+              defaultValue={department?.sortOrder ?? 0}
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+            />
+            <span className="mt-1 block text-xs text-slate-500">
+              Lower numbers appear first on the college departments list (e.g. 1, 2, 3…).
+            </span>
           </label>
           <label className="block text-sm">
             <span className="font-medium text-slate-700">Short description</span>

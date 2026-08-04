@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 import { writeAuditLog } from "@/lib/auth/audit";
 import { verifyCaptchaTokenForTest } from "@/lib/auth/captcha";
@@ -14,7 +14,7 @@ import {
 import { getSiteSettings } from "@/lib/settings/site-settings";
 import { sendPowerAutomateTestEmail } from "@/lib/power-automate/send";
 import { fail, ok, type ActionResult } from "@/lib/types/action-result";
-import { securitySettingsSchema } from "@/lib/validations/settings";
+import { securitySettingsSchema, socialMediaSettingsSchema } from "@/lib/validations/settings";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const SETTINGS_ROLES = ["super_admin"] as const;
@@ -35,11 +35,31 @@ export async function getSecuritySettingsForAdmin(): Promise<SecuritySettingsVie
   };
 }
 
+export async function getSocialMediaSettingsForAdmin(): Promise<SiteSettings> {
+  await requireAdminWithRoles([...SETTINGS_ROLES]);
+  return getSiteSettings();
+}
+
 function parseSecuritySettingsForm(formData: FormData) {
   return securitySettingsSchema.safeParse({
     captchaEnabled: formData.get("captchaEnabled") === "on",
     emailEnabled: formData.get("emailEnabled") === "on",
   });
+}
+
+function parseSocialMediaSettingsForm(formData: FormData) {
+  return socialMediaSettingsSchema.safeParse({
+    twitterUrl: formData.get("twitterUrl") ?? "",
+    facebookUrl: formData.get("facebookUrl") ?? "",
+    youtubeUrl: formData.get("youtubeUrl") ?? "",
+    bloggerUrl: formData.get("bloggerUrl") ?? "",
+    instagramUrl: formData.get("instagramUrl") ?? "",
+  });
+}
+
+function blankToNull(value: string): string | null {
+  const trimmed = value.trim();
+  return trimmed ? trimmed : null;
 }
 
 export async function updateSecuritySettingsAction(formData: FormData): Promise<ActionResult> {
@@ -96,6 +116,46 @@ export async function updateSecuritySettingsAction(formData: FormData): Promise<
     return ok(undefined);
   } catch (e) {
     return fail(e instanceof Error ? e.message : "Failed to update settings.");
+  }
+}
+
+export async function updateSocialMediaSettingsAction(formData: FormData): Promise<ActionResult> {
+  try {
+    const session = await requireAdminWithRoles([...SETTINGS_ROLES]);
+    const parsed = parseSocialMediaSettingsForm(formData);
+    if (!parsed.success) {
+      return fail("Validation failed", parsed.error.flatten().fieldErrors);
+    }
+
+    const admin = createAdminClient();
+    if (!admin) return fail("Database not configured.");
+
+    const row = {
+      social_twitter_url: blankToNull(parsed.data.twitterUrl),
+      social_facebook_url: blankToNull(parsed.data.facebookUrl),
+      social_youtube_url: blankToNull(parsed.data.youtubeUrl),
+      social_blogger_url: blankToNull(parsed.data.bloggerUrl),
+      social_instagram_url: blankToNull(parsed.data.instagramUrl),
+      updated_by: session.userId,
+    };
+
+    const { error } = await admin.from(Tables.siteSettings).update(row).eq("id", 1);
+    if (error) return fail(error.message);
+
+    await writeAuditLog({
+      userId: session.userId,
+      action: "update",
+      entityType: "site_settings",
+      entityId: "1",
+      details: { social_media: true, ...row },
+    });
+
+    revalidateTag("public-chrome", "max");
+    revalidatePath("/admin/settings");
+    revalidatePath("/");
+    return ok(undefined);
+  } catch (e) {
+    return fail(e instanceof Error ? e.message : "Failed to update social media settings.");
   }
 }
 

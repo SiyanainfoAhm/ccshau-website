@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { getSecuritySettingsForAdmin } from "@/actions/settings";
 import { SecuritySettingsForm } from "@/components/admin/security-settings-form";
+import { SocialMediaSettingsForm } from "@/components/admin/social-media-settings-form";
 import { canManageSiteStructure } from "@/lib/auth/cms-roles";
 import { requireAdminSession } from "@/lib/auth/session";
 
@@ -21,7 +22,10 @@ export default async function AdminSettingsPage() {
       </div>
 
       {isSuperAdmin && securitySettings && (
-        <SecuritySettingsForm view={securitySettings} />
+        <>
+          <SecuritySettingsForm view={securitySettings} />
+          <SocialMediaSettingsForm settings={securitySettings.settings} />
+        </>
       )}
 
       <div className="grid gap-4 sm:grid-cols-2">

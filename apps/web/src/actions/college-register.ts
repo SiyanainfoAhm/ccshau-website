@@ -161,6 +161,7 @@ export async function registerDepartmentAction(
       slug: formData.get("slug"),
       excerptEn: formData.get("excerptEn") || undefined,
       contentEn: formData.get("contentEn") || undefined,
+      sortOrder: formData.get("sortOrder") ?? 0,
     });
 
     if (!parsed.success) {
@@ -282,7 +283,7 @@ export async function registerFacultyAction(
     }
 
     const detailPath = await buildFacultyDetailPath(input.departmentPageId, input.staffSlug);
-    const sortOrder = input.memberType === "hod" ? 0 : input.sortOrder;
+    const sortOrder = input.sortOrder;
 
     const { data, error } = await admin
       .from(Tables.pageStaff)
@@ -376,6 +377,7 @@ export async function getDepartmentForEdit(departmentId: string) {
     slug: page.slug,
     excerptEn: page.excerpt_en,
     contentEn: page.content_en,
+    sortOrder: page.sort_order ?? 0,
   };
 }
 
@@ -394,6 +396,7 @@ export async function updateDepartmentAction(
       slug: formData.get("slug"),
       excerptEn: formData.get("excerptEn") || undefined,
       contentEn: formData.get("contentEn") || undefined,
+      sortOrder: formData.get("sortOrder") ?? 0,
     });
 
     if (!parsed.success) {
@@ -428,6 +431,7 @@ export async function updateDepartmentAction(
         slug: nextSlug,
         excerpt_en: input.excerptEn || null,
         content_en: input.contentEn || null,
+        sort_order: input.sortOrder ?? 0,
         updated_by: session.userId,
       })
       .eq("id", departmentId);
@@ -446,6 +450,16 @@ export async function updateDepartmentAction(
     revalidatePath(`/admin/register/department/${departmentId}`);
     revalidatePath("/admin/pages");
     revalidatePath(`/admin/pages/${departmentId}`);
+    if (existing.college_root_id) {
+      const { data: college } = await admin
+        .from(Tables.pages)
+        .select("slug")
+        .eq("id", existing.college_root_id)
+        .maybeSingle();
+      if (college?.slug) {
+        revalidatePath(`/college/${college.slug}`);
+      }
+    }
 
     return ok({ id: departmentId });
   } catch (e) {
@@ -594,7 +608,7 @@ export async function updateFacultyAction(
     }
 
     const detailPath = await buildFacultyDetailPath(input.departmentPageId, input.staffSlug);
-    const sortOrder = input.memberType === "hod" ? 0 : input.sortOrder;
+    const sortOrder = input.sortOrder;
 
     const imageResult = await resolveFacultyImagePath(
       admin,

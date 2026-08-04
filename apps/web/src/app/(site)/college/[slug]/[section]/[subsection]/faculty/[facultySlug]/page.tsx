@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { SiteFooter } from "@/components/design/shared/site-footer";
 import { SiteHeader } from "@/components/design/shared/site-header";
 import { FacultyProfileContent } from "@/components/site/faculty-profile-content";
+import { FacultyProfilePrintButton } from "@/components/site/faculty-profile-print-button";
 import { staffPhotoAlt } from "@/lib/a11y/image-alt";
 import { getPublishedFacultyProfile } from "@/lib/data/public";
 import { publicMainClass } from "@/lib/design/public-page-classes";
@@ -64,57 +65,62 @@ export default async function FacultyDetailPage({
             <span className="text-slate-600">{staff.nameEn}</span>
           </nav>
 
-          <article className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-            <div className="border-b border-slate-100 bg-emerald-50 px-6 py-8 md:flex md:items-center md:gap-6">
-              {staff.imageUrl ? (
-                <div className="relative mx-auto h-28 w-28 shrink-0 overflow-hidden rounded-full border-4 border-white shadow md:mx-0">
-                  <Image src={staff.imageUrl} alt={staffPhotoAlt(staff, lang)} fill className="object-cover" sizes="112px" />
-                </div>
-              ) : null}
-              <div className="mt-4 text-center md:mt-0 md:text-left">
-                <h1 className={`font-display text-2xl font-bold text-slate-900 ${lang === "hi" ? "font-hindi" : ""}`}>
-                  {pickBilingual(lang, staff.nameEn, staff.nameHi)}
-                </h1>
-                <p className={`mt-1 text-emerald-800 ${lang === "hi" ? "font-hindi" : ""}`}>
-                  {pickBilingual(lang, staff.designationEn, staff.designationHi)}
-                </p>
-                {staff.specializationEn && (
-                  <p className={`mt-2 text-sm text-slate-600 ${lang === "hi" ? "font-hindi" : ""}`}>
-                    {pickBilingual(lang, staff.specializationEn, staff.specializationHi)}
+          <article className="faculty-profile-print-root overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div className="faculty-profile-print-body border-b border-slate-100 bg-emerald-50 px-6 py-8">
+              <div className="mb-4 flex justify-end faculty-profile-no-print">
+                <FacultyProfilePrintButton />
+              </div>
+              <div className="md:flex md:items-center md:gap-6">
+                {staff.imageUrl ? (
+                  <div className="relative mx-auto h-28 w-28 shrink-0 overflow-hidden rounded-full border-4 border-white shadow md:mx-0">
+                    <Image src={staff.imageUrl} alt={staffPhotoAlt(staff, lang)} fill className="object-cover" sizes="112px" />
+                  </div>
+                ) : null}
+                <div className="mt-4 text-center md:mt-0 md:text-left">
+                  <h1 className={`font-display text-2xl font-bold text-slate-900 ${lang === "hi" ? "font-hindi" : ""}`}>
+                    {pickBilingual(lang, staff.nameEn, staff.nameHi)}
+                  </h1>
+                  <p className={`mt-1 text-emerald-800 ${lang === "hi" ? "font-hindi" : ""}`}>
+                    {pickBilingual(lang, staff.designationEn, staff.designationHi)}
                   </p>
-                )}
-                <dl className="mt-4 flex flex-wrap justify-center gap-4 text-sm text-slate-600 md:justify-start">
-                  {staff.qualificationEn && (
-                    <div>
-                      <dt className="sr-only">Qualification</dt>
-                      <dd>
-                        Qualification: {pickBilingual(lang, staff.qualificationEn, staff.qualificationHi)}
-                      </dd>
-                    </div>
+                  {staff.specializationEn && (
+                    <p className={`mt-2 text-sm text-slate-600 ${lang === "hi" ? "font-hindi" : ""}`}>
+                      {pickBilingual(lang, staff.specializationEn, staff.specializationHi)}
+                    </p>
                   )}
-                  {staff.experienceEn && (
-                    <div>
-                      <dt className="sr-only">Experience</dt>
-                      <dd>Experience: {pickBilingual(lang, staff.experienceEn, staff.experienceHi)}</dd>
-                    </div>
-                  )}
-                  {staff.mobile && (
-                    <div>
-                      <dt className="sr-only">Mobile</dt>
-                      <dd>Mobile: {staff.mobile}</dd>
-                    </div>
-                  )}
-                  {staff.email && (
-                    <div>
-                      <dt className="sr-only">Email</dt>
-                      <dd>
-                        <a href={`mailto:${staff.email}`} className="text-emerald-700 hover:underline">
-                          {staff.email}
-                        </a>
-                      </dd>
-                    </div>
-                  )}
-                </dl>
+                  <dl className="mt-4 flex flex-wrap justify-center gap-4 text-sm text-slate-600 md:justify-start">
+                    {staff.qualificationEn && (
+                      <div>
+                        <dt className="sr-only">Qualification</dt>
+                        <dd>
+                          Qualification: {pickBilingual(lang, staff.qualificationEn, staff.qualificationHi)}
+                        </dd>
+                      </div>
+                    )}
+                    {staff.experienceEn && (
+                      <div>
+                        <dt className="sr-only">Experience</dt>
+                        <dd>Experience: {pickBilingual(lang, staff.experienceEn, staff.experienceHi)}</dd>
+                      </div>
+                    )}
+                    {staff.mobile && (
+                      <div>
+                        <dt className="sr-only">Mobile</dt>
+                        <dd>Mobile: {staff.mobile}</dd>
+                      </div>
+                    )}
+                    {staff.email && (
+                      <div>
+                        <dt className="sr-only">Email</dt>
+                        <dd>
+                          <a href={`mailto:${staff.email}`} className="text-emerald-700 hover:underline">
+                            {staff.email}
+                          </a>
+                        </dd>
+                      </div>
+                    )}
+                  </dl>
+                </div>
               </div>
             </div>
 

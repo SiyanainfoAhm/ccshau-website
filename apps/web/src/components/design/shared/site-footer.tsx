@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { Mail, MapPin, Phone, Share2, Video } from "lucide-react";
+import { Mail, MapPin, Phone } from "lucide-react";
 
+import { FooterSocialIcons } from "@/components/design/shared/footer-social-icons";
 import { useLanguage } from "@/components/design/shared/language-context";
 import { usePublicSiteChrome } from "@/components/site/public-site-context";
 import { SELECTED_LAYOUT } from "@/lib/design/selected-layout";
@@ -24,6 +25,7 @@ export function SiteFooter({
     chrome?.quickLinks ??
     chrome?.footerLinks ??
     quickLinks.map((label) => ({ labelEn: label, labelHi: null, href: "#" }));
+  const socialLinks = chrome?.socialLinks ?? [];
   const isHeritage = variant === "heritage";
   const isMinistry = variant === "ministry";
   const isFuture = variant === "future";
@@ -42,18 +44,11 @@ export function SiteFooter({
             <p className="mt-2 text-xs font-medium text-amber-200/90">
               {t(university.taglineEn, university.taglineHi)}
             </p>
-            <div className="mt-5 flex gap-2">
-              {[Share2, Video, Mail, Mail].map((Icon, i) => (
-                <a
-                  key={i}
-                  href="#"
-                  aria-label={t("Social link", "सोशल लिंक")}
-                  className="rounded-full border border-white/15 bg-white/10 p-2.5 text-amber-200 transition hover:border-amber-300/40 hover:bg-amber-400/20 hover:text-white"
-                >
-                  <Icon className="h-4 w-4" />
-                </a>
-              ))}
-            </div>
+            <FooterSocialIcons
+              links={socialLinks}
+              linkClassName="rounded-full border border-white/15 bg-white/10 p-2.5 text-amber-200 transition hover:border-amber-300/40 hover:bg-amber-400/20 hover:text-white"
+              getAriaLabel={(link) => t(link.labelEn, link.labelHi)}
+            />
           </div>
 
           <div className="lg:col-span-1">
@@ -157,17 +152,16 @@ export function SiteFooter({
           <p className="mt-2 font-hindi text-sm leading-relaxed opacity-90">
             {t(university.nameEn, university.nameHi)}
           </p>
-          <div className="mt-4 flex gap-3">
-            {[Share2, Video, Mail, Mail].map((Icon, i) => (
-              <a
-                key={i}
-                href="#"
-                className={`rounded-full p-2 transition ${isHeritage ? "bg-gradient-to-br from-rose-100 to-violet-100 text-violet-600 hover:from-rose-200 hover:to-violet-200" : "bg-sky-100 text-[#0c3b6e] hover:bg-sky-200"}`}
-              >
-                <Icon className="h-4 w-4" />
-              </a>
-            ))}
-          </div>
+          <FooterSocialIcons
+            links={socialLinks}
+            className="mt-4 flex flex-wrap gap-3"
+            linkClassName={
+              isHeritage
+                ? "rounded-full bg-gradient-to-br from-rose-100 to-violet-100 p-2 text-violet-600 transition hover:from-rose-200 hover:to-violet-200"
+                : "rounded-full bg-sky-100 p-2 text-[#0c3b6e] transition hover:bg-sky-200"
+            }
+            getAriaLabel={(link) => t(link.labelEn, link.labelHi)}
+          />
         </div>
 
         <div>

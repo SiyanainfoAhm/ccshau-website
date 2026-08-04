@@ -68,6 +68,7 @@ export function DepartmentRegisterList({
                 <th className="px-4 py-3 text-left font-semibold text-slate-700">College</th>
               )}
               <th className="px-4 py-3 text-left font-semibold text-slate-700">Department</th>
+              <th className="px-4 py-3 text-left font-semibold text-slate-700">Order</th>
               <th className="px-4 py-3 text-left font-semibold text-slate-700">Slug</th>
               <th className="px-4 py-3 text-right font-semibold text-slate-700">Actions</th>
             </tr>
@@ -75,7 +76,7 @@ export function DepartmentRegisterList({
           <tbody className="divide-y divide-slate-100">
             {departments.length === 0 ? (
               <tr>
-                <td colSpan={showCollege ? 4 : 3} className="px-4 py-8 text-center text-slate-500">
+                <td colSpan={showCollege ? 5 : 4} className="px-4 py-8 text-center text-slate-500">
                   No departments registered yet.
                 </td>
               </tr>
@@ -91,6 +92,7 @@ export function DepartmentRegisterList({
                       {dept.title_en}
                     </Link>
                   </td>
+                  <td className="px-4 py-3 text-slate-600">{dept.sort_order}</td>
                   <td className="px-4 py-3 font-mono text-xs text-slate-500">{dept.slug}</td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-2">
@@ -158,6 +160,7 @@ export function FacultyRegisterList({
               )}
               <th className="px-4 py-3 text-left font-semibold text-slate-700">Name</th>
               <th className="px-4 py-3 text-left font-semibold text-slate-700">Role</th>
+              <th className="px-4 py-3 text-left font-semibold text-slate-700">Order</th>
               <th className="px-4 py-3 text-left font-semibold text-slate-700">Designation</th>
               <th className="px-4 py-3 text-right font-semibold text-slate-700">Actions</th>
             </tr>
@@ -165,7 +168,7 @@ export function FacultyRegisterList({
           <tbody className="divide-y divide-slate-100">
             {faculty.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-slate-500">
+                <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
                   No faculty registered yet.
                 </td>
               </tr>
@@ -201,6 +204,7 @@ export function FacultyRegisterList({
                       {member.member_type === "hod" ? "HOD" : "Faculty"}
                     </span>
                   </td>
+                  <td className="px-4 py-3 text-slate-600">{member.sort_order}</td>
                   <td className="px-4 py-3 text-slate-600">{member.designation_en}</td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-2">

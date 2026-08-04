@@ -20,12 +20,28 @@ const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
     "td",
     "colgroup",
     "col",
+    "iframe",
   ]),
   allowedAttributes: {
     ...sanitizeHtml.defaults.allowedAttributes,
     "*": ["class", "id", "style", "title", "lang", "dir"],
     a: ["href", "name", "target", "rel", "class", "title"],
     img: ["src", "alt", "title", "width", "height", "class", "loading"],
+    iframe: [
+      "src",
+      "width",
+      "height",
+      "title",
+      "class",
+      "style",
+      "allow",
+      "allowfullscreen",
+      "loading",
+      "referrerpolicy",
+      "sandbox",
+      "frameborder",
+      "name",
+    ],
     td: ["colspan", "rowspan", "class", "style"],
     th: ["colspan", "rowspan", "class", "style", "scope"],
     col: ["span", "width", "style"],
@@ -42,7 +58,8 @@ export function sanitizeCmsHtml(html: string): string {
 }
 
 const HAS_HTML_TAG = /<[a-z][\s\S]*>/i;
-const HAS_BLOCK_HTML = /<(p|div|ul|ol|li|h[1-6]|table|thead|tbody|tr|td|th|section|article|blockquote|pre|br)\b/i;
+const HAS_BLOCK_HTML =
+  /<(p|div|ul|ol|li|h[1-6]|table|thead|tbody|tr|td|th|section|article|blockquote|pre|br|iframe)\b/i;
 
 /** Convert plain / mixed CMS content into renderable HTML (preserve tags, honor line breaks). */
 export function normalizeCmsHtml(content: string): string {

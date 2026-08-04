@@ -733,6 +733,13 @@ html.dark #main-content :where(.border-slate-200, .border-emerald-100) {
   list-style-type: square;
 }
 
+.cms-html iframe {
+  display: block;
+  max-width: 100%;
+  border: 0;
+  margin: 0.75em 0;
+}
+
 .homepage-carousel-track {
   scrollbar-width: thin;
   scrollbar-color: rgba(20, 108, 67, 0.45) transparent;
@@ -750,4 +757,57 @@ html.dark #main-content :where(.border-slate-200, .border-emerald-100) {
 
 .homepage-carousel-track::-webkit-scrollbar-track {
   background: transparent;
+}
+
+/* Faculty profile print — used only if popup is blocked (body.printing-faculty-profile) */
+@media print {
+  @page {
+    margin: 12mm;
+  }
+
+  body.printing-faculty-profile {
+    background: #fff !important;
+  }
+
+  body.printing-faculty-profile > *:not(.faculty-profile-dialog-root) {
+    display: none !important;
+  }
+
+  /* Standalone faculty page: hide chrome, keep article */
+  body.printing-faculty-profile:not(:has(.faculty-profile-dialog-root)) header,
+  body.printing-faculty-profile:not(:has(.faculty-profile-dialog-root)) footer,
+  body.printing-faculty-profile:not(:has(.faculty-profile-dialog-root)) nav {
+    display: none !important;
+  }
+
+  body.printing-faculty-profile .faculty-profile-no-print {
+    display: none !important;
+  }
+
+  body.printing-faculty-profile .faculty-profile-dialog-root {
+    display: block !important;
+    position: static !important;
+    inset: auto !important;
+    padding: 0 !important;
+    background: transparent !important;
+    height: auto !important;
+    max-height: none !important;
+  }
+
+  body.printing-faculty-profile .faculty-profile-print-root {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: none !important;
+    max-height: none !important;
+    overflow: visible !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+
+  body.printing-faculty-profile .faculty-profile-print-body {
+    overflow: visible !important;
+    max-height: none !important;
+  }
 }

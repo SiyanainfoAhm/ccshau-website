@@ -10,6 +10,7 @@ export const registerDepartmentSchema = z.object({
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Use lowercase letters, numbers, and hyphens"),
   excerptEn: z.string().optional(),
   contentEn: z.string().optional(),
+  sortOrder: z.coerce.number().int().min(0).optional().default(0),
 });
 
 export const registerFacultySchema = z.object({
