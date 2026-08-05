@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Globe, Menu, Search, X } from "lucide-react";
@@ -155,56 +156,122 @@ export function SiteHeader({
       </div>
 
       {/* Main header */}
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4">
-        <Link href={homeHref} className="group flex min-w-0 items-center gap-3">
+      <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3.5 sm:gap-5 sm:py-5">
+        <Link href={homeHref} className="group flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
           <div
-            className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl font-display text-xl font-bold shadow-lg transition group-hover:scale-105 ${isHeritage ? "bg-gradient-to-br from-amber-300 via-rose-300 to-violet-300 text-white" : isLight ? "gradient-gold text-emerald-950" : "bg-white/15 text-amber-300 ring-2 ring-amber-400/40"}`}
+            className={`relative h-14 w-14 shrink-0 overflow-hidden rounded-full bg-black shadow-lg transition group-hover:scale-105 sm:h-16 sm:w-16 md:h-[4.6rem] md:w-[4.6rem] ${isHeritage ? "ring-2 ring-rose-200" : isMinistry ? "ring-2 ring-[#0c3b6e]/30" : isLight ? "ring-2 ring-emerald-200" : "ring-2 ring-amber-400/50"}`}
           >
-            HAU
+            <Image
+              src="/images/ccshau-logo.png"
+              alt={t(
+                "Chaudhary Charan Singh Haryana Agricultural University logo",
+                "चौधरी चरण सिंह हरियाणा कृषि विश्वविद्यालय लोगो",
+              )}
+              fill
+              className="object-cover"
+              sizes="74px"
+              priority
+            />
           </div>
           <div className="min-w-0">
             <p
-              className={`font-display text-lg font-bold leading-tight md:text-xl ${isHeritage ? "text-slate-800" : isMinistry ? "text-[#0c3b6e]" : isLight ? "text-emerald-900" : "text-white"}`}
+              className={`font-display text-lg font-bold leading-tight sm:text-xl md:text-2xl ${isHeritage ? "text-slate-800" : isMinistry ? "text-[#0c3b6e]" : isLight ? "text-emerald-900" : "text-white"}`}
             >
               {t(university.shortName, university.shortName)}
             </p>
             <p
-              className={`font-hindi truncate text-xs md:text-sm ${isHeritage ? "text-slate-600" : isLight ? "text-slate-600" : "text-emerald-100"}`}
+              className={`font-hindi truncate text-xs leading-snug sm:text-sm ${isHeritage ? "text-slate-600" : isLight ? "text-slate-600" : "text-emerald-100/90"}`}
             >
               {t(university.nameEn, university.nameHi)}
             </p>
           </div>
         </Link>
 
-        <form onSubmit={handleSearchSubmit} className="hidden items-center gap-2 lg:flex">
-          <div
-            className={`flex items-center gap-2 rounded-full px-4 py-2 ${isHeritage ? "bg-white/90 ring-1 ring-sky-100 shadow-sm" : isLight ? "bg-slate-100" : "bg-white/10"}`}
-          >
-            <Search className={`h-4 w-4 ${isHeritage ? "text-rose-400" : isLight ? "text-slate-500" : "text-emerald-200"}`} />
-            <input
-              type="search"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={t("Search university...", "विश्वविद्यालय खोजें...")}
-              aria-label={t("Search university website", "विश्वविद्यालय वेबसाइट खोजें")}
-              className={`w-44 bg-transparent text-sm outline-none md:w-56 ${isHeritage ? "placeholder:text-slate-400 text-slate-700" : isLight ? "placeholder:text-slate-400" : "placeholder:text-emerald-200/70"}`}
-            />
-          </div>
-        </form>
+        <div className="flex shrink-0 items-center gap-3 sm:gap-4">
+          <form onSubmit={handleSearchSubmit} className="hidden lg:block">
+            <label className="sr-only" htmlFor="site-header-search">
+              {t("Search university website", "विश्वविद्यालय वेबसाइट खोजें")}
+            </label>
+            <div
+              className={`flex items-center gap-2 rounded-full px-4 py-2.5 shadow-sm transition focus-within:ring-2 ${
+                isHeritage
+                  ? "bg-white/95 ring-1 ring-sky-100 focus-within:ring-rose-300"
+                  : isLight
+                    ? "bg-slate-100 ring-1 ring-slate-200 focus-within:ring-emerald-400"
+                    : "bg-white/12 ring-1 ring-white/15 focus-within:ring-amber-300/70"
+              }`}
+            >
+              <Search
+                className={`h-4 w-4 shrink-0 ${isHeritage ? "text-rose-400" : isLight ? "text-slate-500" : "text-amber-200"}`}
+                aria-hidden
+              />
+              <input
+                id="site-header-search"
+                type="search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={t("Search university...", "विश्वविद्यालय खोजें...")}
+                className={`w-40 bg-transparent text-sm outline-none xl:w-52 ${
+                  isHeritage
+                    ? "text-slate-700 placeholder:text-slate-400"
+                    : isLight
+                      ? "text-slate-800 placeholder:text-slate-400"
+                      : "text-white placeholder:text-emerald-100/60"
+                }`}
+              />
+              <button
+                type="submit"
+                className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+                  isHeritage
+                    ? "bg-rose-100 text-rose-800 hover:bg-rose-200"
+                    : isLight
+                      ? "bg-emerald-100 text-emerald-900 hover:bg-emerald-200"
+                      : "bg-amber-400/90 text-emerald-950 hover:bg-amber-300"
+                }`}
+              >
+                {t("Go", "जाएँ")}
+              </button>
+            </div>
+          </form>
 
-        {shouldShowMainNav && (
-          <button
-            ref={mobileMenuButtonRef}
-            type="button"
-            className={`rounded-xl p-2 lg:hidden ${isLight ? "bg-slate-100" : "bg-white/10"}`}
-            onClick={() => setMobileOpen(!mobileOpen)}
-            aria-expanded={mobileOpen}
-            aria-controls="mobile-main-navigation"
-            aria-label={mobileOpen ? t("Close menu", "मेनू बंद करें") : t("Open menu", "मेनू खोलें")}
+          <figure
+            className={`relative h-[4.6rem] w-16 shrink-0 overflow-hidden rounded-xl shadow-lg sm:h-[5.5rem] sm:w-[4.75rem] ${
+              isHeritage
+                ? "ring-2 ring-rose-200"
+                : isMinistry
+                  ? "ring-2 ring-[#0c3b6e]/25"
+                  : isLight
+                    ? "ring-2 ring-emerald-200"
+                    : "ring-2 ring-amber-300/55"
+            }`}
           >
-            {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
-        )}
+            <Image
+              src="/images/chaudhary-charan-singh.png"
+              alt={t(
+                "Chaudhary Charan Singh, former Prime Minister of India",
+                "चौधरी चरण सिंह, भारत के पूर्व प्रधान मंत्री",
+              )}
+              fill
+              className="object-cover object-[50%_12%]"
+              sizes="76px"
+              priority
+            />
+          </figure>
+
+          {shouldShowMainNav && (
+            <button
+              ref={mobileMenuButtonRef}
+              type="button"
+              className={`rounded-xl p-2 lg:hidden ${isLight ? "bg-slate-100" : "bg-white/10"}`}
+              onClick={() => setMobileOpen(!mobileOpen)}
+              aria-expanded={mobileOpen}
+              aria-controls="mobile-main-navigation"
+              aria-label={mobileOpen ? t("Close menu", "मेनू बंद करें") : t("Open menu", "मेनू खोलें")}
+            >
+              {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+          )}
+        </div>
       </div>
 
       {shouldShowMainNav && (
