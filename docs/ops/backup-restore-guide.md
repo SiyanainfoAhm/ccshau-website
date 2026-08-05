@@ -108,7 +108,35 @@ Runs daily at **02:30 UTC** (≈ 08:00 IST).
 
 ---
 
-## 5. Restore drill (staging / new project)
+## 5. Pre-import backup (before legacy data load)
+
+Take a local snapshot **immediately before** importing legacy MySQL content:
+
+```bash
+# From repo root — read-only; does not modify the live database
+npm run backup:pre-import
+
+# Optional: also download Storage files (large)
+node scripts/ops/backup-pre-import.mjs --with-storage-files
+```
+
+Output: `backups/pre-import/<timestamp>/` (gitignored)
+
+| Artifact | Purpose |
+|----------|---------|
+| `tables/*.json` | Row-level snapshot of `ccshau_*` tables (via service role) |
+| `database-dump.sql` | Full logical dump **if** `SUPABASE_DB_PASSWORD` or `DATABASE_URL` is set |
+| `MANIFEST.json` / `README.md` | Rollback notes |
+| `backups/storage/...` | Storage inventory from `backup-storage.mjs` |
+
+**Rollback options after a bad import:**
+
+1. Supabase Dashboard → **Database → Backups** → restore the daily backup from *before* import (downtime; needs approval).
+2. Use the JSON / SQL snapshot above on a **staging** project first; only restore production with Super Admin approval.
+
+---
+
+## 6. Restore drill (staging / new project)
 
 **Never practice restore on production without an approved maintenance window.**
 
@@ -144,19 +172,20 @@ supabase db dump -f backups/db/ccshau-$(date +%Y%m%d).sql
 
 ---
 
-## 6. Operational checklist
+## 7. Operational checklist
 
 - [ ] Org plan is Pro+ (confirmed)
 - [ ] **Database → Backups** shows recent daily backups
 - [ ] PITR left off unless sub-day RPO is required
 - [ ] Storage inventory job runs (local or GitHub Action)
 - [ ] Off-site copy of Storage inventory / files retained
+- [ ] Run `npm run backup:pre-import` immediately before legacy import
 - [ ] One restore drill documented before Go-Live
 - [ ] Management API / service role tokens stored only in secrets managers
 
 ---
 
-## 7. Contacts
+## 8. Contacts
 
 | Role | Responsibility |
 |------|----------------|

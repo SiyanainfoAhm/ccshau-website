@@ -1,0 +1,12 @@
+{
+  "name": "ccshau-legacy-import",
+  "private": true,
+  "type": "module",
+  "description": "Dry-run / apply tooling for legacy hau_db → ccshau_* import",
+  "scripts": {
+    "dry-run": "node dry-run.mjs"
+  },
+  "dependencies": {
+    "mysql2": "^3.14.1"
+  }
+}

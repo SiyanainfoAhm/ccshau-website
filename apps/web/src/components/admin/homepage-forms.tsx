@@ -145,7 +145,7 @@ export function HomepageQuoteForm({ quote }: { quote?: HomepageQuote }) {
       </label>
       <SortActiveFields sortOrder={quote?.sort_order} isActive={quote?.is_active} />
       <div className="flex gap-3">
-        <button type="submit" disabled={isPending} className="rounded-lg bg-[#0b3d2e] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60">
+        <button type="submit" disabled={isPending} className="rounded-lg bg-ccshau-chrome-900 px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60">
           {isPending ? "Saving…" : quote ? "Save quote" : "Create quote"}
         </button>
         <Link href="/admin/homepage/quotes" className="rounded-lg border border-slate-300 px-5 py-2.5 text-sm">
@@ -208,7 +208,7 @@ export function HomepageDignitaryForm({ dignitary }: { dignitary?: HomepageDigni
       />
       <SortActiveFields sortOrder={dignitary?.sort_order} isActive={dignitary?.is_active} />
       <div className="flex gap-3">
-        <button type="submit" disabled={isPending} className="rounded-lg bg-[#0b3d2e] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60">
+        <button type="submit" disabled={isPending} className="rounded-lg bg-ccshau-chrome-900 px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60">
           {isPending ? "Saving…" : dignitary ? "Save dignitary" : "Create dignitary"}
         </button>
         <Link href="/admin/homepage/dignitaries" className="rounded-lg border border-slate-300 px-5 py-2.5 text-sm">
@@ -281,7 +281,7 @@ export function HomepageInitiativeForm({ initiative }: { initiative?: HomepageIn
       </div>
       <SortActiveFields sortOrder={initiative?.sort_order} isActive={initiative?.is_active} />
       <div className="flex gap-3">
-        <button type="submit" disabled={isPending} className="rounded-lg bg-[#0b3d2e] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60">
+        <button type="submit" disabled={isPending} className="rounded-lg bg-ccshau-chrome-900 px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60">
           {isPending ? "Saving…" : initiative ? "Save flagship" : "Create flagship"}
         </button>
         <Link href="/admin/homepage/flagships" className="rounded-lg border border-slate-300 px-5 py-2.5 text-sm">
@@ -347,7 +347,7 @@ export function HomepageCtaForm({ cta }: { cta?: HomepageCta | null }) {
         Show farmers portal band on homepage
       </label>
       <div className="flex gap-3">
-        <button type="submit" disabled={isPending} className="rounded-lg bg-[#0b3d2e] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60">
+        <button type="submit" disabled={isPending} className="rounded-lg bg-ccshau-chrome-900 px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60">
           {isPending ? "Saving…" : "Save CTA"}
         </button>
         <Link href="/admin/homepage" className="rounded-lg border border-slate-300 px-5 py-2.5 text-sm">

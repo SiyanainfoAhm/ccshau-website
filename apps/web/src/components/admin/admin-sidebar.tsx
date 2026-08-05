@@ -128,7 +128,7 @@ export function AdminSidebar({
   return (
     <>
       <AdminRouteGuard access={access} />
-      <aside className="flex w-64 shrink-0 flex-col border-r border-emerald-900/10 bg-[#0b3d2e] text-emerald-50">
+      <aside className="flex w-64 shrink-0 flex-col border-r border-emerald-900/10 bg-ccshau-chrome-900 text-emerald-50">
         <div className="border-b border-white/10 px-5 py-6">
           <Link href="/admin" className="block">
             <p className="font-display text-xl font-bold text-gradient-gold">CCSHAU</p>

@@ -24,7 +24,7 @@ export function StatCard({ label, value }: { label: string; value: number | stri
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
       <p className="text-sm text-slate-500">{label}</p>
-      <p className="mt-2 font-display text-3xl font-bold text-[#0b3d2e]">{value}</p>
+      <p className="mt-2 font-display text-3xl font-bold text-ccshau-chrome-900">{value}</p>
     </div>
   );
 }

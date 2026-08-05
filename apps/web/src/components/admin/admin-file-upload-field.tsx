@@ -175,7 +175,7 @@ export function AdminFileUploadField({
             <p className="text-sm font-medium text-slate-800">{label}</p>
             {hint ? <p className="truncate text-xs text-slate-500">{hint}</p> : null}
           </div>
-          <span className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-[#0b3d2e] px-3 py-1.5 text-xs font-semibold text-white">
+          <span className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-ccshau-chrome-900 px-3 py-1.5 text-xs font-semibold text-white">
             <Upload className="h-3.5 w-3.5" aria-hidden />
             {chooseLabel}
           </span>

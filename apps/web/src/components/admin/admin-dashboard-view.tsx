@@ -44,7 +44,7 @@ function MetricCard({
         <ArrowRight className="h-4 w-4 text-slate-300 transition group-hover:text-emerald-600" aria-hidden />
       </div>
       <p className="mt-4 text-sm font-medium text-slate-500">{label}</p>
-      <p className="mt-1 font-display text-3xl font-bold text-[#0b3d2e]">{value}</p>
+      <p className="mt-1 font-display text-3xl font-bold text-ccshau-chrome-900">{value}</p>
       {hint ? <p className="mt-1 text-xs text-slate-400">{hint}</p> : null}
     </Link>
   );
@@ -66,7 +66,7 @@ export function AdminDashboardView({
 
   return (
     <div className="space-y-6">
-      <section className="overflow-hidden rounded-2xl border border-emerald-900/20 bg-gradient-to-br from-[#0b3d2e] via-[#146c43] to-[#0d4a38] p-6 text-white shadow-lg md:p-8">
+      <section className="overflow-hidden rounded-2xl border border-emerald-900/20 bg-gradient-to-br from-ccshau-chrome-900 via-ccshau-chrome-700 to-ccshau-chrome-800 p-6 text-white shadow-lg md:p-8">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-sm font-medium text-emerald-100/90">{today}</p>
@@ -316,7 +316,7 @@ export function AdminDashboardView({
                     >
                       <span className="text-slate-700">{item.label}</span>
                       <span className="flex items-center gap-2">
-                        <span className="font-display text-lg font-bold text-[#0b3d2e]">
+                        <span className="font-display text-lg font-bold text-ccshau-chrome-900">
                           {item.count}
                         </span>
                         <StatusBadge status={item.status} />

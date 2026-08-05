@@ -11,6 +11,8 @@
     "build": "npm run build --workspace=web",
     "start": "npm run start --workspace=web",
     "lint": "npm run lint --workspace=web",
+    "dry-run": "npm run dry-run --prefix scripts/legacy-import",
+    "backup:pre-import": "node scripts/ops/backup-pre-import.mjs",
     "supabase:start": "npx supabase start",
     "supabase:stop": "npx supabase stop",
     "supabase:status": "npx supabase status"

@@ -88,13 +88,13 @@ export function ForgotPasswordForm({ captcha }: { captcha: CaptchaClientConfig }
       <button
         type="submit"
         disabled={loading || Boolean(success)}
-        className="w-full rounded-lg bg-[#0b3d2e] px-4 py-3 font-semibold text-white transition hover:bg-[#0d4a38] disabled:opacity-60"
+        className="w-full rounded-lg bg-ccshau-chrome-900 px-4 py-3 font-semibold text-white transition hover:bg-ccshau-chrome-800 disabled:opacity-60"
       >
         {loading ? "Sending…" : "Send reset link"}
       </button>
 
       <p className="text-center text-sm text-slate-600">
-        <Link href="/admin/login" className="font-medium text-[#0b3d2e] hover:underline">
+        <Link href="/admin/login" className="font-medium text-ccshau-chrome-900 hover:underline">
           Back to sign in
         </Link>
       </p>

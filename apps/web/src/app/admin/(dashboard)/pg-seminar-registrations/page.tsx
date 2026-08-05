@@ -71,7 +71,7 @@ export default async function AdminPgSeminarRegistrationsPage({
               href={href}
               className={`rounded-full px-3 py-1.5 text-sm font-medium ${
                 active
-                  ? "bg-[#0b3d2e] text-white"
+                  ? "bg-ccshau-chrome-900 text-white"
                   : "bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50"
               }`}
             >

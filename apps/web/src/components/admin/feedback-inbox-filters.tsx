@@ -79,7 +79,7 @@ export function FeedbackInboxFilters() {
       </label>
       <button
         type="submit"
-        className="rounded-lg bg-[#0b3d2e] px-4 py-2 text-sm font-medium text-white hover:bg-[#0a3427]"
+        className="rounded-lg bg-ccshau-chrome-900 px-4 py-2 text-sm font-medium text-white hover:bg-ccshau-green-900"
       >
         Apply
       </button>

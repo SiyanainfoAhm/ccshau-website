@@ -23,7 +23,7 @@ const variantStyles: Record<HeaderVariant, string> = {
   heritage:
     "bg-white/95 text-slate-800 border-b-4 border-transparent shadow-md backdrop-blur-sm [border-image:linear-gradient(90deg,#fda4af,#fcd34d,#86efac,#7dd3fc,#c4b5fd)_1]",
   future:
-    "bg-gradient-to-r from-[#0b3d2e] via-[#146c43] to-[#0d4a38] text-white border-b border-white/10",
+    "bg-gradient-to-r from-ccshau-chrome-900 via-ccshau-chrome-700 to-ccshau-chrome-800 text-white border-b border-white/10",
   ministry: "bg-white text-slate-900 border-b-4 border-[#0c3b6e] shadow-sm",
 };
 

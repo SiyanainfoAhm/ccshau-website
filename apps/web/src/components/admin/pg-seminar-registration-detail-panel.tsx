@@ -223,7 +223,7 @@ export function PgSeminarRegistrationDetailPanel({
           <button
             type="submit"
             disabled={isPending}
-            className="mt-5 rounded-lg bg-[#0b3d2e] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#0d4a38] disabled:opacity-50"
+            className="mt-5 rounded-lg bg-ccshau-chrome-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-ccshau-chrome-800 disabled:opacity-50"
           >
             {isPending ? "Saving…" : "Save changes"}
           </button>

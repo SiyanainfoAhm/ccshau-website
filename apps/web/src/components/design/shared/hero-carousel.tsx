@@ -204,8 +204,9 @@ export function HeroCarousel({
             className={`object-cover ${i === index ? "animate-ken-burns" : "scale-105"}`}
             priority={i === 0}
           />
-          <div className="absolute inset-0 bg-gradient-to-br from-[#0b3d2e]/95 via-[#146c43]/80 to-[#0b3d2e]/60" />
-          <div className="pattern-dots absolute inset-0" />
+          {/* Scrim only where the text sits, so the rest of the photo stays unfiltered */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/15 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-ccshau-green-900/50 via-transparent to-ccshau-green-900/20" />
         </div>
       ))}
 
@@ -216,11 +217,11 @@ export function HeroCarousel({
             {t("NAEAB A+ Accredited University", "एनएईएबी ए+ मान्यता")}
           </span>
 
-          <h1 className="mt-8 max-w-4xl font-display text-5xl font-bold leading-[1.1] text-white md:text-7xl">
+          <h1 className="mt-8 max-w-4xl font-display text-5xl font-bold leading-[1.1] text-white drop-shadow-[0_3px_16px_rgba(0,0,0,0.65)] md:text-7xl">
             <span className="text-gradient-gold">{t(slide.titleEn, slide.titleHi ?? slide.titleEn)}</span>
           </h1>
 
-          <p className="mt-6 max-w-2xl text-xl leading-relaxed text-emerald-100/90">
+          <p className="mt-6 max-w-2xl text-xl leading-relaxed text-white/95 drop-shadow-[0_2px_10px_rgba(0,0,0,0.7)]">
             {slide.subtitleEn ?? ""}
           </p>
 

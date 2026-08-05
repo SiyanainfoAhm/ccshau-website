@@ -444,7 +444,7 @@ export function RegisterFacultyForm({
         <button
           type="submit"
           disabled={isPending || departments.length === 0}
-          className="rounded-lg bg-[#0b3d2e] px-5 py-2.5 font-semibold text-white hover:bg-[#0d4a38] disabled:opacity-60"
+          className="rounded-lg bg-ccshau-chrome-900 px-5 py-2.5 font-semibold text-white hover:bg-ccshau-chrome-800 disabled:opacity-60"
         >
           {isPending ? "Saving…" : isEdit ? "Save changes" : "Add faculty"}
         </button>

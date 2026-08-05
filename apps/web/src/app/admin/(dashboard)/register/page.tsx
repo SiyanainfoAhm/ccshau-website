@@ -36,14 +36,14 @@ export default async function CollegeRegisterHubPage() {
           <div className="flex flex-wrap gap-2">
             <Link
               href="/admin/colleges/new"
-              className="inline-flex items-center gap-2 rounded-lg bg-[#0b3d2e] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#0d4a38]"
+              className="inline-flex items-center gap-2 rounded-lg bg-ccshau-chrome-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-ccshau-chrome-800"
             >
               <Plus className="h-4 w-4" aria-hidden />
               Register college
             </Link>
             <Link
               href="/admin/directorates/new"
-              className="inline-flex items-center gap-2 rounded-lg border border-[#0b3d2e] bg-white px-4 py-2.5 text-sm font-semibold text-[#0b3d2e] hover:bg-emerald-50"
+              className="inline-flex items-center gap-2 rounded-lg border border-ccshau-chrome-900 bg-white px-4 py-2.5 text-sm font-semibold text-ccshau-chrome-900 hover:bg-emerald-50"
             >
               <Plus className="h-4 w-4" aria-hidden />
               Register directorate

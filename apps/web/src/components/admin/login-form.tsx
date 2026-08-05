@@ -96,7 +96,7 @@ export function LoginForm({ captcha }: { captcha: CaptchaClientConfig }) {
           className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
         />
         <p className="mt-1.5 text-right text-sm">
-          <Link href="/admin/forgot-password" className="font-medium text-[#0b3d2e] hover:underline">
+          <Link href="/admin/forgot-password" className="font-medium text-ccshau-chrome-900 hover:underline">
             Forgot password?
           </Link>
         </p>
@@ -107,7 +107,7 @@ export function LoginForm({ captcha }: { captcha: CaptchaClientConfig }) {
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-lg bg-[#0b3d2e] px-4 py-3 font-semibold text-white transition hover:bg-[#0d4a38] disabled:opacity-60"
+        className="w-full rounded-lg bg-ccshau-chrome-900 px-4 py-3 font-semibold text-white transition hover:bg-ccshau-chrome-800 disabled:opacity-60"
       >
         {loading ? "Signing in…" : "Sign in to CMS"}
       </button>

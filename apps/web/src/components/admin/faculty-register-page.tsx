@@ -65,7 +65,7 @@ export function FacultyRegisterPage({
             type="button"
             onClick={openDialog}
             disabled={departments.length === 0}
-            className="inline-flex items-center gap-2 rounded-lg bg-[#0b3d2e] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#0d4a38] disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-lg bg-ccshau-chrome-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-ccshau-chrome-800 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Plus className="h-4 w-4" aria-hidden />
             Add new

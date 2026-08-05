@@ -46,7 +46,7 @@ export function AdminReportsView({ data }: { data: AdminReportsData }) {
               <p className="font-semibold text-slate-900">{module.label}</p>
               <ArrowRight className="h-4 w-4 text-slate-300 transition group-hover:text-emerald-600" />
             </div>
-            <p className="mt-2 font-display text-3xl font-bold text-[#0b3d2e]">{module.total}</p>
+            <p className="mt-2 font-display text-3xl font-bold text-ccshau-chrome-900">{module.total}</p>
             <dl className="mt-4 grid grid-cols-3 gap-2 text-center text-xs">
               <div className="rounded-lg bg-slate-50 px-2 py-2">
                 <dt className="text-slate-500">Draft</dt>
