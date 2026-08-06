@@ -58,7 +58,7 @@ function InstagramIcon({ className }: { className?: string }) {
   );
 }
 
-const PLATFORM_ICONS: Record<
+export const PLATFORM_ICONS: Record<
   PublicSocialLink["platform"],
   (props: { className?: string }) => ReactNode
 > = {

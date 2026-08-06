@@ -34,8 +34,8 @@ export function SocialMediaSettingsForm({ settings }: { settings: SiteSettings }
       <div>
         <h2 className="text-lg font-semibold text-slate-900">Social media links</h2>
         <p className="mt-1 text-sm text-slate-500">
-          These URLs appear as icons in the public site footer. Leave a field empty to hide that
-          platform.
+          These URLs appear as a fixed icon bar on the left of public pages and in the footer.
+          Leave a field empty to hide that platform.
         </p>
       </div>
 
