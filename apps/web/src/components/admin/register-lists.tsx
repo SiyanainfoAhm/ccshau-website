@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
-import { Eye, Pencil, Trash2 } from "lucide-react";
+import { useMemo, useState, useTransition } from "react";
+import { ChevronLeft, ChevronRight, Eye, Pencil, Search, Trash2 } from "lucide-react";
 
 import { deleteDepartmentAction, deleteFacultyAction } from "@/actions/college-register";
+import { ADMIN_DEFAULT_PAGE_SIZE } from "@/lib/data/admin-list";
 import type { DepartmentOption, FacultyListItem } from "@/lib/pages/college-register-helpers";
 
 function DeleteRowButton({
@@ -42,6 +43,12 @@ function DeleteRowButton({
   );
 }
 
+function matchesDepartmentQuery(dept: DepartmentOption, query: string, includeCollege: boolean) {
+  const parts = [dept.title_en, dept.slug];
+  if (includeCollege) parts.push(dept.college_title);
+  return parts.join(" ").toLowerCase().includes(query);
+}
+
 export function DepartmentRegisterList({
   departments,
   collegePageId,
@@ -54,11 +61,50 @@ export function DepartmentRegisterList({
   canDelete?: boolean;
 }) {
   const showCollege = !collegePageId;
+  const colSpan = showCollege ? 5 : 4;
+  const [query, setQuery] = useState("");
+  const [page, setPage] = useState(1);
+  const normalizedQuery = query.trim().toLowerCase();
+
+  const filteredDepartments = useMemo(() => {
+    if (!normalizedQuery) return departments;
+    return departments.filter((dept) => matchesDepartmentQuery(dept, normalizedQuery, showCollege));
+  }, [departments, normalizedQuery, showCollege]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredDepartments.length / ADMIN_DEFAULT_PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const pageStart = (safePage - 1) * ADMIN_DEFAULT_PAGE_SIZE;
+  const pagedDepartments = filteredDepartments.slice(pageStart, pageStart + ADMIN_DEFAULT_PAGE_SIZE);
+  const rangeStart = filteredDepartments.length === 0 ? 0 : pageStart + 1;
+  const rangeEnd = Math.min(pageStart + ADMIN_DEFAULT_PAGE_SIZE, filteredDepartments.length);
+
   return (
     <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
       <div className="border-b border-slate-100 px-4 py-3">
-        <h2 className="font-display text-lg font-bold text-slate-900">Registered departments</h2>
-        <p className="text-xs text-slate-500">{departments.length} department{departments.length === 1 ? "" : "s"}</p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="font-display text-lg font-bold text-slate-900">Registered departments</h2>
+            <p className="text-xs text-slate-500">
+              {normalizedQuery
+                ? `${filteredDepartments.length} of ${departments.length} shown`
+                : `${departments.length} department${departments.length === 1 ? "" : "s"}`}
+            </p>
+          </div>
+          <div className="relative w-full sm:max-w-xs">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setPage(1);
+              }}
+              placeholder="Search by department…"
+              className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-4 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+              aria-label="Search departments by name"
+            />
+          </div>
+        </div>
       </div>
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-slate-200 text-sm">
@@ -76,12 +122,18 @@ export function DepartmentRegisterList({
           <tbody className="divide-y divide-slate-100">
             {departments.length === 0 ? (
               <tr>
-                <td colSpan={showCollege ? 5 : 4} className="px-4 py-8 text-center text-slate-500">
+                <td colSpan={colSpan} className="px-4 py-8 text-center text-slate-500">
                   No departments registered yet.
                 </td>
               </tr>
+            ) : filteredDepartments.length === 0 ? (
+              <tr>
+                <td colSpan={colSpan} className="px-4 py-8 text-center text-slate-500">
+                  No departments match &quot;{query.trim()}&quot;.
+                </td>
+              </tr>
             ) : (
-              departments.map((dept) => (
+              pagedDepartments.map((dept) => (
                 <tr key={dept.id} className="hover:bg-slate-50/80">
                   {showCollege && <td className="px-4 py-3 text-slate-600">{dept.college_title}</td>}
                   <td className="px-4 py-3 font-medium text-slate-900">
@@ -127,8 +179,49 @@ export function DepartmentRegisterList({
           </tbody>
         </table>
       </div>
+      {filteredDepartments.length > 0 && (
+        <nav
+          className="flex flex-col gap-3 border-t border-slate-100 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+          aria-label="Pagination"
+        >
+          <p className="text-sm text-slate-500">
+            Showing {rangeStart}–{rangeEnd} of {filteredDepartments.length}
+          </p>
+          {totalPages > 1 && (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                disabled={safePage <= 1}
+                onClick={() => setPage(safePage - 1)}
+                className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:border-slate-100 disabled:text-slate-300 disabled:hover:bg-white"
+              >
+                <ChevronLeft className="h-4 w-4" aria-hidden />
+                Previous
+              </button>
+              <span className="px-2 text-sm font-medium text-slate-600">
+                Page {safePage} of {totalPages}
+              </span>
+              <button
+                type="button"
+                disabled={safePage >= totalPages}
+                onClick={() => setPage(safePage + 1)}
+                className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:border-slate-100 disabled:text-slate-300 disabled:hover:bg-white"
+              >
+                Next
+                <ChevronRight className="h-4 w-4" aria-hidden />
+              </button>
+            </div>
+          )}
+        </nav>
+      )}
     </section>
   );
+}
+
+function matchesFacultyQuery(member: FacultyListItem, query: string, includeCollege: boolean) {
+  const parts = [member.department_title, member.name_en];
+  if (includeCollege) parts.push(member.college_title);
+  return parts.join(" ").toLowerCase().includes(query);
 }
 
 export function FacultyRegisterList({
@@ -143,11 +236,49 @@ export function FacultyRegisterList({
   canDelete?: boolean;
 }) {
   const showCollege = !collegePageId;
+  const [query, setQuery] = useState("");
+  const [page, setPage] = useState(1);
+  const normalizedQuery = query.trim().toLowerCase();
+
+  const filteredFaculty = useMemo(() => {
+    if (!normalizedQuery) return faculty;
+    return faculty.filter((member) => matchesFacultyQuery(member, normalizedQuery, showCollege));
+  }, [faculty, normalizedQuery, showCollege]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredFaculty.length / ADMIN_DEFAULT_PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const pageStart = (safePage - 1) * ADMIN_DEFAULT_PAGE_SIZE;
+  const pagedFaculty = filteredFaculty.slice(pageStart, pageStart + ADMIN_DEFAULT_PAGE_SIZE);
+  const rangeStart = filteredFaculty.length === 0 ? 0 : pageStart + 1;
+  const rangeEnd = Math.min(pageStart + ADMIN_DEFAULT_PAGE_SIZE, filteredFaculty.length);
+
   return (
     <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
       <div className="border-b border-slate-100 px-4 py-3">
-        <h2 className="font-display text-lg font-bold text-slate-900">Registered faculty</h2>
-        <p className="text-xs text-slate-500">{faculty.length} member{faculty.length === 1 ? "" : "s"}</p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="font-display text-lg font-bold text-slate-900">Registered faculty</h2>
+            <p className="text-xs text-slate-500">
+              {normalizedQuery
+                ? `${filteredFaculty.length} of ${faculty.length} shown`
+                : `${faculty.length} member${faculty.length === 1 ? "" : "s"}`}
+            </p>
+          </div>
+          <div className="relative w-full sm:max-w-xs">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setPage(1);
+              }}
+              placeholder="Search department or name…"
+              className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-4 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+              aria-label="Search faculty by department or name"
+            />
+          </div>
+        </div>
       </div>
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-slate-200 text-sm">
@@ -172,8 +303,14 @@ export function FacultyRegisterList({
                   No faculty registered yet.
                 </td>
               </tr>
+            ) : filteredFaculty.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
+                  No faculty match &quot;{query.trim()}&quot;.
+                </td>
+              </tr>
             ) : (
-              faculty.map((member) => (
+              pagedFaculty.map((member) => (
                 <tr key={member.id} className="hover:bg-slate-50/80">
                   <td className="px-4 py-3 text-slate-600">
                     {showCollege ? (
@@ -249,6 +386,41 @@ export function FacultyRegisterList({
           </tbody>
         </table>
       </div>
+      {filteredFaculty.length > 0 && (
+        <nav
+          className="flex flex-col gap-3 border-t border-slate-100 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+          aria-label="Pagination"
+        >
+          <p className="text-sm text-slate-500">
+            Showing {rangeStart}–{rangeEnd} of {filteredFaculty.length}
+          </p>
+          {totalPages > 1 && (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                disabled={safePage <= 1}
+                onClick={() => setPage(safePage - 1)}
+                className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:border-slate-100 disabled:text-slate-300 disabled:hover:bg-white"
+              >
+                <ChevronLeft className="h-4 w-4" aria-hidden />
+                Previous
+              </button>
+              <span className="px-2 text-sm font-medium text-slate-600">
+                Page {safePage} of {totalPages}
+              </span>
+              <button
+                type="button"
+                disabled={safePage >= totalPages}
+                onClick={() => setPage(safePage + 1)}
+                className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:border-slate-100 disabled:text-slate-300 disabled:hover:bg-white"
+              >
+                Next
+                <ChevronRight className="h-4 w-4" aria-hidden />
+              </button>
+            </div>
+          )}
+        </nav>
+      )}
     </section>
   );
 }

@@ -29,7 +29,7 @@ import {
   resolvePublicPagePath,
 } from "@/lib/pages/resolve-public-path";
 import { slugify } from "@/lib/utils/slug";
-import { getStoredFileUrl } from "@/lib/storage/upload";
+import { getStoredFileUrl } from "@/lib/storage/urls";
 
 interface Department {
   id: string;

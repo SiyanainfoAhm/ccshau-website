@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
- * Inventory (and optionally download) Supabase Storage buckets for off-site backup.
+ * Inventory (and optionally download) Azure Blob containers for off-site backup.
  *
  * Env (or apps/web/.env.local):
- *   NEXT_PUBLIC_SUPABASE_URL
- *   SUPABASE_SERVICE_ROLE_KEY
+ *   AZURE_STORAGE_CONNECTION_STRING
+ *   OR AZURE_STORAGE_ACCOUNT_NAME + AZURE_STORAGE_ACCOUNT_KEY
  *
  * Usage:
  *   node scripts/ops/backup-storage.mjs
@@ -16,19 +16,32 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "../..");
-function loadSupabaseJs() {
+
+function loadAzureStorage() {
   for (const pkgJson of [join(ROOT, "apps/web/package.json"), join(ROOT, "package.json")]) {
     if (!existsSync(pkgJson)) continue;
     try {
-      return createRequire(pkgJson)("@supabase/supabase-js");
+      return createRequire(pkgJson)("@azure/storage-blob");
     } catch {
       /* try next */
     }
   }
-  throw new Error("Install @supabase/supabase-js (apps/web) before running this script.");
+  throw new Error("Install @azure/storage-blob (apps/web) before running this script.");
 }
-const { createClient } = loadSupabaseJs();
-const BUCKETS = ["ccshau-public", "ccshau-private", "ccshau-media"];
+
+const { BlobServiceClient, StorageSharedKeyCredential } = loadAzureStorage();
+
+const CONTAINERS = (() => {
+  const single =
+    process.env.NEXT_PUBLIC_AZURE_STORAGE_CONTAINER?.trim() ||
+    process.env.AZURE_STORAGE_CONTAINER?.trim();
+  if (single) return [single];
+  return [
+    process.env.NEXT_PUBLIC_STORAGE_BUCKET_PUBLIC || "ccshau-public",
+    process.env.STORAGE_BUCKET_PRIVATE || "ccshau-private",
+    process.env.NEXT_PUBLIC_STORAGE_BUCKET_MEDIA || "ccshau-media",
+  ];
+})();
 const DOWNLOAD = process.argv.includes("--download");
 
 function loadEnvFile(path) {
@@ -53,76 +66,59 @@ function loadEnvFile(path) {
 loadEnvFile(join(ROOT, "apps/web/.env.local"));
 loadEnvFile(join(ROOT, ".env.local"));
 
-const URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-async function listAll(supabase, bucket) {
-  const objects = [];
-  const queue = [""];
-
-  while (queue.length) {
-    const prefix = queue.shift();
-    let offset = 0;
-    for (;;) {
-      const { data, error } = await supabase.storage.from(bucket).list(prefix, {
-        limit: 100,
-        offset,
-        sortBy: { column: "name", order: "asc" },
-      });
-      if (error) throw new Error(`${bucket}/${prefix}: ${error.message}`);
-      if (!data?.length) break;
-
-      for (const item of data) {
-        const path = prefix ? `${prefix}/${item.name}` : item.name;
-        // Folders have null id in Storage list API
-        if (item.id === null) {
-          queue.push(path);
-        } else {
-          objects.push({
-            bucket,
-            path,
-            size: item.metadata?.size ?? null,
-            updated_at: item.updated_at ?? item.created_at ?? null,
-            mimetype: item.metadata?.mimetype ?? null,
-          });
-        }
-      }
-
-      if (data.length < 100) break;
-      offset += data.length;
-    }
+function getBlobServiceClient() {
+  const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING?.trim();
+  if (connectionString) {
+    return BlobServiceClient.fromConnectionString(connectionString);
   }
+  const accountName = process.env.AZURE_STORAGE_ACCOUNT_NAME?.trim();
+  const accountKey = process.env.AZURE_STORAGE_ACCOUNT_KEY?.trim();
+  if (accountName && accountKey) {
+    const credential = new StorageSharedKeyCredential(accountName, accountKey);
+    return new BlobServiceClient(`https://${accountName}.blob.core.windows.net`, credential);
+  }
+  return null;
+}
 
+async function listAll(service, containerName) {
+  const objects = [];
+  const container = service.getContainerClient(containerName);
+  for await (const blob of container.listBlobsFlat()) {
+    objects.push({
+      bucket: containerName,
+      path: blob.name,
+      size: blob.properties.contentLength ?? null,
+      updated_at: blob.properties.lastModified?.toISOString?.() ?? null,
+      mimetype: blob.properties.contentType ?? null,
+    });
+  }
   return objects;
 }
 
-async function downloadObject(supabase, bucket, path, destFile) {
+async function downloadObject(service, containerName, path, destFile) {
   mkdirSync(dirname(destFile), { recursive: true });
-  const { data, error } = await supabase.storage.from(bucket).download(path);
-  if (error) throw new Error(`download ${bucket}/${path}: ${error.message}`);
-  const buffer = Buffer.from(await data.arrayBuffer());
-  writeFileSync(destFile, buffer);
+  const blob = service.getContainerClient(containerName).getBlockBlobClient(path);
+  await blob.downloadToFile(destFile);
 }
 
 async function main() {
-  if (!URL || !KEY) {
-    console.error("Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
+  const service = getBlobServiceClient();
+  if (!service) {
+    console.error(
+      "Missing Azure credentials. Set AZURE_STORAGE_CONNECTION_STRING or AZURE_STORAGE_ACCOUNT_NAME + AZURE_STORAGE_ACCOUNT_KEY",
+    );
     process.exit(1);
   }
-
-  const supabase = createClient(URL, KEY, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
 
   const stamp = new Date().toISOString().slice(0, 10);
   const outDir = join(ROOT, "backups", "storage", stamp);
   mkdirSync(outDir, { recursive: true });
 
   const all = [];
-  for (const bucket of BUCKETS) {
-    console.log(`Listing ${bucket}...`);
+  for (const container of CONTAINERS) {
+    console.log(`Listing ${container}...`);
     try {
-      const objs = await listAll(supabase, bucket);
+      const objs = await listAll(service, container);
       console.log(`  ${objs.length} objects`);
       all.push(...objs);
     } catch (err) {
@@ -130,14 +126,18 @@ async function main() {
     }
   }
 
+  const account =
+    process.env.NEXT_PUBLIC_AZURE_STORAGE_ACCOUNT ||
+    process.env.AZURE_STORAGE_ACCOUNT_NAME ||
+    "azure";
   const inventoryPath = join(outDir, "inventory.json");
   writeFileSync(
     inventoryPath,
     JSON.stringify(
       {
-        project_url: URL,
+        storage_account: account,
         generated_at: new Date().toISOString(),
-        buckets: BUCKETS,
+        buckets: CONTAINERS,
         object_count: all.length,
         objects: all,
       },
@@ -158,7 +158,7 @@ async function main() {
   for (const obj of all) {
     const dest = join(filesRoot, obj.bucket, obj.path);
     try {
-      await downloadObject(supabase, obj.bucket, obj.path, dest);
+      await downloadObject(service, obj.bucket, obj.path, dest);
       ok += 1;
       if (ok % 25 === 0) console.log(`  downloaded ${ok}/${all.length}`);
     } catch (err) {

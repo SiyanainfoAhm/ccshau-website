@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { ExternalLink, Pencil, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, ExternalLink, Pencil, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 
+import { ADMIN_DEFAULT_PAGE_SIZE } from "@/lib/data/admin-list";
 import type { CollegeOption } from "@/lib/pages/college-register-helpers";
 import { MICROSITE_KIND_LABELS, type MicrositeKind } from "@/lib/pages/microsite-kind";
 
@@ -24,6 +25,7 @@ function typeFilterLabel(typeFilter: TypeFilter): string | null {
 export function CollegeRegisterList({ colleges }: { colleges: CollegeOption[] }) {
   const [query, setQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
+  const [page, setPage] = useState(1);
   const normalizedQuery = query.trim().toLowerCase();
   const hasActiveFilters = Boolean(normalizedQuery) || typeFilter !== "all";
 
@@ -34,6 +36,13 @@ export function CollegeRegisterList({ colleges }: { colleges: CollegeOption[] })
       return true;
     });
   }, [colleges, normalizedQuery, typeFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredColleges.length / ADMIN_DEFAULT_PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const pageStart = (safePage - 1) * ADMIN_DEFAULT_PAGE_SIZE;
+  const pagedColleges = filteredColleges.slice(pageStart, pageStart + ADMIN_DEFAULT_PAGE_SIZE);
+  const rangeStart = filteredColleges.length === 0 ? 0 : pageStart + 1;
+  const rangeEnd = Math.min(pageStart + ADMIN_DEFAULT_PAGE_SIZE, filteredColleges.length);
 
   const academicCount = colleges.filter((c) => c.kind === "academic").length;
   const directorateCount = colleges.filter((c) => c.kind === "directorate").length;
@@ -59,7 +68,10 @@ export function CollegeRegisterList({ colleges }: { colleges: CollegeOption[] })
           <div className="flex w-full flex-col gap-2 sm:max-w-md sm:flex-row">
             <select
               value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value as TypeFilter)}
+              onChange={(e) => {
+                setTypeFilter(e.target.value as TypeFilter);
+                setPage(1);
+              }}
               className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
               aria-label="Filter microsites by type"
             >
@@ -72,7 +84,10 @@ export function CollegeRegisterList({ colleges }: { colleges: CollegeOption[] })
               <input
                 type="search"
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  setPage(1);
+                }}
                 placeholder="Search by name…"
                 className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-4 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
                 aria-label="Search microsites by name"
@@ -117,7 +132,7 @@ export function CollegeRegisterList({ colleges }: { colleges: CollegeOption[] })
                 </td>
               </tr>
             ) : (
-              filteredColleges.map((college) => (
+              pagedColleges.map((college) => (
                 <tr key={college.id} className="hover:bg-slate-50/80">
                   <td className="px-4 py-3">
                     <Link
@@ -155,6 +170,41 @@ export function CollegeRegisterList({ colleges }: { colleges: CollegeOption[] })
           </tbody>
         </table>
       </div>
+      {filteredColleges.length > 0 && (
+        <nav
+          className="flex flex-col gap-3 border-t border-slate-100 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+          aria-label="Pagination"
+        >
+          <p className="text-sm text-slate-500">
+            Showing {rangeStart}–{rangeEnd} of {filteredColleges.length}
+          </p>
+          {totalPages > 1 && (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                disabled={safePage <= 1}
+                onClick={() => setPage(safePage - 1)}
+                className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:border-slate-100 disabled:text-slate-300 disabled:hover:bg-white"
+              >
+                <ChevronLeft className="h-4 w-4" aria-hidden />
+                Previous
+              </button>
+              <span className="px-2 text-sm font-medium text-slate-600">
+                Page {safePage} of {totalPages}
+              </span>
+              <button
+                type="button"
+                disabled={safePage >= totalPages}
+                onClick={() => setPage(safePage + 1)}
+                className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:border-slate-100 disabled:text-slate-300 disabled:hover:bg-white"
+              >
+                Next
+                <ChevronRight className="h-4 w-4" aria-hidden />
+              </button>
+            </div>
+          )}
+        </nav>
+      )}
     </section>
   );
 }

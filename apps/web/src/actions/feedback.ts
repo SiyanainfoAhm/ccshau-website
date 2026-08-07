@@ -66,7 +66,12 @@ export async function listFeedbackForAdmin(
   const admin = createAdminClient();
   if (!admin) return emptyPaginatedResult(opts);
 
-  let query = admin.from(Tables.feedback).select("*", { count: "exact" });
+  let query = admin
+    .from(Tables.feedback)
+    .select(
+      "id, ticket_number, subject, submitter_name, category, status, created_at",
+      { count: "exact" },
+    );
   if (!isUniversityWideCmsSession(session) && session.departmentId) {
     query = query.eq("department_id", session.departmentId);
   }

@@ -8,7 +8,7 @@ import { addMediaItemAction, deleteMediaItemAction } from "@/actions/media";
 import { AdminFileUploadField } from "@/components/admin/admin-file-upload-field";
 import type { MediaItem } from "@/lib/database/types";
 import { getVideoPlayback } from "@/lib/media/video-playback";
-import { getStoredFileUrl } from "@/lib/storage/upload";
+import { getStoredFileUrl } from "@/lib/storage/urls";
 
 export function MediaItemsPanel({ albumId, items }: { albumId: string; items: MediaItem[] }) {
   const router = useRouter();

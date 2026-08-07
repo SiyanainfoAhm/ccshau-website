@@ -5,6 +5,7 @@ import { Plus } from "lucide-react";
 
 import { listTendersForAdmin } from "@/actions/tenders";
 import { AdminListFooter } from "@/components/admin/admin-list-footer";
+import { AdminListSearch } from "@/components/admin/admin-list-search";
 import { AdminSortableTh } from "@/components/admin/admin-sortable-th";
 import { StatusBadge } from "@/components/admin/status-badge";
 import { canManageUniversityContent } from "@/lib/auth/college-scope";
@@ -34,6 +35,7 @@ export default async function AdminTendersListPage({
   const data = await listTendersForAdmin(listParams);
   const items = data.items;
   const canCreate = canManageUniversityContent(session);
+  const hasSearch = Boolean(listParams.search);
 
   return (
     <div className="space-y-6">
@@ -52,6 +54,15 @@ export default async function AdminTendersListPage({
           </Link>
         )}
       </div>
+
+      <Suspense fallback={null}>
+        <AdminListSearch
+          search={listParams.search}
+          placeholder="Search by title, number, or category…"
+          ariaLabel="Search tenders by title, number, or category"
+          totalLabel={`${data.total} tender${data.total === 1 ? "" : "s"}`}
+        />
+      </Suspense>
 
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         <table className="min-w-full divide-y divide-slate-200 text-sm">
@@ -82,13 +93,19 @@ export default async function AdminTendersListPage({
             {items.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-4 py-10 text-center text-slate-500">
-                  No tenders yet.
-                  {canCreate && (
+                  {hasSearch ? (
+                    <>No tenders match &quot;{listParams.search}&quot;.</>
+                  ) : (
                     <>
-                      {" "}
-                      <Link href="/admin/tenders/new" className="text-emerald-700 hover:underline">
-                        Create your first tender
-                      </Link>
+                      No tenders yet.
+                      {canCreate && (
+                        <>
+                          {" "}
+                          <Link href="/admin/tenders/new" className="text-emerald-700 hover:underline">
+                            Create your first tender
+                          </Link>
+                        </>
+                      )}
                     </>
                   )}
                 </td>

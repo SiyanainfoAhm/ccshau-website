@@ -116,6 +116,15 @@ async function archiveCurrentFileAsVersion(
 
 const DOWNLOADS_LIST_SORTS = ["title_en", "category", "version", "status", "updated_at"] as const;
 
+function escapeIlikeTerm(value: string): string {
+  return value.replace(/[%_\\]/g, "");
+}
+
+/** Quote a PostgREST filter value so commas/spaces don't break `.or()` parsing. */
+function quotePostgrestValue(value: string): string {
+  return `"${value.replace(/"/g, '""')}"`;
+}
+
 export async function listDownloadsForAdmin(
   options: import("@/lib/data/admin-list").AdminListOptions = {},
 ): Promise<PaginatedResult<Download>> {
@@ -132,10 +141,19 @@ export async function listDownloadsForAdmin(
   const admin = createAdminClient();
   if (!admin) return emptyPaginatedResult(opts);
 
-  let query = admin.from(Tables.downloads).select("*", { count: "exact" });
+  let query = admin
+    .from(Tables.downloads)
+    .select("id, title_en, category, version, is_public, status", { count: "exact" });
 
   if (!isUniversityWideCmsSession(session) && session.departmentId) {
     query = query.eq("department_id", session.departmentId);
+  }
+
+  if (opts.search) {
+    const term = quotePostgrestValue(`%${escapeIlikeTerm(opts.search)}%`);
+    query = query.or(
+      `title_en.ilike.${term},category.ilike.${term},version.ilike.${term}`,
+    );
   }
 
   return runPaginatedQuery<Download>(query, opts);

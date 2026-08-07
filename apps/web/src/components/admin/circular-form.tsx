@@ -8,7 +8,7 @@ import { createCircularAction, updateCircularAction } from "@/actions/circulars"
 import { AdminFileUploadField } from "@/components/admin/admin-file-upload-field";
 import type { Circular } from "@/lib/database/types";
 import { contentStatusOptions } from "@/lib/auth/content-status-options";
-import { getStoredFileUrl } from "@/lib/storage/upload";
+import { getStoredFileUrl } from "@/lib/storage/urls";
 
 interface Department {
   id: string;

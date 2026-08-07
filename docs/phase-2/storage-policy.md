@@ -1,18 +1,22 @@
-# Supabase Storage Policy — CCSHAU
+# Azure Blob Storage Policy — CCSHAU
 
-**Phase:** 2 | **Version:** 1.0 | **Date:** 23 June 2026
+**Phase:** 2 | **Version:** 1.1 | **Date:** 7 August 2026
+
+> Uploads use **Azure Blob Storage** (not Supabase Storage). Database still stores
+> paths as `{container}/{blobKey}` (same layout as the former Supabase buckets).
 
 ---
 
-## 1. Bucket overview
+## 1. Container overview
 
-| Bucket | Access | Purpose |
-|--------|--------|---------|
-| `ccshau-public` | Public read | Published images, banners, public PDFs |
-| `ccshau-private` | Authenticated / signed URL | Draft uploads, pre-publish documents |
-| `ccshau-media` | Public read (published albums) | Photo/video gallery assets |
+**Recommended:** one container (e.g. `ccshau`) with anonymous blob read. Content is separated by folder prefixes (`banners/`, `news/`, `albums/`, …).
 
-All buckets use the `ccshau-` prefix to avoid collision with Supabase defaults.
+| Mode | Env | Notes |
+|------|-----|--------|
+| 1 container | `NEXT_PUBLIC_AZURE_STORAGE_CONTAINER=ccshau` | Simplest; drafts & published share the same container |
+| 3 containers | `NEXT_PUBLIC_STORAGE_BUCKET_PUBLIC` / `STORAGE_BUCKET_PRIVATE` / `NEXT_PUBLIC_STORAGE_BUCKET_MEDIA` | Only if you need private drafts isolated at the container level |
+
+Create the container(s) in your Azure Storage account. For public website images/PDFs, enable **anonymous blob access** (Blob level).
 
 ---
 
@@ -130,31 +134,35 @@ Validation runs **server-side** in Server Actions before upload.
 
 ## 7. Backup
 
-- Included in Supabase project backups
-- Pre-go-live: export bucket inventory manifest
-- Critical documents also referenced in DB — restore order: DB first, then verify Storage paths
+- Use `node scripts/ops/backup-storage.mjs` (Azure containers) or Azure Storage Explorer / `az storage blob`
+- Critical documents are also referenced in DB — restore order: DB first, then verify blob paths
 
 ---
 
 ## 8. Environment
 
 ```env
-# Bucket names (defaults)
-NEXT_PUBLIC_STORAGE_BUCKET_PUBLIC=ccshau-public
-NEXT_PUBLIC_STORAGE_BUCKET_MEDIA=ccshau-media
-STORAGE_BUCKET_PRIVATE=ccshau-private
+# Server credentials (one of these)
+AZURE_STORAGE_CONNECTION_STRING=...
+# OR:
+# AZURE_STORAGE_ACCOUNT_NAME=...
+# AZURE_STORAGE_ACCOUNT_KEY=...
+
+# Public URL host (no secrets)
+NEXT_PUBLIC_AZURE_STORAGE_ACCOUNT=youraccount
+
+# One container (recommended)
+NEXT_PUBLIC_AZURE_STORAGE_CONTAINER=ccshau
 ```
+
+See `apps/web/.env.azure.example`.
 
 ---
 
-## 9. Migration setup
+## 9. Setup
 
-Buckets are created via Supabase dashboard or CLI:
+1. Create a Storage Account (e.g. region Central India / West India).
+2. Create **one** container (e.g. `ccshau`) with public blob access — or three if you prefer isolation.
+3. Put credentials in `apps/web/.env.local` and restart `npm run dev`.
 
-```bash
-supabase storage create ccshau-public --public
-supabase storage create ccshau-private
-supabase storage create ccshau-media --public
-```
-
-Policy SQL can be added in a follow-up migration when buckets exist on the linked project.
+App code entry points: `apps/web/src/lib/storage/azure.ts` + `upload.ts`.

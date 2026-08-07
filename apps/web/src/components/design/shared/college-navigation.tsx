@@ -70,9 +70,12 @@ export function CollegeNavigation({ college }: { college: PublicCollegePage }) {
   const [openSectionSlug, setOpenSectionSlug] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  const reservedNavSlugs = new Set(["home", "contact", "contact-us"]);
   const links = [
     { type: "home" as const, labelEn: "Home", labelHi: "होम" },
-    ...college.sections.map((section) => ({ type: "section" as const, section })),
+    ...college.sections
+      .filter((section) => !reservedNavSlugs.has(section.slug))
+      .map((section) => ({ type: "section" as const, section })),
     { type: "contact" as const, labelEn: "Contact Us", labelHi: "संपर्क करें" },
   ];
 
@@ -138,7 +141,7 @@ export function CollegeNavigation({ college }: { college: PublicCollegePage }) {
             if (hasSubsections) {
               return (
                 <li
-                  key={section.slug}
+                  key={section.pageId}
                   className="relative flex items-center"
                   onMouseEnter={() => setOpenSectionSlug(section.slug)}
                   onMouseLeave={() => setOpenSectionSlug(null)}
@@ -170,7 +173,7 @@ export function CollegeNavigation({ college }: { college: PublicCollegePage }) {
                       const isActive = activeSubsectionSlug === subsection.slug;
 
                       return (
-                        <li key={subsection.slug}>
+                        <li key={subsection.pageId}>
                           <Link
                             href={href}
                             onClick={() => {
@@ -194,7 +197,7 @@ export function CollegeNavigation({ college }: { college: PublicCollegePage }) {
             }
 
             return (
-              <li key={section.slug} className="relative flex items-center">
+              <li key={section.pageId} className="relative flex items-center">
                 {index > 0 && <span className="ccshau-main-nav-separator" aria-hidden />}
                 <Link
                   href={getCollegeSectionPath(college.collegeSlug, section.slug)}
@@ -245,7 +248,7 @@ export function CollegeNavigation({ college }: { college: PublicCollegePage }) {
                 const isSectionActive = activeSectionSlug === section.slug;
 
                 return (
-                  <li key={`${section.slug}-mobile`}>
+                  <li key={`${section.pageId}-mobile`}>
                     <Link
                       href={getCollegeSectionPath(college.collegeSlug, section.slug)}
                       onClick={() => setMobileOpen(false)}

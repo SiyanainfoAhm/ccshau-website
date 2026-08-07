@@ -1,6 +1,6 @@
 "use client";
 
-import { getStoredFileUrl } from "@/lib/storage/upload";
+import { getStoredFileUrl } from "@/lib/storage/urls";
 import type { DownloadVersion } from "@/lib/database/types";
 
 export function DownloadVersionPanel({ versions }: { versions: DownloadVersion[] }) {

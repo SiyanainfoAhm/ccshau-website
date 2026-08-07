@@ -10,7 +10,7 @@ import { translateFieldsEnToHiAction } from "@/actions/translate";
 import { AdminFileUploadField } from "@/components/admin/admin-file-upload-field";
 import { slugify } from "@/lib/utils/slug";
 import type { PageStaff } from "@/lib/database/types";
-import { getStoredFileUrl } from "@/lib/storage/upload";
+import { getStoredFileUrl } from "@/lib/storage/urls";
 
 type DepartmentOption = {
   id: string;

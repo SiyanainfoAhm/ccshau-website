@@ -32,6 +32,10 @@ function getImageFile(formData: FormData): File | null {
   return file instanceof File && file.size > 0 ? file : null;
 }
 
+function isHttpUrl(value: string | null | undefined): value is string {
+  return Boolean(value && /^https?:\/\//i.test(value));
+}
+
 function toBannerRow(input: ReturnType<typeof bannerFormSchema.parse>, userId: string) {
   return {
     title: input.title,
@@ -82,10 +86,40 @@ export async function createBannerAction(formData: FormData): Promise<ActionResu
     }
 
     const imageFile = getImageFile(formData);
-    if (!imageFile) return fail("Banner image is required.");
+    const targetUrl = parsed.data.targetUrl?.trim() || "";
+    if (!imageFile && !isHttpUrl(targetUrl)) {
+      return fail("Provide a banner image file or a Target URL / Image URL.");
+    }
 
     const admin = createAdminClient();
     if (!admin) return fail("Database not configured.");
+
+    // External image URL (no upload): store as image_path; keep as click target too.
+    if (!imageFile && isHttpUrl(targetUrl)) {
+      const { data, error } = await admin
+        .from(Tables.banners)
+        .insert({
+          ...toBannerRow(parsed.data, session.userId),
+          image_path: targetUrl,
+          target_url: targetUrl,
+        })
+        .select("id")
+        .single();
+
+      if (error) return fail(error.message);
+
+      await writeAuditLog({
+        userId: session.userId,
+        action: "create",
+        entityType: "banner",
+        entityId: data.id,
+        details: { title: parsed.data.title, imageSource: "url" },
+      });
+
+      revalidatePath("/admin/banners");
+      revalidatePath("/");
+      return ok({ id: data.id });
+    }
 
     const { data, error } = await admin
       .from(Tables.banners)
@@ -95,7 +129,7 @@ export async function createBannerAction(formData: FormData): Promise<ActionResu
 
     if (error) return fail(error.message);
 
-    const upload = await uploadBannerImage(admin, data.id, imageFile);
+    const upload = await uploadBannerImage(admin, data.id, imageFile!);
     if (!upload.success) {
       await admin.from(Tables.banners).delete().eq("id", data.id);
       return upload;
@@ -113,10 +147,11 @@ export async function createBannerAction(formData: FormData): Promise<ActionResu
       action: "create",
       entityType: "banner",
       entityId: data.id,
-      details: { title: parsed.data.title },
+      details: { title: parsed.data.title, imageSource: "upload" },
     });
 
     revalidatePath("/admin/banners");
+    revalidatePath("/");
     return ok({ id: data.id });
   } catch (e) {
     return fail(e instanceof Error ? e.message : "Create failed.");
@@ -142,23 +177,34 @@ export async function updateBannerAction(
 
     let imagePath = existing.image_path;
     const imageFile = getImageFile(formData);
+    const targetUrl = parsed.data.targetUrl?.trim() || "";
 
-    if (parsed.data.removeImage && !imageFile) {
-      return fail("Upload a replacement image or keep the current one.");
+    if (parsed.data.removeImage && !imageFile && !isHttpUrl(targetUrl)) {
+      return fail("Upload a replacement image, provide an image URL, or keep the current one.");
     }
 
-    if (parsed.data.removeImage && existing.image_path !== "pending") {
-      await removeStorageObjects(admin, [existing.image_path]);
+    if (parsed.data.removeImage && existing.image_path && existing.image_path !== "pending") {
+      if (!existing.image_path.startsWith("http")) {
+        await removeStorageObjects(admin, [existing.image_path]);
+      }
       imagePath = "pending";
     }
 
     if (imageFile) {
-      if (existing.image_path && existing.image_path !== "pending") {
+      if (existing.image_path && existing.image_path !== "pending" && !existing.image_path.startsWith("http")) {
         await removeStorageObjects(admin, [existing.image_path]);
       }
       const upload = await uploadBannerImage(admin, bannerId, imageFile);
       if (!upload.success) return upload;
       imagePath = upload.data;
+    } else if (isHttpUrl(targetUrl) && (imagePath === "pending" || existing.image_path?.startsWith("http"))) {
+      // No file: use Target URL as slide only when there is no stored upload,
+      // or when the banner already uses an external image URL.
+      imagePath = targetUrl;
+    }
+
+    if (!imagePath || imagePath === "pending") {
+      return fail("Provide a banner image file or a Target URL / Image URL.");
     }
 
     const { error } = await admin
@@ -196,7 +242,7 @@ export async function deleteBannerAction(bannerId: string): Promise<ActionResult
     const existing = await getBannerById(bannerId);
     if (!existing) return fail("Banner not found.");
 
-    if (existing.image_path && existing.image_path !== "pending") {
+    if (existing.image_path && existing.image_path !== "pending" && !existing.image_path.startsWith("http")) {
       await removeStorageObjects(admin, [existing.image_path]);
     }
 

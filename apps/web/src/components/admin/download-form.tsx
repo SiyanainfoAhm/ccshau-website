@@ -8,7 +8,7 @@ import { createDownloadAction, updateDownloadAction } from "@/actions/downloads"
 import { AdminFileUploadField } from "@/components/admin/admin-file-upload-field";
 import type { Download } from "@/lib/database/types";
 import { contentStatusOptions } from "@/lib/auth/content-status-options";
-import { getStoredFileUrl } from "@/lib/storage/upload";
+import { getStoredFileUrl } from "@/lib/storage/urls";
 import { DOWNLOAD_CATEGORIES } from "@/lib/validations/downloads";
 
 interface Department {

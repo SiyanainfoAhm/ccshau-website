@@ -6,7 +6,7 @@ import { useState, useTransition } from "react";
 import { addCorrigendumAction, deleteCorrigendumAction } from "@/actions/tenders";
 import { AdminFileUploadField } from "@/components/admin/admin-file-upload-field";
 import type { TenderCorrigendum } from "@/lib/database/types";
-import { getPublicFileUrl } from "@/lib/storage/upload";
+import { getPublicFileUrl } from "@/lib/storage/urls";
 
 export function CorrigendumPanel({
   tenderId,

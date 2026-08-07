@@ -4,7 +4,21 @@
   "type": "module",
   "description": "Dry-run / apply tooling for legacy hau_db → ccshau_* import",
   "scripts": {
-    "dry-run": "node dry-run.mjs"
+    "dry-run": "node dry-run.mjs",
+    "apply:phase1": "node apply-phase1.mjs --confirm",
+    "apply:phase2": "node apply-phase2.mjs --confirm",
+    "apply:phase3-priority": "node apply-phase3-priority.mjs --confirm",
+    "apply:phase3-full": "node apply-phase3-full.mjs --confirm",
+    "apply:banners-media:dry": "node apply-banners-media.mjs --meta --files --dry-run",
+    "apply:banners-media:meta": "node apply-banners-media.mjs --meta --confirm",
+    "apply:banners-media:files": "node apply-banners-media.mjs --files --confirm",
+    "apply:banners-media": "node apply-banners-media.mjs --meta --files --confirm",
+    "apply:phase4:dry": "node apply-phase4-files.mjs --dry-run",
+    "apply:phase4": "node apply-phase4-files.mjs --confirm",
+    "apply:college-galleries:dry": "node apply-college-galleries.mjs --dry-run",
+    "apply:college-galleries": "node apply-college-galleries.mjs --confirm",
+    "apply:faculty-details:dry": "node apply-faculty-details.mjs --dry-run",
+    "apply:faculty-details": "node apply-faculty-details.mjs --confirm"
   },
   "dependencies": {
     "mysql2": "^3.14.1"

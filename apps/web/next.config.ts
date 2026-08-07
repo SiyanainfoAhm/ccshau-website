@@ -5,6 +5,23 @@ const supabaseHostname = process.env.NEXT_PUBLIC_SUPABASE_URL
   ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname
   : null;
 
+function azureBlobHostname(): string | null {
+  const base = process.env.NEXT_PUBLIC_AZURE_STORAGE_BASE_URL?.trim();
+  if (base) {
+    try {
+      return new URL(base).hostname;
+    } catch {
+      return null;
+    }
+  }
+  const account =
+    process.env.NEXT_PUBLIC_AZURE_STORAGE_ACCOUNT?.trim() ||
+    process.env.AZURE_STORAGE_ACCOUNT_NAME?.trim();
+  return account ? `${account}.blob.core.windows.net` : null;
+}
+
+const azureHostname = azureBlobHostname();
+
 const nextConfig: NextConfig = {
   // Monorepo root — required so Vercel/Next file tracing resolves workspace deps.
   outputFileTracingRoot: resolve(__dirname, "../.."),
@@ -54,6 +71,12 @@ const nextConfig: NextConfig = {
         hostname: "www.hau.ac.in",
         pathname: "/**",
       },
+      // Azure Blob Storage (any account *.blob.core.windows.net)
+      {
+        protocol: "https",
+        hostname: "*.blob.core.windows.net",
+        pathname: "/**",
+      },
       ...(supabaseHostname
         ? [
             {
@@ -63,12 +86,24 @@ const nextConfig: NextConfig = {
             },
           ]
         : []),
+      ...(azureHostname
+        ? [
+            {
+              protocol: "https" as const,
+              hostname: azureHostname,
+              pathname: "/**",
+            },
+          ]
+        : []),
     ],
   },
   async headers() {
     const supabaseOrigin = process.env.NEXT_PUBLIC_SUPABASE_URL
       ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).origin
       : "";
+    const azureOrigin = azureHostname
+      ? `https://${azureHostname}`
+      : "https://*.blob.core.windows.net";
 
     const csp = [
       "default-src 'self'",
@@ -81,7 +116,7 @@ const nextConfig: NextConfig = {
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       // Next.js + reCAPTCHA require inline/eval in practice for widgets and hydration.
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com https://www.gstatic.com",
-      `connect-src 'self' https://www.google.com https://www.gstatic.com${supabaseOrigin ? ` ${supabaseOrigin}` : ""}`,
+      `connect-src 'self' https://www.google.com https://www.gstatic.com${supabaseOrigin ? ` ${supabaseOrigin}` : ""} https://*.blob.core.windows.net${azureOrigin && !azureOrigin.includes("*") ? ` ${azureOrigin}` : ""}`,
       // CMS sidebar/page HTML may embed https iframes (maps, docs, library portals, etc.).
       "frame-src 'self' https:",
       "upgrade-insecure-requests",

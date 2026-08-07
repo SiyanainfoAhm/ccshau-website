@@ -84,6 +84,13 @@ export function sniffUploadMime(buffer: Buffer): string | null {
 function mimeMatchesClaim(sniffed: string, claimed: string): boolean {
   if (sniffed === claimed) return true;
 
+  // Common legacy / OS quirk: JPEG bytes saved as .png (or browser claims PNG).
+  // Accept when magic bytes prove an allowed image and the claim is also an image.
+  const imageMimes = IMAGE_MIME as readonly string[];
+  if (imageMimes.includes(sniffed) && imageMimes.includes(claimed)) {
+    return true;
+  }
+
   if (sniffed === "application/zip") {
     return (
       claimed ===
@@ -98,6 +105,29 @@ function mimeMatchesClaim(sniffed: string, claimed: string): boolean {
   }
 
   return false;
+}
+
+/** Prefer sniffed MIME; fall back to client claim when sniff is inconclusive. */
+export function resolveUploadContentType(file: File, buffer: Buffer): string | null {
+  const sniffed = sniffUploadMime(buffer);
+  if (sniffed === "application/zip") {
+    if (
+      file.type ===
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+      file.type ===
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    ) {
+      return file.type;
+    }
+    return null;
+  }
+  if (sniffed === "application/x-ole-storage") {
+    if (file.type === "application/msword" || file.type === "application/vnd.ms-excel") {
+      return file.type;
+    }
+    return null;
+  }
+  return sniffed;
 }
 
 export function validateUploadFile(file: File): string | null {
@@ -142,10 +172,13 @@ export function assertUploadMagicBytes(file: File, buffer: Buffer): string | nul
 /**
  * Type/size allowlist + magic-byte sniff. Prefer this in upload paths so
  * callers always validate content after reading the buffer.
+ * `contentType` is the verified MIME from file bytes (not the browser claim).
  */
 export async function prepareValidatedUpload(
   file: File,
-): Promise<{ ok: true; buffer: Buffer } | { ok: false; error: string }> {
+): Promise<
+  { ok: true; buffer: Buffer; contentType: string } | { ok: false; error: string }
+> {
   const typeError = validateUploadFile(file);
   if (typeError) return { ok: false, error: typeError };
 
@@ -153,12 +186,17 @@ export async function prepareValidatedUpload(
   const magicError = assertUploadMagicBytes(file, buffer);
   if (magicError) return { ok: false, error: magicError };
 
-  return { ok: true, buffer };
+  const contentType = resolveUploadContentType(file, buffer);
+  if (!contentType) return { ok: false, error: `Could not resolve file type: ${file.name}` };
+
+  return { ok: true, buffer, contentType };
 }
 
 export async function prepareValidatedMediaUpload(
   file: File,
-): Promise<{ ok: true; buffer: Buffer } | { ok: false; error: string }> {
+): Promise<
+  { ok: true; buffer: Buffer; contentType: string } | { ok: false; error: string }
+> {
   const typeError = validateMediaUploadFile(file);
   if (typeError) return { ok: false, error: typeError };
 
@@ -166,7 +204,10 @@ export async function prepareValidatedMediaUpload(
   const magicError = assertUploadMagicBytes(file, buffer);
   if (magicError) return { ok: false, error: magicError };
 
-  return { ok: true, buffer };
+  const contentType = resolveUploadContentType(file, buffer);
+  if (!contentType) return { ok: false, error: `Could not resolve file type: ${file.name}` };
+
+  return { ok: true, buffer, contentType };
 }
 
 export function sanitizeFileName(name: string): string {

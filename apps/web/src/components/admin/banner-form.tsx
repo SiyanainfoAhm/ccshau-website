@@ -8,7 +8,7 @@ import { useState, useTransition } from "react";
 import { createBannerAction, updateBannerAction } from "@/actions/banners";
 import { AdminFileUploadField } from "@/components/admin/admin-file-upload-field";
 import type { Banner } from "@/lib/database/types";
-import { getStoredFileUrl } from "@/lib/storage/upload";
+import { getStoredFileUrl } from "@/lib/storage/urls";
 
 export function BannerForm({ banner }: { banner?: Banner }) {
   const router = useRouter();
@@ -25,6 +25,21 @@ export function BannerForm({ banner }: { banner?: Banner }) {
 
   function handleSubmit(formData: FormData) {
     setError(null);
+
+    const image = formData.get("image");
+    const hasFile = image instanceof File && image.size > 0;
+    const targetUrl = String(formData.get("targetUrl") || "").trim();
+    const hasUrl = /^https?:\/\//i.test(targetUrl);
+    const hasExistingImage = Boolean(banner?.image_path && banner.image_path !== "pending");
+
+    if (!banner && !hasFile && !hasUrl) {
+      setError("Banner image file ya Target URL / Image URL mein se ek zaroori hai.");
+      return;
+    }
+    if (banner && !hasFile && !hasUrl && !hasExistingImage) {
+      setError("Banner image file ya Target URL / Image URL mein se ek zaroori hai.");
+      return;
+    }
 
     startTransition(async () => {
       if (banner) {
@@ -63,9 +78,7 @@ export function BannerForm({ banner }: { banner?: Banner }) {
       </label>
 
       <div className="space-y-2">
-        <span className="text-sm font-medium text-slate-700">
-          Banner image {!banner && <span className="text-red-600">*</span>}
-        </span>
+        <span className="text-sm font-medium text-slate-700">Banner image</span>
         {hasImage && imageUrl && (
           <div className="relative h-32 w-full max-w-md overflow-hidden rounded-lg border border-slate-200">
             <Image src={imageUrl} alt={banner?.alt_text ?? banner?.title ?? ""} fill className="object-cover" />
@@ -74,22 +87,29 @@ export function BannerForm({ banner }: { banner?: Banner }) {
         <AdminFileUploadField
           name="image"
           accept="image/jpeg,image/png,image/webp,image/gif"
-          required={!banner}
+          required={false}
           kind="image"
           label={hasImage ? "Replace banner image" : "Upload banner image"}
-          hint="JPEG, PNG, WebP or GIF"
+          hint="JPEG, PNG, WebP or GIF — or paste an image URL below (one of the two is required)"
         />
       </div>
 
       <label className="block text-sm">
-        <span className="font-medium text-slate-700">Target URL</span>
+        <span className="font-medium text-slate-700">Target URL / Image URL</span>
         <input
           name="targetUrl"
           type="url"
-          defaultValue={banner?.target_url ?? ""}
-          placeholder="https://..."
+          defaultValue={
+            banner?.target_url ??
+            (hasImage && banner?.image_path?.startsWith("http") ? banner.image_path : "")
+          }
+          placeholder="https://www.hau.ac.in/public/images/sliders/..."
           className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
         />
+        <p className="mt-1 text-xs text-slate-500">
+          Upload a file above <strong>or</strong> paste an image URL here (ek zaroori hai). Image URL
+          slide ke liye use hoti hai; click destination bhi yahi ho sakti hai.
+        </p>
       </label>
 
       <label className="block text-sm">

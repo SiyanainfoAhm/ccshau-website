@@ -471,6 +471,15 @@ const TENDERS_LIST_SORTS = [
   "updated_at",
 ] as const;
 
+function escapeIlikeTerm(value: string): string {
+  return value.replace(/[%_\\]/g, "");
+}
+
+/** Quote a PostgREST filter value so commas/spaces don't break `.or()` parsing. */
+function quotePostgrestValue(value: string): string {
+  return `"${value.replace(/"/g, '""')}"`;
+}
+
 export async function listTendersForAdmin(
   options: import("@/lib/data/admin-list").AdminListOptions = {},
 ): Promise<PaginatedResult<Tender>> {
@@ -488,10 +497,22 @@ export async function listTendersForAdmin(
   const admin = createAdminClient();
   if (!admin) return emptyPaginatedResult(opts);
 
-  let query = admin.from(Tables.tenders).select("*", { count: "exact" });
+  let query = admin
+    .from(Tables.tenders)
+    .select(
+      "id, title_en, tender_number, category, status, closing_date, document_paths, updated_at",
+      { count: "exact" },
+    );
 
   if (!isUniversityWideCmsSession(session) && session.departmentId) {
     query = query.eq("department_id", session.departmentId);
+  }
+
+  if (opts.search) {
+    const term = quotePostgrestValue(`%${escapeIlikeTerm(opts.search)}%`);
+    query = query.or(
+      `title_en.ilike.${term},tender_number.ilike.${term},category.ilike.${term}`,
+    );
   }
 
   return runPaginatedQuery<Tender>(query, opts);

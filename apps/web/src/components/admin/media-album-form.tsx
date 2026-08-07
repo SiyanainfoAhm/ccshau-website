@@ -9,7 +9,7 @@ import { createMediaAlbumAction, updateMediaAlbumAction } from "@/actions/media"
 import { AdminFileUploadField } from "@/components/admin/admin-file-upload-field";
 import type { MediaAlbum } from "@/lib/database/types";
 import { contentStatusOptions } from "@/lib/auth/content-status-options";
-import { getStoredFileUrl } from "@/lib/storage/upload";
+import { getStoredFileUrl } from "@/lib/storage/urls";
 import { slugify } from "@/lib/utils/slug";
 
 interface Department {

@@ -1,7 +1,29 @@
+/**
+ * Azure Blob container(s). DB stores paths as `{container}/{blobKey}`.
+ *
+ * Preferred (1 container): set NEXT_PUBLIC_AZURE_STORAGE_CONTAINER=ccshau
+ * Optional (3 containers): set the three bucket envs separately.
+ *
+ * Folder prefixes already separate content (banners/, news/, albums/, …).
+ */
+const singleContainer =
+  process.env.NEXT_PUBLIC_AZURE_STORAGE_CONTAINER?.trim() ||
+  process.env.AZURE_STORAGE_CONTAINER?.trim() ||
+  "";
+
 export const STORAGE_BUCKETS = {
-  public: process.env.NEXT_PUBLIC_STORAGE_BUCKET_PUBLIC ?? "ccshau-public",
-  private: process.env.STORAGE_BUCKET_PRIVATE ?? "ccshau-private",
-  media: process.env.NEXT_PUBLIC_STORAGE_BUCKET_MEDIA ?? "ccshau-media",
+  public:
+    singleContainer ||
+    process.env.NEXT_PUBLIC_STORAGE_BUCKET_PUBLIC?.trim() ||
+    "ccshau-public",
+  private:
+    singleContainer ||
+    process.env.STORAGE_BUCKET_PRIVATE?.trim() ||
+    "ccshau-private",
+  media:
+    singleContainer ||
+    process.env.NEXT_PUBLIC_STORAGE_BUCKET_MEDIA?.trim() ||
+    "ccshau-media",
 } as const;
 
 export function newsAttachmentPath(newsId: string, fileName: string): string {

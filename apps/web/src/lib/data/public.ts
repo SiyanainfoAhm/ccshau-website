@@ -199,7 +199,10 @@ export async function getActiveBannersUncached(): Promise<PublicHeroSlide[]> {
   for (const banner of (data as Banner[]) ?? []) {
     if (!isBannerActive(banner)) continue;
     const image =
-      banner.image_path !== "pending" ? getStoredFileUrl(banner.image_path) : null;
+      banner.image_path !== "pending" &&
+      !banner.image_path.startsWith("legacy-pending/")
+        ? getStoredFileUrl(banner.image_path)
+        : null;
     if (!image) continue;
     slides.push({
       titleEn: banner.title,
@@ -891,6 +894,16 @@ export async function getPageStudentCornerItemsByPageId(
     }));
 }
 
+/** Structural college nav sections only (legacy: Departments + Gallery). */
+function isCollegeTopNavSection(page: Page): boolean {
+  const slug = String(page.slug || "").toLowerCase();
+  return (
+    /^(department|departments|gallery)$/.test(slug) ||
+    /^[a-z0-9]+-department$/.test(slug) ||
+    /^[a-z0-9]+-gallery$/.test(slug)
+  );
+}
+
 export async function getPublishedCollegeBySlug(slug: string): Promise<PublicCollegePage | null> {
   const admin = createAdminClient();
   if (!admin) return null;
@@ -942,7 +955,9 @@ export async function getPublishedCollegeBySlug(slug: string): Promise<PublicCol
     .order("sort_order")
     .order("title_en");
 
-  const sectionRows = (sections as Page[]) ?? [];
+  // College top nav should match legacy: Home | Departments | Gallery | Contact —
+  // not every CMS child page attached under the college root.
+  const sectionRows = ((sections as Page[]) ?? []).filter(isCollegeTopNavSection);
   const sectionIds = sectionRows.map((s) => s.id);
 
   let subsectionRows: Page[] = [];

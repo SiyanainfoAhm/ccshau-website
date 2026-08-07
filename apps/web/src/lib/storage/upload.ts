@@ -1,3 +1,5 @@
+import "server-only";
+
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { AttachmentPath } from "@/lib/database/types";
@@ -32,51 +34,31 @@ import {
 } from "@/lib/storage/validate";
 import { fail, ok, type ActionResult } from "@/lib/types/action-result";
 
-export function getPublicFileUrl(bucket: string, path: string): string | null {
-  const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  if (!base) return null;
-  return `${base}/storage/v1/object/public/${bucket}/${path}`;
-}
+export { getPublicFileUrl, getStoredFileUrl } from "@/lib/storage/urls";
 
-export function getStoredFileUrl(storedPath: string): string | null {
-  if (storedPath.startsWith("https://") || storedPath.startsWith("http://")) {
-    return storedPath;
+/** @deprecated Supabase client is unused — uploads go to Azure Blob Storage. Kept for call-site compatibility. */
+type UnusedAdmin = SupabaseClient;
+
+async function putBlob(
+  container: string,
+  blobPath: string,
+  buffer: Buffer,
+  contentType: string,
+  fileLabel: string,
+): Promise<ActionResult<string>> {
+  try {
+    const { uploadAzureBlob } = await import("@/lib/storage/azure");
+    await uploadAzureBlob(container, blobPath, buffer, contentType);
+    return ok(`${container}/${blobPath}`);
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Unknown upload error";
+    return fail(`Upload failed for ${fileLabel}: ${message}`);
   }
-  const slash = storedPath.indexOf("/");
-  if (slash === -1) return null;
-  return getPublicFileUrl(storedPath.slice(0, slash), storedPath.slice(slash + 1));
-}
-
-export async function uploadNewsAttachments(
-  admin: SupabaseClient,
-  newsId: string,
-  files: File[],
-  isPublished: boolean,
-): Promise<ActionResult<AttachmentPath[]>> {
-  const uploaded: AttachmentPath[] = [];
-  const bucket = getStorageBucket(isPublished);
-
-  for (const file of files) {
-    const prepared = await prepareValidatedUpload(file);
-    if (!prepared.ok) return fail(prepared.error);
-
-    const path = newsAttachmentPath(newsId, sanitizeFileName(file.name));
-    const { error } = await admin.storage.from(bucket).upload(path, prepared.buffer, {
-      contentType: file.type,
-      upsert: true,
-    });
-
-    if (error) return fail(`Upload failed for ${file.name}: ${error.message}`);
-
-    uploaded.push({ path: `${bucket}/${path}`, name: file.name, size: file.size });
-  }
-
-  return ok(uploaded);
 }
 
 async function uploadFilesToStorage(
-  admin: SupabaseClient,
-  bucket: string,
+  _admin: UnusedAdmin,
+  container: string,
   files: File[],
   pathForFile: (file: File) => string,
 ): Promise<ActionResult<AttachmentPath[]>> {
@@ -87,21 +69,29 @@ async function uploadFilesToStorage(
     if (!prepared.ok) return fail(prepared.error);
 
     const path = pathForFile(file);
-    const { error } = await admin.storage.from(bucket).upload(path, prepared.buffer, {
-      contentType: file.type,
-      upsert: true,
-    });
+    const result = await putBlob(container, path, prepared.buffer, prepared.contentType, file.name);
+    if (!result.success) return result;
 
-    if (error) return fail(`Upload failed for ${file.name}: ${error.message}`);
-
-    uploaded.push({ path: `${bucket}/${path}`, name: file.name, size: file.size });
+    uploaded.push({ path: result.data, name: file.name, size: file.size });
   }
 
   return ok(uploaded);
 }
 
+export async function uploadNewsAttachments(
+  admin: UnusedAdmin,
+  newsId: string,
+  files: File[],
+  isPublished: boolean,
+): Promise<ActionResult<AttachmentPath[]>> {
+  const bucket = getStorageBucket(isPublished);
+  return uploadFilesToStorage(admin, bucket, files, (file) =>
+    newsAttachmentPath(newsId, sanitizeFileName(file.name)),
+  );
+}
+
 export async function uploadTenderDocuments(
-  admin: SupabaseClient,
+  admin: UnusedAdmin,
   tenderId: string,
   files: File[],
   isPublic: boolean,
@@ -113,7 +103,7 @@ export async function uploadTenderDocuments(
 }
 
 export async function uploadCorrigendumDocument(
-  admin: SupabaseClient,
+  admin: UnusedAdmin,
   tenderId: string,
   corrigendumId: string,
   file: File,
@@ -130,7 +120,7 @@ export async function uploadCorrigendumDocument(
 }
 
 export async function uploadTenderCancellationDocument(
-  admin: SupabaseClient,
+  admin: UnusedAdmin,
   tenderId: string,
   file: File,
   isPublic: boolean,
@@ -146,192 +136,138 @@ export async function uploadTenderCancellationDocument(
 }
 
 export async function removeStorageObjects(
-  admin: SupabaseClient,
+  _admin: UnusedAdmin,
   attachmentPaths: string[],
 ): Promise<void> {
-  const byBucket = new Map<string, string[]>();
+  const byContainer = new Map<string, string[]>();
 
   for (const fullPath of attachmentPaths) {
-    // External video URLs are stored as absolute http(s) values — not storage paths.
     if (fullPath.startsWith("http://") || fullPath.startsWith("https://")) continue;
     if (fullPath === "pending") continue;
     const slash = fullPath.indexOf("/");
     if (slash === -1) continue;
-    const bucket = fullPath.slice(0, slash);
+    const container = fullPath.slice(0, slash);
     const path = fullPath.slice(slash + 1);
-    if (!byBucket.has(bucket)) byBucket.set(bucket, []);
-    byBucket.get(bucket)!.push(path);
+    if (!byContainer.has(container)) byContainer.set(container, []);
+    byContainer.get(container)!.push(path);
   }
 
-  for (const [bucket, paths] of byBucket) {
-    await admin.storage.from(bucket).remove(paths);
+  for (const [container, paths] of byContainer) {
+    const { deleteAzureBlobs } = await import("@/lib/storage/azure");
+    const single =
+      process.env.NEXT_PUBLIC_AZURE_STORAGE_CONTAINER?.trim() ||
+      process.env.AZURE_STORAGE_CONTAINER?.trim();
+    const target =
+      single &&
+      (container === "ccshau-public" ||
+        container === "ccshau-private" ||
+        container === "ccshau-media")
+        ? single
+        : container;
+    await deleteAzureBlobs(target, paths);
   }
+}
+
+async function uploadValidatedImage(
+  file: File,
+  container: string,
+  blobPath: string,
+  notImageMessage: string,
+): Promise<ActionResult<string>> {
+  const prepared = await prepareValidatedUpload(file);
+  if (!prepared.ok) return fail(prepared.error);
+  if (!prepared.contentType.startsWith("image/")) return fail(notImageMessage);
+  return putBlob(container, blobPath, prepared.buffer, prepared.contentType, file.name);
 }
 
 export async function uploadBannerImage(
-  admin: SupabaseClient,
+  _admin: UnusedAdmin,
   bannerId: string,
   file: File,
 ): Promise<ActionResult<string>> {
-  const prepared = await prepareValidatedUpload(file);
-  if (!prepared.ok) return fail(prepared.error);
-  if (!file.type.startsWith("image/")) return fail("Banner must be an image file.");
-
   const bucket = STORAGE_BUCKETS.public;
   const path = bannerImagePath(bannerId, sanitizeFileName(file.name));
-  const { error } = await admin.storage.from(bucket).upload(path, prepared.buffer, {
-    contentType: file.type,
-    upsert: true,
-  });
-
-  if (error) return fail(`Upload failed: ${error.message}`);
-  return ok(`${bucket}/${path}`);
+  return uploadValidatedImage(file, bucket, path, "Banner must be an image file.");
 }
 
 export async function uploadHomepageDignitaryImage(
-  admin: SupabaseClient,
+  _admin: UnusedAdmin,
   dignitaryId: string,
   file: File,
 ): Promise<ActionResult<string>> {
-  const prepared = await prepareValidatedUpload(file);
-  if (!prepared.ok) return fail(prepared.error);
-  if (!file.type.startsWith("image/")) return fail("Photo must be an image file.");
-
   const bucket = STORAGE_BUCKETS.public;
   const path = homepageDignitaryImagePath(dignitaryId, sanitizeFileName(file.name));
-  const { error } = await admin.storage.from(bucket).upload(path, prepared.buffer, {
-    contentType: file.type,
-    upsert: true,
-  });
-
-  if (error) return fail(`Upload failed: ${error.message}`);
-  return ok(`${bucket}/${path}`);
+  return uploadValidatedImage(file, bucket, path, "Photo must be an image file.");
 }
 
 export async function uploadFacultyImage(
-  admin: SupabaseClient,
+  _admin: UnusedAdmin,
   staffId: string,
   file: File,
 ): Promise<ActionResult<string>> {
-  const prepared = await prepareValidatedUpload(file);
-  if (!prepared.ok) return fail(prepared.error);
-  if (!file.type.startsWith("image/")) return fail("Photo must be an image file.");
-
   const bucket = STORAGE_BUCKETS.public;
   const path = facultyImagePath(staffId, sanitizeFileName(file.name));
-  const { error } = await admin.storage.from(bucket).upload(path, prepared.buffer, {
-    contentType: file.type,
-    upsert: true,
-  });
-
-  if (error) return fail(`Upload failed: ${error.message}`);
-  return ok(`${bucket}/${path}`);
+  return uploadValidatedImage(file, bucket, path, "Photo must be an image file.");
 }
 
 export async function uploadHomepageInitiativeImage(
-  admin: SupabaseClient,
+  _admin: UnusedAdmin,
   initiativeId: string,
   file: File,
 ): Promise<ActionResult<string>> {
-  const prepared = await prepareValidatedUpload(file);
-  if (!prepared.ok) return fail(prepared.error);
-  if (!file.type.startsWith("image/")) return fail("Banner must be an image file.");
-
   const bucket = STORAGE_BUCKETS.public;
   const path = homepageInitiativeImagePath(initiativeId, sanitizeFileName(file.name));
-  const { error } = await admin.storage.from(bucket).upload(path, prepared.buffer, {
-    contentType: file.type,
-    upsert: true,
-  });
-
-  if (error) return fail(`Upload failed: ${error.message}`);
-  return ok(`${bucket}/${path}`);
+  return uploadValidatedImage(file, bucket, path, "Banner must be an image file.");
 }
 
 export async function uploadPageFeaturedImage(
-  admin: SupabaseClient,
+  _admin: UnusedAdmin,
   pageId: string,
   file: File,
 ): Promise<ActionResult<string>> {
-  const prepared = await prepareValidatedUpload(file);
-  if (!prepared.ok) return fail(prepared.error);
-  if (!file.type.startsWith("image/")) return fail("Hero banner must be an image file.");
-
   const bucket = STORAGE_BUCKETS.public;
   const path = pageFeaturedImagePath(pageId, sanitizeFileName(file.name));
-  const { error } = await admin.storage.from(bucket).upload(path, prepared.buffer, {
-    contentType: file.type,
-    upsert: true,
-  });
-
-  if (error) return fail(`Upload failed: ${error.message}`);
-  return ok(`${bucket}/${path}`);
+  return uploadValidatedImage(file, bucket, path, "Hero banner must be an image file.");
 }
 
 export async function uploadPageLogoImage(
-  admin: SupabaseClient,
+  _admin: UnusedAdmin,
   pageId: string,
   file: File,
 ): Promise<ActionResult<string>> {
-  const prepared = await prepareValidatedUpload(file);
-  if (!prepared.ok) return fail(prepared.error);
-  if (!file.type.startsWith("image/")) return fail("Logo must be an image file.");
-
   const bucket = STORAGE_BUCKETS.public;
   const path = pageLogoImagePath(pageId, sanitizeFileName(file.name));
-  const { error } = await admin.storage.from(bucket).upload(path, prepared.buffer, {
-    contentType: file.type,
-    upsert: true,
-  });
-
-  if (error) return fail(`Upload failed: ${error.message}`);
-  return ok(`${bucket}/${path}`);
+  return uploadValidatedImage(file, bucket, path, "Logo must be an image file.");
 }
 
 export async function uploadPageHeadImage(
-  admin: SupabaseClient,
+  _admin: UnusedAdmin,
   pageId: string,
   file: File,
 ): Promise<ActionResult<string>> {
-  const prepared = await prepareValidatedUpload(file);
-  if (!prepared.ok) return fail(prepared.error);
-  if (!file.type.startsWith("image/")) return fail("Head officer photo must be an image file.");
-
   const bucket = STORAGE_BUCKETS.public;
   const path = pageHeadImagePath(pageId, sanitizeFileName(file.name));
-  const { error } = await admin.storage.from(bucket).upload(path, prepared.buffer, {
-    contentType: file.type,
-    upsert: true,
-  });
-
-  if (error) return fail(`Upload failed: ${error.message}`);
-  return ok(`${bucket}/${path}`);
+  return uploadValidatedImage(file, bucket, path, "Head officer photo must be an image file.");
 }
 
 export async function uploadPageGalleryImage(
-  admin: SupabaseClient,
+  _admin: UnusedAdmin,
   pageId: string,
   file: File,
   itemId?: string,
 ): Promise<ActionResult<string>> {
   const prepared = await prepareValidatedUpload(file);
   if (!prepared.ok) return fail(prepared.error);
-  if (!file.type.startsWith("image/")) return fail("Gallery file must be an image.");
+  if (!prepared.contentType.startsWith("image/")) return fail("Gallery file must be an image.");
 
   const bucket = STORAGE_BUCKETS.public;
   const id = itemId ?? crypto.randomUUID();
   const path = pageGalleryImagePath(pageId, id, sanitizeFileName(file.name));
-  const { error } = await admin.storage.from(bucket).upload(path, prepared.buffer, {
-    contentType: file.type,
-    upsert: true,
-  });
-
-  if (error) return fail(`Upload failed: ${error.message}`);
-  return ok(`${bucket}/${path}`);
+  return putBlob(bucket, path, prepared.buffer, prepared.contentType, file.name);
 }
 
 export async function uploadPageNewsTickerFile(
-  admin: SupabaseClient,
+  _admin: UnusedAdmin,
   pageId: string,
   itemId: string,
   file: File,
@@ -341,17 +277,11 @@ export async function uploadPageNewsTickerFile(
 
   const bucket = STORAGE_BUCKETS.public;
   const path = pageNewsTickerFilePath(pageId, itemId, sanitizeFileName(file.name));
-  const { error } = await admin.storage.from(bucket).upload(path, prepared.buffer, {
-    contentType: file.type,
-    upsert: true,
-  });
-
-  if (error) return fail(`Upload failed: ${error.message}`);
-  return ok(`${bucket}/${path}`);
+  return putBlob(bucket, path, prepared.buffer, prepared.contentType, file.name);
 }
 
 export async function uploadPageStudentCornerFile(
-  admin: SupabaseClient,
+  _admin: UnusedAdmin,
   pageId: string,
   itemId: string,
   file: File,
@@ -361,35 +291,22 @@ export async function uploadPageStudentCornerFile(
 
   const bucket = STORAGE_BUCKETS.public;
   const path = pageStudentCornerFilePath(pageId, itemId, sanitizeFileName(file.name));
-  const { error } = await admin.storage.from(bucket).upload(path, prepared.buffer, {
-    contentType: file.type,
-    upsert: true,
-  });
-
-  if (error) return fail(`Upload failed: ${error.message}`);
-  return ok(`${bucket}/${path}`);
+  return putBlob(bucket, path, prepared.buffer, prepared.contentType, file.name);
 }
 
 export async function uploadSingleDocument(
-  admin: SupabaseClient,
+  _admin: UnusedAdmin,
   file: File,
   bucket: string,
   storagePath: string,
 ): Promise<ActionResult<string>> {
   const prepared = await prepareValidatedUpload(file);
   if (!prepared.ok) return fail(prepared.error);
-
-  const { error } = await admin.storage.from(bucket).upload(storagePath, prepared.buffer, {
-    contentType: file.type,
-    upsert: true,
-  });
-
-  if (error) return fail(`Upload failed: ${error.message}`);
-  return ok(`${bucket}/${storagePath}`);
+  return putBlob(bucket, storagePath, prepared.buffer, prepared.contentType, file.name);
 }
 
 export async function uploadCircularFile(
-  admin: SupabaseClient,
+  admin: UnusedAdmin,
   circularId: string,
   file: File,
   isPublished: boolean,
@@ -404,7 +321,7 @@ export async function uploadCircularFile(
 }
 
 export async function uploadDownloadFile(
-  admin: SupabaseClient,
+  admin: UnusedAdmin,
   downloadId: string,
   file: File,
   usePublicBucket: boolean,
@@ -419,7 +336,7 @@ export async function uploadDownloadFile(
 }
 
 export async function uploadDownloadVersionFile(
-  admin: SupabaseClient,
+  admin: UnusedAdmin,
   downloadId: string,
   versionId: string,
   file: File,
@@ -435,39 +352,33 @@ export async function uploadDownloadVersionFile(
 }
 
 export async function uploadMediaCover(
-  admin: SupabaseClient,
+  _admin: UnusedAdmin,
   albumId: string,
   file: File,
 ): Promise<ActionResult<string>> {
-  if (!file.type.startsWith("image/")) return fail("Cover must be an image.");
+  const prepared = await prepareValidatedUpload(file);
+  if (!prepared.ok) return fail(prepared.error);
+  if (!prepared.contentType.startsWith("image/")) return fail("Cover must be an image.");
+
   const bucket = getMediaBucket();
-  return uploadSingleDocument(
-    admin,
-    file,
-    bucket,
-    mediaAlbumCoverPath(albumId, sanitizeFileName(file.name)),
-  );
+  const path = mediaAlbumCoverPath(albumId, sanitizeFileName(file.name));
+  return putBlob(bucket, path, prepared.buffer, prepared.contentType, file.name);
 }
 
 export async function uploadMediaItemFile(
-  admin: SupabaseClient,
+  _admin: UnusedAdmin,
   albumId: string,
   itemId: string,
   file: File,
 ): Promise<ActionResult<string>> {
   const bucket = getMediaBucket();
-  const isVideo = file.type.startsWith("video/");
-  const isImage = file.type.startsWith("image/");
-  if (!isVideo && !isImage) return fail("Media must be an image or video file.");
-
   const prepared = await prepareValidatedMediaUpload(file);
   if (!prepared.ok) return fail(prepared.error);
 
+  const isVideo = prepared.contentType.startsWith("video/");
+  const isImage = prepared.contentType.startsWith("image/");
+  if (!isVideo && !isImage) return fail("Media must be an image or video file.");
+
   const storagePath = mediaItemPath(albumId, itemId, sanitizeFileName(file.name));
-  const { error } = await admin.storage.from(bucket).upload(storagePath, prepared.buffer, {
-    contentType: file.type,
-    upsert: true,
-  });
-  if (error) return fail(`Upload failed: ${error.message}`);
-  return ok(`${bucket}/${storagePath}`);
+  return putBlob(bucket, storagePath, prepared.buffer, prepared.contentType, file.name);
 }

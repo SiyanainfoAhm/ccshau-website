@@ -219,10 +219,12 @@ body {
   top: 50%;
   z-index: 40;
   transform: translateY(-50%);
+  overflow: visible;
   animation: social-rail-enter 0.75s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .ccshau-social-rail__bob {
+  overflow: visible;
   animation: social-rail-bob 5.5s ease-in-out 0.9s infinite;
 }
 
@@ -230,7 +232,10 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
+  /* Stay icon-wide; hovered links expand outside this rail */
+  width: 3.05rem;
   padding: 0.45rem 0.4rem 0.45rem 0;
+  overflow: visible;
   border-radius: 0 1rem 1rem 0;
   background:
     linear-gradient(180deg, rgba(15, 82, 62, 0.92) 0%, rgba(18, 100, 76, 0.9) 100%);
@@ -243,7 +248,16 @@ body {
 }
 
 .ccshau-social-rail__item {
+  position: relative;
+  z-index: 0;
+  width: 2.65rem;
+  overflow: visible;
   animation: social-item-pop 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.ccshau-social-rail__item:hover,
+.ccshau-social-rail__item:focus-within {
+  z-index: 2;
 }
 
 .ccshau-social-rail__link {
@@ -906,6 +920,193 @@ html.dark #main-content :where(.border-slate-200, .border-emerald-100) {
   max-width: 100%;
   border: 0;
   margin: 0.75em 0;
+}
+
+/*
+ * CMS / prose tables — Tailwind preflight strips borders; restore a clean institutional look.
+ */
+.cms-html table,
+.prose :where(table) {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 1.25em 0;
+  overflow: hidden;
+  border: 1px solid #bbf7d0; /* emerald-200 */
+  border-radius: 0.75rem;
+  background: #fff;
+  font-size: 0.95rem;
+  box-shadow: 0 1px 2px rgba(11, 61, 46, 0.04);
+}
+
+.cms-html thead,
+.prose :where(thead) {
+  background: linear-gradient(180deg, #ecfdf5 0%, #d1fae5 100%);
+}
+
+.cms-html th,
+.prose :where(th) {
+  padding: 0.7rem 0.9rem;
+  border-bottom: 1px solid #a7f3d0;
+  border-right: 1px solid #d1fae5;
+  color: var(--ccshau-green-900);
+  font-family: var(--font-playfair), Georgia, serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.cms-html td,
+.prose :where(td) {
+  padding: 0.65rem 0.9rem;
+  border-bottom: 1px solid #e2e8f0;
+  border-right: 1px solid #f1f5f9;
+  color: #1e293b;
+  vertical-align: middle;
+}
+
+.cms-html th:last-child,
+.cms-html td:last-child,
+.prose :where(th:last-child),
+.prose :where(td:last-child) {
+  border-right: none;
+}
+
+.cms-html tbody tr:last-child td,
+.prose :where(tbody tr:last-child td) {
+  border-bottom: none;
+}
+
+.cms-html tbody tr:nth-child(even),
+.prose :where(tbody tr:nth-child(even)) {
+  background: #f8fafc;
+}
+
+.cms-html tbody tr:hover,
+.prose :where(tbody tr:hover) {
+  background: #ecfdf5;
+}
+
+.cms-html caption,
+.prose :where(caption) {
+  caption-side: top;
+  margin-bottom: 0.5rem;
+  text-align: left;
+  font-family: var(--font-playfair), Georgia, serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--ccshau-green-900);
+}
+
+.cms-html table img,
+.prose :where(table img) {
+  display: block;
+  max-width: 4.5rem;
+  max-height: 4.5rem;
+  width: auto;
+  height: auto;
+  object-fit: cover;
+  border-radius: 0.4rem;
+  border: 1px solid #e2e8f0;
+}
+
+.cms-html {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+html.dark .cms-html table,
+html.dark .prose :where(table) {
+  border-color: rgba(6, 78, 59, 0.55);
+  background: rgba(6, 40, 30, 0.55);
+  box-shadow: none;
+}
+
+html.dark .cms-html thead,
+html.dark .prose :where(thead) {
+  background: linear-gradient(180deg, rgba(6, 78, 59, 0.55) 0%, rgba(6, 95, 70, 0.4) 100%);
+}
+
+html.dark .cms-html th,
+html.dark .prose :where(th) {
+  border-bottom-color: rgba(16, 185, 129, 0.35);
+  border-right-color: rgba(6, 78, 59, 0.45);
+  color: #ecfdf5;
+}
+
+html.dark .cms-html td,
+html.dark .prose :where(td) {
+  border-bottom-color: rgba(6, 78, 59, 0.4);
+  border-right-color: rgba(6, 78, 59, 0.25);
+  color: #d1fae5;
+}
+
+html.dark .cms-html tbody tr:nth-child(even),
+html.dark .prose :where(tbody tr:nth-child(even)) {
+  background: rgba(6, 40, 30, 0.45);
+}
+
+html.dark .cms-html tbody tr:hover,
+html.dark .prose :where(tbody tr:hover) {
+  background: rgba(6, 78, 59, 0.35);
+}
+
+html.dark .cms-html caption,
+html.dark .prose :where(caption) {
+  color: #a7f3d0;
+}
+
+html.dark .cms-html table img,
+html.dark .prose :where(table img) {
+  border-color: rgba(6, 78, 59, 0.55);
+}
+
+body.high-contrast .cms-html table,
+body.high-contrast .prose :where(table),
+body.high-contrast .cms-html th,
+body.high-contrast .cms-html td,
+body.high-contrast .prose :where(th),
+body.high-contrast .prose :where(td) {
+  border-color: var(--hc-border) !important;
+}
+
+/*
+ * Make content links obviously clickable.
+ * CMS HTML often ships inline color:black which would otherwise look like plain text.
+ */
+.cms-html a,
+.prose :where(a) {
+  color: var(--ccshau-green-700) !important;
+  font-weight: 600;
+  text-decoration: none;
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1.5px;
+}
+
+.cms-html a:hover,
+.cms-html a:focus-visible,
+.prose :where(a):hover,
+.prose :where(a):focus-visible {
+  color: var(--ccshau-green-900) !important;
+  text-decoration: underline;
+}
+
+html.dark .cms-html a,
+html.dark .prose :where(a) {
+  color: #6ee7b7 !important;
+}
+
+html.dark .cms-html a:hover,
+html.dark .cms-html a:focus-visible,
+html.dark .prose :where(a):hover,
+html.dark .prose :where(a):focus-visible {
+  color: #a7f3d0 !important;
+}
+
+body.high-contrast .cms-html a,
+body.high-contrast .prose :where(a) {
+  color: var(--hc-link) !important;
 }
 
 .homepage-carousel-track {

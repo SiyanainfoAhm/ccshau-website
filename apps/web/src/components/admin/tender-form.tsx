@@ -9,7 +9,7 @@ import { AdminFileUploadField } from "@/components/admin/admin-file-upload-field
 import { AttachmentList, useAttachmentRemovals } from "@/components/admin/attachment-list";
 import type { Tender } from "@/lib/database/types";
 import { tenderStatusOptions } from "@/lib/auth/tender-status-options";
-import { getStoredFileUrl } from "@/lib/storage/upload";
+import { getStoredFileUrl } from "@/lib/storage/urls";
 import { TENDER_CATEGORIES } from "@/lib/validations/tenders";
 import { slugify } from "@/lib/utils/slug";
 

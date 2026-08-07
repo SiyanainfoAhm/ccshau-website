@@ -5,6 +5,7 @@ import { Plus } from "lucide-react";
 
 import { listDownloadsForAdmin } from "@/actions/downloads";
 import { AdminListFooter } from "@/components/admin/admin-list-footer";
+import { AdminListSearch } from "@/components/admin/admin-list-search";
 import { AdminSortableTh } from "@/components/admin/admin-sortable-th";
 import { StatusBadge } from "@/components/admin/status-badge";
 import { canManageUniversityContent } from "@/lib/auth/college-scope";
@@ -28,6 +29,7 @@ export default async function AdminDownloadsPage({
   const data = await listDownloadsForAdmin(listParams);
   const items = data.items;
   const canCreate = canManageUniversityContent(session);
+  const hasSearch = Boolean(listParams.search);
 
   return (
     <div className="space-y-6">
@@ -47,6 +49,15 @@ export default async function AdminDownloadsPage({
         )}
       </div>
 
+      <Suspense fallback={null}>
+        <AdminListSearch
+          search={listParams.search}
+          placeholder="Search by title, category, or version…"
+          ariaLabel="Search downloads by title, category, or version"
+          totalLabel={`${data.total} download${data.total === 1 ? "" : "s"}`}
+        />
+      </Suspense>
+
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         <table className="min-w-full divide-y divide-slate-200 text-sm">
           <thead className="bg-slate-50">
@@ -64,13 +75,19 @@ export default async function AdminDownloadsPage({
             {items.length === 0 ? (
               <tr>
                 <td colSpan={5} className="px-4 py-10 text-center text-slate-500">
-                  No downloads yet.
-                  {canCreate && (
+                  {hasSearch ? (
+                    <>No downloads match &quot;{listParams.search}&quot;.</>
+                  ) : (
                     <>
-                      {" "}
-                      <Link href="/admin/downloads/new" className="text-emerald-700 hover:underline">
-                        Add your first document
-                      </Link>
+                      No downloads yet.
+                      {canCreate && (
+                        <>
+                          {" "}
+                          <Link href="/admin/downloads/new" className="text-emerald-700 hover:underline">
+                            Add your first document
+                          </Link>
+                        </>
+                      )}
                     </>
                   )}
                 </td>

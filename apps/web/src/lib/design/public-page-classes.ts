@@ -47,4 +47,4 @@ export const publicPaginationDisabledClass =
   "inline-flex items-center gap-1 rounded-lg border border-slate-100 px-3 py-2 text-sm text-slate-300 dark:border-emerald-900/30 dark:text-emerald-800";
 
 export const publicProseClass =
-  "prose prose-emerald max-w-none text-lg leading-relaxed text-slate-600 dark:prose-invert dark:text-emerald-100/90 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1";
+  "prose prose-emerald max-w-none text-lg leading-relaxed text-slate-600 dark:prose-invert dark:text-emerald-100/90 prose-a:font-semibold prose-a:text-emerald-700 prose-a:no-underline hover:prose-a:underline dark:prose-a:text-emerald-300 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1";

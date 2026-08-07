@@ -4,7 +4,7 @@ import { FileText, X } from "lucide-react";
 import { useState } from "react";
 
 import type { AttachmentPath } from "@/lib/database/types";
-import { getPublicFileUrl } from "@/lib/storage/upload";
+import { getPublicFileUrl } from "@/lib/storage/urls";
 
 export function AttachmentList({
   attachments,

@@ -194,7 +194,7 @@ export function HeroCarousel({
       <FloatingOrbs />
       {heroSlides.map((s, i) => (
         <div
-          key={s.titleEn}
+          key={`${i}-${s.image}`}
           className={`absolute inset-0 transition-opacity duration-1000 ${i === index ? "opacity-100" : "opacity-0"}`}
         >
           <Image
@@ -242,7 +242,7 @@ export function HeroCarousel({
           </div>
         </div>
 
-        <div className="absolute bottom-8 left-4 right-4 flex justify-center gap-2 md:left-auto md:right-8" role="tablist" aria-label={t("Banner slides", "बैनर स्लाइड")}>
+        <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-2" role="tablist" aria-label={t("Banner slides", "बैनर स्लाइड")}>
           {heroSlides.map((_, i) => (
             <button
               key={i}

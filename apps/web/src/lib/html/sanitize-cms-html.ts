@@ -1,6 +1,20 @@
 /** Strip risky markup from admin-authored CMS HTML before rendering. */
 import sanitizeHtml from "sanitize-html";
 
+function stripLinkPaintStyles(style: string | undefined): string | undefined {
+  if (!style) return undefined;
+  const cleaned = style
+    .split(";")
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .filter((part) => {
+      const prop = part.split(":")[0]?.trim().toLowerCase();
+      return prop !== "color" && prop !== "text-decoration" && prop !== "text-decoration-line";
+    })
+    .join("; ");
+  return cleaned || undefined;
+}
+
 const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
   allowedTags: sanitizeHtml.defaults.allowedTags.concat([
     "img",
@@ -25,7 +39,7 @@ const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
   allowedAttributes: {
     ...sanitizeHtml.defaults.allowedAttributes,
     "*": ["class", "id", "style", "title", "lang", "dir"],
-    a: ["href", "name", "target", "rel", "class", "title"],
+    a: ["href", "name", "target", "rel", "class", "title", "style"],
     img: ["src", "alt", "title", "width", "height", "class", "loading"],
     iframe: [
       "src",
@@ -50,6 +64,15 @@ const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
   allowProtocolRelative: false,
   // Match prior DOMPurify policy for CMS content.
   disallowedTagsMode: "discard",
+  transformTags: {
+    a: (tagName, attribs) => {
+      const next = { ...attribs };
+      const cleanedStyle = stripLinkPaintStyles(next.style);
+      if (cleanedStyle) next.style = cleanedStyle;
+      else delete next.style;
+      return { tagName, attribs: next };
+    },
+  },
 };
 
 export function sanitizeCmsHtml(html: string): string {

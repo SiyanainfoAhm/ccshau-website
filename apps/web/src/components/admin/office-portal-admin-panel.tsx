@@ -28,7 +28,7 @@ import type {
   PageSidebarItem,
   PageStaff,
 } from "@/lib/database/types";
-import { getStoredFileUrl } from "@/lib/storage/upload";
+import { getStoredFileUrl } from "@/lib/storage/urls";
 import { formatAdminDateTime, isExpiredAt } from "@/lib/utils/format-datetime";
 
 function galleryImagePreview(path: string): string {
