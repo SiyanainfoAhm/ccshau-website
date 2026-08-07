@@ -34,7 +34,7 @@ import {
 } from "@/lib/storage/validate";
 import { fail, ok, type ActionResult } from "@/lib/types/action-result";
 
-export { getPublicFileUrl, getStoredFileUrl } from "@/lib/storage/urls";
+export { getPublicFileUrl, getStoredFileUrl, resolvePublicMediaUrl } from "@/lib/storage/urls";
 
 /** @deprecated Supabase client is unused — uploads go to Azure Blob Storage. Kept for call-site compatibility. */
 type UnusedAdmin = SupabaseClient;

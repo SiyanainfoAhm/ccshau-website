@@ -64,7 +64,7 @@ import {
   readStoredLayoutConfig,
   type PageLayoutConfig,
 } from "@/lib/pages/layout-config";
-import { getStoredFileUrl } from "@/lib/storage/upload";
+import { getStoredFileUrl, resolvePublicMediaUrl } from "@/lib/storage/urls";
 import { getSiteSettings } from "@/lib/settings/site-settings";
 import { socialLinksFromSettings } from "@/lib/social/public-social-links";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -835,11 +835,11 @@ export async function getPageGalleryItemsByPageId(pageId: string): Promise<Publi
 
   return ((data ?? []) as PageGalleryItem[]).map((row) => ({
     id: row.id,
-    imageUrl: getStoredFileUrl(row.image_url) ?? row.image_url,
-    thumbnailUrl: row.thumbnail_url ? getStoredFileUrl(row.thumbnail_url) ?? row.thumbnail_url : null,
+    imageUrl: resolvePublicMediaUrl(row.image_url) ?? "",
+    thumbnailUrl: resolvePublicMediaUrl(row.thumbnail_url),
     titleEn: row.title_en,
     titleHi: row.title_hi,
-  }));
+  })).filter((row) => Boolean(row.imageUrl));
 }
 
 export async function getPageNewsTickerItemsByPageId(

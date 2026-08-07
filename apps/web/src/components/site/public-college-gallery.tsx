@@ -9,6 +9,10 @@ import { useModalA11y } from "@/lib/a11y/use-modal-a11y";
 import { pickBilingual } from "@/lib/i18n/pick-bilingual";
 import type { PublicGalleryImage } from "@/lib/data/public-types";
 
+function isRemoteSrc(src: string) {
+  return /^https?:\/\//i.test(src);
+}
+
 export function PublicCollegeGallery({
   images,
   albumTitleEn = "Images",
@@ -48,13 +52,15 @@ export function PublicCollegeGallery({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [activeIndex, showNext, showPrev]);
 
-  if (images.length === 0) {
+  const visibleImages = images.filter((image) => Boolean(image.thumbnailUrl ?? image.imageUrl));
+
+  if (visibleImages.length === 0) {
     return (
       <p className="text-center text-slate-500">{t("Gallery images coming soon.", "गैलरी छवियाँ जल्द आ रही हैं।")}</p>
     );
   }
 
-  const activeImage = activeIndex == null ? null : images[activeIndex];
+  const activeImage = activeIndex == null ? null : visibleImages[activeIndex];
 
   return (
     <>
@@ -65,9 +71,9 @@ export function PublicCollegeGallery({
           </h2>
         </div>
         <div className="grid grid-cols-2 gap-4 p-6 sm:grid-cols-3 lg:grid-cols-4">
-          {images.map((image, index) => {
+          {visibleImages.map((image, index) => {
             const label = pickBilingual(lang, image.titleEn, image.titleHi) || t("Photo", "फोटो");
-            const thumb = image.thumbnailUrl ?? image.imageUrl;
+            const thumb = (image.thumbnailUrl ?? image.imageUrl)!;
 
             return (
               <button
@@ -81,6 +87,7 @@ export function PublicCollegeGallery({
                   src={thumb}
                   alt={label}
                   fill
+                  unoptimized={isRemoteSrc(thumb)}
                   className="object-cover transition duration-300 group-hover:scale-105"
                   sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                 />
@@ -110,7 +117,7 @@ export function PublicCollegeGallery({
             <X className="h-6 w-6" aria-hidden />
           </button>
 
-          {images.length > 1 && (
+          {visibleImages.length > 1 && (
             <>
               <button
                 type="button"
@@ -144,12 +151,13 @@ export function PublicCollegeGallery({
               alt={pickBilingual(lang, activeImage.titleEn, activeImage.titleHi) || t("Gallery image", "गैलरी छवि")}
               width={1600}
               height={1200}
+              unoptimized={isRemoteSrc(activeImage.imageUrl)}
               className="mx-auto max-h-[85vh] w-auto max-w-full object-contain"
               sizes="100vw"
               priority
             />
             <p className="mt-3 text-center text-sm text-white/80" aria-live="polite">
-              {activeIndex + 1} / {images.length}
+              {activeIndex + 1} / {visibleImages.length}
             </p>
           </div>
         </div>

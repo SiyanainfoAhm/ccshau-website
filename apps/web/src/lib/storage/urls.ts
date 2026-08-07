@@ -55,3 +55,15 @@ export function getStoredFileUrl(storedPath: string): string | null {
   if (slash === -1) return null;
   return getPublicFileUrl(storedPath.slice(0, slash), storedPath.slice(slash + 1));
 }
+
+/**
+ * Resolve a DB storage path for <img>/next/image.
+ * Never returns relative `container/key` paths (those break on Vercel as local URLs).
+ */
+export function resolvePublicMediaUrl(storedPath: string | null | undefined): string | null {
+  if (!storedPath) return null;
+  const resolved = getStoredFileUrl(storedPath);
+  if (resolved) return resolved;
+  if (/^https?:\/\//i.test(storedPath)) return storedPath;
+  return null;
+}
