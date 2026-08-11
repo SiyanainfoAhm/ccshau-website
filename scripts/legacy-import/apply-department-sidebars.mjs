@@ -632,28 +632,33 @@ async function main() {
              md.page_id,
              md.display_order,
              md.menu_custom_link,
-             cms.page_title,
-             cms.page_content,
-             cms.file,
+             COALESCE(cms.page_title, cms_slug.page_title) AS page_title,
+             COALESCE(cms.page_content, cms_slug.page_content) AS page_content,
+             COALESCE(cms.file, cms_slug.file) AS file,
              CASE
-               WHEN cms.page_content IS NOT NULL
-                    AND TRIM(cms.page_content) <> ''
-                 THEN cms.page_content
-               WHEN cms.file IS NOT NULL
-                    AND TRIM(cms.file) <> ''
+               WHEN COALESCE(cms.file, cms_slug.file) IS NOT NULL
+                    AND TRIM(COALESCE(cms.file, cms_slug.file)) <> ''
                  THEN CONCAT(
                    '<a href="${LEGACY_PDF_BASE}',
-                   cms.file,
+                   COALESCE(cms.file, cms_slug.file),
                    '" rel="noopener noreferrer" target="_blank">',
                    '<span style="font-size:18px;font-family:&quot;Times New Roman&quot;, Times, serif">',
                    '<strong>',
                    md.label,
                    '</strong></span></a>'
                  )
+               WHEN COALESCE(cms.page_content, cms_slug.page_content) IS NOT NULL
+                    AND TRIM(COALESCE(cms.page_content, cms_slug.page_content)) <> ''
+                 THEN COALESCE(cms.page_content, cms_slug.page_content)
                ELSE NULL
              END AS tab_content
            FROM hau_menu_detail md
            LEFT JOIN hau_cms cms ON cms.id = md.page_id
+           LEFT JOIN hau_cms cms_slug
+             ON cms_slug.page_slug = CASE
+               WHEN md.link LIKE 'page/%' THEN SUBSTRING(md.link, 6)
+               ELSE NULL
+             END
            WHERE md.menu_id = ?
            ORDER BY md.display_order, md.id`,
           [menu.menu_id],

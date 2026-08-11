@@ -244,7 +244,9 @@ export function PublicConfigurablePage({
   const bodyContent =
     isFacultySidebar || isHodSidebar || isAboutSidebar
       ? null
-      : sidebarContent || defaultBodyContent;
+      : selectedSidebar
+        ? sidebarContent
+        : defaultBodyContent;
   const bodyTitle = selectedSidebar
     ? pickBilingual(lang, selectedSidebar.labelEn, selectedSidebar.labelHi)
     : contentPage
