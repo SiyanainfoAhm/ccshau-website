@@ -54,7 +54,7 @@ export default async function CollegeSubsectionPage({
         variant="future"
         homeHref={`/college/${slug}`}
         college={data.college}
-        pageLayoutConfig={layoutConfig}
+        pageLayoutConfig={data.college.layoutConfig}
       />
       <main id="main-content" className="flex-1 bg-slate-50">
         <PublicConfigurablePage

@@ -8,7 +8,9 @@
  *   node apply-phase4-files.mjs --confirm --only=news,tenders,downloads,pages,staff,initiatives,banners,media
  *
  * Env: apps/web/.env.local (Supabase + Azure)
- *      LEGACY_UPLOADS_ROOT (default: C:\Jatin\Projects\CCHAU_mysql\public\public)
+ *      LEGACY_UPLOADS_ROOT   (default: C:\Jatin\Projects\CCHAU_mysql\public\public)
+ *      LEGACY_STORAGE_UPLOADS_ROOT (default: C:\Jatin\Projects\CCHAU_mysql\uploads\uploads)
+ *        Laravel storage/app/uploads dump — college-user, circular-pdf, etc.
  */
 import { createRequire } from "node:module";
 import {
@@ -68,6 +70,11 @@ loadEnvFile(join(ROOT, ".env.local"));
 const UPLOADS_ROOT =
   process.env.LEGACY_UPLOADS_ROOT?.trim() ||
   "C:\\Jatin\\Projects\\CCHAU_mysql\\public\\public";
+
+/** Laravel storage/app/uploads dump (college-user photos, hashed PDFs, …). */
+const STORAGE_UPLOADS_ROOT =
+  process.env.LEGACY_STORAGE_UPLOADS_ROOT?.trim() ||
+  "C:\\Jatin\\Projects\\CCHAU_mysql\\uploads\\uploads";
 
 function loadPkg(name) {
   for (const pkgJson of [join(ROOT, "apps/web/package.json"), join(ROOT, "package.json")]) {
@@ -175,6 +182,8 @@ function resolveLocalFile(kind, legacyId, fileName) {
     );
   } else if (kind === "downloads") {
     c.push(
+      join(STORAGE_UPLOADS_ROOT, "downloads-pdf", base),
+      join(STORAGE_UPLOADS_ROOT, base),
       join(UPLOADS_ROOT, "documents", id, base),
       join(UPLOADS_ROOT, "documents", base),
       join(UPLOADS_ROOT, "pages-pdf", base),
@@ -198,6 +207,9 @@ function resolveLocalFile(kind, legacyId, fileName) {
     );
   } else if (kind === "staff") {
     c.push(
+      join(STORAGE_UPLOADS_ROOT, "college-user", base),
+      join(STORAGE_UPLOADS_ROOT, "user", base),
+      join(STORAGE_UPLOADS_ROOT, base),
       join(UPLOADS_ROOT, "storage", "app", "uploads", "college-user", base),
       join(UPLOADS_ROOT, "storage", "app", "public", "college-user", base),
       join(UPLOADS_ROOT, "images", "speakers", id, base),
@@ -206,6 +218,9 @@ function resolveLocalFile(kind, legacyId, fileName) {
     );
   } else if (kind === "initiatives" || kind === "flagships") {
     c.push(
+      join(STORAGE_UPLOADS_ROOT, "initiative", base),
+      join(STORAGE_UPLOADS_ROOT, "flagship", base),
+      join(STORAGE_UPLOADS_ROOT, base),
       join(UPLOADS_ROOT, "images", "updated-home", id, base),
       join(UPLOADS_ROOT, "images", "updated-home", base),
       join(UPLOADS_ROOT, "storage", "app", "uploads", "initiatives", base),
@@ -213,6 +228,11 @@ function resolveLocalFile(kind, legacyId, fileName) {
     );
   } else if (kind === "cms") {
     c.push(
+      join(STORAGE_UPLOADS_ROOT, base),
+      join(STORAGE_UPLOADS_ROOT, "downloads-pdf", base),
+      join(STORAGE_UPLOADS_ROOT, "circular-pdf", base),
+      join(STORAGE_UPLOADS_ROOT, "rti-pdf", base),
+      join(STORAGE_UPLOADS_ROOT, "event-pdf", base),
       join(UPLOADS_ROOT, "pages-pdf", base),
       join(UPLOADS_ROOT, "pages-pdf", id, base),
       join(UPLOADS_ROOT, "documents", id, base),
@@ -365,6 +385,11 @@ async function main() {
     console.error(`LEGACY_UPLOADS_ROOT missing: ${UPLOADS_ROOT}`);
     process.exit(1);
   }
+  if (!existsSync(STORAGE_UPLOADS_ROOT)) {
+    console.warn(
+      `WARN: LEGACY_STORAGE_UPLOADS_ROOT missing: ${STORAGE_UPLOADS_ROOT} (staff/PDF match rate may be low)`,
+    );
+  }
 
   const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -388,6 +413,7 @@ async function main() {
     startedAt: new Date().toISOString(),
     mode: DRY_RUN ? "dry-run" : "apply",
     uploadsRoot: UPLOADS_ROOT,
+    storageUploadsRoot: STORAGE_UPLOADS_ROOT,
     azureContainer: containerName,
     sections: {},
     errors: [],
@@ -407,7 +433,8 @@ async function main() {
   }
 
   console.log(`Phase 4 files (${summary.mode})`);
-  console.log(`Root: ${UPLOADS_ROOT}`);
+  console.log(`Public root: ${UPLOADS_ROOT}`);
+  console.log(`Storage uploads: ${STORAGE_UPLOADS_ROOT}`);
   console.log(`Azure: ${containerName}`);
   if (ONLY) console.log(`Only: ${[...ONLY].join(",")}`);
 
@@ -548,14 +575,14 @@ async function main() {
   if (want("staff")) {
     const stats = section("staff");
     console.log("… staff photos");
-    const rows = await fetchAllLike(
+    const pendingRows = await fetchAllLike(
       supabase,
       "ccshau_page_staff",
       "image_path",
       "legacy-pending/%",
       "id, image_path",
     );
-    for (const row of rows) {
+    for (const row of pendingRows) {
       await patchSimplePath(
         supabase,
         container,
@@ -567,6 +594,42 @@ async function main() {
         stats,
       );
     }
+
+    // Also migrate hotlinked hau.ac.in college-user images when local file exists
+    const { data: hotRows, error: hotErr } = await supabase
+      .from("ccshau_page_staff")
+      .select("id, image_path")
+      .like("image_path", "%hau.ac.in%/college-user/%");
+    if (hotErr) throw new Error(hotErr.message);
+    for (const row of hotRows ?? []) {
+      const fileName = basename(String(row.image_path || "").replace(/\\/g, "/"));
+      if (!fileName) {
+        bump(stats, "skipped");
+        continue;
+      }
+      const local = resolveLocalFile("staff", "hotlink", fileName);
+      if (!local) {
+        bump(stats, "missing");
+        stats.missingSamples.push(`staff-hotlink:${row.image_path}`);
+        continue;
+      }
+      const blobPath = `faculty/${row.id}/${sanitizeFileName(fileName)}`;
+      try {
+        if (!DRY_RUN) {
+          const stored = await uploadLocalFile(container, blobPath, local);
+          const { error } = await supabase
+            .from("ccshau_page_staff")
+            .update({ image_path: stored })
+            .eq("id", row.id);
+          if (error) throw new Error(error.message);
+        }
+        bump(stats, "uploaded");
+      } catch (e) {
+        bump(stats, "failed");
+        stats.errors.push(`staff hotlink ${row.id}: ${e.message}`);
+      }
+    }
+
     console.log(
       `✓ staff uploaded=${stats.uploaded} missing=${stats.missing} failed=${stats.failed}`,
     );

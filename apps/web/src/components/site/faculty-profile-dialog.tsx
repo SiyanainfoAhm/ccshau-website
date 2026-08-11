@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useId, useRef } from "react";
 import { X } from "lucide-react";
 
@@ -9,6 +8,7 @@ import { useModalA11y } from "@/lib/a11y/use-modal-a11y";
 import { useLanguage } from "@/components/design/shared/language-context";
 import { FacultyProfileContent } from "@/components/site/faculty-profile-content";
 import { FacultyProfilePrintButton } from "@/components/site/faculty-profile-print-button";
+import { StaffPhoto } from "@/components/site/staff-photo";
 import type { PublicOfficeStaffMember } from "@/lib/data/public-types";
 import { pickBilingual } from "@/lib/i18n/pick-bilingual";
 
@@ -67,11 +67,12 @@ export function FacultyProfileDialog({
 
         <div className="faculty-profile-print-body overflow-y-auto">
           <div className="border-b border-slate-100 bg-white px-6 py-6 md:flex md:items-center md:gap-6">
-            {member.imageUrl ? (
-              <div className="relative mx-auto h-28 w-28 shrink-0 overflow-hidden rounded-full border-4 border-emerald-50 md:mx-0">
-                <Image src={member.imageUrl} alt={staffPhotoAlt(member, lang)} fill className="object-cover" sizes="112px" />
-              </div>
-            ) : null}
+            <StaffPhoto
+              src={member.imageUrl}
+              alt={staffPhotoAlt(member, lang)}
+              size="md"
+              className="mx-auto border-4 border-emerald-50 md:mx-0"
+            />
             <div className="mt-4 text-center md:mt-0 md:text-left">
               <p className={`text-emerald-800 ${lang === "hi" ? "font-hindi" : ""}`}>
                 {pickBilingual(lang, member.designationEn, member.designationHi)}

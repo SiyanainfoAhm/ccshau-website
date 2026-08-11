@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -6,6 +5,7 @@ import { SiteFooter } from "@/components/design/shared/site-footer";
 import { SiteHeader } from "@/components/design/shared/site-header";
 import { FacultyProfileContent } from "@/components/site/faculty-profile-content";
 import { FacultyProfilePrintButton } from "@/components/site/faculty-profile-print-button";
+import { StaffPhoto } from "@/components/site/staff-photo";
 import { staffPhotoAlt } from "@/lib/a11y/image-alt";
 import { getPublishedFacultyProfile } from "@/lib/data/public";
 import { publicMainClass } from "@/lib/design/public-page-classes";
@@ -71,11 +71,12 @@ export default async function FacultyDetailPage({
                 <FacultyProfilePrintButton />
               </div>
               <div className="md:flex md:items-center md:gap-6">
-                {staff.imageUrl ? (
-                  <div className="relative mx-auto h-28 w-28 shrink-0 overflow-hidden rounded-full border-4 border-white shadow md:mx-0">
-                    <Image src={staff.imageUrl} alt={staffPhotoAlt(staff, lang)} fill className="object-cover" sizes="112px" />
-                  </div>
-                ) : null}
+                <StaffPhoto
+                  src={staff.imageUrl}
+                  alt={staffPhotoAlt(staff, lang)}
+                  size="md"
+                  className="mx-auto border-4 border-white shadow md:mx-0"
+                />
                 <div className="mt-4 text-center md:mt-0 md:text-left">
                   <h1 className={`font-display text-2xl font-bold text-slate-900 ${lang === "hi" ? "font-hindi" : ""}`}>
                     {pickBilingual(lang, staff.nameEn, staff.nameHi)}

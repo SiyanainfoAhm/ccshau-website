@@ -7,7 +7,7 @@ import { useLanguage } from "@/components/design/shared/language-context";
 import { CmsHtmlContent } from "@/components/site/cms-html-content";
 import { FacultyProfileDialog } from "@/components/site/faculty-profile-dialog";
 import { staffPhotoAlt } from "@/lib/a11y/image-alt";
-import { PortraitPhoto } from "@/components/site/portrait-photo";
+import { StaffPhoto } from "@/components/site/staff-photo";
 import type { PublicOfficeContactLine, PublicOfficeStaffMember } from "@/lib/data/public-types";
 import { pickBilingual } from "@/lib/i18n/pick-bilingual";
 
@@ -87,17 +87,13 @@ export function DepartmentAboutSection({
       <div className="px-6 py-6">
         {member ? (
           <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
-            {member.imageUrl ? (
-              <PortraitPhoto
-                src={member.imageUrl}
-                alt={staffPhotoAlt(member, lang)}
-                className="mx-auto sm:mx-0"
-              />
-            ) : (
-              <div className="mx-auto flex h-[185px] w-[145px] shrink-0 items-center justify-center border border-slate-300 bg-white text-sm text-slate-400 sm:mx-0">
-                {t("No photo", "कोई फोटो नहीं")}
-              </div>
-            )}
+            <StaffPhoto
+              src={member.imageUrl}
+              alt={staffPhotoAlt(member, lang)}
+              size="lg"
+              rounded="lg"
+              className="mx-auto sm:mx-0"
+            />
 
             <div className="min-w-0 flex-1 text-center sm:text-left">
               <p

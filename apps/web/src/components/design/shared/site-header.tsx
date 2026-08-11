@@ -54,10 +54,14 @@ export function SiteHeader({
   const isPgStudiesRoute = pathname.startsWith("/pages/pg-studies");
   const isCollegeContext = Boolean(college) || isCollegeRoute;
   const isPgStudiesContext = Boolean(pgStudiesHub) || isPgStudiesRoute;
-  const collegeTopMenu =
-    pageLayoutConfig?.collegeTopMenu ?? college?.layoutConfig?.collegeTopMenu ?? true;
-  const pgStudiesTopMenu =
-    pageLayoutConfig?.collegeTopMenu ?? pgStudiesHub?.layoutConfig?.collegeTopMenu ?? true;
+  // Keep college chrome on section/subsection pages (gallery/dept use minimal content
+  // layout but must not fall back to the university main menu).
+  const collegeTopMenu = college
+    ? (college.layoutConfig?.collegeTopMenu ?? true)
+    : (pageLayoutConfig?.collegeTopMenu ?? true);
+  const pgStudiesTopMenu = pgStudiesHub
+    ? (pgStudiesHub.layoutConfig?.collegeTopMenu ?? true)
+    : (pageLayoutConfig?.collegeTopMenu ?? true);
   const shouldShowMainNav =
     showMainNav ??
     ((!isCollegeContext && !isPgStudiesContext) ||

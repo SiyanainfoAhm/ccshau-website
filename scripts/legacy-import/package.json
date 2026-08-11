@@ -18,7 +18,9 @@
     "apply:college-galleries:dry": "node apply-college-galleries.mjs --dry-run",
     "apply:college-galleries": "node apply-college-galleries.mjs --confirm",
     "apply:faculty-details:dry": "node apply-faculty-details.mjs --dry-run",
-    "apply:faculty-details": "node apply-faculty-details.mjs --confirm"
+    "apply:faculty-details": "node apply-faculty-details.mjs --confirm",
+    "apply:department-sidebars:dry": "node apply-department-sidebars.mjs --dry-run",
+    "apply:department-sidebars": "node apply-department-sidebars.mjs --confirm"
   },
   "dependencies": {
     "mysql2": "^3.14.1"

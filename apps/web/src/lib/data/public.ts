@@ -786,7 +786,16 @@ export async function getOfficePortalDataForPage(
       valueEn: row.value_en,
       valueHi: row.value_hi,
     })),
-    staff: ((staffRes.data ?? []) as PageStaff[]).map((row) => ({
+    staff: ((staffRes.data ?? []) as PageStaff[])
+      .slice()
+      .sort((a, b) => {
+        const aHod = (a.member_type ?? "faculty") === "hod" ? 0 : 1;
+        const bHod = (b.member_type ?? "faculty") === "hod" ? 0 : 1;
+        if (aHod !== bHod) return aHod - bHod;
+        if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order;
+        return String(a.name_en || "").localeCompare(String(b.name_en || ""));
+      })
+      .map((row) => ({
       nameEn: row.name_en,
       nameHi: row.name_hi,
       designationEn: row.designation_en,
@@ -897,10 +906,14 @@ export async function getPageStudentCornerItemsByPageId(
 /** Structural college nav sections only (legacy: Departments + Gallery). */
 function isCollegeTopNavSection(page: Page): boolean {
   const slug = String(page.slug || "").toLowerCase();
+  const title = String(page.title_en || "").trim().toLowerCase();
   return (
     /^(department|departments|gallery)$/.test(slug) ||
-    /^[a-z0-9]+-department$/.test(slug) ||
-    /^[a-z0-9]+-gallery$/.test(slug)
+    /(?:^|-)department$/.test(slug) ||
+    /(?:^|-)gallery$/.test(slug) ||
+    title === "departments" ||
+    title === "department" ||
+    title === "gallery"
   );
 }
 

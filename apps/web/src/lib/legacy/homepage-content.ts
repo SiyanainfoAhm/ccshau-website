@@ -112,7 +112,10 @@ export const legacyColleges: LegacyCollege[] = [
   },
   {
     slug: "ic-college-of-home-science",
-    slugAliases: ["ic-college-community-science"],
+    slugAliases: [
+      "ic-college-community-science",
+      "ic-college-of-community-science",
+    ],
     nameEn: "I.C. College of Community Science",
     nameHi: "आई.सी. समुदाय विज्ञान महाविद्यालय",
     logoUrl: "https://hau.ac.in/public/images/college/logo/9/1741857160.jpg",
@@ -120,6 +123,10 @@ export const legacyColleges: LegacyCollege[] = [
   },
   {
     slug: "college-of-basic-sciences-humanities",
+    slugAliases: [
+      "basic-sciences-humanities",
+      "college-basic-sciences-humanities",
+    ],
     nameEn: "College of Basic Sciences & Humanities",
     nameHi: "मूल विज्ञान और मानविकी महाविद्यालय",
     logoUrl: "https://hau.ac.in/public/images/college/logo/10/1540803999.jpg",

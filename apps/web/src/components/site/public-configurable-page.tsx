@@ -10,7 +10,7 @@ import { CmsHtmlContent } from "@/components/site/cms-html-content";
 import { DepartmentAboutSection } from "@/components/site/department-about-section";
 import { FacultyProfileDialog } from "@/components/site/faculty-profile-dialog";
 import { buildImageAlt, staffPhotoAlt } from "@/lib/a11y/image-alt";
-import { PortraitPhoto } from "@/components/site/portrait-photo";
+import { StaffPhoto } from "@/components/site/staff-photo";
 import { PublicCollegeGallery } from "@/components/site/public-college-gallery";
 import { PublicStudentCornerSection } from "@/components/site/public-student-corner-section";
 import type { HomepageCtaItem } from "@/lib/data/homepage";
@@ -122,13 +122,11 @@ function StaffDirectoryTable({
               <tr key={`${member.nameEn}-${index}`} className="text-slate-700">
                 <td className="px-4 py-3">{index + 1}</td>
                 <td className="px-4 py-3">
-                  {member.imageUrl ? (
-                    <div className="relative h-12 w-12 overflow-hidden rounded-full border border-slate-200">
-                      <Image src={member.imageUrl} alt={staffPhotoAlt(member, lang)} fill className="object-cover" sizes="48px" />
-                    </div>
-                  ) : (
-                    <span className="text-slate-400">—</span>
-                  )}
+                  <StaffPhoto
+                    src={member.imageUrl}
+                    alt={staffPhotoAlt(member, lang)}
+                    size="sm"
+                  />
                 </td>
                 <td className={`px-4 py-3 font-medium ${lang === "hi" ? "font-hindi" : ""}`}>
                   {pickBilingual(lang, member.nameEn, member.nameHi)}
@@ -381,20 +379,20 @@ export function PublicConfigurablePage({
             {showHeadOfficer && office?.headOfficer && (
               <div className={`overflow-hidden ${publicSectionCardClass}`}>
                 <div className="flex flex-col items-center gap-4 p-6 sm:flex-row sm:items-start">
-                  {office.headOfficer.imageUrl && (
-                    <PortraitPhoto
-                      src={office.headOfficer.imageUrl}
-                      alt={staffPhotoAlt(
-                        {
-                          nameEn: office.headOfficer.nameEn,
-                          nameHi: office.headOfficer.nameHi,
-                          designationEn: office.headOfficer.roleEn,
-                          designationHi: office.headOfficer.roleHi,
-                        },
-                        lang,
-                      )}
-                    />
-                  )}
+                  <StaffPhoto
+                    src={office.headOfficer.imageUrl}
+                    alt={staffPhotoAlt(
+                      {
+                        nameEn: office.headOfficer.nameEn,
+                        nameHi: office.headOfficer.nameHi,
+                        designationEn: office.headOfficer.roleEn,
+                        designationHi: office.headOfficer.roleHi,
+                      },
+                      lang,
+                    )}
+                    size="lg"
+                    rounded="lg"
+                  />
                   <div className="min-w-0 flex-1 text-center sm:text-left">
                     <p
                       className={`font-display text-xl font-bold text-red-900 ${lang === "hi" ? "font-hindi" : ""}`}
