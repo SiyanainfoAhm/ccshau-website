@@ -212,16 +212,20 @@ export function PublicConfigurablePage({
   const sidebarContent = selectedSidebar
     ? pickBilingual(lang, selectedSidebar.contentEn, selectedSidebar.contentHi)
     : null;
+  const sidebarHasContent = Boolean(sidebarContent?.trim());
   const isFacultySidebar =
     Boolean(selectedSidebar) &&
+    !sidebarHasContent &&
     (selectedSidebar!.labelEn.toLowerCase().includes("faculty") ||
       Boolean(selectedSidebar!.labelHi?.includes("संकाय")));
   const isAboutSidebar =
     Boolean(selectedSidebar) &&
+    !sidebarHasContent &&
     (selectedSidebar!.labelEn.toLowerCase().includes("about") ||
       Boolean(selectedSidebar!.labelHi?.includes("परिचय")));
   const isHodSidebar =
     Boolean(selectedSidebar) &&
+    !sidebarHasContent &&
     (selectedSidebar!.labelEn.toLowerCase().includes("head of department") ||
       Boolean(selectedSidebar!.labelHi?.includes("विभागाध्यक्ष")));
 
