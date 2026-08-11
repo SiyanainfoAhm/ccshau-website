@@ -213,6 +213,13 @@ export function PublicConfigurablePage({
     ? pickBilingual(lang, selectedSidebar.contentEn, selectedSidebar.contentHi)
     : null;
   const sidebarHasContent = Boolean(sidebarContent?.trim());
+  const sidebarPdfUrl = (() => {
+    if (!sidebarContent) return null;
+    const stripped = sidebarContent.trim().replace(/<[^>]+>/g, "").trim();
+    const hrefMatch = sidebarContent.match(/href=["']([^"']+\.pdf)["']/i);
+    if (hrefMatch && stripped.length < 200) return hrefMatch[1];
+    return null;
+  })();
   const isFacultySidebar =
     Boolean(selectedSidebar) &&
     !sidebarHasContent &&
@@ -501,7 +508,24 @@ export function PublicConfigurablePage({
               <PublicCollegeGallery images={galleryImages} />
             )}
 
-            {showMainContent && (
+            {showMainContent && sidebarPdfUrl && (
+              <article className={`${publicSectionCardClass} p-6`}>
+                {bodyTitle && (
+                  <h2
+                    className={`mb-4 font-display text-2xl font-bold text-slate-900 ${lang === "hi" ? "font-hindi" : ""}`}
+                  >
+                    {bodyTitle}
+                  </h2>
+                )}
+                <iframe
+                  src={sidebarPdfUrl}
+                  className="h-[80vh] w-full rounded border"
+                  title={bodyTitle ?? "PDF"}
+                />
+              </article>
+            )}
+
+            {showMainContent && !sidebarPdfUrl && (
               <article className={`${publicSectionCardClass} p-6`}>
                 {bodyTitle && (
                   <h2
