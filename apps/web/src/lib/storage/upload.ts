@@ -14,6 +14,7 @@ import {
   getStorageBucket,
   homepageDignitaryImagePath,
   homepageInitiativeImagePath,
+  homepageQuoteImagePath,
   mediaAlbumCoverPath,
   mediaItemPath,
   pageGalleryImagePath,
@@ -218,6 +219,16 @@ export async function uploadHomepageInitiativeImage(
   const bucket = STORAGE_BUCKETS.public;
   const path = homepageInitiativeImagePath(initiativeId, sanitizeFileName(file.name));
   return uploadValidatedImage(file, bucket, path, "Banner must be an image file.");
+}
+
+export async function uploadHomepageQuoteImage(
+  _admin: UnusedAdmin,
+  quoteId: string,
+  file: File,
+): Promise<ActionResult<string>> {
+  const bucket = STORAGE_BUCKETS.public;
+  const path = homepageQuoteImagePath(quoteId, sanitizeFileName(file.name));
+  return uploadValidatedImage(file, bucket, path, "Portrait must be an image file.");
 }
 
 export async function uploadPageFeaturedImage(

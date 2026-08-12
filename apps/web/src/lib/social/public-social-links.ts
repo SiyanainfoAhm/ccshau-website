@@ -14,32 +14,32 @@ const SOCIAL_PLATFORMS: {
 }[] = [
   {
     platform: "twitter",
-    labelEn: "Twitter / X",
-    labelHi: "ट्विटर",
+    labelEn: "HAU Official Twitter",
+    labelHi: "HAU अधिकृत ट्विटर",
     key: "social_twitter_url",
   },
   {
     platform: "facebook",
-    labelEn: "Facebook",
-    labelHi: "फेसबुक",
+    labelEn: "HAU Official Facebook",
+    labelHi: "HAU अधिकृत फेसबुक",
     key: "social_facebook_url",
   },
   {
     platform: "youtube",
-    labelEn: "YouTube",
-    labelHi: "यूट्यूब",
+    labelEn: "HAU Official Youtube",
+    labelHi: "HAU अधिकृत यूट्यूब",
     key: "social_youtube_url",
   },
   {
     platform: "blogger",
-    labelEn: "Blogger",
-    labelHi: "ब्लॉगर",
+    labelEn: "HAU Official Blogger",
+    labelHi: "HAU अधिकृत ब्लॉगर",
     key: "social_blogger_url",
   },
   {
     platform: "instagram",
-    labelEn: "Instagram",
-    labelHi: "इंस्टाग्राम",
+    labelEn: "HAU Official Instagram",
+    labelHi: "HAU अधिकृत इंस्टाग्राम",
     key: "social_instagram_url",
   },
 ];

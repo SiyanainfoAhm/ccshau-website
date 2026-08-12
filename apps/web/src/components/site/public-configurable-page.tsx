@@ -305,7 +305,7 @@ export function PublicConfigurablePage({
       )}
 
       {layoutConfig.hero && (
-        <section className={`relative ${heroMinHeight} overflow-hidden`}>
+        <section data-site-hero className={`relative ${heroMinHeight} overflow-hidden`}>
           <Image
             src={heroImage}
             alt={buildImageAlt({ titleEn: `${title} — campus`, titleHi: college.titleHi, lang })}
@@ -391,7 +391,7 @@ export function PublicConfigurablePage({
           <div className="min-w-0 flex-1 space-y-8">
             {showHeadOfficer && office?.headOfficer && (
               <div className={`overflow-hidden ${publicSectionCardClass}`}>
-                <div className="flex flex-col items-center gap-4 p-6 sm:flex-row sm:items-start">
+                <div className="flex flex-col items-center gap-5 p-6 sm:flex-row sm:items-start sm:gap-8">
                   <StaffPhoto
                     src={office.headOfficer.imageUrl}
                     alt={staffPhotoAlt(
@@ -403,8 +403,9 @@ export function PublicConfigurablePage({
                       },
                       lang,
                     )}
-                    size="lg"
+                    size="xl"
                     rounded="lg"
+                    className="mx-auto sm:mx-0"
                   />
                   <div className="min-w-0 flex-1 text-center sm:text-left">
                     <p
@@ -528,18 +529,20 @@ export function PublicConfigurablePage({
             )}
 
             {showMainContent && !sidebarPdfUrl && (
-              <article className={`${publicSectionCardClass} p-6`}>
+              <article className={`${publicSectionCardClass} overflow-hidden p-0`}>
                 {bodyTitle && (
                   <h2
-                    className={`mb-4 font-display text-2xl font-bold text-slate-900 ${lang === "hi" ? "font-hindi" : ""}`}
+                    className={`border-b border-emerald-100 bg-gradient-to-r from-emerald-50 to-white px-5 py-3.5 font-display text-xl font-bold text-emerald-900 sm:px-6 sm:text-2xl ${lang === "hi" ? "font-hindi" : ""}`}
                   >
                     {bodyTitle}
                   </h2>
                 )}
-                <CmsHtmlContent
-                  html={bodyContent!}
-                  className={`prose prose-emerald max-w-none ${lang === "hi" ? "font-hindi" : ""}`}
-                />
+                <div className="px-5 py-5 sm:px-6 sm:py-6">
+                  <CmsHtmlContent
+                    html={bodyContent!}
+                    className={`prose prose-emerald max-w-none ${lang === "hi" ? "font-hindi" : ""}`}
+                  />
+                </div>
               </article>
             )}
 

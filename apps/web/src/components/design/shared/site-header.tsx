@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Globe, Menu, Search, X } from "lucide-react";
+import { Globe, Menu, Search, Sparkles, X } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 
 import { AccessibilityToolbar } from "@/components/design/shared/accessibility-toolbar";
@@ -88,6 +88,9 @@ export function SiteHeader({
   const isHeritage = variant === "heritage";
   const isMinistry = variant === "ministry";
 
+  const logoHref =
+    isCollegeContext || isPgStudiesContext ? "/" : homeHref;
+
   const resolveHref = (href: string) => {
     if (href.includes("/design/option-")) {
       return href.replace(/\/design\/option-[abc]/, homeHref.replace(/\/$/, ""));
@@ -140,14 +143,7 @@ export function SiteHeader({
             {(!isLight || isHeritage || isMinistry) && (
               <AccessibilityToolbar variant={isLight ? "on-light" : "on-dark"} />
             )}
-            {isCollegeContext || isPgStudiesContext ? (
-              <Link
-                href="/"
-                className={`hidden sm:inline ${isHeritage ? "text-[#9e4a5a] hover:underline" : isMinistry ? "text-[#0c3b6e] hover:underline" : isLight ? "text-emerald-700 hover:underline" : "text-amber-200 hover:text-white"}`}
-              >
-                {t("University Home", "विश्वविद्यालय होम")}
-              </Link>
-            ) : (
+            {!(isCollegeContext || isPgStudiesContext) && (
               <Link
                 href="/design"
                 className={`hidden sm:inline ${isHeritage ? "text-[#9e4a5a] hover:underline" : isMinistry ? "text-[#0c3b6e] hover:underline" : isLight ? "text-emerald-700 hover:underline" : "text-amber-200 hover:text-white"}`}
@@ -161,7 +157,7 @@ export function SiteHeader({
 
       {/* Main header */}
       <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3.5 sm:gap-5 sm:py-5">
-        <Link href={homeHref} className="group flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
+        <Link href={logoHref} className="group flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
           <div
             className={`relative h-14 w-14 shrink-0 overflow-hidden rounded-full bg-black shadow-lg transition group-hover:scale-105 sm:h-16 sm:w-16 md:h-[4.6rem] md:w-[4.6rem] ${isHeritage ? "ring-2 ring-rose-200" : isMinistry ? "ring-2 ring-[#0c3b6e]/30" : isLight ? "ring-2 ring-emerald-200" : "ring-2 ring-amber-400/50"}`}
           >
@@ -187,6 +183,22 @@ export function SiteHeader({
               className={`font-hindi truncate text-xs leading-snug sm:text-sm ${isHeritage ? "text-slate-600" : isLight ? "text-slate-600" : "text-emerald-100/90"}`}
             >
               {t(university.nameEn, university.nameHi)}
+            </p>
+            <p
+              className={`mt-1 inline-flex max-w-full items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-medium leading-tight sm:text-xs ${
+                isHeritage
+                  ? "bg-amber-50 text-amber-800 ring-1 ring-amber-200/80"
+                  : isMinistry
+                    ? "bg-amber-50 text-amber-900 ring-1 ring-amber-200/80"
+                    : isLight
+                      ? "bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200/80"
+                      : "bg-white/10 text-amber-200 ring-1 ring-white/20"
+              }`}
+            >
+              <Sparkles className="h-3 w-3 shrink-0" aria-hidden />
+              <span className="truncate">
+                {t("NAEAB A+ Accredited University", "एनएईएबी ए+ मान्यता प्राप्त विश्वविद्यालय")}
+              </span>
             </p>
           </div>
         </Link>

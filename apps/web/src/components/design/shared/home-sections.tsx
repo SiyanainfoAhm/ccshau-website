@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import {
   ArrowUpRight,
   Bell,
@@ -33,7 +32,7 @@ import type {
   PublicRelatedLink,
   PublicTenderItem,
 } from "@/lib/data/public-types";
-import { legacyDignitaries, legacyFlagships, legacyQuotes, type LegacyDignitary } from "@/lib/legacy/homepage-content";
+import { legacyDignitaries, legacyFlagships, legacyQuotes, SITE_QUOTE_CARD_THEMES, enrichHomepageQuotes, type LegacyDignitary, type LegacyQuote } from "@/lib/legacy/homepage-content";
 import { getPublicPagePath } from "@/lib/pages/routes";
 import { MINISTRY_STAT_ACCENTS } from "@/lib/design/ministry-theme";
 import {
@@ -41,7 +40,6 @@ import {
   HERITAGE_NEWS_PASTELS,
   HERITAGE_NOTIF_THEMES,
   HERITAGE_QUICK_LINK_PASTELS,
-  HERITAGE_QUOTE_BACKGROUNDS,
   HERITAGE_STAT_PASTELS,
 } from "@/lib/design/heritage-theme";
 import {
@@ -416,6 +414,86 @@ export function QuickLinksStrip({
   );
 }
 
+function quoteImageUnoptimized(src: string): boolean {
+  try {
+    const hostname = new URL(src).hostname;
+    return hostname === "hau.ac.in" || hostname === "www.hau.ac.in";
+  } catch {
+    return false;
+  }
+}
+
+function InspirationQuoteCard({
+  quote,
+  themeIndex,
+  variant,
+  t,
+}: {
+  quote: LegacyQuote;
+  themeIndex: number;
+  variant: "heritage" | "future" | "ministry";
+  t: (en: string, hi: string) => string;
+}) {
+  const theme = SITE_QUOTE_CARD_THEMES[themeIndex % SITE_QUOTE_CARD_THEMES.length];
+  const authorLabel =
+    variant === "future"
+      ? t(quote.authorEn, quote.authorShortHi ?? quote.authorHi)
+      : t(quote.authorEn, quote.authorHi);
+
+  const cardShell =
+    variant === "ministry"
+      ? "ministry-card border-slate-200 bg-white"
+      : variant === "heritage"
+        ? "border-rose-200/80 bg-gradient-to-br from-rose-50 via-white to-amber-50 shadow-sm"
+        : `border-2 shadow-md ${theme.borderClass} ${theme.cardBg}`;
+
+  return (
+    <article
+      className={`group quote-card card-shine quote-card-funky relative flex flex-col items-center overflow-hidden rounded-xl px-4 py-5 text-center transition duration-500 hover:-translate-y-1.5 hover:shadow-xl sm:px-5 sm:py-6 ${cardShell}`}
+    >
+      <div
+        className={`absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${variant === "ministry" ? "from-[#0c3b6e] to-[#0f4a85]" : theme.accentBar}`}
+        aria-hidden
+      />
+      <div
+        className={`pointer-events-none absolute -right-6 -top-6 h-20 w-20 rounded-full blur-2xl transition duration-700 group-hover:scale-125 ${variant === "future" ? theme.glowClass : "bg-rose-300/20"}`}
+        aria-hidden
+      />
+
+      <div className="quote-card-portrait relative z-10 mb-3 mt-1">
+        <div
+          className={`relative overflow-hidden rounded-full ring-[3px] ${variant === "ministry" ? "ring-[#0c3b6e]/25" : theme.portraitRing}`}
+        >
+          <Image
+            src={quote.imageUrl}
+            alt={t(quote.authorEn, quote.authorHi)}
+            width={64}
+            height={64}
+            unoptimized={quoteImageUnoptimized(quote.imageUrl)}
+            className="h-14 w-14 object-cover object-top transition duration-500 group-hover:scale-105 sm:h-16 sm:w-16"
+          />
+        </div>
+      </div>
+
+      <h3
+        className={`relative z-10 font-display text-base font-bold tracking-wide sm:text-[17px] ${
+          variant === "ministry" ? "text-[#0c3b6e]" : theme.authorClass
+        }`}
+      >
+        {authorLabel}
+      </h3>
+
+      <blockquote
+        className={`relative z-10 mt-2.5 max-w-[18rem] text-xs font-medium leading-relaxed sm:text-[13px] ${
+          variant === "ministry" ? "text-slate-600" : theme.quoteClass
+        }`}
+      >
+        {t(quote.quoteEn, quote.quoteHi)}
+      </blockquote>
+    </article>
+  );
+}
+
 export function QuotesSection({
   variant = "future",
   quotes: quotesProp,
@@ -424,106 +502,52 @@ export function QuotesSection({
   quotes?: HomepageQuoteItem[];
 }) {
   const { t } = useLanguage();
-  const displayQuotes =
+  const rawQuotes =
     quotesProp && quotesProp.length > 0
       ? quotesProp
       : legacyQuotes.length > 0
         ? legacyQuotes
-        : heritageQuotes;
-  const [quoteIndex, setQuoteIndex] = useState(0);
-
-  useEffect(() => {
-    if (displayQuotes.length === 0) return;
-    const id = setInterval(
-      () => setQuoteIndex((i) => (i + 1) % displayQuotes.length),
-      8000,
-    );
-    return () => clearInterval(id);
-  }, [displayQuotes.length]);
+        : heritageQuotes.map((item) => ({
+            ...item,
+            imageUrl: "",
+          }));
+  const displayQuotes = enrichHomepageQuotes(rawQuotes);
 
   if (displayQuotes.length === 0) return null;
 
-  const quote = displayQuotes[quoteIndex];
-
-  if (variant === "heritage") {
-    const quoteBg = HERITAGE_QUOTE_BACKGROUNDS[quoteIndex % HERITAGE_QUOTE_BACKGROUNDS.length];
-    return (
-      <ScrollReveal>
-        <section className={`relative overflow-hidden bg-gradient-to-br ${quoteBg} py-16`}>
-          <div className="pattern-heritage-light absolute inset-0" />
-          <div className="relative mx-auto max-w-4xl px-4 text-center">
-            <p className="inline-block rounded-full bg-white/70 px-5 py-1.5 font-display text-sm font-semibold uppercase tracking-wider text-violet-700 shadow-sm ring-1 ring-violet-100">
-              {t(quote.authorEn, quote.authorHi)}
-            </p>
-            <blockquote className="mt-8 font-display text-2xl font-medium leading-relaxed text-slate-700 md:text-3xl">
-              &ldquo;{t(quote.quoteEn, quote.quoteHi)}&rdquo;
-            </blockquote>
-            <div className="mt-8 flex justify-center gap-2">
-              {displayQuotes.map((_, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => setQuoteIndex(i)}
-                  className={`h-2 rounded-full transition-all ${i === quoteIndex ? "w-8 bg-gradient-to-r from-rose-400 to-violet-400" : "w-2 bg-white/80 ring-1 ring-rose-200"}`}
-                  aria-label={`Quote ${i + 1}`}
-                />
-              ))}
-            </div>
-          </div>
-        </section>
-      </ScrollReveal>
-    );
-  }
-
-  if (variant === "ministry") {
-    return (
-      <section className="border-y-2 border-slate-200 bg-slate-50 py-12">
-        <div className="mx-auto max-w-4xl px-4 text-center">
-          <p className="text-sm font-bold uppercase tracking-widest text-[#0c3b6e]">
-            {t(quote.authorEn, quote.authorHi)}
-          </p>
-          <blockquote className="mt-6 font-display text-xl font-medium leading-relaxed text-slate-800 md:text-2xl">
-            &ldquo;{t(quote.quoteEn, quote.quoteHi)}&rdquo;
-          </blockquote>
-          <div className="mt-6 flex justify-center gap-2">
-            {displayQuotes.map((_, i) => (
-              <button
-                key={i}
-                type="button"
-                onClick={() => setQuoteIndex(i)}
-                className={`h-2 rounded-full transition-all ${i === quoteIndex ? "w-8 bg-[#0c3b6e]" : "w-2 bg-slate-300"}`}
-                aria-label={`Quote ${i + 1}`}
-              />
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
+  const sectionClass =
+    variant === "heritage"
+      ? "relative overflow-hidden border-y border-rose-100/80 bg-gradient-to-r from-rose-50/50 via-white to-amber-50/50 py-0"
+      : variant === "ministry"
+        ? "relative overflow-hidden border-y-2 border-slate-200 bg-slate-50 py-0"
+        : "relative overflow-hidden border-y border-emerald-200/60 bg-gradient-to-br from-emerald-100/40 via-white to-amber-100/30 py-0";
 
   return (
     <ScrollReveal>
-      <section className="relative overflow-hidden border-y border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-amber-50/40 py-14 dark:border-emerald-900/40 dark:from-emerald-950/30 dark:via-emerald-950/10 dark:to-amber-950/10">
-        <div className="pattern-dots absolute inset-0 opacity-40" />
-        <div className="relative mx-auto max-w-4xl px-4 text-center">
-          <p className="inline-block rounded-full border border-amber-300/60 bg-white/80 px-5 py-1.5 font-display text-sm font-semibold uppercase tracking-wider text-emerald-800 shadow-sm dark:border-amber-500/30 dark:bg-emerald-950/50 dark:text-amber-200">
-            {t(quote.authorEn, quote.authorHi)}
-          </p>
-          <blockquote className="mt-8 font-display text-2xl font-medium leading-relaxed text-slate-700 md:text-3xl dark:text-emerald-50">
-            &ldquo;{t(quote.quoteEn, quote.quoteHi)}&rdquo;
-          </blockquote>
-          <div className="mt-8 flex justify-center gap-2">
-            {displayQuotes.map((_, i) => (
-              <button
-                key={i}
-                type="button"
-                onClick={() => setQuoteIndex(i)}
-                className={`h-2 rounded-full transition-all ${
-                  i === quoteIndex
-                    ? "w-8 bg-gradient-to-r from-emerald-600 to-amber-400"
-                    : "w-2 bg-emerald-200 dark:bg-emerald-800"
-                }`}
-                aria-label={`Quote ${i + 1}`}
+      <section className={sectionClass} aria-label={t("Inspirational quotes", "प्रेरणादायक उद्धरण")}>
+        <div className="relative mx-auto w-full max-w-5xl px-4 py-6 md:px-5 md:py-8">
+          <div className="mb-5 text-center">
+            <p
+              className={`inline-block rounded-full px-3 py-1 font-display text-[10px] font-bold uppercase tracking-[0.18em] sm:text-xs ${
+                variant === "ministry"
+                  ? "bg-[#0c3b6e] text-white"
+                  : variant === "heritage"
+                    ? "bg-white/80 text-[#9e4a5a] ring-1 ring-rose-200"
+                    : "border border-emerald-200/80 bg-white text-emerald-800 shadow-sm dark:border-emerald-800/50 dark:bg-emerald-950/60 dark:text-emerald-100"
+              }`}
+            >
+              {t("Inspiration", "प्रेरणा")}
+            </p>
+          </div>
+
+          <div className="stagger-children quote-cards-grid grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-3">
+            {displayQuotes.map((quote, index) => (
+              <InspirationQuoteCard
+                key={`${quote.authorEn}-${index}`}
+                quote={quote}
+                themeIndex={index}
+                variant={variant}
+                t={t}
               />
             ))}
           </div>
@@ -863,9 +887,13 @@ export function AboutSection({
   const headingHi = page
     ? page.titleHi ?? page.titleEn
     : "एशिया के सबसे बड़े कृषि विश्वविद्यालयों में से एक";
+  const showHeading = !page || headingEn !== titleEn;
   const bodyEn = page?.excerptEn ?? page?.contentEn?.slice(0, 400) ?? aboutHau.textEn;
   const bodyHi = page?.excerptHi ?? page?.contentHi?.slice(0, 400) ?? aboutHau.textHi;
   const readMoreHref = page ? `/pages/${page.slug}` : "#";
+  const aboutImage =
+    page?.featuredImageUrl ??
+    "https://ccshau.blob.core.windows.net/ccshaucontainer/legacy-images/home-about-hau.jpg";
 
   return (
     <ScrollReveal>
@@ -883,10 +911,12 @@ export function AboutSection({
             <p className={`text-sm font-bold uppercase tracking-widest ${variant === "heritage" ? "text-rose-500" : variant === "ministry" ? "text-[#e8850c]" : "text-emerald-600"}`}>
               {t(titleEn, titleHi)}
             </p>
-            <h2 className={`mt-3 font-display text-3xl font-bold md:text-4xl ${variant === "heritage" ? "text-gradient-heritage" : "text-slate-900 dark:text-white"}`}>
-              {t(headingEn, headingHi)}
-            </h2>
-            <p className="mt-5 leading-relaxed text-slate-600 dark:text-emerald-100/80">
+            {showHeading && (
+              <h2 className={`mt-3 font-display text-3xl font-bold md:text-4xl ${variant === "heritage" ? "text-gradient-heritage" : "text-slate-900 dark:text-white"}`}>
+                {t(headingEn, headingHi)}
+              </h2>
+            )}
+            <p className={`${showHeading ? "mt-5" : "mt-3"} leading-relaxed text-slate-600 dark:text-emerald-100/80`}>
               {t(bodyEn, bodyHi)}
             </p>
             <Link
@@ -905,8 +935,8 @@ export function AboutSection({
           </div>
           <div className={`relative min-h-[240px] overflow-hidden ${variant === "ministry" ? "rounded-md border-2 border-slate-300" : "rounded-2xl ring-2 ring-amber-200/50"}`}>
             <Image
-              src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=900&q=80"
-              alt={t("Agricultural fields at CCSHAU Hisar", "CCSHAU हिसार में कृषि क्षेत्र")}
+              src={aboutImage}
+              alt={t("CCSHAU Hisar university entrance gate", "CCSHAU हिसार विश्वविद्यालय प्रवेश द्वार")}
               fill
               className="object-cover"
             />

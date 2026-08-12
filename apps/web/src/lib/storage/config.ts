@@ -65,6 +65,11 @@ export function homepageInitiativeImagePath(initiativeId: string, fileName: stri
   return `homepage/initiatives/${initiativeId}/${safe}`;
 }
 
+export function homepageQuoteImagePath(quoteId: string, fileName: string): string {
+  const safe = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
+  return `homepage/quotes/${quoteId}/${safe}`;
+}
+
 export function facultyImagePath(staffId: string, fileName: string): string {
   const safe = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
   return `faculty/${staffId}/${safe}`;

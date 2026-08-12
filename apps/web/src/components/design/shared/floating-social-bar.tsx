@@ -32,13 +32,15 @@ export function FloatingSocialBar() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={label}
-                  className={`ccshau-social-rail__link ccshau-social-rail__link--${link.platform}`}
+                  className="ccshau-social-rail__link"
                 >
-                  <span className="ccshau-social-rail__icon">
-                    <Icon className="h-[1.05rem] w-[1.05rem]" />
-                  </span>
-                  <span className="ccshau-social-rail__label" aria-hidden>
+                  <span className="ccshau-social-rail__label" aria-hidden="true">
                     {label}
+                  </span>
+                  <span
+                    className={`ccshau-social-rail__icon ccshau-social-rail__icon--${link.platform}`}
+                  >
+                    <Icon className="h-[1.15rem] w-[1.15rem]" />
                   </span>
                 </a>
               </li>

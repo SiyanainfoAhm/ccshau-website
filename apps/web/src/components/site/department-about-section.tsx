@@ -90,7 +90,7 @@ export function DepartmentAboutSection({
             <StaffPhoto
               src={member.imageUrl}
               alt={staffPhotoAlt(member, lang)}
-              size="lg"
+              size="xl"
               rounded="lg"
               className="mx-auto sm:mx-0"
             />

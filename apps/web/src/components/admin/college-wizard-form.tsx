@@ -383,11 +383,15 @@ export function CollegeWizardForm({
               <span className="font-medium text-slate-700">Email</span>
               <input
                 name="email"
-                type="email"
+                type="text"
+                inputMode="email"
                 required
-                placeholder="college@hau.ac.in"
+                placeholder="college@hau.ac.in, second@hau.ac.in"
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
               />
+              <span className="mt-1 block text-xs text-slate-500">
+                Up to 2 emails, separated by a comma
+              </span>
             </label>
             <label className="block text-sm">
               <span className="font-medium text-slate-700">Latitude (optional)</span>

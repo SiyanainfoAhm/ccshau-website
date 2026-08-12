@@ -13,30 +13,104 @@ export interface LegacyDignitary {
 export interface LegacyQuote {
   authorEn: string;
   authorHi: string;
+  /** Short Hindi label as on legacy homepage (e.g. "...चौ. चरण सिंह") */
+  authorShortHi?: string;
   quoteEn: string;
   quoteHi: string;
+  imageUrl: string;
 }
+
+/** Light pastel cards with funky vivid accents — green, gold, pink (legacy spirit, modern tint) */
+export const SITE_QUOTE_CARD_THEMES = [
+  {
+    cardBg: "bg-gradient-to-br from-emerald-200/75 via-emerald-100/60 to-lime-50",
+    accentBar: "from-emerald-500 via-green-500 to-lime-400",
+    borderClass: "border-emerald-300/80",
+    portraitRing: "ring-emerald-400 ring-offset-2 ring-offset-emerald-50",
+    glowClass: "bg-emerald-400/25",
+    authorClass: "text-emerald-800",
+    quoteClass: "text-emerald-900/75",
+  },
+  {
+    cardBg: "bg-gradient-to-br from-amber-200/70 via-yellow-100/80 to-orange-50",
+    accentBar: "from-amber-400 via-yellow-400 to-orange-400",
+    borderClass: "border-amber-300/80",
+    portraitRing: "ring-amber-400 ring-offset-2 ring-offset-amber-50",
+    glowClass: "bg-amber-400/30",
+    authorClass: "text-amber-900",
+    quoteClass: "text-amber-950/70",
+  },
+  {
+    cardBg: "bg-gradient-to-br from-rose-200/65 via-pink-100/70 to-fuchsia-50",
+    accentBar: "from-rose-400 via-pink-500 to-fuchsia-400",
+    borderClass: "border-rose-300/80",
+    portraitRing: "ring-pink-400 ring-offset-2 ring-offset-rose-50",
+    glowClass: "bg-pink-400/25",
+    authorClass: "text-rose-800",
+    quoteClass: "text-rose-900/75",
+  },
+] as const;
+
+/** @deprecated Use SITE_QUOTE_CARD_THEMES */
+export const LEGACY_QUOTE_CARD_THEMES = SITE_QUOTE_CARD_THEMES;
 
 export const legacyQuotes: LegacyQuote[] = [
   {
     authorEn: "Chaudhary Charan Singh",
     authorHi: "चौधरी चरण सिंह",
+    authorShortHi: "...चौ. चरण सिंह",
     quoteEn: "The prosperity of the nation passes through the fields and barns of villages.",
     quoteHi: "देश की समृद्धि का रास्ता गांवों के खेतों एवं खलिहानों से होकर गुजरता है।",
+    imageUrl:
+      "https://ccshau.blob.core.windows.net/ccshaucontainer/legacy-images/homepage-quotes/charan-singh.jpeg",
   },
   {
     authorEn: "Norman Borlaug",
     authorHi: "नॉर्मन बोरलॉग",
+    authorShortHi: "...नॉर्मन बोरलॉग",
     quoteEn: "The first essential component of social justice is adequate food for all mankind.",
     quoteHi: "सामाजिक न्याय का पहला आवश्यक घटक सभी मानव जाति के लिए पर्याप्त भोजन है।",
+    imageUrl:
+      "https://ccshau.blob.core.windows.net/ccshaucontainer/legacy-images/homepage-quotes/norman-borlaug.jpeg",
   },
   {
     authorEn: "Dr. M. S. Swaminathan",
     authorHi: "डॉ. एम. एस. स्वामीनाथन",
+    authorShortHi: "....एम. एस. स्वामीनाथन",
     quoteEn: "If farm ecology and economics go wrong, nothing else will go right in agriculture.",
     quoteHi: "अगर फार्म इकोलॉजी और इकोनॉमिक्स गलत हो जाते हैं, तो कृषि में कुछ भी सही नहीं होगा।",
+    imageUrl:
+      "https://ccshau.blob.core.windows.net/ccshaucontainer/legacy-images/homepage-quotes/ms-swaminathan.jpeg",
   },
 ];
+
+function normalizeAuthorKey(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/^dr\.?\s+/i, "")
+    .replace(/[^\p{L}\p{N}]+/gu, "")
+    .trim();
+}
+
+/** Merge CMS quote text with legacy portraits and card colors by author name. */
+export function enrichHomepageQuotes(quotes: LegacyQuote[]): LegacyQuote[] {
+  const legacyByAuthor = new Map(
+    legacyQuotes.map((item) => [normalizeAuthorKey(item.authorEn), item]),
+  );
+
+  return quotes.slice(0, 3).map((quote, index) => {
+    const legacy =
+      legacyByAuthor.get(normalizeAuthorKey(quote.authorEn)) ??
+      legacyQuotes[index] ??
+      legacyQuotes[0];
+
+    return {
+      ...quote,
+      authorShortHi: quote.authorShortHi ?? legacy.authorShortHi,
+      imageUrl: quote.imageUrl?.trim() || legacy.imageUrl,
+    };
+  });
+}
 
 export interface LegacyCollege {
   slug: string;
@@ -101,14 +175,6 @@ export const legacyColleges: LegacyCollege[] = [
     nameHi: "कृषि महाविद्यालय, बावल",
     logoUrl: "https://hau.ac.in/public/images/college/logo/7/1552737173.jpg",
     color: "from-sky-400 to-blue-400",
-  },
-  {
-    slug: "centre-of-food-science-technology",
-    slugAliases: ["centre-food-science-technology"],
-    nameEn: "Centre of Food Science & Technology",
-    nameHi: "खाद्य विज्ञान और प्रौद्योगिकी केंद्र",
-    logoUrl: "https://hau.ac.in/public/images/college/logo/8/1547026866.jpg",
-    color: "from-violet-400 to-purple-400",
   },
   {
     slug: "ic-college-of-home-science",

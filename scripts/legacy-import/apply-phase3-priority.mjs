@@ -31,7 +31,7 @@ const CONFIRM = process.argv.includes("--confirm");
 
 /** Target slug → candidate legacy page_slug values (pick longest HTML). */
 const PRIORITY_PAGE_MAP = [
-  { target: "about", sources: ["about-us", "about-us-1", "about-us-3"] },
+  { target: "about", sources: ["home"], preferred: "home" },
   { target: "history", sources: ["history"] },
   {
     target: "vision-mission",
@@ -352,6 +352,28 @@ async function main() {
           }
           html = parts.join("\n<hr />\n");
           sourceMeta = { sources: entry.sources.filter((s) => parts.some((p) => p.includes(`legacy:${s}`))) };
+        } else if (entry.preferred) {
+          const preferred = rows.find((r) => r.page_slug === entry.preferred);
+          const best = preferred?.page_content
+            ? { row: preferred, len: String(preferred.page_content).length }
+            : pickLongest(rows);
+          if (!best) {
+            summary.menuPages.skipped += 1;
+            summary.menuPages.details.push({
+              target: entry.target,
+              action: "skipped-no-source",
+              sources: entry.sources,
+            });
+            continue;
+          }
+          html = prepareHtml(best.row.page_content);
+          titleHint = best.row.page_title;
+          sourceMeta = {
+            sourceSlug: best.row.page_slug,
+            sourceId: best.row.id,
+            sourceLen: best.len,
+            preferred: entry.preferred,
+          };
         } else {
           const best = pickLongest(rows);
           if (!best) {

@@ -8,6 +8,8 @@ export const homepageQuoteSchema = z.object({
   authorHi: z.string().optional(),
   quoteEn: z.string().min(1, "Quote is required"),
   quoteHi: z.string().optional(),
+  imagePath: z.string().optional(),
+  removeImage: z.coerce.boolean().optional().default(false),
   sortOrder,
   isActive,
 });

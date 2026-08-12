@@ -6,16 +6,13 @@ import { useEffect, useState } from "react";
 /** Shown when staff photo is missing or fails to load. */
 export const STAFF_DEFAULT_PHOTO = "/images/staff-default.svg";
 
-const SIZE_CLASS = {
-  sm: "h-12 w-12",
-  md: "h-28 w-28",
-  lg: "h-[200px] w-[160px]",
-} as const;
-
-const SIZE_PX = {
-  sm: 48,
-  md: 112,
-  lg: 160,
+/** Explicit pixel sizes (inline style) so dimensions never depend on Tailwind purge. */
+const SIZE_STYLE = {
+  sm: { width: 48, height: 48 },
+  md: { width: 112, height: 112 },
+  /** Head portraits — closer to legacy registrar photo scale. */
+  lg: { width: 260, height: 320 },
+  xl: { width: 320, height: 400 },
 } as const;
 
 function shouldSkipOptimization(src: string): boolean {
@@ -45,7 +42,7 @@ export function StaffPhoto({
 }: {
   src?: string | null;
   alt: string;
-  size?: keyof typeof SIZE_CLASS;
+  size?: keyof typeof SIZE_STYLE;
   rounded?: "full" | "lg";
   className?: string;
 }) {
@@ -57,18 +54,22 @@ export function StaffPhoto({
   }, [src]);
 
   const usingDefault = currentSrc === STAFF_DEFAULT_PHOTO;
-  const roundedClass = rounded === "full" ? "rounded-full" : "rounded-lg";
+  const roundedClass = rounded === "full" ? "rounded-lg" : "rounded-lg";
+  // Keep circular only for tiny list thumbs
+  const shapeClass = rounded === "full" && size === "sm" ? "rounded-full" : roundedClass;
+  const dim = SIZE_STYLE[size];
 
   return (
     <div
-      className={`relative shrink-0 overflow-hidden border border-slate-200 bg-slate-100 shadow-sm ${SIZE_CLASS[size]} ${roundedClass} ${className}`}
+      className={`relative shrink-0 overflow-hidden border border-emerald-200 bg-slate-100 shadow-sm ${shapeClass} ${className}`}
+      style={{ width: dim.width, height: dim.height }}
     >
       <Image
         src={currentSrc}
         alt={usingDefault ? alt || "Staff photo placeholder" : alt}
         fill
         className="object-cover object-top"
-        sizes={`${SIZE_PX[size]}px`}
+        sizes={`${dim.width}px`}
         unoptimized={shouldSkipOptimization(currentSrc)}
         onError={() => {
           if (currentSrc !== STAFF_DEFAULT_PHOTO) {

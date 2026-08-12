@@ -2,12 +2,16 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 import { useLanguage } from "@/components/design/shared/language-context";
 import { FloatingOrbs } from "@/components/design/shared/floating-orbs";
 import { heroSlideAlt } from "@/lib/a11y/image-alt";
+import {
+  heroBannerSubtitle,
+  heroBannerTitle,
+} from "@/lib/banners/hero-display";
 import type { PublicHeroSlide } from "@/lib/data/public-types";
 import { SELECTED_LAYOUT } from "@/lib/design/selected-layout";
 import { heroSlides as mockHeroSlides, university } from "@/lib/mock/site-content";
@@ -65,6 +69,8 @@ export function HeroCarousel({
   }
 
   const slide = heroSlides[index];
+  const displayTitle = heroBannerTitle(slide.titleEn);
+  const displaySubtitle = heroBannerSubtitle(slide.subtitleEn, slide.titleEn);
 
   if (variant === "ministry") {
     return (
@@ -79,10 +85,14 @@ export function HeroCarousel({
                 {t("ICAR Deemed University", "आईसीएआर मान्य")}
               </span>
             </div>
-            <h1 className="mt-4 font-display text-4xl font-bold leading-tight text-slate-900 md:text-5xl">
-              {t(slide.titleEn, slide.titleHi ?? slide.titleEn)}
-            </h1>
-            <p className="mt-4 text-lg leading-relaxed text-slate-700">{slide.subtitleEn}</p>
+            {displayTitle && (
+              <h1 className="mt-4 font-display text-4xl font-bold leading-tight text-slate-900 md:text-5xl">
+                {t(displayTitle, slide.titleHi ?? displayTitle)}
+              </h1>
+            )}
+            {displaySubtitle && (
+              <p className="mt-4 text-lg leading-relaxed text-slate-700">{displaySubtitle}</p>
+            )}
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 href="/design/option-c/news"
@@ -121,9 +131,15 @@ export function HeroCarousel({
               {t(university.accreditationEn, university.accreditationHi)}
             </span>
             <h1 className="mt-6 font-display text-4xl font-bold leading-[1.12] md:text-5xl">
-              <span className="text-gradient-heritage">{t(slide.titleEn, slide.titleHi ?? slide.titleEn)}</span>
+              {displayTitle ? (
+                <span className="text-gradient-heritage">
+                  {t(displayTitle, slide.titleHi ?? displayTitle)}
+                </span>
+              ) : null}
             </h1>
-            <p className="mt-5 text-lg leading-relaxed text-slate-600">{slide.subtitleEn}</p>
+            {displaySubtitle && (
+              <p className="mt-5 text-lg leading-relaxed text-slate-600">{displaySubtitle}</p>
+            )}
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 href={primaryCtaHref ?? "#"}
@@ -184,6 +200,7 @@ export function HeroCarousel({
   // Option B — Future (most exciting)
   return (
     <section
+      data-site-hero
       className="relative min-h-[90vh] overflow-hidden"
       role="region"
       aria-roledescription="carousel"
@@ -212,32 +229,29 @@ export function HeroCarousel({
 
       <div className="relative mx-auto flex min-h-[90vh] max-w-7xl flex-col justify-center px-4 py-20">
         <div className="animate-fade-up stagger-children">
-          <span className="inline-flex items-center gap-2 rounded-full glass-panel px-4 py-2 text-sm font-medium text-amber-200 animate-pulse-glow">
-            <Sparkles className="h-4 w-4" />
-            {t("NAEAB A+ Accredited University", "एनएईएबी ए+ मान्यता")}
-          </span>
+          {displayTitle && (
+            <h1 className="max-w-4xl font-display text-5xl font-bold leading-[1.1] text-white drop-shadow-[0_3px_16px_rgba(0,0,0,0.65)] md:text-7xl">
+              <span className="text-gradient-gold">
+                {t(displayTitle, slide.titleHi ?? displayTitle)}
+              </span>
+            </h1>
+          )}
 
-          <h1 className="mt-8 max-w-4xl font-display text-5xl font-bold leading-[1.1] text-white drop-shadow-[0_3px_16px_rgba(0,0,0,0.65)] md:text-7xl">
-            <span className="text-gradient-gold">{t(slide.titleEn, slide.titleHi ?? slide.titleEn)}</span>
-          </h1>
-
-          <p className="mt-6 max-w-2xl text-xl leading-relaxed text-white/95 drop-shadow-[0_2px_10px_rgba(0,0,0,0.7)]">
-            {slide.subtitleEn ?? ""}
-          </p>
-
-          <div className="mt-10 flex flex-wrap gap-4">
-            <Link
-              href={slide.targetUrl || "#"}
-              className="group inline-flex items-center gap-2 rounded-2xl gradient-gold px-8 py-4 font-bold text-emerald-950 shadow-xl shadow-amber-500/25 transition hover:scale-105"
+          {displaySubtitle && (
+            <p
+              className={`max-w-2xl text-xl leading-relaxed text-white/95 drop-shadow-[0_2px_10px_rgba(0,0,0,0.7)] ${displayTitle ? "mt-6" : ""}`}
             >
-              {t("Learn more", "और जानें")}
-              <ArrowRight className="h-5 w-5 transition group-hover:translate-x-1" />
-            </Link>
+              {displaySubtitle}
+            </p>
+          )}
+
+          <div className={`flex flex-wrap gap-4 ${displayTitle || displaySubtitle ? "mt-10" : ""}`}>
             <Link
               href={tendersPath}
-              className="inline-flex items-center gap-2 rounded-2xl glass-panel px-8 py-4 font-semibold text-white transition hover:bg-white/20"
+              className="group inline-flex items-center gap-2 rounded-2xl gradient-gold px-8 py-4 font-bold text-emerald-950 shadow-xl shadow-amber-500/25 transition hover:scale-105"
             >
               {t("View Tenders", "निविदाएं देखें")}
+              <ArrowRight className="h-5 w-5 transition group-hover:translate-x-1" />
             </Link>
           </div>
         </div>

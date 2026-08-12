@@ -259,7 +259,7 @@ export function PageForm({
 
   return (
     <div className="space-y-6">
-    <form action={handleSubmit} className="mx-auto max-w-3xl space-y-6">
+    <form action={handleSubmit} noValidate className="mx-auto max-w-3xl space-y-6">
       <input type="hidden" name="pageType" value={isCollegeRoot ? "college" : parentId ? "standard" : pageType} />
       <input
         type="hidden"
@@ -626,12 +626,15 @@ export function PageForm({
                 <span className="font-medium text-slate-700">Email</span>
                 <input
                   name="email"
-                  type="email"
-                  required
+                  type="text"
+                  required={contactLocationEnabled}
                   defaultValue={collegeContact.email}
-                  placeholder="college@hau.ac.in"
+                  placeholder="college@hau.ac.in, second@hau.ac.in"
                   className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
                 />
+                <span className="mt-1 block text-xs text-slate-500">
+                  Free text — multiple emails allowed (comma or semicolon separated). No format check.
+                </span>
               </label>
               <label className="block text-sm">
                 <span className="font-medium text-slate-700">Latitude (optional)</span>

@@ -58,11 +58,13 @@ function HomepageImageField({
   imagePath,
   required,
   urlPlaceholder = "https://...",
+  roundPreview = false,
 }: {
   label: string;
   imagePath?: string | null;
   required?: boolean;
   urlPlaceholder?: string;
+  roundPreview?: boolean;
 }) {
   const previewUrl =
     imagePath && imagePath !== "pending" ? getStoredFileUrl(imagePath) : null;
@@ -74,7 +76,11 @@ function HomepageImageField({
         {label} {required && !hasStoredImage && <span className="text-red-600">*</span>}
       </span>
       {previewUrl && (
-        <div className="relative h-48 w-40 overflow-hidden rounded-lg border border-slate-200">
+        <div
+          className={`relative overflow-hidden border border-slate-200 ${
+            roundPreview ? "h-24 w-24 rounded-full" : "h-48 w-40 rounded-lg"
+          }`}
+        >
           <Image src={previewUrl} alt="" fill className="object-cover object-top" />
         </div>
       )}
@@ -143,6 +149,12 @@ export function HomepageQuoteForm({ quote }: { quote?: HomepageQuote }) {
         <span className="font-medium text-slate-700">Quote (Hindi)</span>
         <textarea name="quoteHi" rows={3} defaultValue={quote?.quote_hi ?? ""} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-hindi" />
       </label>
+      <HomepageImageField
+        label="Portrait photo (round image on homepage)"
+        imagePath={quote?.image_path}
+        roundPreview
+        urlPlaceholder="https://ccshau.blob.core.windows.net/..."
+      />
       <SortActiveFields sortOrder={quote?.sort_order} isActive={quote?.is_active} />
       <div className="flex gap-3">
         <button type="submit" disabled={isPending} className="rounded-lg bg-ccshau-chrome-900 px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60">

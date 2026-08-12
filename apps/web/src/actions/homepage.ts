@@ -23,6 +23,7 @@ import {
   removeStorageObjects,
   uploadHomepageDignitaryImage,
   uploadHomepageInitiativeImage,
+  uploadHomepageQuoteImage,
 } from "@/lib/storage/upload";
 import {
   emptyPaginatedResult,
@@ -88,6 +89,19 @@ async function resolveHomepageImagePath(
   return fail("Photo is required. Upload an image or enter an image URL.");
 }
 
+function parseQuoteForm(formData: FormData) {
+  return homepageQuoteSchema.safeParse({
+    authorEn: formData.get("authorEn"),
+    authorHi: formData.get("authorHi") || undefined,
+    quoteEn: formData.get("quoteEn"),
+    quoteHi: formData.get("quoteHi") || undefined,
+    imagePath: formData.get("imagePath") || undefined,
+    removeImage: formData.get("removeImage") === "on",
+    sortOrder: formData.get("sortOrder") ?? 0,
+    isActive: formData.get("isActive") !== "off",
+  });
+}
+
 function parseDignitaryForm(formData: FormData) {
   return homepageDignitarySchema.safeParse({
     nameEn: formData.get("nameEn"),
@@ -150,19 +164,14 @@ export async function createHomepageQuoteAction(
 ): Promise<ActionResult<{ id: string }>> {
   try {
     const session = await requireAdminWithRoles([...SITE_STRUCTURE_ACCESS_ROLES]);
-    const parsed = homepageQuoteSchema.safeParse({
-      authorEn: formData.get("authorEn"),
-      authorHi: formData.get("authorHi") || undefined,
-      quoteEn: formData.get("quoteEn"),
-      quoteHi: formData.get("quoteHi") || undefined,
-      sortOrder: formData.get("sortOrder") ?? 0,
-      isActive: formData.get("isActive") !== "off",
-    });
+    const parsed = parseQuoteForm(formData);
     if (!parsed.success) return fail("Validation failed", parsed.error.flatten().fieldErrors);
 
     const admin = createAdminClient();
     if (!admin) return fail("Database not configured.");
     const input = parsed.data;
+    const imageFile = getImageFile(formData);
+    const imageUrl = input.imagePath?.trim();
 
     const { data, error } = await admin
       .from(Tables.homepageQuotes)
@@ -171,6 +180,7 @@ export async function createHomepageQuoteAction(
         author_hi: input.authorHi || null,
         quote_en: input.quoteEn,
         quote_hi: input.quoteHi || null,
+        image_path: imageFile ? "pending" : imageUrl || null,
         sort_order: input.sortOrder,
         is_active: input.isActive ?? true,
       })
@@ -178,6 +188,20 @@ export async function createHomepageQuoteAction(
       .single();
 
     if (error) return fail(error.message);
+
+    if (imageFile) {
+      const upload = await uploadHomepageQuoteImage(admin, data.id, imageFile);
+      if (!upload.success) {
+        await admin.from(Tables.homepageQuotes).delete().eq("id", data.id);
+        return upload;
+      }
+      const { error: updateError } = await admin
+        .from(Tables.homepageQuotes)
+        .update({ image_path: upload.data })
+        .eq("id", data.id);
+      if (updateError) return fail(updateError.message);
+    }
+
     await writeAuditLog({
       userId: session.userId,
       action: "create",
@@ -195,19 +219,42 @@ export async function createHomepageQuoteAction(
 export async function updateHomepageQuoteAction(id: string, formData: FormData): Promise<ActionResult> {
   try {
     const session = await requireAdminWithRoles([...SITE_STRUCTURE_ACCESS_ROLES]);
-    const parsed = homepageQuoteSchema.safeParse({
-      authorEn: formData.get("authorEn"),
-      authorHi: formData.get("authorHi") || undefined,
-      quoteEn: formData.get("quoteEn"),
-      quoteHi: formData.get("quoteHi") || undefined,
-      sortOrder: formData.get("sortOrder") ?? 0,
-      isActive: formData.get("isActive") !== "off",
-    });
+    const parsed = parseQuoteForm(formData);
     if (!parsed.success) return fail("Validation failed", parsed.error.flatten().fieldErrors);
 
     const admin = createAdminClient();
     if (!admin) return fail("Database not configured.");
     const input = parsed.data;
+
+    const { data: existing, error: fetchError } = await admin
+      .from(Tables.homepageQuotes)
+      .select("image_path")
+      .eq("id", id)
+      .single();
+    if (fetchError) return fail(fetchError.message);
+
+    let imagePath = existing.image_path;
+    const imageFile = getImageFile(formData);
+    const imageUrl = input.imagePath?.trim();
+
+    if (imageFile) {
+      if (existing.image_path && isStoredImagePath(existing.image_path)) {
+        await removeStorageObjects(admin, [existing.image_path]);
+      }
+      const upload = await uploadHomepageQuoteImage(admin, id, imageFile);
+      if (!upload.success) return upload;
+      imagePath = upload.data;
+    } else if (imageUrl) {
+      if (existing.image_path && isStoredImagePath(existing.image_path) && imageUrl !== existing.image_path) {
+        await removeStorageObjects(admin, [existing.image_path]);
+      }
+      imagePath = imageUrl;
+    } else if (input.removeImage) {
+      if (existing.image_path && isStoredImagePath(existing.image_path)) {
+        await removeStorageObjects(admin, [existing.image_path]);
+      }
+      imagePath = null;
+    }
 
     const { error } = await admin
       .from(Tables.homepageQuotes)
@@ -216,6 +263,7 @@ export async function updateHomepageQuoteAction(id: string, formData: FormData):
         author_hi: input.authorHi || null,
         quote_en: input.quoteEn,
         quote_hi: input.quoteHi || null,
+        image_path: imagePath,
         sort_order: input.sortOrder,
         is_active: input.isActive ?? true,
       })
@@ -242,8 +290,20 @@ export async function deleteHomepageQuoteAction(id: string): Promise<ActionResul
     const session = await requireAdminWithRoles([...SITE_STRUCTURE_ACCESS_ROLES]);
     const admin = createAdminClient();
     if (!admin) return fail("Database not configured.");
+
+    const { data: existing } = await admin
+      .from(Tables.homepageQuotes)
+      .select("image_path")
+      .eq("id", id)
+      .maybeSingle();
+
     const { error } = await admin.from(Tables.homepageQuotes).delete().eq("id", id);
     if (error) return fail(error.message);
+
+    if (existing?.image_path && isStoredImagePath(existing.image_path)) {
+      await removeStorageObjects(admin, [existing.image_path]);
+    }
+
     await writeAuditLog({
       userId: session.userId,
       action: "delete",

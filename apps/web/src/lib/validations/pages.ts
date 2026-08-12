@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { normalizeContactEmails } from "@/lib/validations/contact-emails";
+
 function optionalCoordinate(min: number, max: number, label: string) {
   return z
     .union([z.string(), z.number()])
@@ -13,6 +15,17 @@ function optionalCoordinate(min: number, max: number, label: string) {
       message: `${label} must be between ${min} and ${max}`,
     });
 }
+
+/** Admin page editor only: allow any contact email text (incl. comma-separated). */
+const pageContactEmailSchema = z
+  .string()
+  .optional()
+  .or(z.literal(""))
+  .transform((value) => {
+    const raw = (value ?? "").trim();
+    if (!raw) return "";
+    return normalizeContactEmails(raw);
+  });
 
 export const pageFormSchema = z
   .object({
@@ -42,7 +55,7 @@ export const pageFormSchema = z
   addressEn: z.string().optional(),
   addressHi: z.string().optional(),
   phone: z.string().optional(),
-  email: z.string().email("Valid email is required").optional().or(z.literal("")),
+  email: pageContactEmailSchema,
   mapLat: optionalCoordinate(-90, 90, "Latitude"),
   mapLng: optionalCoordinate(-180, 180, "Longitude"),
   contactLocationEnabled: z

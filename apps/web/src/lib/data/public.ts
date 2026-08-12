@@ -20,6 +20,7 @@ import type {
   RelatedLink,
   Tender,
 } from "@/lib/database/types";
+import { heroBannerTitle } from "@/lib/banners/hero-display";
 import type {
   PublicCalendarEvent,
   PublicCollegePage,
@@ -204,11 +205,12 @@ export async function getActiveBannersUncached(): Promise<PublicHeroSlide[]> {
         ? getStoredFileUrl(banner.image_path)
         : null;
     if (!image) continue;
+    const rawTitle = banner.title?.trim() ?? "";
     slides.push({
-      titleEn: banner.title,
+      titleEn: heroBannerTitle(rawTitle) ?? "",
       titleHi: null,
-      subtitleEn: banner.alt_text,
-      imageAltEn: banner.alt_text ?? banner.title,
+      subtitleEn: null,
+      imageAltEn: banner.alt_text ?? rawTitle ?? "CCSHAU homepage banner",
       imageAltHi: null,
       image,
       targetUrl: banner.target_url,

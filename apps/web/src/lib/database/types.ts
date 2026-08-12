@@ -435,6 +435,7 @@ export interface HomepageQuote {
   author_hi: string | null;
   quote_en: string;
   quote_hi: string | null;
+  image_path: string | null;
   sort_order: number;
   is_active: boolean;
   created_at: string;

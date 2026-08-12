@@ -9,11 +9,13 @@ import type {
   HomepageQuote,
 } from "@/lib/database/types";
 import {
+  enrichHomepageQuotes,
   legacyColleges,
   legacyDignitaries,
   legacyFlagships,
   legacyQuotes,
   type LegacyDignitary,
+  type LegacyQuote,
 } from "@/lib/legacy/homepage-content";
 import { getPublicPagePath } from "@/lib/pages/routes";
 import { getStoredFileUrl } from "@/lib/storage/upload";
@@ -28,12 +30,7 @@ export interface HomepageCollege {
   color: string;
 }
 
-export interface HomepageQuoteItem {
-  authorEn: string;
-  authorHi: string;
-  quoteEn: string;
-  quoteHi: string;
-}
+export type HomepageQuoteItem = LegacyQuote;
 
 export interface HomepageFlagshipItem {
   slug: string;
@@ -72,6 +69,7 @@ function mapQuote(row: HomepageQuote): HomepageQuoteItem {
     authorHi: row.author_hi ?? row.author_en,
     quoteEn: row.quote_en,
     quoteHi: row.quote_hi ?? row.quote_en,
+    imageUrl: row.image_path ? mapImage(row.image_path) : "",
   };
 }
 
@@ -119,7 +117,8 @@ function cmsSlugMatchesLegacy(cmsSlug: string, legacySlug: string, aliases?: str
   return aliases?.includes(cmsSlug) ?? false;
 }
 
-const HOMEPAGE_QUOTE_SELECT = "id, author_en, author_hi, quote_en, quote_hi, sort_order, is_active";
+const HOMEPAGE_QUOTE_SELECT =
+  "id, author_en, author_hi, quote_en, quote_hi, image_path, sort_order, is_active";
 const HOMEPAGE_DIGNITARY_SELECT =
   "id, name_en, name_hi, role_en, role_hi, image_path, sort_order, is_active";
 const HOMEPAGE_INITIATIVE_SELECT =
@@ -132,7 +131,7 @@ async function loadHomepageContent(): Promise<HomepageContent> {
 
   if (!admin) {
     return {
-      quotes: legacyQuotes,
+      quotes: enrichHomepageQuotes(legacyQuotes),
       dignitaries: legacyDignitaries,
       flagships: legacyFlagships.map((item) => ({
         ...item,
@@ -169,13 +168,15 @@ async function loadHomepageContent(): Promise<HomepageContent> {
       .maybeSingle(),
   ]);
 
-  const quotes = ((quotesRes.data ?? []) as HomepageQuote[]).map(mapQuote);
+  const quotes = enrichHomepageQuotes(
+    ((quotesRes.data ?? []) as HomepageQuote[]).map(mapQuote),
+  );
   const dignitaries = ((dignitariesRes.data ?? []) as HomepageDignitary[]).map(mapDignitary);
   const flagships = ((initiativesRes.data ?? []) as HomepageInitiative[]).map(mapInitiative);
   const ctaRow = ctaRes.data as HomepageCta | null;
 
   return {
-    quotes: quotes.length > 0 ? quotes : legacyQuotes,
+    quotes: quotes.length > 0 ? quotes : enrichHomepageQuotes(legacyQuotes),
     dignitaries: dignitaries.length > 0 ? dignitaries : legacyDignitaries,
     flagships:
       flagships.length > 0

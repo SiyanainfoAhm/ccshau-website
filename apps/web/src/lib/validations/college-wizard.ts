@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { collegeContactEmailsSchema } from "@/lib/validations/contact-emails";
+
 const collegeScopeRoleEnum = z.enum(["college_admin", "college_editor", "college_viewer"]);
 
 function optionalCoordinate(min: number, max: number, label: string) {
@@ -42,7 +44,10 @@ export const collegeWizardSchema = z.object({
   addressEn: z.string().min(5, "Mailing address is required"),
   addressHi: z.string().optional(),
   phone: z.string().min(6, "Phone number is required"),
-  email: z.string().email("Valid email is required"),
+  email: collegeContactEmailsSchema({
+    required: true,
+    requiredMessage: "Valid email is required (up to 2, comma-separated)",
+  }),
   mapLat: optionalCoordinate(-90, 90, "Latitude"),
   mapLng: optionalCoordinate(-180, 180, "Longitude"),
   status: z.enum(["draft", "published"]).default("draft"),
