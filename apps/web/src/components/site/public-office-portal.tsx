@@ -17,7 +17,14 @@ import type {
 } from "@/lib/data/public-types";
 import { buildImageAlt, staffPhotoAlt } from "@/lib/a11y/image-alt";
 import { publicSectionCardClass, publicSidebarClass } from "@/lib/design/public-page-classes";
+import {
+  extractPdfCaptionFromHtml,
+  extractPdfUrlFromHtml,
+  isPrimarilyPdfHtml,
+} from "@/lib/html/extract-pdf-url";
+import { formatMenuLabel } from "@/lib/i18n/menu-label";
 import { pickBilingual } from "@/lib/i18n/pick-bilingual";
+import { PublicPdfViewer } from "@/components/site/public-pdf-viewer";
 
 function SidebarPanel({
   title,
@@ -40,7 +47,11 @@ function SidebarPanel({
       </h2>
       <ul className="divide-y divide-slate-100">
         {links.map((link) => {
-          const label = t(link.labelEn, link.labelHi ?? link.labelEn);
+          const label = formatMenuLabel(
+            t(link.labelEn, link.labelHi ?? link.labelEn),
+            lang,
+            "title",
+          );
           const isActive = activeId === link.id;
 
           if (link.href) {
@@ -87,9 +98,13 @@ export function PublicOfficePortal({
   const { lang, t } = useLanguage();
   const [selectedSidebar, setSelectedSidebar] = useState<PublicSidebarLink | null>(null);
 
-  const title = section
-    ? pickBilingual(lang, section.titleEn, section.titleHi)
-    : pickBilingual(lang, college.titleEn, college.titleHi);
+  const title = formatMenuLabel(
+    section
+      ? pickBilingual(lang, section.titleEn, section.titleHi)
+      : pickBilingual(lang, college.titleEn, college.titleHi),
+    lang,
+    "title",
+  );
   const defaultBodyContent = section
     ? pickBilingual(lang, section.contentEn, section.contentHi)
     : pickBilingual(lang, college.contentEn, college.contentHi);
@@ -97,19 +112,22 @@ export function PublicOfficePortal({
   const sidebarContent = selectedSidebar
     ? pickBilingual(lang, selectedSidebar.contentEn, selectedSidebar.contentHi)
     : null;
-  const sidebarPdfUrl = (() => {
-    if (!sidebarContent) return null;
-    const stripped = sidebarContent.trim().replace(/<[^>]+>/g, "").trim();
-    const hrefMatch = sidebarContent.match(/href=["']([^"']+\.pdf)["']/i);
-    if (hrefMatch && stripped.length < 200) return hrefMatch[1];
-    return null;
-  })();
+  const sidebarPdfUrl =
+    sidebarContent && isPrimarilyPdfHtml(sidebarContent)
+      ? extractPdfUrlFromHtml(sidebarContent)
+      : null;
+  const sidebarPdfCaption = sidebarPdfUrl
+    ? extractPdfCaptionFromHtml(sidebarContent)
+    : null;
   const bodyContent = sidebarContent || defaultBodyContent;
-  const bodyTitle = selectedSidebar
+  const bodyTitleRaw = selectedSidebar
     ? pickBilingual(lang, selectedSidebar.labelEn, selectedSidebar.labelHi)
     : section
       ? title
       : null;
+  const bodyTitle = bodyTitleRaw
+    ? formatMenuLabel(bodyTitleRaw, lang, "title")
+    : null;
 
   const heroImage =
     college.featuredImageUrl ??
@@ -286,18 +304,18 @@ export function PublicOfficePortal({
             )}
 
             {bodyContent && sidebarPdfUrl && (
-              <article className={`${publicSectionCardClass} p-6`}>
+              <article className={`${publicSectionCardClass} overflow-hidden p-0`}>
                 {bodyTitle && (
                   <h2
-                    className={`mb-4 font-display text-2xl font-bold text-slate-900 ${lang === "hi" ? "font-hindi" : ""}`}
+                    className={`border-b border-emerald-100 bg-gradient-to-r from-emerald-50 to-white px-5 py-3.5 font-display text-xl font-bold text-emerald-900 sm:px-6 sm:text-2xl ${lang === "hi" ? "font-hindi" : ""}`}
                   >
                     {bodyTitle}
                   </h2>
                 )}
-                <iframe
+                <PublicPdfViewer
                   src={sidebarPdfUrl}
-                  className="h-[80vh] w-full rounded border"
-                  title={bodyTitle ?? "PDF"}
+                  title={bodyTitle}
+                  caption={sidebarPdfCaption}
                 />
               </article>
             )}

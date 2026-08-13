@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 
 import { useLanguage } from "@/components/design/shared/language-context";
 import { CmsHtmlContent } from "@/components/site/cms-html-content";
+import { formatMenuLabel } from "@/lib/i18n/menu-label";
 import { pickBilingual } from "@/lib/i18n/pick-bilingual";
 
 export interface PublicCmsPageData {
@@ -20,7 +21,11 @@ export interface PublicCmsPageData {
 export function PublicCmsPageContent({ page }: { page: PublicCmsPageData }) {
   const { lang } = useLanguage();
 
-  const title = pickBilingual(lang, page.titleEn, page.titleHi);
+  const title = formatMenuLabel(
+    pickBilingual(lang, page.titleEn, page.titleHi),
+    lang,
+    "title",
+  );
   const excerpt = pickBilingual(lang, page.excerptEn, page.excerptHi);
   const content = pickBilingual(lang, page.contentEn, page.contentHi);
 

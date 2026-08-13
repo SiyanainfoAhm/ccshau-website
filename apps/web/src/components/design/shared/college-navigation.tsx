@@ -7,6 +7,7 @@ import { useState } from "react";
 
 import { useLanguage } from "@/components/design/shared/language-context";
 import { getCollegeContactPath, getCollegeSectionPath, getCollegeSubsectionPath } from "@/lib/pages/routes";
+import { formatMenuLabel } from "@/lib/i18n/menu-label";
 import type { PublicCollegePage } from "@/lib/data/public-types";
 
 function parseCollegeNavState(pathname: string, collegeSlug: string) {
@@ -127,7 +128,7 @@ export function CollegeNavigation({ college }: { college: PublicCollegePage }) {
                     className={collegeNavLinkClass(isContactPage, false, lang)}
                     onClick={() => setMobileOpen(false)}
                   >
-                    {t(link.labelEn, link.labelHi)}
+                    {formatMenuLabel(t(link.labelEn, link.labelHi), lang, "upper")}
                   </Link>
                 </li>
               );
@@ -186,7 +187,11 @@ export function CollegeNavigation({ college }: { college: PublicCollegePage }) {
                                 : "text-slate-700 hover:bg-emerald-50 hover:text-emerald-900"
                             } ${lang === "hi" ? "font-hindi" : ""}`}
                           >
-                            {t(subsection.titleEn, subsection.titleHi ?? subsection.titleEn)}
+                            {formatMenuLabel(
+                              t(subsection.titleEn, subsection.titleHi ?? subsection.titleEn),
+                              lang,
+                              "title",
+                            )}
                           </Link>
                         </li>
                       );

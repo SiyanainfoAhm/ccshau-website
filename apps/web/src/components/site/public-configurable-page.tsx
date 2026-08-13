@@ -10,8 +10,15 @@ import { CmsHtmlContent } from "@/components/site/cms-html-content";
 import { DepartmentAboutSection } from "@/components/site/department-about-section";
 import { FacultyProfileDialog } from "@/components/site/faculty-profile-dialog";
 import { buildImageAlt, staffPhotoAlt } from "@/lib/a11y/image-alt";
+import { formatMenuLabel } from "@/lib/i18n/menu-label";
+import {
+  extractPdfCaptionFromHtml,
+  extractPdfUrlFromHtml,
+  isPrimarilyPdfHtml,
+} from "@/lib/html/extract-pdf-url";
 import { StaffPhoto } from "@/components/site/staff-photo";
 import { PublicCollegeGallery } from "@/components/site/public-college-gallery";
+import { PublicPdfViewer } from "@/components/site/public-pdf-viewer";
 import { PublicStudentCornerSection } from "@/components/site/public-student-corner-section";
 import type { HomepageCtaItem } from "@/lib/data/homepage";
 import type {
@@ -51,7 +58,11 @@ function SidebarPanel({
       </h2>
       <ul className="divide-y divide-slate-100">
         {links.map((link) => {
-          const label = t(link.labelEn, link.labelHi ?? link.labelEn);
+          const label = formatMenuLabel(
+            t(link.labelEn, link.labelHi ?? link.labelEn),
+            lang,
+            "title",
+          );
           const isActive = activeId === link.id;
 
           if (link.href) {
@@ -199,9 +210,13 @@ export function PublicConfigurablePage({
   const [selectedSidebar, setSelectedSidebar] = useState<PublicSidebarLink | null>(null);
 
   const contentPage = subsection ?? section ?? null;
-  const title = contentPage
-    ? pickBilingual(lang, contentPage.titleEn, contentPage.titleHi)
-    : pickBilingual(lang, college.titleEn, college.titleHi);
+  const title = formatMenuLabel(
+    contentPage
+      ? pickBilingual(lang, contentPage.titleEn, contentPage.titleHi)
+      : pickBilingual(lang, college.titleEn, college.titleHi),
+    lang,
+    "title",
+  );
   const excerpt = contentPage
     ? pickBilingual(lang, contentPage.excerptEn, contentPage.excerptHi)
     : pickBilingual(lang, college.excerptEn, college.excerptHi);
@@ -213,13 +228,13 @@ export function PublicConfigurablePage({
     ? pickBilingual(lang, selectedSidebar.contentEn, selectedSidebar.contentHi)
     : null;
   const sidebarHasContent = Boolean(sidebarContent?.trim());
-  const sidebarPdfUrl = (() => {
-    if (!sidebarContent) return null;
-    const stripped = sidebarContent.trim().replace(/<[^>]+>/g, "").trim();
-    const hrefMatch = sidebarContent.match(/href=["']([^"']+\.pdf)["']/i);
-    if (hrefMatch && stripped.length < 200) return hrefMatch[1];
-    return null;
-  })();
+  const sidebarPdfUrl =
+    sidebarContent && isPrimarilyPdfHtml(sidebarContent)
+      ? extractPdfUrlFromHtml(sidebarContent)
+      : null;
+  const sidebarPdfCaption = sidebarPdfUrl
+    ? extractPdfCaptionFromHtml(sidebarContent)
+    : null;
   const isFacultySidebar =
     Boolean(selectedSidebar) &&
     !sidebarHasContent &&
@@ -512,18 +527,18 @@ export function PublicConfigurablePage({
             )}
 
             {showMainContent && sidebarPdfUrl && (
-              <article className={`${publicSectionCardClass} p-6`}>
+              <article className={`${publicSectionCardClass} overflow-hidden p-0`}>
                 {bodyTitle && (
                   <h2
-                    className={`mb-4 font-display text-2xl font-bold text-slate-900 ${lang === "hi" ? "font-hindi" : ""}`}
+                    className={`border-b border-emerald-100 bg-gradient-to-r from-emerald-50 to-white px-5 py-3.5 font-display text-xl font-bold text-emerald-900 sm:px-6 sm:text-2xl ${lang === "hi" ? "font-hindi" : ""}`}
                   >
                     {bodyTitle}
                   </h2>
                 )}
-                <iframe
+                <PublicPdfViewer
                   src={sidebarPdfUrl}
-                  className="h-[80vh] w-full rounded border"
-                  title={bodyTitle ?? "PDF"}
+                  title={bodyTitle}
+                  caption={sidebarPdfCaption}
                 />
               </article>
             )}

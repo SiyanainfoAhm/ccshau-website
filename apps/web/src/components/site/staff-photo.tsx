@@ -12,7 +12,8 @@ const SIZE_STYLE = {
   md: { width: 112, height: 112 },
   /** Head portraits — closer to legacy registrar photo scale. */
   lg: { width: 260, height: 320 },
-  xl: { width: 320, height: 400 },
+  /** Dean / head-officer portraits — 20% smaller than prior 320×400. */
+  xl: { width: 256, height: 320 },
 } as const;
 
 function shouldSkipOptimization(src: string): boolean {

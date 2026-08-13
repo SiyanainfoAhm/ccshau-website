@@ -7,6 +7,7 @@ import { ChevronDown, ChevronRight } from "lucide-react";
 
 import { useLanguage } from "@/components/design/shared/language-context";
 import { useEscapeKey } from "@/lib/a11y/use-escape-key";
+import { formatMenuLabel } from "@/lib/i18n/menu-label";
 import type { PublicNavItem } from "@/lib/data/public-types";
 
 type NavTone = "future" | "heritage" | "ministry" | "light";
@@ -62,12 +63,16 @@ function MegaMenuPanel({
                 key={child.labelEn}
                 type="button"
                 onMouseEnter={() => setActiveChild(index)}
-                className={`flex w-full items-center justify-between px-4 py-3 text-left text-sm font-bold uppercase tracking-wide transition ${
+                className={`flex w-full items-center justify-between px-4 py-3 text-left text-sm font-bold tracking-wide transition ${
                   isActive ? "is-active" : "text-white/90 hover:bg-white/10"
                 }`}
               >
                 <span className={lang === "hi" ? "font-hindi normal-case" : ""}>
-                  {t(child.labelEn, child.labelHi ?? child.labelEn)}
+                  {formatMenuLabel(
+                    t(child.labelEn, child.labelHi ?? child.labelEn),
+                    lang,
+                    "title",
+                  )}
                 </span>
                 {hasKids && <ChevronRight className="h-4 w-4 shrink-0 opacity-80" />}
               </button>
@@ -85,7 +90,11 @@ function MegaMenuPanel({
                     rel={grandchild.openInNewTab ? "noopener noreferrer" : undefined}
                     className={`block rounded-lg border border-transparent px-4 py-3 text-sm font-semibold text-slate-800 transition hover:bg-white hover:text-emerald-900 hover:shadow-sm ${lang === "hi" ? "font-hindi" : ""}`}
                   >
-                    {t(grandchild.labelEn, grandchild.labelHi ?? grandchild.labelEn)}
+                    {formatMenuLabel(
+                      t(grandchild.labelEn, grandchild.labelHi ?? grandchild.labelEn),
+                      lang,
+                      "title",
+                    )}
                   </Link>
                 </li>
               ))}
@@ -96,7 +105,14 @@ function MegaMenuPanel({
                 href={resolveHref(level2[activeChild].href)}
                 className="inline-flex items-center gap-2 rounded-lg bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-900 transition hover:bg-emerald-100"
               >
-                {t(level2[activeChild].labelEn, level2[activeChild].labelHi ?? level2[activeChild].labelEn)}
+                {formatMenuLabel(
+                  t(
+                    level2[activeChild].labelEn,
+                    level2[activeChild].labelHi ?? level2[activeChild].labelEn,
+                  ),
+                  lang,
+                  "title",
+                )}
                 <ChevronRight className="h-4 w-4" />
               </Link>
             </div>
@@ -133,7 +149,11 @@ function SimpleDropdown({
               rel={child.openInNewTab ? "noopener noreferrer" : undefined}
               className={`block rounded-md px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-emerald-50 hover:text-emerald-800 ${lang === "hi" ? "font-hindi" : ""}`}
             >
-              {t(child.labelEn, child.labelHi ?? child.labelEn)}
+              {formatMenuLabel(
+                t(child.labelEn, child.labelHi ?? child.labelEn),
+                lang,
+                "title",
+              )}
             </Link>
             {child.children && child.children.length > 0 && (
               <div className="ml-3 border-l border-emerald-100 pl-2">
@@ -143,7 +163,11 @@ function SimpleDropdown({
                     href={resolveHref(grandchild.href)}
                     className={`block rounded-md px-2 py-1.5 text-xs text-slate-600 transition hover:bg-emerald-50 hover:text-emerald-800 ${lang === "hi" ? "font-hindi" : ""}`}
                   >
-                    {t(grandchild.labelEn, grandchild.labelHi ?? grandchild.labelEn)}
+                    {formatMenuLabel(
+                      t(grandchild.labelEn, grandchild.labelHi ?? grandchild.labelEn),
+                      lang,
+                      "title",
+                    )}
                   </Link>
                 ))}
               </div>
@@ -174,16 +198,21 @@ function MobileNavTree({
         const hasChildren = Boolean(item.children?.length);
         const rowClass = `flex w-full items-center justify-between border-b border-white/5 px-4 py-2.5 text-left text-sm font-semibold text-white/90 transition hover:bg-white/10 hover:text-amber-200 ${lang === "hi" ? "font-hindi" : ""}`;
         const rowStyle = { paddingLeft: `${depth * 12 + 16}px` };
+        const label = formatMenuLabel(
+          t(item.labelEn, item.labelHi ?? item.labelEn),
+          lang,
+          depth === 0 ? "upper" : "title",
+        );
 
         return (
           <li key={`${depth}-${item.labelEn}`}>
             {isDropdownTrigger(item.href, hasChildren) ? (
               <span className={rowClass} style={rowStyle}>
-                {t(item.labelEn, item.labelHi ?? item.labelEn)}
+                {label}
               </span>
             ) : (
               <Link href={resolveHref(item.href)} onClick={onNavigate} className={rowClass} style={rowStyle}>
-                {t(item.labelEn, item.labelHi ?? item.labelEn)}
+                {label}
               </Link>
             )}
             {hasChildren && (
@@ -291,12 +320,20 @@ export function MainNavigation({
                   onClick={() => setOpenLabel(isOpen ? null : item.labelEn)}
                   className={triggerClass}
                 >
-                  {t(item.labelEn, item.labelHi ?? item.labelEn)}
+                  {formatMenuLabel(
+                    t(item.labelEn, item.labelHi ?? item.labelEn),
+                    lang,
+                    "upper",
+                  )}
                   <ChevronDown className={`h-4 w-4 opacity-70 transition ${isOpen ? "rotate-180" : ""}`} />
                 </button>
               ) : (
                 <Link href={href} className={triggerClass} aria-current={isActive ? "page" : undefined}>
-                  {t(item.labelEn, item.labelHi ?? item.labelEn)}
+                  {formatMenuLabel(
+                    t(item.labelEn, item.labelHi ?? item.labelEn),
+                    lang,
+                    "upper",
+                  )}
                   {hasChildren && (
                     <ChevronDown className={`h-4 w-4 opacity-70 transition ${isOpen ? "rotate-180" : ""}`} />
                   )}
