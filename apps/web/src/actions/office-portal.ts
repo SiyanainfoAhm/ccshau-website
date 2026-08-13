@@ -29,6 +29,7 @@ import {
   removeStorageObjects,
   uploadPageGalleryImage,
   uploadPageNewsTickerFile,
+  uploadPageStaffImage,
   uploadPageStudentCornerFile,
 } from "@/lib/storage/upload";
 
@@ -193,6 +194,10 @@ export async function createPageStaffAction(
     if (isDepartmentHodOnlyUser(session)) {
       return fail("Add faculty from Admin → Faculty, not from the page Staff directory.");
     }
+    const imageFile = formData.get("staffImageFile");
+    const uploadedImage = imageFile instanceof File && imageFile.size > 0 ? imageFile : null;
+    const imagePathInput = String(formData.get("imagePath") ?? "").trim();
+
     const parsed = pageStaffSchema.safeParse({
       nameEn: formData.get("nameEn"),
       nameHi: formData.get("nameHi") || undefined,
@@ -200,7 +205,7 @@ export async function createPageStaffAction(
       designationHi: formData.get("designationHi") || undefined,
       specializationEn: formData.get("specializationEn") || undefined,
       specializationHi: formData.get("specializationHi") || undefined,
-      imagePath: formData.get("imagePath") || undefined,
+      imagePath: imagePathInput || undefined,
       detailHref: formData.get("detailHref") || undefined,
       sortOrder: formData.get("sortOrder") ?? 0,
       isActive: formData.get("isActive") !== "off",
@@ -210,6 +215,13 @@ export async function createPageStaffAction(
     const admin = createAdminClient();
     if (!admin) return fail("Database not configured.");
     const input = parsed.data;
+
+    let imagePath = imagePathInput || null;
+    if (uploadedImage) {
+      const upload = await uploadPageStaffImage(admin, pageId, uploadedImage);
+      if (!upload.success) return upload;
+      imagePath = upload.data;
+    }
 
     const { data, error } = await admin
       .from(Tables.pageStaff)
@@ -221,7 +233,7 @@ export async function createPageStaffAction(
         designation_hi: input.designationHi || null,
         specialization_en: input.specializationEn || null,
         specialization_hi: input.specializationHi || null,
-        image_path: input.imagePath || null,
+        image_path: imagePath,
         detail_href: input.detailHref || null,
         sort_order: input.sortOrder,
         is_active: input.isActive ?? true,
@@ -243,6 +255,103 @@ export async function createPageStaffAction(
   }
 }
 
+export async function updatePageStaffAction(
+  pageId: string,
+  staffId: string,
+  formData: FormData,
+): Promise<ActionResult> {
+  try {
+    const session = await requireOfficePageAccess(pageId, true);
+    if (isDepartmentHodOnlyUser(session)) {
+      return fail("Manage faculty from Admin → Faculty, not from the page Staff directory.");
+    }
+
+    const imageFile = formData.get("staffImageFile");
+    const uploadedImage = imageFile instanceof File && imageFile.size > 0 ? imageFile : null;
+    const imagePathInput = String(formData.get("imagePath") ?? "").trim();
+    const removeImage = formData.get("removeImage") === "on";
+
+    const parsed = pageStaffSchema.safeParse({
+      nameEn: formData.get("nameEn"),
+      nameHi: formData.get("nameHi") || undefined,
+      designationEn: formData.get("designationEn"),
+      designationHi: formData.get("designationHi") || undefined,
+      specializationEn: formData.get("specializationEn") || undefined,
+      specializationHi: formData.get("specializationHi") || undefined,
+      imagePath: imagePathInput || undefined,
+      detailHref: formData.get("detailHref") || undefined,
+      sortOrder: formData.get("sortOrder") ?? 0,
+      isActive: formData.get("isActive") !== "off",
+    });
+    if (!parsed.success) return fail("Validation failed", parsed.error.flatten().fieldErrors);
+
+    const admin = createAdminClient();
+    if (!admin) return fail("Database not configured.");
+
+    const { data: existing, error: existingError } = await admin
+      .from(Tables.pageStaff)
+      .select("id, image_path")
+      .eq("id", staffId)
+      .eq("page_id", pageId)
+      .maybeSingle();
+    if (existingError) return fail(existingError.message);
+    if (!existing) return fail("Staff member not found.");
+
+    const input = parsed.data;
+    let imagePath = existing.image_path as string | null;
+    const previousPath = imagePath;
+
+    if (removeImage) {
+      imagePath = null;
+    } else if (uploadedImage) {
+      const upload = await uploadPageStaffImage(admin, pageId, uploadedImage, staffId);
+      if (!upload.success) return upload;
+      imagePath = upload.data;
+    } else if (imagePathInput) {
+      imagePath = imagePathInput;
+    }
+
+    const { error } = await admin
+      .from(Tables.pageStaff)
+      .update({
+        name_en: input.nameEn,
+        name_hi: input.nameHi || null,
+        designation_en: input.designationEn,
+        designation_hi: input.designationHi || null,
+        specialization_en: input.specializationEn || null,
+        specialization_hi: input.specializationHi || null,
+        image_path: imagePath,
+        detail_href: input.detailHref || null,
+        sort_order: input.sortOrder,
+        is_active: input.isActive ?? true,
+      })
+      .eq("id", staffId)
+      .eq("page_id", pageId);
+
+    if (error) return fail(error.message);
+
+    if (
+      previousPath &&
+      previousPath !== imagePath &&
+      !previousPath.startsWith("http://") &&
+      !previousPath.startsWith("https://")
+    ) {
+      await removeStorageObjects(admin, [previousPath]);
+    }
+
+    await writeAuditLog({
+      userId: session.userId,
+      action: "update",
+      entityType: "page_staff",
+      entityId: staffId,
+    });
+    await revalidateOfficePage(pageId);
+    return ok(undefined);
+  } catch (e) {
+    return fail(e instanceof Error ? e.message : "Failed to update staff row.");
+  }
+}
+
 export async function deletePageStaffAction(pageId: string, id: string): Promise<ActionResult> {
   try {
     const session = await requireOfficePageAccess(pageId, true);
@@ -251,12 +360,29 @@ export async function deletePageStaffAction(pageId: string, id: string): Promise
     }
     const admin = createAdminClient();
     if (!admin) return fail("Database not configured.");
+
+    const { data: existing } = await admin
+      .from(Tables.pageStaff)
+      .select("image_path")
+      .eq("id", id)
+      .eq("page_id", pageId)
+      .maybeSingle();
+
     const { error } = await admin
       .from(Tables.pageStaff)
       .delete()
       .eq("id", id)
       .eq("page_id", pageId);
     if (error) return fail(error.message);
+
+    if (
+      existing?.image_path &&
+      !existing.image_path.startsWith("http://") &&
+      !existing.image_path.startsWith("https://")
+    ) {
+      await removeStorageObjects(admin, [existing.image_path]);
+    }
+
     await writeAuditLog({
       userId: session.userId,
       action: "delete",

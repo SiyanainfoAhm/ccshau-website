@@ -70,10 +70,28 @@ const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
       const cleanedStyle = stripLinkPaintStyles(next.style);
       if (cleanedStyle) next.style = cleanedStyle;
       else delete next.style;
+      if (next.href) {
+        next.href = rewriteLegacyHauCollegeHref(next.href);
+      }
       return { tagName, attribs: next };
     },
   },
 };
+
+/** Map known migrated hau.ac.in college URLs to this site's public paths. */
+function rewriteLegacyHauCollegeHref(href: string): string {
+  const trimmed = href.trim();
+  try {
+    const url = new URL(trimmed, "https://hau.ac.in");
+    const host = url.hostname.replace(/^www\./, "");
+    if (host === "hau.ac.in" && url.pathname.replace(/\/$/, "") === "/college/nehru-library") {
+      return "/college/nehru-library";
+    }
+  } catch {
+    // Keep original href if it is not a valid URL.
+  }
+  return trimmed;
+}
 
 export function sanitizeCmsHtml(html: string): string {
   if (!html) return "";

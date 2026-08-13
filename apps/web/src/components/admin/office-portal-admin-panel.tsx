@@ -17,6 +17,7 @@ import {
   deletePageSidebarItemAction,
   deletePageStaffAction,
   updatePageSidebarItemAction,
+  updatePageStaffAction,
 } from "@/actions/office-portal";
 import { translateFieldsEnToHiAction } from "@/actions/translate";
 import { AdminFileUploadField } from "@/components/admin/admin-file-upload-field";
@@ -378,62 +379,15 @@ export function OfficePortalAdminPanel({
       )}
 
       {showStaff && (
-        <section className="rounded-xl border border-emerald-200 bg-white p-6 shadow-sm">
-          <h2 className="font-display text-lg font-bold text-slate-900">Staff directory</h2>
-          <ul className="mt-4 space-y-2">
-            {staff.map((row) => (
-              <li
-                key={row.id}
-                className="flex items-center justify-between gap-4 rounded-lg border border-slate-100 px-3 py-2 text-sm"
-              >
-                <div>
-                  <p className="font-semibold text-slate-800">{row.name_en}</p>
-                  <p className="text-slate-600">{row.designation_en}</p>
-                </div>
-                {canEdit && (
-                <DeleteButton
-                  label="staff row"
-                  onConfirm={async () => {
-                    setError(null);
-                    setSuccess(null);
-                    const result = await deletePageStaffAction(pageId, row.id);
-                    if (!result.success) {
-                      setError(result.error ?? "Delete failed.");
-                      return;
-                    }
-                    await refreshLists();
-                    setSuccess("Staff member deleted.");
-                  }}
-                />
-                )}
-              </li>
-            ))}
-          </ul>
-          {canEdit && (
-          <form
-            className="mt-4 grid gap-3 border-t border-slate-100 pt-4 sm:grid-cols-2"
-            action={(formData) =>
-              runAction(
-                () => createPageStaffAction(pageId, formData),
-                "Staff member added successfully.",
-              )
-            }
-          >
-            <input name="nameEn" required placeholder="Name (English)" className="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
-            <input name="nameHi" placeholder="Name (Hindi)" className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-hindi" />
-            <input name="designationEn" required placeholder="Designation (English)" className="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
-            <input name="designationHi" placeholder="Designation (Hindi)" className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-hindi" />
-            <input name="specializationEn" placeholder="Specialization (English)" className="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
-            <input name="specializationHi" placeholder="Specialization (Hindi)" className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-hindi" />
-            <input name="imagePath" placeholder="Photo URL" className="rounded-lg border border-slate-300 px-3 py-2 text-sm sm:col-span-2" />
-            <input name="detailHref" placeholder="Details link URL" className="rounded-lg border border-slate-300 px-3 py-2 text-sm sm:col-span-2" />
-            <input name="sortOrder" type="number" defaultValue={staff.length + 1} className="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
-            <button type="submit" disabled={isPending} className="rounded-lg bg-emerald-800 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">
-              Add staff member
-            </button>
-          </form>
-          )}
-        </section>
+        <StaffDirectoryEditor
+          pageId={pageId}
+          staff={staff}
+          canEdit={canEdit}
+          isPending={isPending}
+          setError={setError}
+          setSuccess={setSuccess}
+          onReload={refreshLists}
+        />
       )}
 
       {showGallery && (
@@ -906,6 +860,275 @@ function SidebarItemForm({
         )}
       </div>
     </form>
+  );
+}
+
+function staffPhotoPreview(path: string | null | undefined): string | null {
+  if (!path) return null;
+  return getStoredFileUrl(path) ?? (path.startsWith("http") ? path : null);
+}
+
+function StaffMemberForm({
+  item,
+  defaultSortOrder,
+  isPending,
+  submitLabel,
+  onSubmit,
+  onCancel,
+}: {
+  item?: PageStaff;
+  defaultSortOrder: number;
+  isPending: boolean;
+  submitLabel: string;
+  onSubmit: (formData: FormData) => void;
+  onCancel?: () => void;
+}) {
+  const previewUrl = staffPhotoPreview(item?.image_path);
+  const showHttpUrlField =
+    !item?.image_path ||
+    item.image_path.startsWith("http://") ||
+    item.image_path.startsWith("https://");
+
+  return (
+    <form
+      className="grid gap-3 border-t border-slate-100 pt-4 sm:grid-cols-2"
+      action={onSubmit}
+    >
+      <input
+        name="nameEn"
+        required
+        defaultValue={item?.name_en ?? ""}
+        placeholder="Name (English)"
+        className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+      />
+      <input
+        name="nameHi"
+        defaultValue={item?.name_hi ?? ""}
+        placeholder="Name (Hindi)"
+        className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-hindi"
+      />
+      <input
+        name="designationEn"
+        required
+        defaultValue={item?.designation_en ?? ""}
+        placeholder="Designation (English)"
+        className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+      />
+      <input
+        name="designationHi"
+        defaultValue={item?.designation_hi ?? ""}
+        placeholder="Designation (Hindi)"
+        className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-hindi"
+      />
+      <input
+        name="specializationEn"
+        defaultValue={item?.specialization_en ?? ""}
+        placeholder="Specialization (English)"
+        className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+      />
+      <input
+        name="specializationHi"
+        defaultValue={item?.specialization_hi ?? ""}
+        placeholder="Specialization (Hindi)"
+        className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-hindi"
+      />
+      <div className="sm:col-span-2">
+        <span className="mb-1 block text-sm font-medium text-slate-700">Upload photo</span>
+        <AdminFileUploadField
+          name="staffImageFile"
+          accept="image/jpeg,image/png,image/webp,image/gif"
+          kind="image"
+          label={previewUrl ? "Replace photo" : "Upload staff photo"}
+          hint="JPEG, PNG, WebP or GIF — max 5 MB"
+        />
+        {previewUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={previewUrl}
+            alt={item?.name_en ? `${item.name_en} photo` : "Current staff photo"}
+            className="mt-3 h-24 w-24 rounded-lg border border-emerald-100 object-cover object-top"
+          />
+        ) : null}
+      </div>
+      <p className="text-xs text-slate-500 sm:col-span-2">Or paste an external photo URL:</p>
+      <input
+        name="imagePath"
+        defaultValue={showHttpUrlField ? (item?.image_path ?? "") : ""}
+        placeholder="Photo URL (if not uploading)"
+        className="rounded-lg border border-slate-300 px-3 py-2 text-sm sm:col-span-2"
+      />
+      {item?.image_path ? (
+        <label className="flex items-center gap-2 text-sm text-slate-700 sm:col-span-2">
+          <input type="checkbox" name="removeImage" />
+          Remove current photo
+        </label>
+      ) : null}
+      <input
+        name="detailHref"
+        defaultValue={item?.detail_href ?? ""}
+        placeholder="Details link URL"
+        className="rounded-lg border border-slate-300 px-3 py-2 text-sm sm:col-span-2"
+      />
+      <input
+        name="sortOrder"
+        type="number"
+        defaultValue={item?.sort_order ?? defaultSortOrder}
+        className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+      />
+      <div className="flex items-center justify-end gap-2">
+        {onCancel ? (
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={isPending}
+            className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 disabled:opacity-60"
+          >
+            Cancel
+          </button>
+        ) : null}
+        <button
+          type="submit"
+          disabled={isPending}
+          className="rounded-lg bg-emerald-800 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+        >
+          {submitLabel}
+        </button>
+      </div>
+    </form>
+  );
+}
+
+function StaffDirectoryEditor({
+  pageId,
+  staff,
+  canEdit = true,
+  isPending,
+  setError,
+  setSuccess,
+  onReload,
+}: {
+  pageId: string;
+  staff: PageStaff[];
+  canEdit?: boolean;
+  isPending: boolean;
+  setError: (value: string | null) => void;
+  setSuccess: (value: string | null) => void;
+  onReload: () => Promise<void>;
+}) {
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [addFormSeed, setAddFormSeed] = useState(0);
+  const [isEditPending, startEditTransition] = useTransition();
+  const [isAddPending, startAddTransition] = useTransition();
+
+  function handleUpdate(staffId: string, formData: FormData) {
+    setError(null);
+    setSuccess(null);
+    startEditTransition(async () => {
+      const result = await updatePageStaffAction(pageId, staffId, formData);
+      if (!result.success) {
+        setError(result.error ?? "Save failed.");
+        return;
+      }
+      setEditingId(null);
+      await onReload();
+      setSuccess("Staff member updated successfully.");
+    });
+  }
+
+  function handleAdd(formData: FormData) {
+    setError(null);
+    setSuccess(null);
+    startAddTransition(async () => {
+      const result = await createPageStaffAction(pageId, formData);
+      if (!result.success) {
+        setError(result.error ?? "Save failed.");
+        return;
+      }
+      setAddFormSeed((seed) => seed + 1);
+      await onReload();
+      setSuccess("Staff member added successfully.");
+    });
+  }
+
+  const pending = isPending || isEditPending || isAddPending;
+
+  return (
+    <section className="rounded-xl border border-emerald-200 bg-white p-6 shadow-sm">
+      <h2 className="font-display text-lg font-bold text-slate-900">Staff directory</h2>
+      <ul className="mt-4 space-y-2">
+        {staff.map((row) => {
+          const photoUrl = staffPhotoPreview(row.image_path);
+          return (
+            <li key={row.id} className="rounded-lg border border-slate-100">
+              {editingId === row.id ? (
+                <div className="p-3">
+                  <StaffMemberForm
+                    item={row}
+                    defaultSortOrder={row.sort_order}
+                    isPending={pending}
+                    submitLabel="Save changes"
+                    onSubmit={(formData) => handleUpdate(row.id, formData)}
+                    onCancel={() => setEditingId(null)}
+                  />
+                </div>
+              ) : (
+                <div className="flex items-center justify-between gap-4 px-3 py-2 text-sm">
+                  <div className="flex min-w-0 items-center gap-3">
+                    {photoUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={photoUrl}
+                        alt=""
+                        className="h-12 w-12 shrink-0 rounded-md border border-slate-200 object-cover object-top"
+                      />
+                    ) : null}
+                    <div className="min-w-0">
+                      <p className="font-semibold text-slate-800">{row.name_en}</p>
+                      <p className="text-slate-600">{row.designation_en}</p>
+                    </div>
+                  </div>
+                  {canEdit ? (
+                    <div className="flex shrink-0 items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setEditingId(row.id)}
+                        className="text-sm font-medium text-emerald-700 hover:underline"
+                      >
+                        Edit
+                      </button>
+                      <DeleteButton
+                        label="staff row"
+                        onConfirm={async () => {
+                          setError(null);
+                          setSuccess(null);
+                          const result = await deletePageStaffAction(pageId, row.id);
+                          if (!result.success) {
+                            setError(result.error ?? "Delete failed.");
+                            return;
+                          }
+                          if (editingId === row.id) setEditingId(null);
+                          await onReload();
+                          setSuccess("Staff member deleted.");
+                        }}
+                      />
+                    </div>
+                  ) : null}
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+      {canEdit ? (
+        <StaffMemberForm
+          key={`staff-add-${addFormSeed}`}
+          defaultSortOrder={staff.length + 1}
+          isPending={pending}
+          submitLabel="Add staff member"
+          onSubmit={handleAdd}
+        />
+      ) : null}
+    </section>
   );
 }
 

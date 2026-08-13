@@ -510,6 +510,7 @@ export function PublicConfigurablePage({
                   sectionTitle={bodyTitle ?? t("Head of Department", "विभागाध्यक्ष")}
                   member={hodMember}
                   contactLines={office.contactLines}
+                  aboutHtml={defaultBodyContent}
                 />
               ) : (
                 <p className={`${publicEmptyStateClass} p-6 shadow-sm`}>

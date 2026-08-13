@@ -124,6 +124,11 @@ export function pageHeadImagePath(pageId: string, fileName: string): string {
   return `pages/head/${pageId}/${safe}`;
 }
 
+export function pageStaffImagePath(pageId: string, staffId: string, fileName: string): string {
+  const safe = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
+  return `pages/staff/${pageId}/${staffId}/${safe}`;
+}
+
 export function pageNewsTickerFilePath(pageId: string, itemId: string, fileName: string): string {
   const safe = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
   return `pages/news-ticker/${pageId}/${itemId}/${safe}`;

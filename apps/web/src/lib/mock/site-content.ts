@@ -55,7 +55,7 @@ export const navItems = [
     href: "#",
     children: ["Hostel", "Sports", "Hospital", "Campus School", "International Linkage"],
   },
-  { labelEn: "Nehru Library", labelHi: "नेहरू पुस्तकालय", href: "#" },
+  { labelEn: "Nehru Library", labelHi: "नेहरू पुस्तकालय", href: "/college/nehru-library" },
   { labelEn: "Tenders", labelHi: "निविदाएं", href: "/design/option-b/tenders" },
   { labelEn: "Contact", labelHi: "संपर्क", href: "/design/option-b/contact" },
 ];

@@ -21,6 +21,7 @@ import {
   pageFeaturedImagePath,
   pageLogoImagePath,
   pageHeadImagePath,
+  pageStaffImagePath,
   pageNewsTickerFilePath,
   pageStudentCornerFilePath,
   newsAttachmentPath,
@@ -259,6 +260,24 @@ export async function uploadPageHeadImage(
   const bucket = STORAGE_BUCKETS.public;
   const path = pageHeadImagePath(pageId, sanitizeFileName(file.name));
   return uploadValidatedImage(file, bucket, path, "Head officer photo must be an image file.");
+}
+
+export async function uploadPageStaffImage(
+  _admin: UnusedAdmin,
+  pageId: string,
+  file: File,
+  staffId?: string,
+): Promise<ActionResult<string>> {
+  const prepared = await prepareValidatedUpload(file);
+  if (!prepared.ok) return fail(prepared.error);
+  if (!prepared.contentType.startsWith("image/")) {
+    return fail("Staff photo must be an image file.");
+  }
+
+  const bucket = STORAGE_BUCKETS.public;
+  const id = staffId ?? crypto.randomUUID();
+  const path = pageStaffImagePath(pageId, id, sanitizeFileName(file.name));
+  return putBlob(bucket, path, prepared.buffer, prepared.contentType, file.name);
 }
 
 export async function uploadPageGalleryImage(

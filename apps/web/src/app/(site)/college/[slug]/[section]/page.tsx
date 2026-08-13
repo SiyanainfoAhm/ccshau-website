@@ -14,6 +14,7 @@ import {
   getPublishedCollegeSection,
 } from "@/lib/data/public";
 import { needsOfficeDataLoad } from "@/lib/pages/layout-config";
+import { isCollegeDepartmentMenuSubsection } from "@/lib/pages/college-nav";
 import {
   getCollegeSubsectionPath,
   getPgStudiesSectionPath,
@@ -46,7 +47,9 @@ export default async function CollegeSectionPage({
   if (!data) notFound();
 
   if (data.section.subsections.length > 0) {
-    const first = data.section.subsections[0];
+    const first =
+      data.section.subsections.find(isCollegeDepartmentMenuSubsection) ??
+      data.section.subsections[0];
     redirect(getCollegeSubsectionPath(slug, section, first.slug));
   }
 
