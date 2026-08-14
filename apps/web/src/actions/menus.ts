@@ -108,7 +108,8 @@ export async function getMenuEditorData(location: MenuLocation): Promise<MenuEdi
     ...new Set(
       menuItems
         .map((item) => item.page_id)
-        .filter((id): id is string => Boolean(id) && !pageById.has(id)),
+        .filter((id): id is string => typeof id === "string" && id.length > 0)
+        .filter((id) => !pageById.has(id)),
     ),
   ];
   if (missingIds.length > 0) {
