@@ -964,9 +964,65 @@ function StaffMemberForm({
         </label>
       ) : null}
       <input
+        name="mobile"
+        defaultValue={item?.mobile ?? ""}
+        placeholder="Phone / mobile"
+        className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+      />
+      <input
+        name="email"
+        type="email"
+        defaultValue={item?.email ?? ""}
+        placeholder="Email"
+        className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+      />
+      <input
+        name="qualificationEn"
+        defaultValue={item?.qualification_en ?? ""}
+        placeholder="Qualification (English)"
+        className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+      />
+      <input
+        name="qualificationHi"
+        defaultValue={item?.qualification_hi ?? ""}
+        placeholder="Qualification (Hindi)"
+        className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-hindi"
+      />
+      <input
+        name="experienceEn"
+        defaultValue={item?.experience_en ?? ""}
+        placeholder="Experience (English)"
+        className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+      />
+      <input
+        name="experienceHi"
+        defaultValue={item?.experience_hi ?? ""}
+        placeholder="Experience (Hindi)"
+        className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-hindi"
+      />
+      <label className="sm:col-span-2 text-sm">
+        <span className="mb-1 block font-medium text-slate-700">Other Activities / full profile (English HTML)</span>
+        <textarea
+          name="detailContentEn"
+          rows={10}
+          defaultValue={item?.detail_content_en ?? ""}
+          placeholder="Academic qualifications, career profile, research interest, teaching interest…"
+          className="w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm"
+        />
+      </label>
+      <label className="sm:col-span-2 text-sm">
+        <span className="mb-1 block font-medium text-slate-700">Other Activities / full profile (Hindi HTML)</span>
+        <textarea
+          name="detailContentHi"
+          rows={8}
+          defaultValue={item?.detail_content_hi ?? ""}
+          className="w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm font-hindi"
+        />
+      </label>
+      <input
         name="detailHref"
         defaultValue={item?.detail_href ?? ""}
-        placeholder="Details link URL"
+        placeholder="Optional external details URL"
         className="rounded-lg border border-slate-300 px-3 py-2 text-sm sm:col-span-2"
       />
       <input

@@ -1,17 +1,12 @@
+import type { PageLayoutConfig } from "@/lib/pages/layout-config";
+
 /**
- * Crop/teaching "Section" pages live under Departments for routing, but must not
- * appear in the Departments dropdown — navigate via parent department content.
+ * Whether a college child page appears in the Departments dropdown.
+ * Controlled by layout_config.showInDepartmentsMenu (default true via presets).
+ * Crop/teaching sections are backfilled to false; admins can toggle in Page layout.
  */
 export function isCollegeDepartmentMenuSubsection(item: {
-  slug?: string | null;
-  titleEn?: string | null;
-  title_en?: string | null;
+  layoutConfig?: Pick<PageLayoutConfig, "showInDepartmentsMenu"> | null;
 }): boolean {
-  const slug = String(item.slug || "").toLowerCase();
-  const title = String(item.titleEn ?? item.title_en ?? "")
-    .trim()
-    .toLowerCase();
-  if (/-section$/.test(slug)) return false;
-  if (/\bsection$/.test(title)) return false;
-  return true;
+  return item.layoutConfig?.showInDepartmentsMenu !== false;
 }

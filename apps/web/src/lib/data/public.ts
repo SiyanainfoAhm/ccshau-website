@@ -47,6 +47,7 @@ import type {
   PublicRelatedLink,
   PublicSiteChrome,
   PublicTenderItem,
+  PublicResearchStationCard,
 } from "@/lib/data/public-types";
 import {
   buildPaginatedResult,
@@ -61,6 +62,7 @@ import {
   pgStudiesSectionUrlSegment,
 } from "@/lib/pages/routes";
 import { resolvePagePublicPath, getCollegePagePlacement } from "@/lib/pages/resolve-public-path";
+import { REGIONAL_RESEARCH_STATION_SLUGS } from "@/lib/pages/regional-research-stations";
 import {
   readStoredLayoutConfig,
   type PageLayoutConfig,
@@ -96,10 +98,13 @@ function resolveMenuHref(item: MenuItem, pageById: Map<string, Page>): string {
 function buildNavTree(items: MenuItem[], pageById: Map<string, Page>): PublicNavItem[] {
   const active = items.filter((i) => i.is_active);
 
+  function compareMenuItems(a: MenuItem, b: MenuItem): number {
+    if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order;
+    return a.label_en.localeCompare(b.label_en, undefined, { sensitivity: "base" });
+  }
+
   function childrenOf(parentId: string | null): MenuItem[] {
-    return active
-      .filter((i) => i.parent_id === parentId)
-      .sort((a, b) => a.sort_order - b.sort_order);
+    return active.filter((i) => i.parent_id === parentId).sort(compareMenuItems);
   }
 
   function mapItem(item: MenuItem): PublicNavItem {
@@ -1105,6 +1110,35 @@ export async function getPublishedCollegeSubsection(
   if (!subsection) return null;
 
   return { college, section, subsection };
+}
+
+export async function getRegionalResearchStationCards(): Promise<PublicResearchStationCard[]> {
+  const admin = createAdminClient();
+  if (!admin) return [];
+
+  const { data } = await admin
+    .from(Tables.pages)
+    .select("slug, title_en, title_hi, featured_image_path, page_type")
+    .in("slug", [...REGIONAL_RESEARCH_STATION_SLUGS])
+    .eq("status", "published");
+
+  const bySlug = new Map(((data as Page[]) ?? []).map((page) => [page.slug, page]));
+
+  return REGIONAL_RESEARCH_STATION_SLUGS.flatMap((slug) => {
+    const page = bySlug.get(slug);
+    if (!page) return [];
+    const imagePath = page.featured_image_path;
+    return [
+      {
+        slug: page.slug,
+        titleEn: page.title_en,
+        titleHi: page.title_hi,
+        href: `/college/${page.slug}`,
+        imageUrl:
+          imagePath && imagePath !== "pending" ? getStoredFileUrl(imagePath) : null,
+      },
+    ];
+  });
 }
 
 export async function getPublishedFacultyProfile(

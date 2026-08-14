@@ -1495,13 +1495,22 @@ html.dark .cms-html ul > li > a[href*=".pdf"] {
 .cms-html table img,
 .prose :where(table img) {
   display: block;
-  max-width: 4.5rem;
-  max-height: 4.5rem;
+  max-width: min(100%, 14rem);
+  max-height: 18rem;
   width: auto;
   height: auto;
   object-fit: cover;
-  border-radius: 0.4rem;
+  object-position: top center;
+  border-radius: 0.5rem;
   border: 1px solid #e2e8f0;
+}
+
+/* Compact thumbs only in headed data tables (faculty/staff HTML lists). */
+.cms-html table:has(thead) img,
+.prose :where(table:has(thead) img) {
+  max-width: 4.5rem;
+  max-height: 4.5rem;
+  border-radius: 0.4rem;
 }
 
 html.dark .cms-html table,

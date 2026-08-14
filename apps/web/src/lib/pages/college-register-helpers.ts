@@ -4,6 +4,7 @@ import type { AdminSession } from "@/lib/auth/session";
 import { Tables } from "@/lib/database/names";
 import type { Page } from "@/lib/database/types";
 import { DEPARTMENT_SUBSECTION_LAYOUT_CONFIG } from "@/lib/pages/college-wizard-defaults";
+import { readStoredLayoutConfig } from "@/lib/pages/layout-config";
 import { inferMicrositeKind, isMicrositeRoot, type MicrositeKind } from "@/lib/pages/microsite-kind";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -23,6 +24,7 @@ export interface DepartmentOption {
   college_slug: string;
   section_slug: string;
   sort_order: number;
+  showInDepartmentsMenu: boolean;
 }
 
 export const DEFAULT_DEPARTMENT_SIDEBAR = [
@@ -111,7 +113,7 @@ export async function listDepartmentsForRegister(
 
   let query = admin
     .from(Tables.pages)
-    .select("id, slug, title_en, college_root_id, parent_id, layout_template, sort_order")
+    .select("id, slug, title_en, college_root_id, parent_id, layout_template, layout_config, sort_order")
     .eq("layout_template", "office_portal")
     .not("college_root_id", "is", null)
     .order("sort_order")
@@ -144,6 +146,10 @@ export async function listDepartmentsForRegister(
     .map((p) => {
       const college = collegeById.get(p.college_root_id as string);
       const section = parentById.get(p.parent_id as string);
+      const layoutConfig = readStoredLayoutConfig(
+        p.layout_config,
+        (p.layout_template as "office_portal" | "college_home" | "standard") ?? "office_portal",
+      );
       return {
         id: p.id,
         slug: p.slug,
@@ -153,6 +159,7 @@ export async function listDepartmentsForRegister(
         college_slug: college?.slug ?? "",
         section_slug: section?.slug ?? "",
         sort_order: (p.sort_order as number | null) ?? 0,
+        showInDepartmentsMenu: layoutConfig.showInDepartmentsMenu !== false,
       };
     })
     .sort(
@@ -332,6 +339,7 @@ export function departmentInsertRow(
     excerptEn?: string;
     contentEn?: string;
     sortOrder?: number;
+    showInDepartmentsMenu?: boolean;
   },
   parentId: string,
   userId: string,
@@ -347,7 +355,10 @@ export function departmentInsertRow(
     parent_id: parentId,
     page_type: "standard" as const,
     layout_template: "office_portal" as const,
-    layout_config: DEPARTMENT_SUBSECTION_LAYOUT_CONFIG,
+    layout_config: {
+      ...DEPARTMENT_SUBSECTION_LAYOUT_CONFIG,
+      showInDepartmentsMenu: input.showInDepartmentsMenu !== false,
+    },
     status: "published" as const,
     published_at: new Date().toISOString(),
     office_cta_enabled: true,

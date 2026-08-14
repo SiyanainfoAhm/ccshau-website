@@ -143,6 +143,11 @@ export function DepartmentRegisterList({
                     >
                       {dept.title_en}
                     </Link>
+                    {!dept.showInDepartmentsMenu ? (
+                      <span className="ml-2 inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
+                        Hidden from menu
+                      </span>
+                    ) : null}
                   </td>
                   <td className="px-4 py-3 text-slate-600">{dept.sort_order}</td>
                   <td className="px-4 py-3 font-mono text-xs text-slate-500">{dept.slug}</td>

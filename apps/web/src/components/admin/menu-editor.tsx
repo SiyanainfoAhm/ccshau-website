@@ -139,7 +139,9 @@ function MenuItemForm({
         <label className="block text-sm">
           <span className="text-slate-600">Page</span>
           <select
+            key={item?.page_id ?? "new-page"}
             name="pageId"
+            required={linkType === "page"}
             defaultValue={item?.page_id ?? ""}
             className="mt-1 w-full rounded border border-slate-200 px-2 py-1.5"
           >
@@ -150,6 +152,12 @@ function MenuItemForm({
               </option>
             ))}
           </select>
+          {item?.page_id && !pages.some((p) => p.id === item.page_id) ? (
+            <span className="mt-1 block text-xs text-amber-700">
+              Linked page is missing from the published list. Re-select a page or restore the
+              original page.
+            </span>
+          ) : null}
         </label>
       )}
 
@@ -264,7 +272,10 @@ export function MenuEditor({
   function renderRows(parentId: string | null, depth = 0): ReactNode[] {
     return items
       .filter((i) => i.parent_id === parentId)
-      .sort((a, b) => a.sort_order - b.sort_order)
+      .sort((a, b) => {
+        if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order;
+        return a.label_en.localeCompare(b.label_en, undefined, { sensitivity: "base" });
+      })
       .flatMap((item) => [
         <tr key={item.id} className={!item.is_active ? "bg-slate-50 opacity-60" : depth > 0 ? "bg-slate-50/50" : ""}>
           <td className="px-4 py-3 font-medium text-slate-900" style={{ paddingLeft: `${depth * 16 + 16}px` }}>

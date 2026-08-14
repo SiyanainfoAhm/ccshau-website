@@ -40,7 +40,7 @@ const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
     ...sanitizeHtml.defaults.allowedAttributes,
     "*": ["class", "id", "style", "title", "lang", "dir"],
     a: ["href", "name", "target", "rel", "class", "title", "style"],
-    img: ["src", "alt", "title", "width", "height", "class", "loading"],
+    img: ["src", "alt", "title", "width", "height", "class", "loading", "style"],
     iframe: [
       "src",
       "width",

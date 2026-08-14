@@ -185,6 +185,14 @@ export interface PublicCollegeSubsection {
   logoImageUrl?: string | null;
 }
 
+export interface PublicResearchStationCard {
+  slug: string;
+  titleEn: string;
+  titleHi: string | null;
+  href: string;
+  imageUrl: string | null;
+}
+
 export interface PublicCollegeSection {
   pageId: string;
   slug: string;

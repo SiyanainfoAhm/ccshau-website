@@ -20,6 +20,7 @@ import { StaffPhoto } from "@/components/site/staff-photo";
 import { PublicCollegeGallery } from "@/components/site/public-college-gallery";
 import { PublicPdfViewer } from "@/components/site/public-pdf-viewer";
 import { PublicStudentCornerSection } from "@/components/site/public-student-corner-section";
+import { RegionalResearchStationsGrid } from "@/components/site/regional-research-stations-grid";
 import type { HomepageCtaItem } from "@/lib/data/homepage";
 import type {
   PublicCollegePage,
@@ -30,6 +31,7 @@ import type {
   PublicNewsTickerItem,
   PublicStudentCornerItem,
   PublicOfficeStaffMember,
+  PublicResearchStationCard,
   PublicSidebarLink,
 } from "@/lib/data/public-types";
 import { publicEmptyStateClass, publicSectionCardClass, publicSidebarClass } from "@/lib/design/public-page-classes";
@@ -96,6 +98,26 @@ function SidebarPanel({
 }
 
 
+function hasStaffDetails(member: {
+  detailHref?: string | null;
+  detailContentEn?: string | null;
+  detailContentHi?: string | null;
+  qualificationEn?: string | null;
+  experienceEn?: string | null;
+  mobile?: string | null;
+  email?: string | null;
+}) {
+  return Boolean(
+    member.detailHref?.trim() ||
+      member.detailContentEn?.trim() ||
+      member.detailContentHi?.trim() ||
+      member.qualificationEn?.trim() ||
+      member.experienceEn?.trim() ||
+      member.mobile?.trim() ||
+      member.email?.trim(),
+  );
+}
+
 function StaffDirectoryTable({
   staff,
   title,
@@ -154,7 +176,7 @@ function StaffDirectoryTable({
                   {pickBilingual(lang, member.specializationEn ?? "—", member.specializationHi)}
                 </td>
                 <td className="px-4 py-3">
-                  {member.detailHref || member.detailContentEn || member.detailContentHi ? (
+                  {hasStaffDetails(member) ? (
                     <button
                       type="button"
                       onClick={() => setSelectedMember(member)}
@@ -194,6 +216,7 @@ export function PublicConfigurablePage({
   galleryImages,
   newsTickerItems,
   studentCornerItems,
+  researchStations,
   cta,
 }: {
   college: PublicCollegePage;
@@ -204,6 +227,7 @@ export function PublicConfigurablePage({
   galleryImages?: PublicGalleryImage[];
   newsTickerItems?: PublicNewsTickerItem[];
   studentCornerItems?: PublicStudentCornerItem[];
+  researchStations?: PublicResearchStationCard[];
   cta?: HomepageCtaItem | null;
 }) {
   const { lang, t } = useLanguage();
@@ -284,10 +308,15 @@ export function PublicConfigurablePage({
     showHeadOfficer && layoutConfig.contacts && hasContactLines;
   const showStaffTable =
     isFacultySidebar && (office?.staff.length ?? 0) > 0;
+  const showResearchStationsGrid =
+    (researchStations?.length ?? 0) > 0 && !selectedSidebar;
   const showDepartmentAbout =
-    (isDepartmentLanding || isAboutSidebar) && Boolean(hodMember || defaultBodyContent);
+    !showResearchStationsGrid &&
+    (isDepartmentLanding || isAboutSidebar) &&
+    Boolean(hodMember || defaultBodyContent);
   const showHodSidebarProfile = isHodSidebar;
   const showMainContent =
+    !showResearchStationsGrid &&
     layoutConfig.mainContent &&
     Boolean(bodyContent) &&
     !showDepartmentAbout;
@@ -404,6 +433,10 @@ export function PublicConfigurablePage({
           )}
 
           <div className="min-w-0 flex-1 space-y-8">
+            {showResearchStationsGrid && researchStations && (
+              <RegionalResearchStationsGrid stations={researchStations} />
+            )}
+
             {showHeadOfficer && office?.headOfficer && (
               <div className={`overflow-hidden ${publicSectionCardClass}`}>
                 <div className="flex flex-col items-center gap-5 p-6 sm:flex-row sm:items-start sm:gap-8">
@@ -562,7 +595,7 @@ export function PublicConfigurablePage({
               </article>
             )}
 
-            {!showMainContent && !showHeadOfficer && !showContacts && !showStaffTable && !showDepartmentAbout && !showHodSidebarProfile && !showGallery && !showStudentCorner && !selectedSidebar && (
+            {!showMainContent && !showHeadOfficer && !showContacts && !showStaffTable && !showDepartmentAbout && !showHodSidebarProfile && !showGallery && !showStudentCorner && !showResearchStationsGrid && !selectedSidebar && (
               <p className="text-center text-slate-500">{t("Content coming soon.", "सामग्री जल्द आ रही है।")}</p>
             )}
           </div>
@@ -570,7 +603,11 @@ export function PublicConfigurablePage({
           {showRightSidebar && office && (
             <aside className="w-full shrink-0 lg:w-[260px] xl:w-[280px]">
               <SidebarPanel
-                title={t("Related Links", "संबंधित लिंक")}
+                title={
+                  showLeftSidebar
+                    ? t("Related Links", "संबंधित लिंक")
+                    : t("Quick Links", "त्वरित लिंक")
+                }
                 links={office.sidebarRight}
                 activeId={selectedSidebar?.id ?? null}
                 onSelectContent={setSelectedSidebar}

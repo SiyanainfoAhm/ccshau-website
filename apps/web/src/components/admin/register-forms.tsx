@@ -20,6 +20,7 @@ type DepartmentEditData = {
   excerptEn: string | null;
   contentEn: string | null;
   sortOrder?: number;
+  showInDepartmentsMenu?: boolean;
 };
 
 export function RegisterDepartmentForm({
@@ -200,6 +201,22 @@ export function RegisterDepartmentForm({
             />
             <span className="mt-1 block text-xs text-slate-500">
               Lower numbers appear first on the college departments list (e.g. 1, 2, 3…).
+            </span>
+          </label>
+          <label className="flex items-start gap-3 rounded-lg border border-slate-200 bg-slate-50/80 p-3 text-sm">
+            <input
+              type="checkbox"
+              name="showInDepartmentsMenu"
+              value="true"
+              defaultChecked={department?.showInDepartmentsMenu ?? true}
+              className="mt-1"
+            />
+            <span>
+              <span className="font-medium text-slate-800">Show in Departments menu</span>
+              <span className="mt-0.5 block text-xs text-slate-500">
+                Include this page in the college Departments dropdown. Turn off for crop/teaching
+                sections that should only open from department content links.
+              </span>
             </span>
           </label>
           <label className="block text-sm">

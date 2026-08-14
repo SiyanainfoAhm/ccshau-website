@@ -12,6 +12,8 @@ export interface PageLayoutConfig {
   leftSidebar: boolean;
   rightSidebar: boolean;
   collegeTopMenu: boolean;
+  /** When false, page is omitted from the college Departments dropdown. */
+  showInDepartmentsMenu: boolean;
   farmersCta: boolean;
   heroContactButton: boolean;
 }
@@ -29,6 +31,7 @@ export const LAYOUT_CONFIG_KEYS = [
   "leftSidebar",
   "rightSidebar",
   "collegeTopMenu",
+  "showInDepartmentsMenu",
   "farmersCta",
 ] as const satisfies readonly (keyof PageLayoutConfig)[];
 
@@ -78,6 +81,7 @@ export const LAYOUT_PRESETS: Record<"college_home" | "office_portal" | "minimal"
     leftSidebar: false,
     rightSidebar: false,
     collegeTopMenu: true,
+    showInDepartmentsMenu: true,
     farmersCta: false,
     heroContactButton: true,
   },
@@ -93,6 +97,7 @@ export const LAYOUT_PRESETS: Record<"college_home" | "office_portal" | "minimal"
     leftSidebar: true,
     rightSidebar: true,
     collegeTopMenu: false,
+    showInDepartmentsMenu: true,
     farmersCta: true,
     heroContactButton: false,
   },
@@ -108,6 +113,7 @@ export const LAYOUT_PRESETS: Record<"college_home" | "office_portal" | "minimal"
     leftSidebar: false,
     rightSidebar: false,
     collegeTopMenu: false,
+    showInDepartmentsMenu: true,
     farmersCta: false,
     heroContactButton: false,
   },
@@ -317,6 +323,12 @@ export const LAYOUT_SECTION_LABELS: Record<
     en: "College top menu",
     hi: "महाविद्यालय शीर्ष मेनू",
     description: "Home, Department, Gallery tabs",
+  },
+  showInDepartmentsMenu: {
+    en: "Show in Departments menu",
+    hi: "विभाग मेनू में दिखाएँ",
+    description:
+      "Include this page in the college Departments dropdown. Turn off for crop/teaching sections that should only open from department content links.",
   },
   farmersCta: {
     en: "Farmers portal band",

@@ -11,8 +11,10 @@ import {
   getPageNewsTickerItemsByPageId,
   getPageStudentCornerItemsByPageId,
   getPublishedCollegeSubsection,
+  getRegionalResearchStationCards,
 } from "@/lib/data/public";
 import { needsOfficeDataLoad } from "@/lib/pages/layout-config";
+import { REGIONAL_RESEARCH_STATIONS_HUB_SLUG } from "@/lib/pages/regional-research-stations";
 
 export async function generateMetadata({
   params,
@@ -47,6 +49,10 @@ export default async function CollegeSubsectionPage({
     ? await getPageStudentCornerItemsByPageId(data.subsection.pageId)
     : [];
   const homepage = layoutConfig.farmersCta ? await getHomepageContent() : null;
+  const researchStations =
+    subsection === REGIONAL_RESEARCH_STATIONS_HUB_SLUG
+      ? await getRegionalResearchStationCards()
+      : [];
 
   return (
     <>
@@ -65,6 +71,7 @@ export default async function CollegeSubsectionPage({
           subsection={data.subsection}
           newsTickerItems={newsTickerItems}
           studentCornerItems={studentCornerItems}
+          researchStations={researchStations}
           cta={layoutConfig.farmersCta && office?.officeCtaEnabled ? homepage?.cta ?? null : null}
         />
       </main>

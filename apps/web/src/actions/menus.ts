@@ -92,25 +92,63 @@ export async function getMenuEditorData(location: MenuLocation): Promise<MenuEdi
 
   if (!menu) return null;
 
-  const [{ data: items }, { data: pages }] = await Promise.all([
-    admin
-      .from(Tables.menuItems)
-      .select("*")
-      .eq("menu_id", menu.id)
-      .order("sort_order")
-      .order("label_en"),
-    admin
+  const { data: items } = await admin
+    .from(Tables.menuItems)
+    .select("*")
+    .eq("menu_id", menu.id)
+    .order("sort_order")
+    .order("label_en");
+
+  const menuItems = (items ?? []) as MenuItem[];
+  const pages = await listPublishedPagesForMenuEditor(admin);
+
+  // Always include pages already linked on this menu (guards against truncation / status changes).
+  const pageById = new Map(pages.map((p) => [p.id, p]));
+  const missingIds = [
+    ...new Set(
+      menuItems
+        .map((item) => item.page_id)
+        .filter((id): id is string => Boolean(id) && !pageById.has(id)),
+    ),
+  ];
+  if (missingIds.length > 0) {
+    const { data: linkedPages } = await admin
       .from(Tables.pages)
       .select("id, slug, title_en, page_type")
-      .eq("status", "published")
-      .order("title_en"),
-  ]);
+      .in("id", missingIds);
+    for (const page of linkedPages ?? []) {
+      pageById.set(page.id, page as MenuEditorData["pages"][number]);
+    }
+  }
 
   return {
     menu: menu as Menu,
-    items: (items ?? []) as MenuItem[],
-    pages: pages ?? [],
+    items: menuItems,
+    pages: [...pageById.values()].sort((a, b) => a.title_en.localeCompare(b.title_en)),
   };
+}
+
+/** Supabase caps each response at 1000 rows — page through published pages for the picker. */
+async function listPublishedPagesForMenuEditor(
+  admin: NonNullable<ReturnType<typeof createAdminClient>>,
+): Promise<MenuEditorData["pages"]> {
+  const pageSize = 1000;
+  const all: MenuEditorData["pages"] = [];
+
+  for (let from = 0; ; from += pageSize) {
+    const { data } = await admin
+      .from(Tables.pages)
+      .select("id, slug, title_en, page_type")
+      .eq("status", "published")
+      .order("title_en")
+      .range(from, from + pageSize - 1);
+
+    if (!data?.length) break;
+    all.push(...(data as MenuEditorData["pages"]));
+    if (data.length < pageSize) break;
+  }
+
+  return all;
 }
 
 export async function createMenuItemAction(

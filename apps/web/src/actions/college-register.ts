@@ -28,6 +28,7 @@ import {
 } from "@/lib/validations/college-register";
 import { removeStorageObjects, uploadFacultyImage } from "@/lib/storage/upload";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { readStoredLayoutConfig } from "@/lib/pages/layout-config";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 function getFacultyImageFile(formData: FormData): File | null {
@@ -162,6 +163,7 @@ export async function registerDepartmentAction(
       excerptEn: formData.get("excerptEn") || undefined,
       contentEn: formData.get("contentEn") || undefined,
       sortOrder: formData.get("sortOrder") ?? 0,
+      showInDepartmentsMenu: formData.get("showInDepartmentsMenu") === "true",
     });
 
     if (!parsed.success) {
@@ -378,6 +380,9 @@ export async function getDepartmentForEdit(departmentId: string) {
     excerptEn: page.excerpt_en,
     contentEn: page.content_en,
     sortOrder: page.sort_order ?? 0,
+    showInDepartmentsMenu:
+      readStoredLayoutConfig(page.layout_config, page.layout_template ?? "office_portal")
+        .showInDepartmentsMenu !== false,
   };
 }
 
@@ -397,6 +402,7 @@ export async function updateDepartmentAction(
       excerptEn: formData.get("excerptEn") || undefined,
       contentEn: formData.get("contentEn") || undefined,
       sortOrder: formData.get("sortOrder") ?? 0,
+      showInDepartmentsMenu: formData.get("showInDepartmentsMenu") === "true",
     });
 
     if (!parsed.success) {
@@ -423,6 +429,11 @@ export async function updateDepartmentAction(
 
     if (slugTaken) return fail("A page with this slug already exists.");
 
+    const layoutConfig = {
+      ...readStoredLayoutConfig(existing.layout_config, existing.layout_template ?? "office_portal"),
+      showInDepartmentsMenu: input.showInDepartmentsMenu,
+    };
+
     const { error } = await admin
       .from(Tables.pages)
       .update({
@@ -432,6 +443,7 @@ export async function updateDepartmentAction(
         excerpt_en: input.excerptEn || null,
         content_en: input.contentEn || null,
         sort_order: input.sortOrder ?? 0,
+        layout_config: layoutConfig,
         updated_by: session.userId,
       })
       .eq("id", departmentId);

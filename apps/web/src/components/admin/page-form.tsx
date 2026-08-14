@@ -395,6 +395,7 @@ export function PageForm({
           layoutConfig={layoutConfig}
           onChange={setLayoutConfig}
           hiddenKeys={[
+            "showInDepartmentsMenu",
             ...(isCollegeRoot ? (["contacts"] as const) : []),
             ...(lockPageStructure ? departmentHodHiddenLayoutKeys() : []),
           ]}

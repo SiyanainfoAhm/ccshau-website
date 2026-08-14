@@ -14,6 +14,7 @@ export const DIRECTORATE_HOME_LAYOUT_CONFIG: PageLayoutConfig = {
   leftSidebar: false,
   rightSidebar: false,
   collegeTopMenu: true,
+  showInDepartmentsMenu: true,
   farmersCta: false,
   heroContactButton: true,
 };
@@ -31,6 +32,7 @@ export const COLLEGE_HOME_LAYOUT_CONFIG: PageLayoutConfig = {
   leftSidebar: false,
   rightSidebar: false,
   collegeTopMenu: true,
+  showInDepartmentsMenu: true,
   farmersCta: false,
   heroContactButton: false,
 };
@@ -47,6 +49,7 @@ export const GALLERY_SECTION_LAYOUT_CONFIG: PageLayoutConfig = {
   leftSidebar: false,
   rightSidebar: false,
   collegeTopMenu: true,
+  showInDepartmentsMenu: true,
   farmersCta: false,
   heroContactButton: false,
 };
@@ -63,6 +66,7 @@ export const DEPARTMENT_SUBSECTION_LAYOUT_CONFIG: PageLayoutConfig = {
   leftSidebar: true,
   rightSidebar: false,
   collegeTopMenu: true,
+  showInDepartmentsMenu: true,
   farmersCta: false,
   heroContactButton: false,
 };

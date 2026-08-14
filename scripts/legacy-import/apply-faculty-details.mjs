@@ -77,8 +77,8 @@ async function main() {
   const conn = await mysql.createConnection({
     host: process.env.LEGACY_MYSQL_HOST || "127.0.0.1",
     port: Number(process.env.LEGACY_MYSQL_PORT || 3306),
-    user: process.env.LEGACY_MYSQL_USER || "root",
-    password: process.env.LEGACY_MYSQL_PASSWORD || "",
+    user: process.env.LEGACY_MYSQL_USER || "Admin",
+    password: process.env.LEGACY_MYSQL_PASSWORD || "Admin@123",
     database: process.env.LEGACY_MYSQL_DATABASE || "hau_db",
   });
 
@@ -124,8 +124,11 @@ async function main() {
         continue;
       }
 
-      if (!staffRows?.length) {
-        summary.staffRowsMissing += 1;
+      const pending = (staffRows || []).filter(
+        (row) => !String(row.detail_content_en || "").trim(),
+      );
+      if (!pending.length) {
+        if (!staffRows?.length) summary.staffRowsMissing += 1;
         continue;
       }
 
@@ -140,14 +143,17 @@ async function main() {
       }
 
       if (DRY_RUN) {
-        summary.staffRowsUpdated += staffRows.length;
+        summary.staffRowsUpdated += pending.length;
         continue;
       }
 
       const { data: updated, error: updErr } = await supabase
         .from("ccshau_page_staff")
         .update({ detail_content_en: String(detail) })
-        .eq("staff_slug", slug)
+        .in(
+          "id",
+          pending.map((row) => row.id),
+        )
         .select("id");
 
       if (updErr) {

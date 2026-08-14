@@ -11,6 +11,7 @@ export const registerDepartmentSchema = z.object({
   excerptEn: z.string().optional(),
   contentEn: z.string().optional(),
   sortOrder: z.coerce.number().int().min(0).optional().default(0),
+  showInDepartmentsMenu: z.boolean().default(true),
 });
 
 export const registerFacultySchema = z.object({

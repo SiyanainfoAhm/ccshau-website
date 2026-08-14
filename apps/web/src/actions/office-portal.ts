@@ -39,6 +39,60 @@ async function requireOfficePageAccess(pageId: string, edit = false) {
   return session;
 }
 
+function emptyToNull(value?: string) {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : null;
+}
+
+function staffFieldsFromForm(formData: FormData) {
+  return pageStaffSchema.safeParse({
+    nameEn: formData.get("nameEn"),
+    nameHi: formData.get("nameHi") || undefined,
+    designationEn: formData.get("designationEn"),
+    designationHi: formData.get("designationHi") || undefined,
+    specializationEn: formData.get("specializationEn") || undefined,
+    specializationHi: formData.get("specializationHi") || undefined,
+    imagePath: String(formData.get("imagePath") ?? "").trim() || undefined,
+    mobile: formData.get("mobile") || undefined,
+    email: formData.get("email") || undefined,
+    experienceEn: formData.get("experienceEn") || undefined,
+    experienceHi: formData.get("experienceHi") || undefined,
+    qualificationEn: formData.get("qualificationEn") || undefined,
+    qualificationHi: formData.get("qualificationHi") || undefined,
+    detailContentEn: formData.get("detailContentEn") || undefined,
+    detailContentHi: formData.get("detailContentHi") || undefined,
+    detailHref: formData.get("detailHref") || undefined,
+    sortOrder: formData.get("sortOrder") ?? 0,
+    isActive: formData.get("isActive") !== "off",
+  });
+}
+
+function staffRowFromInput(
+  input: import("zod").infer<typeof pageStaffSchema>,
+  imagePath: string | null,
+) {
+  return {
+    name_en: input.nameEn,
+    name_hi: emptyToNull(input.nameHi),
+    designation_en: input.designationEn,
+    designation_hi: emptyToNull(input.designationHi),
+    specialization_en: emptyToNull(input.specializationEn),
+    specialization_hi: emptyToNull(input.specializationHi),
+    image_path: imagePath,
+    mobile: emptyToNull(input.mobile),
+    email: emptyToNull(input.email),
+    experience_en: emptyToNull(input.experienceEn),
+    experience_hi: emptyToNull(input.experienceHi),
+    qualification_en: emptyToNull(input.qualificationEn),
+    qualification_hi: emptyToNull(input.qualificationHi),
+    detail_content_en: emptyToNull(input.detailContentEn),
+    detail_content_hi: emptyToNull(input.detailContentHi),
+    detail_href: emptyToNull(input.detailHref),
+    sort_order: input.sortOrder,
+    is_active: input.isActive ?? true,
+  };
+}
+
 async function revalidateOfficePage(pageId: string) {
   const admin = createAdminClient();
   if (!admin) return;
@@ -198,18 +252,7 @@ export async function createPageStaffAction(
     const uploadedImage = imageFile instanceof File && imageFile.size > 0 ? imageFile : null;
     const imagePathInput = String(formData.get("imagePath") ?? "").trim();
 
-    const parsed = pageStaffSchema.safeParse({
-      nameEn: formData.get("nameEn"),
-      nameHi: formData.get("nameHi") || undefined,
-      designationEn: formData.get("designationEn"),
-      designationHi: formData.get("designationHi") || undefined,
-      specializationEn: formData.get("specializationEn") || undefined,
-      specializationHi: formData.get("specializationHi") || undefined,
-      imagePath: imagePathInput || undefined,
-      detailHref: formData.get("detailHref") || undefined,
-      sortOrder: formData.get("sortOrder") ?? 0,
-      isActive: formData.get("isActive") !== "off",
-    });
+    const parsed = staffFieldsFromForm(formData);
     if (!parsed.success) return fail("Validation failed", parsed.error.flatten().fieldErrors);
 
     const admin = createAdminClient();
@@ -227,16 +270,7 @@ export async function createPageStaffAction(
       .from(Tables.pageStaff)
       .insert({
         page_id: pageId,
-        name_en: input.nameEn,
-        name_hi: input.nameHi || null,
-        designation_en: input.designationEn,
-        designation_hi: input.designationHi || null,
-        specialization_en: input.specializationEn || null,
-        specialization_hi: input.specializationHi || null,
-        image_path: imagePath,
-        detail_href: input.detailHref || null,
-        sort_order: input.sortOrder,
-        is_active: input.isActive ?? true,
+        ...staffRowFromInput(input, imagePath),
       })
       .select("id")
       .single();
@@ -271,18 +305,7 @@ export async function updatePageStaffAction(
     const imagePathInput = String(formData.get("imagePath") ?? "").trim();
     const removeImage = formData.get("removeImage") === "on";
 
-    const parsed = pageStaffSchema.safeParse({
-      nameEn: formData.get("nameEn"),
-      nameHi: formData.get("nameHi") || undefined,
-      designationEn: formData.get("designationEn"),
-      designationHi: formData.get("designationHi") || undefined,
-      specializationEn: formData.get("specializationEn") || undefined,
-      specializationHi: formData.get("specializationHi") || undefined,
-      imagePath: imagePathInput || undefined,
-      detailHref: formData.get("detailHref") || undefined,
-      sortOrder: formData.get("sortOrder") ?? 0,
-      isActive: formData.get("isActive") !== "off",
-    });
+    const parsed = staffFieldsFromForm(formData);
     if (!parsed.success) return fail("Validation failed", parsed.error.flatten().fieldErrors);
 
     const admin = createAdminClient();
@@ -313,18 +336,7 @@ export async function updatePageStaffAction(
 
     const { error } = await admin
       .from(Tables.pageStaff)
-      .update({
-        name_en: input.nameEn,
-        name_hi: input.nameHi || null,
-        designation_en: input.designationEn,
-        designation_hi: input.designationHi || null,
-        specialization_en: input.specializationEn || null,
-        specialization_hi: input.specializationHi || null,
-        image_path: imagePath,
-        detail_href: input.detailHref || null,
-        sort_order: input.sortOrder,
-        is_active: input.isActive ?? true,
-      })
+      .update(staffRowFromInput(input, imagePath))
       .eq("id", staffId)
       .eq("page_id", pageId);
 
