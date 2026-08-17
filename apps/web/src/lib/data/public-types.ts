@@ -174,6 +174,7 @@ export interface PublicOfficePortalData {
 export interface PublicCollegeSubsection {
   pageId: string;
   slug: string;
+  sortOrder: number;
   layoutConfig: PageLayoutConfig;
   titleEn: string;
   titleHi: string | null;

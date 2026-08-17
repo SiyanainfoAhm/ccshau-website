@@ -4,6 +4,7 @@ import type { AdminSession } from "@/lib/auth/session";
 import { Tables } from "@/lib/database/names";
 import type { Page } from "@/lib/database/types";
 import { DEPARTMENT_SUBSECTION_LAYOUT_CONFIG } from "@/lib/pages/college-wizard-defaults";
+import { compareBySortOrderThenTitle } from "@/lib/pages/college-nav";
 import { readStoredLayoutConfig } from "@/lib/pages/layout-config";
 import { inferMicrositeKind, isMicrositeRoot, type MicrositeKind } from "@/lib/pages/microsite-kind";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -165,8 +166,10 @@ export async function listDepartmentsForRegister(
     .sort(
       (a, b) =>
         a.college_title.localeCompare(b.college_title) ||
-        a.sort_order - b.sort_order ||
-        a.title_en.localeCompare(b.title_en),
+        compareBySortOrderThenTitle(
+          { sortOrder: a.sort_order, titleEn: a.title_en },
+          { sortOrder: b.sort_order, titleEn: b.title_en },
+        ),
     );
 }
 

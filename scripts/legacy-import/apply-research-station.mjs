@@ -201,14 +201,42 @@ function extractHomeHtml(pageHtml) {
   const cutCandidates = [
     pageHtml.search(/function getFaculty|getFaculty\(/i),
     pageHtml.search(/id=["']menu-hot-link["']/i),
+    pageHtml.search(/id=["']college-fac-list["']/i),
+    pageHtml.search(/<th[^>]*>\s*Image\s*<\/th>/i),
     pageHtml.search(/Quick Link/i),
   ].filter((idx) => idx > afterTable);
-  const cutAt = cutCandidates.length ? Math.min(...cutCandidates) : afterTable + 20000;
+  let cutAt = cutCandidates.length ? Math.min(...cutCandidates) : afterTable + 20000;
+  // If we matched inside the faculty table, back up to that table's start.
+  if (/college-fac-list|<th[^>]*>\s*Image\s*<\/th>/i.test(pageHtml.slice(Math.max(afterTable, cutAt - 500), cutAt + 80))) {
+    const tableBefore = pageHtml.lastIndexOf("<table", cutAt);
+    if (tableBefore > afterTable) cutAt = tableBefore;
+  }
   const raw = pageHtml
     .slice(tableStart, cutAt)
     .replace(/<script[\s\S]*?<\/script>/gi, "")
     .replace(/<style[\s\S]*?<\/style>/gi, "");
-  return sanitizeHtml(raw, SANITIZE_OPTIONS).trim();
+  return stripLegacyFacultyShell(sanitizeHtml(raw, SANITIZE_OPTIONS)).trim();
+}
+
+/** Remove empty legacy faculty directory markup scraped into About HTML. */
+function stripLegacyFacultyShell(html) {
+  return String(html || "")
+    .replace(/<table\b[^>]*>[\s\S]*?id=["']college-fac-list["'][\s\S]*?<\/table>/gi, "")
+    .replace(
+      /<div\b[^>]*id=["']college-facutly-biography["'][^>]*>[\s\S]*?<\/div>\s*/gi,
+      "",
+    )
+    .replace(
+      /<div\b[^>]*id=["']college-faculty-biography["'][^>]*>[\s\S]*?<\/div>\s*/gi,
+      "",
+    )
+    .replace(
+      /<div\b[^>]*class=["'][^"']*faculty-detail[^"']*["'][^>]*>\s*<\/div>\s*/gi,
+      "",
+    )
+    .replace(/<div\b[^>]*class=["'][^"']*\bhistory\b[^"']*["'][^>]*>[\s\S]*$/i, "")
+    .replace(/<div\b[^>]*class=["'][^"']*switch-menu[^"']*["'][^>]*>[\s\S]*$/i, "")
+    .trim();
 }
 
 function parseDirectorContacts(html) {

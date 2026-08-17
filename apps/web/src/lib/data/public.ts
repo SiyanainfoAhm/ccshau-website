@@ -63,6 +63,7 @@ import {
 } from "@/lib/pages/routes";
 import { resolvePagePublicPath, getCollegePagePlacement } from "@/lib/pages/resolve-public-path";
 import { REGIONAL_RESEARCH_STATION_SLUGS } from "@/lib/pages/regional-research-stations";
+import { compareBySortOrderThenTitle } from "@/lib/pages/college-nav";
 import {
   readStoredLayoutConfig,
   type PageLayoutConfig,
@@ -640,6 +641,7 @@ function mapCollegeSubsection(page: Page): PublicCollegeSubsection {
   return {
     pageId: page.id,
     slug: page.slug,
+    sortOrder: page.sort_order ?? 0,
     layoutConfig: mapLayoutConfig(page),
     titleEn: page.title_en,
     titleHi: page.title_hi,
@@ -667,7 +669,15 @@ function mapCollegeSection(page: Page, subsections: Page[]): PublicCollegeSectio
     contentHi: page.content_hi,
     featuredImageUrl: base.featuredImageUrl,
     logoImageUrl: base.logoImageUrl,
-    subsections: subsections.map(mapCollegeSubsection),
+    subsections: subsections
+      .slice()
+      .sort((a, b) =>
+        compareBySortOrderThenTitle(
+          { sortOrder: a.sort_order, titleEn: a.title_en },
+          { sortOrder: b.sort_order, titleEn: b.title_en },
+        ),
+      )
+      .map(mapCollegeSubsection),
   };
 }
 

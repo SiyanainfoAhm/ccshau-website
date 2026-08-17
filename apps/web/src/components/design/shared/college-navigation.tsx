@@ -6,7 +6,7 @@ import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 
 import { useLanguage } from "@/components/design/shared/language-context";
-import { isCollegeDepartmentMenuSubsection } from "@/lib/pages/college-nav";
+import { compareBySortOrderThenTitle, isCollegeDepartmentMenuSubsection } from "@/lib/pages/college-nav";
 import { getCollegeContactPath, getCollegeSectionPath, getCollegeSubsectionPath } from "@/lib/pages/routes";
 import { formatMenuLabel } from "@/lib/i18n/menu-label";
 import type { PublicCollegePage } from "@/lib/data/public-types";
@@ -136,7 +136,10 @@ export function CollegeNavigation({ college }: { college: PublicCollegePage }) {
             }
 
             const { section } = link;
-            const menuSubsections = section.subsections.filter(isCollegeDepartmentMenuSubsection);
+            const menuSubsections = section.subsections
+              .filter(isCollegeDepartmentMenuSubsection)
+              .slice()
+              .sort(compareBySortOrderThenTitle);
             const hasSubsections = menuSubsections.length > 0;
             const isSectionActive = activeSectionSlug === section.slug;
             const isOpen = openSectionSlug === section.slug;

@@ -10,3 +10,17 @@ export function isCollegeDepartmentMenuSubsection(item: {
 }): boolean {
   return item.layoutConfig?.showInDepartmentsMenu !== false;
 }
+
+/** Lower Display order first; same order → A–Z by English title. */
+export function compareBySortOrderThenTitle(
+  a: { sortOrder?: number | null; titleEn?: string | null },
+  b: { sortOrder?: number | null; titleEn?: string | null },
+): number {
+  const orderA = a.sortOrder ?? 0;
+  const orderB = b.sortOrder ?? 0;
+  if (orderA !== orderB) return orderA - orderB;
+  return String(a.titleEn ?? "").localeCompare(String(b.titleEn ?? ""), "en-IN", {
+    numeric: true,
+    sensitivity: "base",
+  });
+}
