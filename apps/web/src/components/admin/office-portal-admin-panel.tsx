@@ -9,7 +9,6 @@ import {
   createPageNewsTickerItemAction,
   createPageStudentCornerItemAction,
   createPageSidebarItemAction,
-  createPageStaffAction,
   deletePageContactLineAction,
   deletePageGalleryItemAction,
   deletePageNewsTickerItemAction,
@@ -31,6 +30,7 @@ import type {
 } from "@/lib/database/types";
 import { getStoredFileUrl } from "@/lib/storage/urls";
 import { formatAdminDateTime, isExpiredAt } from "@/lib/utils/format-datetime";
+import { AssignExistingFacultyForm } from "@/components/admin/assign-existing-faculty-form";
 
 function galleryImagePreview(path: string): string {
   return getStoredFileUrl(path) ?? path;
@@ -1072,9 +1072,8 @@ function StaffDirectoryEditor({
   onReload: () => Promise<void>;
 }) {
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [addFormSeed, setAddFormSeed] = useState(0);
+  const [attachOpen, setAttachOpen] = useState(false);
   const [isEditPending, startEditTransition] = useTransition();
-  const [isAddPending, startAddTransition] = useTransition();
 
   function handleUpdate(staffId: string, formData: FormData) {
     setError(null);
@@ -1091,26 +1090,46 @@ function StaffDirectoryEditor({
     });
   }
 
-  function handleAdd(formData: FormData) {
-    setError(null);
-    setSuccess(null);
-    startAddTransition(async () => {
-      const result = await createPageStaffAction(pageId, formData);
-      if (!result.success) {
-        setError(result.error ?? "Save failed.");
-        return;
-      }
-      setAddFormSeed((seed) => seed + 1);
-      await onReload();
-      setSuccess("Staff member added successfully.");
-    });
-  }
-
-  const pending = isPending || isEditPending || isAddPending;
+  const pending = isPending || isEditPending;
 
   return (
     <section className="rounded-xl border border-emerald-200 bg-white p-6 shadow-sm">
       <h2 className="font-display text-lg font-bold text-slate-900">Staff directory</h2>
+      {canEdit ? (
+        <p className="mt-2 text-sm text-slate-600">
+          To add a new person, use{" "}
+          <a href="/admin/register/faculty" className="font-medium text-emerald-700 hover:underline">
+            Admin → Faculty
+          </a>
+          . You can attach an existing faculty member to this page below.
+        </p>
+      ) : null}
+      {canEdit ? (
+        <div className="mt-3">
+          <button
+            type="button"
+            onClick={() => setAttachOpen((open) => !open)}
+            className="rounded-lg border border-emerald-700 px-3 py-1.5 text-sm font-medium text-emerald-800 hover:bg-emerald-50"
+          >
+            {attachOpen ? "Close" : "Attach existing faculty"}
+          </button>
+          {attachOpen ? (
+            <div className="mt-3 rounded-lg border border-emerald-100 bg-emerald-50/40 p-4">
+              <AssignExistingFacultyForm
+                departments={[{ id: pageId, title_en: "This page", college_title: "" }]}
+                defaultDepartmentPageId={pageId}
+                inDialog
+                onCancel={() => setAttachOpen(false)}
+                onSuccess={async () => {
+                  setAttachOpen(false);
+                  await onReload();
+                  setSuccess("Existing faculty attached to this page.");
+                }}
+              />
+            </div>
+          ) : null}
+        </div>
+      ) : null}
       <ul className="mt-4 space-y-2">
         {staff.map((row) => {
           const photoUrl = staffPhotoPreview(row.image_path);
@@ -1175,15 +1194,6 @@ function StaffDirectoryEditor({
           );
         })}
       </ul>
-      {canEdit ? (
-        <StaffMemberForm
-          key={`staff-add-${addFormSeed}`}
-          defaultSortOrder={staff.length + 1}
-          isPending={pending}
-          submitLabel="Add staff member"
-          onSubmit={handleAdd}
-        />
-      ) : null}
     </section>
   );
 }

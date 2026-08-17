@@ -216,7 +216,7 @@ export function RegisterFacultyForm({
           <div>
             <h2 className="text-lg font-semibold text-slate-900">Faculty list row</h2>
             <p className="mt-1 text-xs text-slate-500">
-              Shown in the department Faculty table (name, photo, designation, specialization).
+              Shown in the department Faculty table (name, photo, designation, specialization). Designation is per department; Other Activities are shared across all assignments.
             </p>
           </div>
           {!readOnly ? (

@@ -7,7 +7,9 @@ import { Plus } from "lucide-react";
 
 import { AdminDialog } from "@/components/admin/admin-dialog";
 import { RegisterFacultyForm } from "@/components/admin/register-faculty-form";
+import { AssignExistingFacultyForm } from "@/components/admin/assign-existing-faculty-form";
 import { FacultyRegisterList } from "@/components/admin/register-lists";
+import { FacultyDuplicateFinder } from "@/components/admin/faculty-duplicate-finder";
 import type { CollegeOption, DepartmentOption, FacultyListItem } from "@/lib/pages/college-register-helpers";
 
 export function FacultyRegisterPage({
@@ -31,6 +33,7 @@ export function FacultyRegisterPage({
 }) {
   const router = useRouter();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [assignOpen, setAssignOpen] = useState(false);
   const [formKey, setFormKey] = useState(0);
   const collegeBase = `/admin/register/${college.id}`;
   const resolvedBackHref = backHref ?? collegeBase;
@@ -56,20 +59,30 @@ export function FacultyRegisterPage({
           <h1 className="mt-2 font-display text-2xl font-bold text-slate-900">Faculty</h1>
           <p className="text-sm text-slate-500">
             {canEdit
-              ? `View, edit, or delete HOD and faculty for ${college.title_en}.`
+              ? `One shared profile per person. Add new, or assign an existing person to another department with a local designation.`
               : `View HOD and faculty for ${college.title_en}.`}
           </p>
         </div>
         {canEdit && (
-          <button
-            type="button"
-            onClick={openDialog}
-            disabled={departments.length === 0}
-            className="inline-flex items-center gap-2 rounded-lg bg-ccshau-chrome-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-ccshau-chrome-800 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            <Plus className="h-4 w-4" aria-hidden />
-            Add new
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setAssignOpen(true)}
+              disabled={departments.length === 0}
+              className="inline-flex items-center gap-2 rounded-lg border border-emerald-700 px-4 py-2.5 text-sm font-semibold text-emerald-800 hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Add existing
+            </button>
+            <button
+              type="button"
+              onClick={openDialog}
+              disabled={departments.length === 0}
+              className="inline-flex items-center gap-2 rounded-lg bg-ccshau-chrome-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-ccshau-chrome-800 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <Plus className="h-4 w-4" aria-hidden />
+              Add new
+            </button>
+          </div>
         )}
       </div>
 
@@ -89,6 +102,8 @@ export function FacultyRegisterPage({
         canDelete={canDelete}
       />
 
+      {canEdit ? <FacultyDuplicateFinder collegePageId={college.id} /> : null}
+
       {canEdit && (
       <AdminDialog
         open={dialogOpen}
@@ -103,6 +118,24 @@ export function FacultyRegisterPage({
           inDialog
           onCancel={() => setDialogOpen(false)}
           onSuccess={handleSuccess}
+        />
+      </AdminDialog>
+      )}
+      {canEdit && (
+      <AdminDialog
+        open={assignOpen}
+        onClose={() => setAssignOpen(false)}
+        title="Assign existing faculty"
+        description="Attach a person who already has a profile. Only designation is local to this department."
+      >
+        <AssignExistingFacultyForm
+          departments={departments}
+          inDialog
+          onCancel={() => setAssignOpen(false)}
+          onSuccess={() => {
+            setAssignOpen(false);
+            router.refresh();
+          }}
         />
       </AdminDialog>
       )}

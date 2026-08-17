@@ -12,6 +12,7 @@ function envDefaults(): SiteSettings {
     social_youtube_url: null,
     social_blogger_url: null,
     social_instagram_url: null,
+    faculty_people_public_college_ids: [],
     updated_at: new Date().toISOString(),
     updated_by: null,
   };
@@ -33,7 +34,15 @@ export async function getSiteSettings(): Promise<SiteSettings> {
     social_youtube_url: row.social_youtube_url ?? null,
     social_blogger_url: row.social_blogger_url ?? null,
     social_instagram_url: row.social_instagram_url ?? null,
+    faculty_people_public_college_ids: row.faculty_people_public_college_ids ?? [],
   };
+}
+
+/** Phase 11: public Faculty lists/profiles use people+assignments when the college root id is listed. */
+export async function isFacultyPeoplePublicForCollege(collegeRootId: string | null | undefined): Promise<boolean> {
+  if (!collegeRootId) return false;
+  const settings = await getSiteSettings();
+  return (settings.faculty_people_public_college_ids ?? []).includes(collegeRootId);
 }
 
 /** Runtime CAPTCHA on/off — driven by Admin → Settings (DB), not by env kill-switches. */

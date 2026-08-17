@@ -113,6 +113,7 @@ export interface SiteSettings {
   social_youtube_url: string | null;
   social_blogger_url: string | null;
   social_instagram_url: string | null;
+  faculty_people_public_college_ids: string[];
   updated_at: string;
   updated_by: string | null;
 }
@@ -560,6 +561,45 @@ export interface PageStaff {
   detail_content_en: string | null;
   detail_content_hi: string | null;
   detail_href: string | null;
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface FacultyPerson {
+  id: string;
+  global_slug: string;
+  name_en: string;
+  name_hi: string | null;
+  image_path: string | null;
+  email: string | null;
+  mobile: string | null;
+  qualification_en: string | null;
+  qualification_hi: string | null;
+  experience_en: string | null;
+  experience_hi: string | null;
+  specialization_en: string | null;
+  specialization_hi: string | null;
+  detail_content_en: string | null;
+  detail_content_hi: string | null;
+  legacy_user_id: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface FacultyAssignment {
+  id: string;
+  person_id: string;
+  page_id: string;
+  source_staff_id: string | null;
+  designation_en: string;
+  designation_hi: string | null;
+  specialization_en: string | null;
+  specialization_hi: string | null;
+  member_type: "hod" | "faculty";
+  staff_slug: string | null;
   sort_order: number;
   is_active: boolean;
   created_at: string;

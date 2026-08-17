@@ -25,6 +25,7 @@ import {
   pageStaffSchema,
 } from "@/lib/validations/office-portal";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { deactivateAssignmentForStaff, syncPersonFromPageStaff } from "@/lib/faculty/people";
 import {
   removeStorageObjects,
   uploadPageGalleryImage,
@@ -240,53 +241,14 @@ export async function listPageStaffForAdmin(pageId: string): Promise<PageStaff[]
 }
 
 export async function createPageStaffAction(
-  pageId: string,
-  formData: FormData,
+  _pageId: string,
+  _formData: FormData,
 ): Promise<ActionResult<{ id: string }>> {
-  try {
-    const session = await requireOfficePageAccess(pageId, true);
-    if (isDepartmentHodOnlyUser(session)) {
-      return fail("Add faculty from Admin → Faculty, not from the page Staff directory.");
-    }
-    const imageFile = formData.get("staffImageFile");
-    const uploadedImage = imageFile instanceof File && imageFile.size > 0 ? imageFile : null;
-    const imagePathInput = String(formData.get("imagePath") ?? "").trim();
-
-    const parsed = staffFieldsFromForm(formData);
-    if (!parsed.success) return fail("Validation failed", parsed.error.flatten().fieldErrors);
-
-    const admin = createAdminClient();
-    if (!admin) return fail("Database not configured.");
-    const input = parsed.data;
-
-    let imagePath = imagePathInput || null;
-    if (uploadedImage) {
-      const upload = await uploadPageStaffImage(admin, pageId, uploadedImage);
-      if (!upload.success) return upload;
-      imagePath = upload.data;
-    }
-
-    const { data, error } = await admin
-      .from(Tables.pageStaff)
-      .insert({
-        page_id: pageId,
-        ...staffRowFromInput(input, imagePath),
-      })
-      .select("id")
-      .single();
-
-    if (error) return fail(error.message);
-    await writeAuditLog({
-      userId: session.userId,
-      action: "create",
-      entityType: "page_staff",
-      entityId: data.id,
-    });
-    await revalidateOfficePage(pageId);
-    return ok({ id: data.id });
-  } catch (e) {
-    return fail(e instanceof Error ? e.message : "Failed to create staff row.");
-  }
+  // Phase 1: stop dual create paths. New faculty must go through Admin → Faculty Register
+  // so slug, HOD uniqueness, and duplicate checks always apply.
+  return fail(
+    "Adding staff from the page Staff directory is disabled. Use Admin → Faculty (Register) to add faculty.",
+  );
 }
 
 export async function updatePageStaffAction(
@@ -342,6 +304,20 @@ export async function updatePageStaffAction(
 
     if (error) return fail(error.message);
 
+    const { data: staffRow } = await admin
+      .from(Tables.pageStaff)
+      .select("*")
+      .eq("id", staffId)
+      .eq("page_id", pageId)
+      .maybeSingle();
+    if (staffRow) {
+      try {
+        await syncPersonFromPageStaff(admin, staffRow as PageStaff, { overwritePersonProfile: true });
+      } catch (syncError) {
+        return fail(syncError instanceof Error ? syncError.message : "Staff saved, but shared profile sync failed.");
+      }
+    }
+
     if (
       previousPath &&
       previousPath !== imagePath &&
@@ -379,6 +355,8 @@ export async function deletePageStaffAction(pageId: string, id: string): Promise
       .eq("id", id)
       .eq("page_id", pageId)
       .maybeSingle();
+
+    await deactivateAssignmentForStaff(admin, id);
 
     const { error } = await admin
       .from(Tables.pageStaff)

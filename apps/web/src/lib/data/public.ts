@@ -69,6 +69,7 @@ import {
   type PageLayoutConfig,
 } from "@/lib/pages/layout-config";
 import { getStoredFileUrl, resolvePublicMediaUrl } from "@/lib/storage/urls";
+import { getPublicFacultyFromAssignment, listPublicStaffForPage } from "@/lib/faculty/people";
 import { getSiteSettings } from "@/lib/settings/site-settings";
 import { socialLinksFromSettings } from "@/lib/social/public-social-links";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -796,23 +797,16 @@ export async function getOfficePortalDataForPage(
           }
         : null;
 
-  return {
-    contactLines: ((contactsRes.data ?? []) as PageContactLine[]).map((row) => ({
-      labelEn: row.label_en,
-      labelHi: row.label_hi,
-      valueEn: row.value_en,
-      valueHi: row.value_hi,
-    })),
-    staff: ((staffRes.data ?? []) as PageStaff[])
-      .slice()
-      .sort((a, b) => {
-        const aHod = (a.member_type ?? "faculty") === "hod" ? 0 : 1;
-        const bHod = (b.member_type ?? "faculty") === "hod" ? 0 : 1;
-        if (aHod !== bHod) return aHod - bHod;
-        if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order;
-        return String(a.name_en || "").localeCompare(String(b.name_en || ""));
-      })
-      .map((row) => ({
+  const pageStaffMembers = ((staffRes.data ?? []) as PageStaff[])
+    .slice()
+    .sort((a, b) => {
+      const aHod = (a.member_type ?? "faculty") === "hod" ? 0 : 1;
+      const bHod = (b.member_type ?? "faculty") === "hod" ? 0 : 1;
+      if (aHod !== bHod) return aHod - bHod;
+      if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order;
+      return String(a.name_en || "").localeCompare(String(b.name_en || ""));
+    })
+    .map((row) => ({
       nameEn: row.name_en,
       nameHi: row.name_hi,
       designationEn: row.designation_en,
@@ -830,7 +824,17 @@ export async function getOfficePortalDataForPage(
       qualificationHi: row.qualification_hi,
       detailContentEn: row.detail_content_en,
       detailContentHi: row.detail_content_hi,
+    }));
+  const peopleStaff = await listPublicStaffForPage(admin, page.id);
+
+  return {
+    contactLines: ((contactsRes.data ?? []) as PageContactLine[]).map((row) => ({
+      labelEn: row.label_en,
+      labelHi: row.label_hi,
+      valueEn: row.value_en,
+      valueHi: row.value_hi,
     })),
+    staff: peopleStaff !== null ? peopleStaff : pageStaffMembers,
     sidebarLeft,
     sidebarRight,
     headOfficer,
@@ -1167,6 +1171,20 @@ export async function getPublishedFacultyProfile(
 
   const admin = createAdminClient();
   if (!admin) return null;
+
+  const fromAssignment = await getPublicFacultyFromAssignment(admin, ctx.subsection.pageId, facultySlug);
+  if (fromAssignment) {
+    return {
+      college: ctx.college,
+      section: ctx.section,
+      department: ctx.subsection,
+      staff: {
+        ...fromAssignment,
+        detailContentEn: fromAssignment.detailContentEn ?? null,
+        detailContentHi: fromAssignment.detailContentHi ?? null,
+      },
+    };
+  }
 
   const { data: row } = await admin
     .from(Tables.pageStaff)

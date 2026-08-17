@@ -89,6 +89,23 @@ export default async function FacultyDetailPage({
                       {pickBilingual(lang, staff.specializationEn, staff.specializationHi)}
                     </p>
                   )}
+                  {staff.alsoAt && staff.alsoAt.length > 0 ? (
+                    <p className="mt-2 text-sm text-slate-500">
+                      Also affiliated with:{" "}
+                      {staff.alsoAt.map((item, index) => (
+                        <span key={`${item.titleEn}-${index}`}>
+                          {index > 0 ? ", " : null}
+                          {item.href ? (
+                            <Link href={item.href} className="text-emerald-800 hover:underline">
+                              {item.titleEn}
+                            </Link>
+                          ) : (
+                            item.titleEn
+                          )}
+                        </span>
+                      ))}
+                    </p>
+                  ) : null}
                   <dl className="mt-4 flex flex-wrap justify-center gap-4 text-sm text-slate-600 md:justify-start">
                     {staff.qualificationEn && (
                       <div>

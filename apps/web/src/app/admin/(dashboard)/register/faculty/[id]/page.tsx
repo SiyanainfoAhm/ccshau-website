@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import {
   getDepartmentsForRegisterForm,
@@ -23,6 +23,9 @@ export default async function EditFacultyPage({
   ]);
 
   if (!facultyData) notFound();
+  if (facultyData.personId) {
+    redirect(`/admin/register/faculty/person/${facultyData.personId}`);
+  }
 
   const returnHref = `/admin/register/${facultyData.department.college_root_id}/faculty`;
 

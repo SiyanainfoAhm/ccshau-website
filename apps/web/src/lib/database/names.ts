@@ -76,6 +76,8 @@ export const Tables = {
   homepageCta: ccshauTable("homepage_cta"),
   pageContactLines: ccshauTable("page_contact_lines"),
   pageStaff: ccshauTable("page_staff"),
+  facultyPeople: ccshauTable("faculty_people"),
+  facultyAssignments: ccshauTable("faculty_assignments"),
   pageGalleryItems: ccshauTable("page_gallery_items"),
   pageNewsTickerItems: ccshauTable("page_news_ticker_items"),
   pageStudentCornerItems: ccshauTable("page_student_corner_items"),

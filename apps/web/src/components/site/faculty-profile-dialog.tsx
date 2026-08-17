@@ -82,6 +82,23 @@ export function FacultyProfileDialog({
                   {pickBilingual(lang, member.specializationEn, member.specializationHi)}
                 </p>
               )}
+              {member.alsoAt && member.alsoAt.length > 0 ? (
+                <p className="mt-2 text-sm text-slate-500">
+                  {t("Also affiliated with", "संबद्ध")}:{" "}
+                  {member.alsoAt.map((item, index) => (
+                    <span key={`${item.titleEn}-${index}`}>
+                      {index > 0 ? ", " : null}
+                      {item.href ? (
+                        <a href={item.href} className="text-emerald-800 hover:underline">
+                          {item.titleEn}
+                        </a>
+                      ) : (
+                        item.titleEn
+                      )}
+                    </span>
+                  ))}
+                </p>
+              ) : null}
               <dl className="mt-4 flex flex-wrap justify-center gap-4 text-sm text-slate-600 md:justify-start">
                 {member.qualificationEn && (
                   <div>

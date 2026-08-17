@@ -39,6 +39,43 @@ export const registerFacultySchema = z.object({
   sortOrder: z.coerce.number().int().min(0).optional().default(0),
 });
 
+export const assignExistingFacultySchema = z.object({
+  personId: z.string().uuid("Select an existing faculty member"),
+  departmentPageId: z.string().uuid("Select a department"),
+  memberType: z.enum(["hod", "faculty"]),
+  designationEn: z.string().min(2, "Designation is required"),
+  designationHi: z.string().optional(),
+  specializationEn: z.string().optional(),
+  specializationHi: z.string().optional(),
+  sortOrder: z.coerce.number().int().min(0).optional().default(1),
+});
+
+export const updateFacultyPersonSchema = z.object({
+  nameEn: z.string().min(2, "Name is required"),
+  nameHi: z.string().optional(),
+  specializationEn: z.string().optional(),
+  specializationHi: z.string().optional(),
+  imagePath: z.string().optional(),
+  mobile: z.string().optional(),
+  email: z.string().email().optional().or(z.literal("")),
+  experienceEn: z.string().optional(),
+  experienceHi: z.string().optional(),
+  qualificationEn: z.string().optional(),
+  qualificationHi: z.string().optional(),
+  detailContentEn: z.string().optional(),
+  detailContentHi: z.string().optional(),
+});
+
+export const updateFacultyAssignmentSchema = z.object({
+  memberType: z.enum(["hod", "faculty"]),
+  designationEn: z.string().min(2, "Designation is required"),
+  designationHi: z.string().optional(),
+  specializationEn: z.string().optional(),
+  specializationHi: z.string().optional(),
+  sortOrder: z.coerce.number().int().min(0).optional().default(0),
+  isActive: z.boolean().optional().default(true),
+});
+
 export const updateDepartmentSchema = registerDepartmentSchema.omit({ collegePageId: true });
 
 export const updateFacultySchema = registerFacultySchema;

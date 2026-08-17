@@ -224,9 +224,43 @@ export function DepartmentRegisterList({
 }
 
 function matchesFacultyQuery(member: FacultyListItem, query: string, includeCollege: boolean) {
-  const parts = [member.department_title, member.name_en];
+  const parts = [
+    member.department_title,
+    member.name_en,
+    member.email ?? "",
+    ...(member.other_departments ?? []),
+  ];
   if (includeCollege) parts.push(member.college_title);
   return parts.join(" ").toLowerCase().includes(query);
+}
+
+type FacultyGroup = {
+  key: string;
+  personId: string | null;
+  name: string;
+  email: string | null;
+  rows: FacultyListItem[];
+};
+
+function groupFaculty(rows: FacultyListItem[]): FacultyGroup[] {
+  const map = new Map<string, FacultyGroup>();
+  for (const row of rows) {
+    const key = row.person_id || row.id;
+    const existing = map.get(key);
+    if (existing) {
+      existing.rows.push(row);
+      if (!existing.email && row.email) existing.email = row.email;
+    } else {
+      map.set(key, {
+        key,
+        personId: row.person_id,
+        name: row.name_en,
+        email: row.email,
+        rows: [row],
+      });
+    }
+  }
+  return [...map.values()].sort((a, b) => a.name.localeCompare(b.name));
 }
 
 export function FacultyRegisterList({
@@ -240,22 +274,27 @@ export function FacultyRegisterList({
   canEdit?: boolean;
   canDelete?: boolean;
 }) {
-  const showCollege = !collegePageId;
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
   const normalizedQuery = query.trim().toLowerCase();
 
   const filteredFaculty = useMemo(() => {
     if (!normalizedQuery) return faculty;
-    return faculty.filter((member) => matchesFacultyQuery(member, normalizedQuery, showCollege));
-  }, [faculty, normalizedQuery, showCollege]);
+    return faculty.filter((member) => matchesFacultyQuery(member, normalizedQuery, !collegePageId));
+  }, [faculty, normalizedQuery, collegePageId]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredFaculty.length / ADMIN_DEFAULT_PAGE_SIZE));
+  const groups = useMemo(() => groupFaculty(filteredFaculty), [filteredFaculty]);
+  const totalPages = Math.max(1, Math.ceil(groups.length / ADMIN_DEFAULT_PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
   const pageStart = (safePage - 1) * ADMIN_DEFAULT_PAGE_SIZE;
-  const pagedFaculty = filteredFaculty.slice(pageStart, pageStart + ADMIN_DEFAULT_PAGE_SIZE);
-  const rangeStart = filteredFaculty.length === 0 ? 0 : pageStart + 1;
-  const rangeEnd = Math.min(pageStart + ADMIN_DEFAULT_PAGE_SIZE, filteredFaculty.length);
+  const pagedGroups = groups.slice(pageStart, pageStart + ADMIN_DEFAULT_PAGE_SIZE);
+  const rangeStart = groups.length === 0 ? 0 : pageStart + 1;
+  const rangeEnd = Math.min(pageStart + ADMIN_DEFAULT_PAGE_SIZE, groups.length);
+
+  function editHref(group: FacultyGroup) {
+    if (group.personId) return `/admin/register/faculty/person/${group.personId}`;
+    return `/admin/register/faculty/${group.rows[0].id}`;
+  }
 
   return (
     <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -265,8 +304,8 @@ export function FacultyRegisterList({
             <h2 className="font-display text-lg font-bold text-slate-900">Registered faculty</h2>
             <p className="text-xs text-slate-500">
               {normalizedQuery
-                ? `${filteredFaculty.length} of ${faculty.length} shown`
-                : `${faculty.length} member${faculty.length === 1 ? "" : "s"}`}
+                ? `${groups.length} of ${groupFaculty(faculty).length} people shown`
+                : `${groups.length} ${groups.length === 1 ? "person" : "people"} · ${faculty.length} assignment${faculty.length === 1 ? "" : "s"}`}
             </p>
           </div>
           <div className="relative w-full sm:max-w-xs">
@@ -278,7 +317,7 @@ export function FacultyRegisterList({
                 setQuery(e.target.value);
                 setPage(1);
               }}
-              placeholder="Search department or name…"
+              placeholder="Search name, email, or department…"
               className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-4 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
               aria-label="Search faculty by department or name"
             />
@@ -289,70 +328,54 @@ export function FacultyRegisterList({
         <table className="min-w-full divide-y divide-slate-200 text-sm">
           <thead className="bg-slate-50">
             <tr>
-              {showCollege ? (
-                <th className="px-4 py-3 text-left font-semibold text-slate-700">College / Department</th>
-              ) : (
-                <th className="px-4 py-3 text-left font-semibold text-slate-700">Department</th>
-              )}
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Name</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Role</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Order</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Designation</th>
+              <th className="px-4 py-3 text-left font-semibold text-slate-700">Person</th>
+              <th className="px-4 py-3 text-left font-semibold text-slate-700">Departments</th>
               <th className="px-4 py-3 text-right font-semibold text-slate-700">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {faculty.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
+                <td colSpan={3} className="px-4 py-8 text-center text-slate-500">
                   No faculty registered yet.
                 </td>
               </tr>
-            ) : filteredFaculty.length === 0 ? (
+            ) : groups.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
+                <td colSpan={3} className="px-4 py-8 text-center text-slate-500">
                   No faculty match &quot;{query.trim()}&quot;.
                 </td>
               </tr>
             ) : (
-              pagedFaculty.map((member) => (
-                <tr key={member.id} className="hover:bg-slate-50/80">
-                  <td className="px-4 py-3 text-slate-600">
-                    {showCollege ? (
-                      <>
-                        <span className="block text-slate-500">{member.college_title}</span>
-                        <span>{member.department_title}</span>
-                      </>
-                    ) : (
-                      member.department_title
-                    )}
-                  </td>
+              pagedGroups.map((group) => (
+                <tr key={group.key} className="hover:bg-slate-50/80">
                   <td className="px-4 py-3 font-medium text-slate-900">
-                    <Link
-                      href={`/admin/register/faculty/${member.id}`}
-                      className="hover:text-emerald-800 hover:underline"
-                    >
-                      {member.name_en}
+                    <Link href={editHref(group)} className="hover:text-emerald-800 hover:underline">
+                      {group.name}
                     </Link>
+                    {group.email ? <span className="mt-0.5 block text-xs font-normal text-slate-500">{group.email}</span> : null}
                   </td>
                   <td className="px-4 py-3">
-                    <span
-                      className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                        member.member_type === "hod"
-                          ? "bg-amber-100 text-amber-800"
-                          : "bg-slate-100 text-slate-700"
-                      }`}
-                    >
-                      {member.member_type === "hod" ? "HOD" : "Faculty"}
-                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {group.rows.map((row) => (
+                        <span
+                          key={row.id}
+                          className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs ${
+                            row.member_type === "hod" ? "bg-amber-100 text-amber-800" : "bg-slate-100 text-slate-700"
+                          }`}
+                          title={row.designation_en}
+                        >
+                          {row.member_type === "hod" ? "HOD · " : ""}
+                          {row.department_title}
+                        </span>
+                      ))}
+                    </div>
                   </td>
-                  <td className="px-4 py-3 text-slate-600">{member.sort_order}</td>
-                  <td className="px-4 py-3 text-slate-600">{member.designation_en}</td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-2">
-                      {member.detail_href && (
+                      {group.rows[0]?.detail_href && (
                         <a
-                          href={member.detail_href}
+                          href={group.rows[0].detail_href}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="rounded px-2 py-1 text-xs text-slate-500 hover:bg-slate-100"
@@ -360,27 +383,17 @@ export function FacultyRegisterList({
                           Public
                         </a>
                       )}
-                      {canEdit ? (
-                        <Link
-                          href={`/admin/register/faculty/${member.id}`}
-                          className="inline-flex items-center gap-1 rounded px-2 py-1 text-sm text-emerald-700 hover:bg-emerald-50"
-                        >
-                          <Pencil className="h-3.5 w-3.5" aria-hidden />
-                          Edit
-                        </Link>
-                      ) : (
-                        <Link
-                          href={`/admin/register/faculty/${member.id}`}
-                          className="inline-flex items-center gap-1 rounded px-2 py-1 text-sm text-slate-600 hover:bg-slate-100"
-                        >
-                          <Eye className="h-3.5 w-3.5" aria-hidden />
-                          View
-                        </Link>
-                      )}
-                      {canDelete && (
+                      <Link
+                        href={editHref(group)}
+                        className="inline-flex items-center gap-1 rounded px-2 py-1 text-sm text-emerald-700 hover:bg-emerald-50"
+                      >
+                        {canEdit ? <Pencil className="h-3.5 w-3.5" aria-hidden /> : <Eye className="h-3.5 w-3.5" aria-hidden />}
+                        {canEdit ? "Edit profile" : "View"}
+                      </Link>
+                      {canDelete && !group.personId && (
                         <DeleteRowButton
-                          label={member.name_en}
-                          onConfirm={() => deleteFacultyAction(member.id)}
+                          label={group.name}
+                          onConfirm={() => deleteFacultyAction(group.rows[0].id)}
                         />
                       )}
                     </div>
@@ -391,13 +404,13 @@ export function FacultyRegisterList({
           </tbody>
         </table>
       </div>
-      {filteredFaculty.length > 0 && (
+      {groups.length > 0 && (
         <nav
           className="flex flex-col gap-3 border-t border-slate-100 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
           aria-label="Pagination"
         >
           <p className="text-sm text-slate-500">
-            Showing {rangeStart}–{rangeEnd} of {filteredFaculty.length}
+            Showing {rangeStart}–{rangeEnd} of {groups.length}
           </p>
           {totalPages > 1 && (
             <div className="flex items-center gap-2">

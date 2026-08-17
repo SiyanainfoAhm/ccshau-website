@@ -147,6 +147,7 @@ export interface PublicOfficeStaffMember {
   qualificationHi?: string | null;
   detailContentEn?: string | null;
   detailContentHi?: string | null;
+  alsoAt?: { titleEn: string; href: string | null }[];
 }
 
 export interface PublicFacultyProfileStaff extends PublicOfficeStaffMember {
