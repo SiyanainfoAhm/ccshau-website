@@ -11,9 +11,11 @@ import {
   getPageNewsTickerItemsByPageId,
   getPageStudentCornerItemsByPageId,
   getPublishedCollegeSubsection,
+  getKvkCards,
   getRegionalResearchStationCards,
 } from "@/lib/data/public";
 import { needsOfficeDataLoad } from "@/lib/pages/layout-config";
+import { KRISHI_VIGYAN_KENDRAS_HUB_SLUG } from "@/lib/pages/krishi-vigyan-kendras";
 import { REGIONAL_RESEARCH_STATIONS_HUB_SLUG } from "@/lib/pages/regional-research-stations";
 
 export async function generateMetadata({
@@ -52,7 +54,9 @@ export default async function CollegeSubsectionPage({
   const researchStations =
     subsection === REGIONAL_RESEARCH_STATIONS_HUB_SLUG
       ? await getRegionalResearchStationCards()
-      : [];
+      : subsection === KRISHI_VIGYAN_KENDRAS_HUB_SLUG
+        ? await getKvkCards()
+        : [];
 
   return (
     <>

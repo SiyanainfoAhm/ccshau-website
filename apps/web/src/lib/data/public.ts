@@ -62,6 +62,7 @@ import {
   pgStudiesSectionUrlSegment,
 } from "@/lib/pages/routes";
 import { resolvePagePublicPath, getCollegePagePlacement } from "@/lib/pages/resolve-public-path";
+import { KRISHI_VIGYAN_KENDRA_SLUGS } from "@/lib/pages/krishi-vigyan-kendras";
 import { REGIONAL_RESEARCH_STATION_SLUGS } from "@/lib/pages/regional-research-stations";
 import { compareBySortOrderThenTitle } from "@/lib/pages/college-nav";
 import {
@@ -1127,18 +1128,28 @@ export async function getPublishedCollegeSubsection(
 }
 
 export async function getRegionalResearchStationCards(): Promise<PublicResearchStationCard[]> {
+  return getMicrositeListingCards([...REGIONAL_RESEARCH_STATION_SLUGS]);
+}
+
+export async function getKvkCards(): Promise<PublicResearchStationCard[]> {
+  return getMicrositeListingCards([...KRISHI_VIGYAN_KENDRA_SLUGS]);
+}
+
+async function getMicrositeListingCards(
+  slugs: string[],
+): Promise<PublicResearchStationCard[]> {
   const admin = createAdminClient();
   if (!admin) return [];
 
   const { data } = await admin
     .from(Tables.pages)
     .select("slug, title_en, title_hi, featured_image_path, page_type")
-    .in("slug", [...REGIONAL_RESEARCH_STATION_SLUGS])
+    .in("slug", slugs)
     .eq("status", "published");
 
   const bySlug = new Map(((data as Page[]) ?? []).map((page) => [page.slug, page]));
 
-  return REGIONAL_RESEARCH_STATION_SLUGS.flatMap((slug) => {
+  return slugs.flatMap((slug) => {
     const page = bySlug.get(slug);
     if (!page) return [];
     const imagePath = page.featured_image_path;

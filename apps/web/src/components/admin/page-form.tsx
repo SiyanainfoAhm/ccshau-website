@@ -93,7 +93,10 @@ export function PageForm({
   const parentId = selectedParent?.id ?? "";
   const [collegeContactLines, setCollegeContactLines] = useState<PageContactLine[]>([]);
   const collegeContact = parseCollegeContactFromLines(collegeContactLines);
-  const [contactLocationEnabled, setContactLocationEnabled] = useState(false);
+  const [contactLocationEnabled, setContactLocationEnabled] = useState(() => {
+    if (!page) return false;
+    return readStoredLayoutConfig(page.layout_config, initialLayoutTemplate).contacts;
+  });
   const [contactSeedKey, setContactSeedKey] = useState(0);
 
   useEffect(() => {
@@ -873,10 +876,6 @@ export function PageForm({
         canEdit={canEdit}
         onContactLinesLoaded={(lines) => {
           setCollegeContactLines(lines);
-          const parsed = parseCollegeContactFromLines(lines);
-          if (parsed.addressEn || parsed.phone || parsed.email) {
-            setContactLocationEnabled(true);
-          }
           setContactSeedKey((key) => key + 1);
         }}
       />

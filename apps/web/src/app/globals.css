@@ -1513,6 +1513,61 @@ html.dark .cms-html ul > li > a[href*=".pdf"] {
   border-radius: 0.4rem;
 }
 
+/*
+ * Photo + bio cards (legacy coordinator / officer tables: one row, image then text).
+ * Keep the portrait and details adjacent instead of stretching to 30%/70% of the page.
+ */
+.cms-html table:not(:has(thead)):has(tr:only-child td:first-child img) {
+  width: auto !important;
+  max-width: 100%;
+  table-layout: auto;
+  margin: 0 0 1.25em;
+}
+
+.cms-html table:not(:has(thead)):has(tr:only-child td:first-child img) td {
+  border-bottom: none;
+  vertical-align: top;
+}
+
+.cms-html table:not(:has(thead)):has(tr:only-child td:first-child img) td:first-child {
+  width: 1% !important;
+  white-space: nowrap;
+  text-align: left !important;
+  padding: 1rem 0.75rem 1rem 1rem;
+}
+
+.cms-html table:not(:has(thead)):has(tr:only-child td:first-child img) td:first-child * {
+  text-align: left !important;
+}
+
+.cms-html table:not(:has(thead)):has(tr:only-child td:first-child img) td:nth-child(2) {
+  width: auto !important;
+  padding: 1rem 1.25rem 1rem 0.35rem;
+  text-align: left;
+  line-height: 1.55;
+}
+
+.cms-html table:not(:has(thead)):has(tr:only-child td:first-child img) img {
+  display: block;
+  margin: 0;
+  max-width: 12rem;
+  max-height: 14rem;
+}
+
+.cms-html table:not(:has(thead)):has(tr:only-child td:first-child img) td br {
+  display: unset;
+  content: normal;
+  margin-top: 0;
+}
+
+.cms-html table:not(:has(thead)):has(tr:only-child td:first-child img) td p {
+  margin: 0.4em 0 0;
+}
+
+.cms-html table:not(:has(thead)):has(tr:only-child td:first-child img) a[href^="mailto:"] {
+  display: inline !important;
+}
+
 html.dark .cms-html table,
 html.dark .prose :where(table) {
   border-color: rgba(6, 78, 59, 0.55);

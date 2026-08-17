@@ -295,7 +295,7 @@ export function PublicConfigurablePage({
   const heroImage =
     contentPage?.featuredImageUrl ??
     college.featuredImageUrl ??
-    "https://images.unsplash.com/photo-1560438154-779a4a5e3e38?auto=format&fit=crop&w=1600&q=80";
+    "https://hau.ac.in/public/images/intro.jpg";
   const heroLogo = contentPage?.logoImageUrl ?? college.logoImageUrl;
 
   const isRootPage = !contentPage;
