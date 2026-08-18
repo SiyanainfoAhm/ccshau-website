@@ -85,7 +85,7 @@ export function CollegeNavigation({ college }: { college: PublicCollegePage }) {
     <div className="ccshau-main-nav-bar">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-2 lg:hidden">
         <p className="text-xs font-medium text-emerald-100/90">
-          {t(college.titleEn, college.titleHi ?? college.titleEn)}
+          {formatMenuLabel(t(college.titleEn, college.titleHi ?? college.titleEn), lang, "title")}
         </p>
         <button
           type="button"

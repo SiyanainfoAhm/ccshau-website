@@ -8,6 +8,7 @@ import { useState, useTransition } from "react";
 import { registerFacultyAction } from "@/actions/college-register";
 import { translateFieldsEnToHiAction } from "@/actions/translate";
 import { AdminFileUploadField } from "@/components/admin/admin-file-upload-field";
+import { AdminHtmlField } from "@/components/admin/admin-html-field";
 import { slugify } from "@/lib/utils/slug";
 import type { PageStaff } from "@/lib/database/types";
 import { getStoredFileUrl } from "@/lib/storage/urls";
@@ -414,27 +415,23 @@ export function RegisterFacultyForm({
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-hindi"
             />
           </label>
-          <label className="block text-sm">
-            <span className="font-medium text-slate-700">Full profile (English HTML)</span>
-            <textarea
-              name="detailContentEn"
-              rows={12}
-              value={detailContentEn}
-              onChange={(e) => setDetailContentEn(e.target.value)}
-              placeholder="<h3>Educational Qualifications</h3><table>...</table>"
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm"
-            />
-          </label>
-          <label className="block text-sm">
-            <span className="font-medium text-slate-700">Full profile (Hindi HTML)</span>
-            <textarea
-              name="detailContentHi"
-              rows={6}
-              value={detailContentHi}
-              onChange={(e) => setDetailContentHi(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm font-hindi"
-            />
-          </label>
+          <AdminHtmlField
+            name="detailContentEn"
+            label="Full profile (English)"
+            value={detailContentEn}
+            onChange={setDetailContentEn}
+            rows={12}
+            disabled={readOnly}
+          />
+          <AdminHtmlField
+            name="detailContentHi"
+            label="Full profile (Hindi)"
+            value={detailContentHi}
+            onChange={setDetailContentHi}
+            rows={6}
+            disabled={readOnly}
+            hindi
+          />
         </div>
       </section>
       </fieldset>

@@ -7,6 +7,7 @@ import { useState, useTransition } from "react";
 import { updateFacultyPersonAction } from "@/actions/college-register";
 import { translateFieldsEnToHiAction } from "@/actions/translate";
 import { AdminFileUploadField } from "@/components/admin/admin-file-upload-field";
+import { AdminHtmlField } from "@/components/admin/admin-html-field";
 import type { FacultyPerson } from "@/lib/database/types";
 import { getStoredFileUrl } from "@/lib/storage/urls";
 
@@ -206,14 +207,23 @@ export function FacultyPersonEditor({
               <span className="font-medium text-slate-700">Qualification (Hindi)</span>
               <input name="qualificationHi" value={qualificationHi} onChange={(e) => setQualificationHi(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-hindi" />
             </label>
-            <label className="block text-sm">
-              <span className="font-medium text-slate-700">Full profile (English HTML)</span>
-              <textarea name="detailContentEn" rows={12} value={detailContentEn} onChange={(e) => setDetailContentEn(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm" />
-            </label>
-            <label className="block text-sm">
-              <span className="font-medium text-slate-700">Full profile (Hindi HTML)</span>
-              <textarea name="detailContentHi" rows={6} value={detailContentHi} onChange={(e) => setDetailContentHi(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm font-hindi" />
-            </label>
+            <AdminHtmlField
+              name="detailContentEn"
+              label="Full profile (English)"
+              value={detailContentEn}
+              onChange={setDetailContentEn}
+              rows={12}
+              disabled={disabled}
+            />
+            <AdminHtmlField
+              name="detailContentHi"
+              label="Full profile (Hindi)"
+              value={detailContentHi}
+              onChange={setDetailContentHi}
+              rows={6}
+              disabled={disabled}
+              hindi
+            />
           </div>
         </section>
       </fieldset>

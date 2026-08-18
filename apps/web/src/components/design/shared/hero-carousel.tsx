@@ -221,9 +221,6 @@ export function HeroCarousel({
             className={`object-cover ${i === index ? "animate-ken-burns" : "scale-105"}`}
             priority={i === 0}
           />
-          {/* Scrim only where the text sits, so the rest of the photo stays unfiltered */}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/15 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-t from-ccshau-green-900/50 via-transparent to-ccshau-green-900/20" />
         </div>
       ))}
 
