@@ -43,6 +43,7 @@ export function DepartmentAboutSection({
 
   const addressLine = findContactLine(contactLines, "mailing", "address");
   const officeLine = findContactLine(contactLines, "office", "phone", "telephone");
+  const faxLine = findContactLine(contactLines, "fax");
   const emailLine = findContactLine(contactLines, "email", "e-mail");
 
   const mailingAddress = addressLine
@@ -51,6 +52,8 @@ export function DepartmentAboutSection({
 
   const officeRaw = officeLine ? pickBilingual(lang, officeLine.valueEn, officeLine.valueHi) : "";
   const officePhones = splitContactValues(officeRaw.replace(/^office\s*:\s*/i, ""));
+  const faxRaw = faxLine ? pickBilingual(lang, faxLine.valueEn, faxLine.valueHi) : "";
+  const faxNumbers = splitContactValues(faxRaw.replace(/^fax\s*(no)?\s*:\s*/i, ""));
 
   const emailRaw = emailLine ? pickBilingual(lang, emailLine.valueEn, emailLine.valueHi) : "";
   const contactEmails = splitContactValues(emailRaw.replace(/^e-?mail\s*(id)?\s*:\s*/i, ""));
@@ -130,6 +133,20 @@ export function DepartmentAboutSection({
                           <a href={`tel:${phone.replace(/\s/g, "")}`} className="hover:text-emerald-800 hover:underline">
                             {phone}
                           </a>
+                        </span>
+                      ))}
+                    </span>
+                  </p>
+                )}
+                {faxNumbers.length > 0 && (
+                  <p className="flex items-start justify-center gap-2 sm:justify-start">
+                    <Phone className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" aria-hidden />
+                    <span>
+                      <span className="font-medium">{t("Fax No", "फैक्स नंबर")} : </span>
+                      {faxNumbers.map((fax, index) => (
+                        <span key={fax}>
+                          {index > 0 ? ", " : null}
+                          {fax}
                         </span>
                       ))}
                     </span>

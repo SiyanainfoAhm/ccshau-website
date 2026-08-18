@@ -52,6 +52,11 @@ const nextConfig: NextConfig = {
         destination: "/college/contact-us/:slug",
         permanent: true,
       },
+      {
+        source: "/college/hrm",
+        destination: "/pages/human-resource-management",
+        permanent: false,
+      },
     ];
   },
   images: {

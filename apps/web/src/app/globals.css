@@ -889,15 +889,32 @@ body:not(.high-contrast) :where(a, button, input, select, textarea, [tabindex]:n
 
 @keyframes marquee {
   0% {
-    transform: translateX(0);
+    transform: translateX(100cqi);
   }
   100% {
-    transform: translateX(-50%);
+    transform: translateX(-100%);
   }
 }
 
+.news-ticker-viewport {
+  container-type: inline-size;
+  overflow: hidden;
+}
+
 .animate-marquee {
+  width: max-content;
   animation: marquee var(--marquee-duration, 18s) linear infinite;
+}
+
+@supports not (width: 1cqi) {
+  @keyframes marquee {
+    0% {
+      transform: translateX(100vw);
+    }
+    100% {
+      transform: translateX(-100%);
+    }
+  }
 }
 
 @keyframes ken-burns {

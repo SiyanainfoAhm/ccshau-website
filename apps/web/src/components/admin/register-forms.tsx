@@ -7,6 +7,7 @@ import { GraduationCap } from "lucide-react";
 
 import { registerDepartmentAction } from "@/actions/college-register";
 import { translateFieldsEnToHiAction } from "@/actions/translate";
+import { AdminHtmlField } from "@/components/admin/admin-html-field";
 import type { CollegeOption } from "@/lib/pages/college-register-helpers";
 import { slugify } from "@/lib/utils/slug";
 
@@ -49,6 +50,7 @@ export function RegisterDepartmentForm({
   const [titleEn, setTitleEn] = useState(department?.titleEn ?? "");
   const [titleHi, setTitleHi] = useState(department?.titleHi ?? "");
   const [slug, setSlug] = useState(department?.slug ?? "");
+  const [contentEn, setContentEn] = useState(department?.contentEn ?? "");
   const isEdit = Boolean(department);
 
   function handleTitleBlur() {
@@ -228,15 +230,14 @@ export function RegisterDepartmentForm({
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
             />
           </label>
-          <label className="block text-sm">
-            <span className="font-medium text-slate-700">About (HTML, optional)</span>
-            <textarea
-              name="contentEn"
-              rows={4}
-              defaultValue={department?.contentEn ?? ""}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm"
-            />
-          </label>
+          <AdminHtmlField
+            name="contentEn"
+            label="About (optional)"
+            value={contentEn}
+            onChange={setContentEn}
+            rows={8}
+            disabled={readOnly}
+          />
         </div>
         <p className="mt-3 text-xs text-slate-500">
           Creates an office-portal department page with Faculty sidebar and staff directory enabled.

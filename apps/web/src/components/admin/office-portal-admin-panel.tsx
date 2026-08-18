@@ -20,6 +20,7 @@ import {
 } from "@/actions/office-portal";
 import { translateFieldsEnToHiAction } from "@/actions/translate";
 import { AdminFileUploadField } from "@/components/admin/admin-file-upload-field";
+import { AdminHtmlField } from "@/components/admin/admin-html-field";
 import type {
   PageContactLine,
   PageGalleryItem,
@@ -810,30 +811,25 @@ function SidebarItemForm({
         placeholder="URL (optional — navigates when set)"
         className="rounded-lg border border-slate-300 px-3 py-2 text-sm sm:col-span-2"
       />
-      <label className="block text-sm sm:col-span-2">
-        <span className="mb-1 block font-medium text-slate-700">
-          Content (English) — required if no URL
-        </span>
-        <textarea
+      <div className="sm:col-span-2">
+        <AdminHtmlField
           name="contentEn"
-          rows={4}
+          label="Content (English) — required if no URL"
           value={contentEn}
-          onChange={(e) => setContentEn(e.target.value)}
-          placeholder="HTML content shown in main area when URL is empty"
-          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+          onChange={setContentEn}
+          rows={8}
         />
-      </label>
-      <label className="block text-sm sm:col-span-2">
-        <span className="mb-1 block font-medium text-slate-700">Content (Hindi)</span>
-        <textarea
+      </div>
+      <div className="sm:col-span-2">
+        <AdminHtmlField
           name="contentHi"
-          rows={4}
+          label="Content (Hindi)"
           value={contentHi}
-          onChange={(e) => setContentHi(e.target.value)}
-          placeholder="Hindi HTML content"
-          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-hindi"
+          onChange={setContentHi}
+          rows={8}
+          hindi
         />
-      </label>
+      </div>
       <input
         name="sortOrder"
         type="number"

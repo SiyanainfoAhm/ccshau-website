@@ -7,12 +7,18 @@ import { useState } from "react";
 
 import { useLanguage } from "@/components/design/shared/language-context";
 import { compareBySortOrderThenTitle, isCollegeDepartmentMenuSubsection } from "@/lib/pages/college-nav";
-import { getCollegeContactPath, getCollegeSectionPath, getCollegeSubsectionPath } from "@/lib/pages/routes";
+import {
+  getCollegeContactPath,
+  getCollegePublicHomePath,
+  getCollegeSectionPath,
+  getCollegeSubsectionPath,
+} from "@/lib/pages/routes";
 import { formatMenuLabel } from "@/lib/i18n/menu-label";
 import type { PublicCollegePage } from "@/lib/data/public-types";
 
 function parseCollegeNavState(pathname: string, collegeSlug: string) {
   const base = `/college/${collegeSlug}`;
+  const homePath = getCollegePublicHomePath(collegeSlug);
   const contactPath = getCollegeContactPath(collegeSlug);
 
   if (pathname === contactPath) {
@@ -24,7 +30,7 @@ function parseCollegeNavState(pathname: string, collegeSlug: string) {
     };
   }
 
-  if (pathname === base) {
+  if (pathname === homePath || pathname === base) {
     return {
       isHomePage: true,
       isContactPage: false,
@@ -65,6 +71,7 @@ function collegeNavLinkClass(active: boolean, isOpen: boolean, lang: string) {
 export function CollegeNavigation({ college }: { college: PublicCollegePage }) {
   const { lang, t } = useLanguage();
   const pathname = usePathname();
+  const homePath = getCollegePublicHomePath(college.collegeSlug);
   const { isHomePage, isContactPage, activeSectionSlug, activeSubsectionSlug } = parseCollegeNavState(
     pathname,
     college.collegeSlug,
@@ -110,7 +117,7 @@ export function CollegeNavigation({ college }: { college: PublicCollegePage }) {
                 <li key="home" className="relative flex items-center">
                   {index > 0 && <span className="ccshau-main-nav-separator" aria-hidden />}
                   <Link
-                    href={`/college/${college.collegeSlug}`}
+                    href={homePath}
                     className={collegeNavLinkClass(isActive, false, lang)}
                     onClick={() => setMobileOpen(false)}
                   >
@@ -230,7 +237,7 @@ export function CollegeNavigation({ college }: { college: PublicCollegePage }) {
                   return (
                     <li key="home-mobile">
                       <Link
-                        href={`/college/${college.collegeSlug}`}
+                        href={homePath}
                         onClick={() => setMobileOpen(false)}
                         className={`flex w-full border-b border-white/5 px-4 py-2.5 text-sm font-semibold text-white/90 transition hover:bg-white/10 hover:text-amber-200 ${isActive ? "bg-white/10 text-amber-200" : ""} ${lang === "hi" ? "font-hindi" : ""}`}
                       >

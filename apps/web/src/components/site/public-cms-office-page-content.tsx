@@ -4,11 +4,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
-import { FarmersPortalSection } from "@/components/design/shared/home-sections";
+import { FarmersPortalSection, NewsTicker } from "@/components/design/shared/home-sections";
 import { useLanguage } from "@/components/design/shared/language-context";
 import { DepartmentAboutSection } from "@/components/site/department-about-section";
 import type { PublicCmsPageData } from "@/components/site/public-cms-page-content";
-import type { PublicOfficePortalData, PublicOfficeStaffMember } from "@/lib/data/public-types";
+import type {
+  PublicNewsTickerItem,
+  PublicOfficePortalData,
+  PublicOfficeStaffMember,
+} from "@/lib/data/public-types";
 import { buildImageAlt } from "@/lib/a11y/image-alt";
 import { pickBilingual } from "@/lib/i18n/pick-bilingual";
 import { getPgStudiesSectionPath } from "@/lib/pages/routes";
@@ -46,11 +50,13 @@ export function PublicCmsOfficePageContent({
   office,
   heroContactHref,
   showHeroContactButton = false,
+  newsTickerItems = [],
 }: {
   page: PublicCmsPageData & { featuredImageUrl?: string | null };
   office: PublicOfficePortalData;
   heroContactHref?: string;
   showHeroContactButton?: boolean;
+  newsTickerItems?: PublicNewsTickerItem[];
 }) {
   const { lang, t } = useLanguage();
 
@@ -64,6 +70,17 @@ export function PublicCmsOfficePageContent({
 
   return (
     <>
+      {newsTickerItems.length > 0 && (
+        <NewsTicker
+          variant="future"
+          headlines={newsTickerItems.map((item) => ({
+            titleEn: item.titleEn,
+            titleHi: item.titleHi ?? item.titleEn,
+            href: item.href,
+            isNew: item.isNew,
+          }))}
+        />
+      )}
       <section className="relative min-h-[320px] overflow-hidden">
         <Image
           src={heroImage}
@@ -102,7 +119,7 @@ export function PublicCmsOfficePageContent({
 
       <div className="mx-auto max-w-5xl px-4 py-10">
         <DepartmentAboutSection
-          sectionTitle={t("About PG Studies", "स्नातकोत्तर अध्ययन के बारे में")}
+          sectionTitle={t(`About ${title}`, `${title} के बारे में`)}
           member={member}
           contactLines={office.contactLines}
           aboutHtml={aboutHtml}

@@ -756,17 +756,17 @@ function NewsTickerMarquee({
   edgeFadeClassName: string;
   durationSec?: number;
 }) {
-  const duration = durationSec ?? Math.max(12, items.length * 1.1);
+  const duration = durationSec ?? Math.max(18, items.length * 6);
   return (
-    <div className={`relative overflow-hidden ${barClassName}`}>
+    <div className={`news-ticker-viewport relative ${barClassName}`}>
       <div className={`absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r ${edgeFadeClassName}`} />
       <div className={`absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l ${edgeFadeClassName}`} />
       <div
         className="flex animate-marquee gap-12 whitespace-nowrap"
         style={{ ["--marquee-duration" as string]: `${duration}s` }}
       >
-        {[...items, ...items].map((item, i) => (
-          <span key={i} className="flex items-center gap-3">
+        {items.map((item, i) => (
+          <span key={`${item}-${i}`} className="flex items-center gap-3">
             <span className={badgeClassName}>{badgeLabel}</span>
             {item}
           </span>
@@ -816,19 +816,19 @@ export function NewsTicker({
     return null;
   }
 
-  // Faster than the old fixed 30s loop; scales slightly with item count.
-  const durationSec = Math.max(10, items.length * 0.9);
+  // One pass is viewport + content, so keep a readable crossing time.
+  const durationSec = Math.max(18, items.length * 6);
 
   if (variant === "ministry") {
     const labels = items.map((h) => t(h.titleEn, h.titleHi));
     return (
-      <div className="border-b-2 border-[#0c3b6e] bg-[#0c3b6e] py-2.5 text-sm font-semibold text-white">
+      <div className="news-ticker-viewport border-b-2 border-[#0c3b6e] bg-[#0c3b6e] py-2.5 text-sm font-semibold text-white">
         <div
           className="flex animate-marquee gap-12 whitespace-nowrap px-4"
           style={{ ["--marquee-duration" as string]: `${durationSec}s` }}
         >
-          {[...labels, ...labels].map((item, i) => (
-            <span key={i} className="flex items-center gap-3">
+          {labels.map((item, i) => (
+            <span key={`${item}-${i}`} className="flex items-center gap-3">
               <span className="rounded bg-[#e8850c] px-2 py-0.5 text-[10px] font-black uppercase text-white">
                 {t("Notice", "सूचना")}
               </span>
@@ -855,14 +855,14 @@ export function NewsTicker({
   }
 
   return (
-    <div className="relative overflow-hidden bg-gradient-to-r from-[#d4a012] via-[#f0c14b] to-[#d4a012] py-2.5 text-sm font-bold text-emerald-950 shadow-inner">
+    <div className="news-ticker-viewport relative bg-gradient-to-r from-[#d4a012] via-[#f0c14b] to-[#d4a012] py-2.5 text-sm font-bold text-emerald-950 shadow-inner">
       <div className="absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-[#d4a012] to-transparent" />
       <div className="absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-[#d4a012] to-transparent" />
       <div
         className="flex animate-marquee gap-12 whitespace-nowrap"
         style={{ ["--marquee-duration" as string]: `${durationSec}s` }}
       >
-        {[...items, ...items].map((headline, i) => (
+        {items.map((headline, i) => (
           <FutureNewsTickerRow key={`${headline.titleEn}-${i}`} headline={headline} />
         ))}
       </div>

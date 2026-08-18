@@ -7,6 +7,7 @@ import { useState, useTransition } from "react";
 import { registerCollegeAction } from "@/actions/college-wizard";
 import { suggestSlugAction } from "@/actions/pages";
 import { translateFieldsEnToHiAction } from "@/actions/translate";
+import { AdminHtmlField } from "@/components/admin/admin-html-field";
 import { COLLEGE_ROLE_LABELS } from "@/lib/validations/users";
 import { slugify } from "@/lib/utils/slug";
 
@@ -243,26 +244,21 @@ export function CollegeWizardForm({
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-hindi"
             />
           </label>
-          <label className="block text-sm">
-            <span className="font-medium text-slate-700">About content (English HTML)</span>
-            <textarea
-              name="contentEn"
-              rows={6}
-              value={contentEn}
-              onChange={(e) => setContentEn(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm"
-            />
-          </label>
-          <label className="block text-sm">
-            <span className="font-medium text-slate-700">About content (Hindi HTML)</span>
-            <textarea
-              name="contentHi"
-              rows={4}
-              value={contentHi}
-              onChange={(e) => setContentHi(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm font-hindi"
-            />
-          </label>
+          <AdminHtmlField
+            name="contentEn"
+            label="About content (English)"
+            value={contentEn}
+            onChange={setContentEn}
+            rows={8}
+          />
+          <AdminHtmlField
+            name="contentHi"
+            label="About content (Hindi)"
+            value={contentHi}
+            onChange={setContentHi}
+            rows={6}
+            hindi
+          />
         </div>
       </section>
 

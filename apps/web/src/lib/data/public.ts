@@ -893,12 +893,14 @@ function isCollegeTopNavSection(page: Page): boolean {
   const slug = String(page.slug || "").toLowerCase();
   const title = String(page.title_en || "").trim().toLowerCase();
   return (
-    /^(department|departments|gallery)$/.test(slug) ||
+    /^(department|departments|gallery|dhrm)$/.test(slug) ||
     /(?:^|-)department$/.test(slug) ||
     /(?:^|-)gallery$/.test(slug) ||
     title === "departments" ||
     title === "department" ||
-    title === "gallery"
+    title === "gallery" ||
+    title === "dhrm" ||
+    title === "d h r m"
   );
 }
 

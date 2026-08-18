@@ -7,6 +7,7 @@ import { useEffect, useState, useTransition } from "react";
 import { createPageAction, updatePageAction, type AdminParentPageOption } from "@/actions/pages";
 import { translateFieldsEnToHiAction } from "@/actions/translate";
 import { AdminFileUploadField } from "@/components/admin/admin-file-upload-field";
+import { AdminHtmlField } from "@/components/admin/admin-html-field";
 import { LayoutConfigAdminPanel } from "@/components/admin/layout-config-admin-panel";
 import { LazyOfficePortalAdminPanel } from "@/components/admin/lazy-office-portal-admin-panel";
 import { ParentPagePicker } from "@/components/admin/parent-page-picker";
@@ -548,23 +549,22 @@ export function PageForm({
             />
           </div>
           <div className="md:col-span-2">
-            <label className="mb-1 block text-sm font-medium text-slate-700">Content (English)</label>
-            <textarea
+            <AdminHtmlField
               name="contentEn"
-              rows={8}
+              label="Content (English)"
               value={contentEn}
-              onChange={(e) => setContentEn(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2"
+              onChange={setContentEn}
+              rows={12}
             />
           </div>
           <div className="md:col-span-2">
-            <label className="mb-1 block text-sm font-medium text-slate-700">Content (Hindi)</label>
-            <textarea
+            <AdminHtmlField
               name="contentHi"
-              rows={8}
+              label="Content (Hindi)"
               value={contentHi}
-              onChange={(e) => setContentHi(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 font-hindi"
+              onChange={setContentHi}
+              rows={12}
+              hindi
             />
           </div>
         </div>

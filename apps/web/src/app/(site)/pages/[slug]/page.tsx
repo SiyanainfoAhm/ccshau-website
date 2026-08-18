@@ -5,12 +5,14 @@ import { PublicCmsOfficePageContent } from "@/components/site/public-cms-office-
 import { PublicCmsPageContent } from "@/components/site/public-cms-page-content";
 import {
   getOfficePortalDataByPageId,
+  getPageNewsTickerItemsByPageId,
+  getPublishedCollegeBySlug,
   getPublishedPageBySlug,
   getPublishedPagePublicPath,
 } from "@/lib/data/public";
 import { Tables } from "@/lib/database/names";
 import type { Page } from "@/lib/database/types";
-import { getPublicPagePath } from "@/lib/pages/routes";
+import { getCollegePublicHomePath, getCollegeSlugForCmsPage, getPublicPagePath } from "@/lib/pages/routes";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 function usesOfficeAboutLayout(page: Page) {
@@ -55,13 +57,28 @@ export default async function CmsPage({ params }: { params: Promise<{ slug: stri
     pageRow && usesOfficeAboutLayout(pageRow as Page)
       ? await getOfficePortalDataByPageId(pageRow.id)
       : null;
+  const collegeSlug = getCollegeSlugForCmsPage(slug);
+  const college = collegeSlug ? await getPublishedCollegeBySlug(collegeSlug) : null;
+  const newsTickerItems =
+    page.layoutConfig?.newsTicker && pageRow
+      ? await getPageNewsTickerItemsByPageId(pageRow.id)
+      : [];
 
   return (
     <>
-      <SiteHeader variant="future" />
+      <SiteHeader
+        variant="future"
+        college={college ?? undefined}
+        homeHref={college ? getCollegePublicHomePath(college.collegeSlug) : undefined}
+        pageLayoutConfig={college?.layoutConfig ?? page.layoutConfig}
+      />
       <main id="main-content" className="flex-1">
         {office ? (
-          <PublicCmsOfficePageContent page={page} office={office} />
+          <PublicCmsOfficePageContent
+            page={page}
+            office={office}
+            newsTickerItems={newsTickerItems}
+          />
         ) : (
           <PublicCmsPageContent page={page} />
         )}
