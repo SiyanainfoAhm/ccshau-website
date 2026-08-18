@@ -4,7 +4,6 @@ import { Tables } from "@/lib/database/names";
 import type { FacultyAssignment, FacultyPerson, PageStaff } from "@/lib/database/types";
 import type { PublicOfficeStaffMember } from "@/lib/data/public-types";
 import { getStoredFileUrl } from "@/lib/storage/urls";
-import { isFacultyPeoplePublicForCollege } from "@/lib/settings/site-settings";
 import { slugify } from "@/lib/utils/slug";
 
 export function legacyUserIdFromSlug(staffSlug: string | null | undefined): string | null {
@@ -40,7 +39,7 @@ export type FacultyProfileFields = {
 
 export type FacultyAssignmentFields = {
   pageId: string;
-  sourceStaffId: string;
+  sourceStaffId?: string | null;
   staffSlug: string;
   memberType: "hod" | "faculty";
   designationEn: string;
@@ -93,7 +92,7 @@ function fillBlankPersonFields(existing: FacultyPerson, incoming: ReturnType<typ
   };
 }
 
-async function uniqueGlobalSlug(admin: SupabaseClient, preferred: string, excludePersonId?: string): Promise<string> {
+export async function uniqueGlobalSlug(admin: SupabaseClient, preferred: string, excludePersonId?: string): Promise<string> {
   const base = slugify(preferred) || `faculty-${Date.now()}`;
   for (let i = 0; i < 20; i += 1) {
     const candidate = i === 0 ? base : `${base}-${i + 1}`;
@@ -107,20 +106,22 @@ async function uniqueGlobalSlug(admin: SupabaseClient, preferred: string, exclud
 
 async function findPerson(
   admin: SupabaseClient,
-  opts: { sourceStaffId: string; staffSlug: string; email: string | null },
+  opts: { sourceStaffId?: string | null; staffSlug: string; email: string | null },
 ): Promise<{ person: FacultyPerson; assignment: FacultyAssignment | null } | null> {
-  const { data: byStaff } = await admin
-    .from(Tables.facultyAssignments)
-    .select("*")
-    .eq("source_staff_id", opts.sourceStaffId)
-    .maybeSingle();
-  if (byStaff) {
-    const { data: person } = await admin
-      .from(Tables.facultyPeople)
+  if (opts.sourceStaffId) {
+    const { data: byStaff } = await admin
+      .from(Tables.facultyAssignments)
       .select("*")
-      .eq("id", (byStaff as FacultyAssignment).person_id)
+      .eq("source_staff_id", opts.sourceStaffId)
       .maybeSingle();
-    if (person) return { person: person as FacultyPerson, assignment: byStaff as FacultyAssignment };
+    if (byStaff) {
+      const { data: person } = await admin
+        .from(Tables.facultyPeople)
+        .select("*")
+        .eq("id", (byStaff as FacultyAssignment).person_id)
+        .maybeSingle();
+      if (person) return { person: person as FacultyPerson, assignment: byStaff as FacultyAssignment };
+    }
   }
 
   const legacyId = legacyUserIdFromSlug(opts.staffSlug);
@@ -145,37 +146,9 @@ async function findPerson(
   return null;
 }
 
-async function propagatePersonToStaffCopies(admin: SupabaseClient, person: FacultyPerson) {
-  const { data: assignments } = await admin
-    .from(Tables.facultyAssignments)
-    .select("source_staff_id, designation_en, designation_hi, specialization_en, specialization_hi, member_type, staff_slug, sort_order, is_active")
-    .eq("person_id", person.id);
-  const staffIds = (assignments ?? [])
-    .map((row) => row.source_staff_id as string | null)
-    .filter((id): id is string => Boolean(id));
-  if (!staffIds.length) return;
-
-  for (const row of assignments ?? []) {
-    if (!row.source_staff_id) continue;
-    await admin
-      .from(Tables.pageStaff)
-      .update({
-        name_en: person.name_en,
-        name_hi: person.name_hi,
-        image_path: person.image_path,
-        email: person.email,
-        mobile: person.mobile,
-        qualification_en: person.qualification_en,
-        qualification_hi: person.qualification_hi,
-        experience_en: person.experience_en,
-        experience_hi: person.experience_hi,
-        detail_content_en: person.detail_content_en,
-        detail_content_hi: person.detail_content_hi,
-        specialization_en: (row.specialization_en as string | null) || person.specialization_en,
-        specialization_hi: (row.specialization_hi as string | null) || person.specialization_hi,
-      })
-      .eq("id", row.source_staff_id);
-  }
+async function propagatePersonToStaffCopies(_admin: SupabaseClient, _person: FacultyPerson) {
+  // Public and admin reads use faculty_people + faculty_assignments.
+  // ccshau_page_staff was renamed and is no longer written.
 }
 
 export async function upsertPersonAndAssignment(
@@ -246,7 +219,7 @@ export async function upsertPersonAndAssignment(
   const assignmentPayload = {
     person_id: personId,
     page_id: assignment.pageId,
-    source_staff_id: assignment.sourceStaffId,
+    source_staff_id: assignment.sourceStaffId || null,
     designation_en: assignment.designationEn,
     designation_hi: emptyToNull(assignment.designationHi),
     specialization_en: hasOverride || existingAssignment ? emptyToNull(assignment.specializationEn) : null,
@@ -276,30 +249,8 @@ export async function upsertPersonAndAssignment(
   }
 
   const { data: person } = await admin.from(Tables.facultyPeople).select("*").eq("id", personId).maybeSingle();
-  if (person) {
-    const shared = person as FacultyPerson;
-    if (assignment.overwritePersonProfile) {
-      await propagatePersonToStaffCopies(admin, shared);
-    } else {
-      await admin
-        .from(Tables.pageStaff)
-        .update({
-          name_en: shared.name_en,
-          name_hi: shared.name_hi,
-          image_path: shared.image_path,
-          email: shared.email,
-          mobile: shared.mobile,
-          qualification_en: shared.qualification_en,
-          qualification_hi: shared.qualification_hi,
-          experience_en: shared.experience_en,
-          experience_hi: shared.experience_hi,
-          detail_content_en: shared.detail_content_en,
-          detail_content_hi: shared.detail_content_hi,
-          specialization_en: assignmentPayload.specialization_en || shared.specialization_en,
-          specialization_hi: assignmentPayload.specialization_hi || shared.specialization_hi,
-        })
-        .eq("id", assignment.sourceStaffId);
-    }
+  if (person && assignment.overwritePersonProfile) {
+    await propagatePersonToStaffCopies(admin, person as FacultyPerson);
   }
 
   return { personId, assignmentId };
@@ -380,11 +331,109 @@ export async function saveFacultyPersonProfile(
   if (updated) await propagatePersonToStaffCopies(admin, updated as FacultyPerson);
 }
 
+export async function createFacultyPersonWithAssignment(
+  admin: SupabaseClient,
+  profile: FacultyProfileFields,
+  assignment: FacultyAssignmentFields,
+): Promise<{ personId: string; assignmentId: string }> {
+  const incoming = personRowFromProfile(profile, {
+    globalSlug: await uniqueGlobalSlug(admin, assignment.staffSlug || profile.nameEn),
+    legacyUserId: legacyUserIdFromSlug(assignment.staffSlug),
+  });
+  const { data: person, error: personError } = await admin
+    .from(Tables.facultyPeople)
+    .insert(incoming)
+    .select("id")
+    .single();
+  if (personError || !person) throw new Error(personError?.message ?? "Failed to create faculty person.");
+
+  const { data: row, error: assignmentError } = await admin
+    .from(Tables.facultyAssignments)
+    .insert({
+      person_id: person.id,
+      page_id: assignment.pageId,
+      source_staff_id: assignment.sourceStaffId || null,
+      designation_en: assignment.designationEn,
+      designation_hi: emptyToNull(assignment.designationHi),
+      specialization_en: emptyToNull(assignment.specializationEn),
+      specialization_hi: emptyToNull(assignment.specializationHi),
+      member_type: assignment.memberType,
+      staff_slug: assignment.staffSlug,
+      sort_order: assignment.sortOrder,
+      is_active: assignment.isActive ?? true,
+    })
+    .select("id")
+    .single();
+  if (assignmentError || !row) {
+    await admin.from(Tables.facultyPeople).delete().eq("id", person.id);
+    throw new Error(assignmentError?.message ?? "Failed to create faculty assignment.");
+  }
+  return { personId: person.id, assignmentId: row.id };
+}
+
+export async function assignPersonToDepartment(
+  admin: SupabaseClient,
+  person: FacultyPerson,
+  assignment: FacultyAssignmentFields,
+): Promise<{ assignmentId: string }> {
+  const { data, error } = await admin
+    .from(Tables.facultyAssignments)
+    .insert({
+      person_id: person.id,
+      page_id: assignment.pageId,
+      source_staff_id: assignment.sourceStaffId || null,
+      designation_en: assignment.designationEn,
+      designation_hi: emptyToNull(assignment.designationHi),
+      specialization_en: emptyToNull(assignment.specializationEn),
+      specialization_hi: emptyToNull(assignment.specializationHi),
+      member_type: assignment.memberType,
+      staff_slug: assignment.staffSlug,
+      sort_order: assignment.sortOrder,
+      is_active: assignment.isActive ?? true,
+    })
+    .select("id")
+    .single();
+  if (error || !data) throw new Error(error?.message ?? "Failed to assign faculty.");
+  return { assignmentId: data.id };
+}
+
+export async function deleteFacultyAssignment(
+  admin: SupabaseClient,
+  assignmentId: string,
+): Promise<void> {
+  const { error } = await admin.from(Tables.facultyAssignments).delete().eq("id", assignmentId);
+  if (error) throw new Error(error.message);
+}
+
 export async function deactivateAssignmentForStaff(admin: SupabaseClient, sourceStaffId: string): Promise<void> {
   await admin
     .from(Tables.facultyAssignments)
     .update({ is_active: false, source_staff_id: null })
     .eq("source_staff_id", sourceStaffId);
+}
+
+async function facultyHrefBuilder(
+  admin: SupabaseClient,
+  pageId: string,
+): Promise<(staffSlug: string | null) => string | null> {
+  const { data: page } = await admin
+    .from(Tables.pages)
+    .select("slug, parent_id, college_root_id")
+    .eq("id", pageId)
+    .maybeSingle();
+  if (!page?.parent_id || !page.college_root_id || !page.slug) {
+    return () => null;
+  }
+  const [{ data: section }, { data: college }] = await Promise.all([
+    admin.from(Tables.pages).select("slug").eq("id", page.parent_id).maybeSingle(),
+    admin.from(Tables.pages).select("slug").eq("id", page.college_root_id).maybeSingle(),
+  ]);
+  if (!section?.slug || !college?.slug) return () => null;
+  const deptSlug = page.slug as string;
+  const sectionSlug = section.slug as string;
+  const collegeSlug = college.slug as string;
+  return (staffSlug) =>
+    staffSlug ? `/college/${collegeSlug}/${sectionSlug}/${deptSlug}/faculty/${staffSlug}` : null;
 }
 
 export function publicStaffFromPersonAssignment(
@@ -418,16 +467,7 @@ export function publicStaffFromPersonAssignment(
 export async function listPublicStaffForPage(
   admin: SupabaseClient,
   pageId: string,
-): Promise<PublicOfficeStaffMember[] | null> {
-  const { data: page } = await admin
-    .from(Tables.pages)
-    .select("id, college_root_id")
-    .eq("id", pageId)
-    .maybeSingle();
-  if (!page || !(await isFacultyPeoplePublicForCollege(page.college_root_id))) {
-    return null;
-  }
-
+): Promise<PublicOfficeStaffMember[]> {
   const { data: assignments } = await admin
     .from(Tables.facultyAssignments)
     .select("*")
@@ -437,18 +477,12 @@ export async function listPublicStaffForPage(
   if (!rows.length) return [];
 
   const personIds = [...new Set(rows.map((row) => row.person_id))];
-  const staffIds = rows.map((row) => row.source_staff_id).filter((id): id is string => Boolean(id));
-  const [{ data: people }, { data: staffRows }] = await Promise.all([
+  const [{ data: people }, hrefForSlug, alsoByPerson] = await Promise.all([
     admin.from(Tables.facultyPeople).select("*").in("id", personIds).eq("is_active", true),
-    staffIds.length
-      ? admin.from(Tables.pageStaff).select("id, detail_href").in("id", staffIds)
-      : Promise.resolve({ data: [] }),
+    facultyHrefBuilder(admin, pageId),
+    listAlsoAtForPeople(admin, personIds, pageId),
   ]);
   const personById = new Map(((people ?? []) as FacultyPerson[]).map((p) => [p.id, p]));
-  const hrefByStaffId = new Map(
-    ((staffRows ?? []) as Array<{ id: string; detail_href: string | null }>).map((row) => [row.id, row.detail_href]),
-  );
-  const alsoByPerson = await listAlsoAtForPeople(admin, personIds, pageId);
 
   return rows
     .slice()
@@ -464,10 +498,14 @@ export async function listPublicStaffForPage(
     .flatMap((assignment) => {
       const person = personById.get(assignment.person_id);
       if (!person) return [];
-      const detailHref = assignment.source_staff_id
-        ? hrefByStaffId.get(assignment.source_staff_id) ?? null
-        : null;
-      return [publicStaffFromPersonAssignment(person, assignment, detailHref, alsoByPerson.get(person.id))];
+      return [
+        publicStaffFromPersonAssignment(
+          person,
+          assignment,
+          hrefForSlug(assignment.staff_slug),
+          alsoByPerson.get(person.id),
+        ),
+      ];
     });
 }
 
@@ -476,15 +514,6 @@ export async function getPublicFacultyFromAssignment(
   pageId: string,
   facultySlug: string,
 ): Promise<PublicOfficeStaffMember | null> {
-  const { data: page } = await admin
-    .from(Tables.pages)
-    .select("id, college_root_id")
-    .eq("id", pageId)
-    .maybeSingle();
-  if (!page || !(await isFacultyPeoplePublicForCollege(page.college_root_id))) {
-    return null;
-  }
-
   const { data: assignment } = await admin
     .from(Tables.facultyAssignments)
     .select("*")
@@ -503,17 +532,14 @@ export async function getPublicFacultyFromAssignment(
   if (!person) return null;
 
   const row = assignment as FacultyAssignment;
-  let detailHref: string | null = null;
-  if (row.source_staff_id) {
-    const { data: staff } = await admin
-      .from(Tables.pageStaff)
-      .select("detail_href")
-      .eq("id", row.source_staff_id)
-      .maybeSingle();
-    detailHref = (staff?.detail_href as string | null) ?? null;
-  }
+  const hrefForSlug = await facultyHrefBuilder(admin, pageId);
   const alsoAt = await listAlsoAt(admin, row.person_id, pageId);
-  return publicStaffFromPersonAssignment(person as FacultyPerson, row, detailHref, alsoAt);
+  return publicStaffFromPersonAssignment(
+    person as FacultyPerson,
+    row,
+    hrefForSlug(row.staff_slug),
+    alsoAt,
+  );
 }
 
 async function listAlsoAtForPeople(

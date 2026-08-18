@@ -44,7 +44,8 @@ export function canAccessAdmin(session: AdminSession): boolean {
     isSuperAdminSession(session) ||
     hasUniversityCmsRole(session) ||
     isCollegeScopedUser(session) ||
-    Boolean(session.departmentPageAssignment)
+    Boolean(session.departmentPageAssignment) ||
+    Boolean(session.facultyPerson)
   );
 }
 

@@ -24,6 +24,7 @@ import {
   Settings,
   ShoppingBag,
   Users,
+  UserRound,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -71,22 +72,37 @@ const collegeOnlyNavItems: AdminNavItem[] = [
   { href: "/admin/pages", label: "College pages", icon: FileText },
 ];
 
-const departmentHodOnlyNavItems: AdminNavItem[] = [
+const departmentHodCoreNavItems: AdminNavItem[] = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/admin/pages", label: "My department", icon: FileText },
-  { href: "/admin/register/faculty", label: "Faculty", icon: Users },
+];
+
+const facultyOnlyNavItems: AdminNavItem[] = [
+  { href: "/admin/register/faculty/me", label: "My profile", icon: UserRound },
 ];
 
 export function getSidebarNavItems(access: AdminNavAccess): AdminNavItem[] {
-  if (access.isDepartmentHodOnly) return departmentHodOnlyNavItems;
-  if (access.isCollegeOnly) return collegeOnlyNavItems;
+  if (access.isFacultyOnly) return facultyOnlyNavItems;
+  if (access.isDepartmentHodOnly) {
+    return access.hasFacultyPerson
+      ? [facultyOnlyNavItems[0], ...departmentHodCoreNavItems]
+      : departmentHodCoreNavItems;
+  }
+  if (access.isCollegeOnly) {
+    return access.hasFacultyPerson
+      ? [facultyOnlyNavItems[0], ...collegeOnlyNavItems]
+      : collegeOnlyNavItems;
+  }
 
   const visibleBase = baseNavItems.filter((item) => canSeeAdminNavHref(access, item.href));
+  const withProfile = access.hasFacultyPerson
+    ? [facultyOnlyNavItems[0], ...visibleBase]
+    : visibleBase;
 
-  if (!access.isSuperAdmin) return visibleBase;
+  if (!access.isSuperAdmin) return withProfile;
 
-  const settings = visibleBase.find((item) => item.href === "/admin/settings");
-  const withoutSettings = visibleBase.filter((item) => item.href !== "/admin/settings");
+  const settings = withProfile.find((item) => item.href === "/admin/settings");
+  const withoutSettings = withProfile.filter((item) => item.href !== "/admin/settings");
   return [...withoutSettings, ...superAdminNavItems, ...(settings ? [settings] : [])];
 }
 
@@ -133,7 +149,8 @@ export function AdminSidebar({
           <Link href="/admin" className="block">
             <p className="font-display text-xl font-bold text-gradient-gold">CCSHAU</p>
             <p className="mt-1 text-xs text-emerald-200/80">
-              {(access.isCollegeOnly || access.isDepartmentHodOnly) && collegeName
+              {(access.isCollegeOnly || access.isDepartmentHodOnly || access.isFacultyOnly) &&
+              collegeName
                 ? collegeName
                 : "Content Management"}
             </p>

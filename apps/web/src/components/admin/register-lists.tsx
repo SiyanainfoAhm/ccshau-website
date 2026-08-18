@@ -63,13 +63,34 @@ export function DepartmentRegisterList({
   const showCollege = !collegePageId;
   const colSpan = showCollege ? 5 : 4;
   const [query, setQuery] = useState("");
+  const [departmentId, setDepartmentId] = useState("");
   const [page, setPage] = useState(1);
   const normalizedQuery = query.trim().toLowerCase();
 
+  const departmentOptions = useMemo(
+    () =>
+      [...departments]
+        .map((dept) => ({
+          id: dept.id,
+          title: showCollege && dept.college_title ? `${dept.college_title} → ${dept.title_en}` : dept.title_en,
+        }))
+        .sort((a, b) => a.title.localeCompare(b.title)),
+    [departments, showCollege],
+  );
+
   const filteredDepartments = useMemo(() => {
-    if (!normalizedQuery) return departments;
-    return departments.filter((dept) => matchesDepartmentQuery(dept, normalizedQuery, showCollege));
-  }, [departments, normalizedQuery, showCollege]);
+    let rows = departments;
+    if (departmentId) {
+      rows = rows.filter((dept) => dept.id === departmentId);
+    }
+    if (normalizedQuery) {
+      rows = rows.filter((dept) => matchesDepartmentQuery(dept, normalizedQuery, showCollege));
+    }
+    return rows;
+  }, [departments, departmentId, normalizedQuery, showCollege]);
+
+  const hasFilter = Boolean(normalizedQuery || departmentId);
+  const selectedDepartmentTitle = departmentOptions.find((dept) => dept.id === departmentId)?.title;
 
   const totalPages = Math.max(1, Math.ceil(filteredDepartments.length / ADMIN_DEFAULT_PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
@@ -81,28 +102,51 @@ export function DepartmentRegisterList({
   return (
     <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
       <div className="border-b border-slate-100 px-4 py-3">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <h2 className="font-display text-lg font-bold text-slate-900">Registered departments</h2>
             <p className="text-xs text-slate-500">
-              {normalizedQuery
+              {hasFilter
                 ? `${filteredDepartments.length} of ${departments.length} shown`
                 : `${departments.length} department${departments.length === 1 ? "" : "s"}`}
             </p>
           </div>
-          <div className="relative w-full sm:max-w-xs">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input
-              type="search"
-              value={query}
-              onChange={(e) => {
-                setQuery(e.target.value);
-                setPage(1);
-              }}
-              placeholder="Search by department…"
-              className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-4 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
-              aria-label="Search departments by name"
-            />
+          <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center lg:w-auto lg:justify-end">
+            {departmentOptions.length > 0 ? (
+              <label className="w-full sm:w-64">
+                <span className="sr-only">Filter by department</span>
+                <select
+                  value={departmentId}
+                  onChange={(e) => {
+                    setDepartmentId(e.target.value);
+                    setPage(1);
+                  }}
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                  aria-label="Filter by department"
+                >
+                  <option value="">All departments</option>
+                  {departmentOptions.map((dept) => (
+                    <option key={dept.id} value={dept.id}>
+                      {dept.title}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
+            <div className="relative w-full sm:max-w-xs">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input
+                type="search"
+                value={query}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  setPage(1);
+                }}
+                placeholder="Search name or slug…"
+                className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-4 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                aria-label="Search departments by name or slug"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -129,7 +173,11 @@ export function DepartmentRegisterList({
             ) : filteredDepartments.length === 0 ? (
               <tr>
                 <td colSpan={colSpan} className="px-4 py-8 text-center text-slate-500">
-                  No departments match &quot;{query.trim()}&quot;.
+                  {departmentId && normalizedQuery
+                    ? `No departments match “${query.trim()}” in ${selectedDepartmentTitle}.`
+                    : departmentId
+                      ? `No departments match ${selectedDepartmentTitle}.`
+                      : `No departments match “${query.trim()}”.`}
                 </td>
               </tr>
             ) : (
@@ -265,25 +313,52 @@ function groupFaculty(rows: FacultyListItem[]): FacultyGroup[] {
 
 export function FacultyRegisterList({
   faculty,
+  departments = [],
   collegePageId,
   canEdit = true,
   canDelete = true,
 }: {
   faculty: FacultyListItem[];
+  departments?: DepartmentOption[];
   collegePageId?: string;
   canEdit?: boolean;
   canDelete?: boolean;
 }) {
   const [query, setQuery] = useState("");
+  const [departmentId, setDepartmentId] = useState("");
   const [page, setPage] = useState(1);
   const normalizedQuery = query.trim().toLowerCase();
 
+  const departmentOptions = useMemo(() => {
+    const unique = new Map<string, string>();
+    for (const dept of departments) {
+      unique.set(dept.id, dept.title_en);
+    }
+    for (const row of faculty) {
+      if (row.page_id && !unique.has(row.page_id)) {
+        unique.set(row.page_id, row.department_title);
+      }
+    }
+    return [...unique.entries()]
+      .map(([id, title]) => ({ id, title }))
+      .sort((a, b) => a.title.localeCompare(b.title));
+  }, [departments, faculty]);
+
   const filteredFaculty = useMemo(() => {
-    if (!normalizedQuery) return faculty;
-    return faculty.filter((member) => matchesFacultyQuery(member, normalizedQuery, !collegePageId));
-  }, [faculty, normalizedQuery, collegePageId]);
+    let rows = faculty;
+    if (departmentId) {
+      rows = rows.filter((member) => member.page_id === departmentId);
+    }
+    if (normalizedQuery) {
+      rows = rows.filter((member) => matchesFacultyQuery(member, normalizedQuery, !collegePageId));
+    }
+    return rows;
+  }, [faculty, departmentId, normalizedQuery, collegePageId]);
 
   const groups = useMemo(() => groupFaculty(filteredFaculty), [filteredFaculty]);
+  const totalPeople = useMemo(() => groupFaculty(faculty).length, [faculty]);
+  const hasFilter = Boolean(normalizedQuery || departmentId);
+  const selectedDepartmentTitle = departmentOptions.find((dept) => dept.id === departmentId)?.title;
   const totalPages = Math.max(1, Math.ceil(groups.length / ADMIN_DEFAULT_PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
   const pageStart = (safePage - 1) * ADMIN_DEFAULT_PAGE_SIZE;
@@ -299,28 +374,51 @@ export function FacultyRegisterList({
   return (
     <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
       <div className="border-b border-slate-100 px-4 py-3">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <h2 className="font-display text-lg font-bold text-slate-900">Registered faculty</h2>
             <p className="text-xs text-slate-500">
-              {normalizedQuery
-                ? `${groups.length} of ${groupFaculty(faculty).length} people shown`
+              {hasFilter
+                ? `${groups.length} of ${totalPeople} people shown`
                 : `${groups.length} ${groups.length === 1 ? "person" : "people"} · ${faculty.length} assignment${faculty.length === 1 ? "" : "s"}`}
             </p>
           </div>
-          <div className="relative w-full sm:max-w-xs">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input
-              type="search"
-              value={query}
-              onChange={(e) => {
-                setQuery(e.target.value);
-                setPage(1);
-              }}
-              placeholder="Search name, email, or department…"
-              className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-4 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
-              aria-label="Search faculty by department or name"
-            />
+          <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center lg:w-auto lg:justify-end">
+            {departmentOptions.length > 0 ? (
+              <label className="w-full sm:w-64">
+                <span className="sr-only">Filter by department</span>
+                <select
+                  value={departmentId}
+                  onChange={(e) => {
+                    setDepartmentId(e.target.value);
+                    setPage(1);
+                  }}
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                  aria-label="Filter by department"
+                >
+                  <option value="">All departments</option>
+                  {departmentOptions.map((dept) => (
+                    <option key={dept.id} value={dept.id}>
+                      {dept.title}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
+            <div className="relative w-full sm:max-w-xs">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input
+                type="search"
+                value={query}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  setPage(1);
+                }}
+                placeholder="Search name or email…"
+                className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-4 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                aria-label="Search faculty by name or email"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -343,7 +441,11 @@ export function FacultyRegisterList({
             ) : groups.length === 0 ? (
               <tr>
                 <td colSpan={3} className="px-4 py-8 text-center text-slate-500">
-                  No faculty match &quot;{query.trim()}&quot;.
+                  {departmentId && normalizedQuery
+                    ? `No faculty match “${query.trim()}” in ${selectedDepartmentTitle}.`
+                    : departmentId
+                      ? `No faculty in ${selectedDepartmentTitle}.`
+                      : `No faculty match “${query.trim()}”.`}
                 </td>
               </tr>
             ) : (

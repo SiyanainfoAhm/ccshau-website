@@ -58,9 +58,11 @@ export function FacultyRegisterPage({
           </Link>
           <h1 className="mt-2 font-display text-2xl font-bold text-slate-900">Faculty</h1>
           <p className="text-sm text-slate-500">
-            {canEdit
-              ? `One shared profile per person. Add new, or assign an existing person to another department with a local designation.`
-              : `View HOD and faculty for ${college.title_en}.`}
+            {hideDepartmentCta
+              ? "You can update only your own profile from My profile."
+              : canEdit
+                ? `One shared profile per person. Add new, or assign an existing person to another department with a local designation.`
+                : `View HOD and faculty for ${college.title_en}.`}
           </p>
         </div>
         {canEdit && (
@@ -97,6 +99,7 @@ export function FacultyRegisterPage({
 
       <FacultyRegisterList
         faculty={faculty}
+        departments={departments}
         collegePageId={college.id}
         canEdit={canEdit}
         canDelete={canDelete}

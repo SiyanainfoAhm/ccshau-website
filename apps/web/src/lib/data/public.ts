@@ -16,7 +16,6 @@ import type {
   PageNewsTickerItem,
   PageStudentCornerItem,
   PageSidebarItem,
-  PageStaff,
   RelatedLink,
   Tender,
 } from "@/lib/database/types";
@@ -720,20 +719,14 @@ export async function getOfficePortalDataForPage(
     };
   }
 
-  const [contactsRes, staffRes, sidebarRes, pagesRes] = await Promise.all([
+  const [contactsRes, peopleStaff, sidebarRes, pagesRes] = await Promise.all([
     admin
       .from(Tables.pageContactLines)
       .select("*")
       .eq("page_id", page.id)
       .eq("is_active", true)
       .order("sort_order"),
-    admin
-      .from(Tables.pageStaff)
-      .select("*")
-      .eq("page_id", page.id)
-      .eq("is_active", true)
-      .order("sort_order")
-      .order("name_en"),
+    listPublicStaffForPage(admin, page.id),
     admin
       .from(Tables.pageSidebarItems)
       .select("*")
@@ -798,36 +791,6 @@ export async function getOfficePortalDataForPage(
           }
         : null;
 
-  const pageStaffMembers = ((staffRes.data ?? []) as PageStaff[])
-    .slice()
-    .sort((a, b) => {
-      const aHod = (a.member_type ?? "faculty") === "hod" ? 0 : 1;
-      const bHod = (b.member_type ?? "faculty") === "hod" ? 0 : 1;
-      if (aHod !== bHod) return aHod - bHod;
-      if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order;
-      return String(a.name_en || "").localeCompare(String(b.name_en || ""));
-    })
-    .map((row) => ({
-      nameEn: row.name_en,
-      nameHi: row.name_hi,
-      designationEn: row.designation_en,
-      designationHi: row.designation_hi,
-      specializationEn: row.specialization_en,
-      specializationHi: row.specialization_hi,
-      imageUrl: row.image_path ? getStoredFileUrl(row.image_path) : null,
-      detailHref: row.detail_href,
-      memberType: row.member_type ?? "faculty",
-      mobile: row.mobile,
-      email: row.email,
-      experienceEn: row.experience_en,
-      experienceHi: row.experience_hi,
-      qualificationEn: row.qualification_en,
-      qualificationHi: row.qualification_hi,
-      detailContentEn: row.detail_content_en,
-      detailContentHi: row.detail_content_hi,
-    }));
-  const peopleStaff = await listPublicStaffForPage(admin, page.id);
-
   return {
     contactLines: ((contactsRes.data ?? []) as PageContactLine[]).map((row) => ({
       labelEn: row.label_en,
@@ -835,7 +798,7 @@ export async function getOfficePortalDataForPage(
       valueEn: row.value_en,
       valueHi: row.value_hi,
     })),
-    staff: peopleStaff !== null ? peopleStaff : pageStaffMembers,
+    staff: peopleStaff,
     sidebarLeft,
     sidebarRight,
     headOfficer,
@@ -1184,53 +1147,16 @@ export async function getPublishedFacultyProfile(
   if (!admin) return null;
 
   const fromAssignment = await getPublicFacultyFromAssignment(admin, ctx.subsection.pageId, facultySlug);
-  if (fromAssignment) {
-    return {
-      college: ctx.college,
-      section: ctx.section,
-      department: ctx.subsection,
-      staff: {
-        ...fromAssignment,
-        detailContentEn: fromAssignment.detailContentEn ?? null,
-        detailContentHi: fromAssignment.detailContentHi ?? null,
-      },
-    };
-  }
-
-  const { data: row } = await admin
-    .from(Tables.pageStaff)
-    .select("*")
-    .eq("page_id", ctx.subsection.pageId)
-    .eq("staff_slug", facultySlug)
-    .eq("is_active", true)
-    .maybeSingle();
-
-  if (!row) return null;
-
-  const staffRow = row as PageStaff;
+  if (!fromAssignment) return null;
 
   return {
     college: ctx.college,
     section: ctx.section,
     department: ctx.subsection,
     staff: {
-      nameEn: staffRow.name_en,
-      nameHi: staffRow.name_hi,
-      designationEn: staffRow.designation_en,
-      designationHi: staffRow.designation_hi,
-      specializationEn: staffRow.specialization_en,
-      specializationHi: staffRow.specialization_hi,
-      imageUrl: staffRow.image_path ? getStoredFileUrl(staffRow.image_path) : null,
-      detailHref: staffRow.detail_href,
-      memberType: staffRow.member_type ?? "faculty",
-      mobile: staffRow.mobile,
-      email: staffRow.email,
-      experienceEn: staffRow.experience_en,
-      experienceHi: staffRow.experience_hi,
-      qualificationEn: staffRow.qualification_en,
-      qualificationHi: staffRow.qualification_hi,
-      detailContentEn: staffRow.detail_content_en,
-      detailContentHi: staffRow.detail_content_hi,
+      ...fromAssignment,
+      detailContentEn: fromAssignment.detailContentEn ?? null,
+      detailContentHi: fromAssignment.detailContentHi ?? null,
     },
   };
 }

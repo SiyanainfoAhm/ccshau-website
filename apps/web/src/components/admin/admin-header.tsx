@@ -1,7 +1,6 @@
 "use client";
 
 import { LogOut } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import type { AdminSession } from "@/lib/auth/session";
@@ -17,18 +16,19 @@ function formatSessionRole(session: AdminSession): string {
   if (session.departmentPageAssignment) {
     return DEPARTMENT_HOD_ROLE_LABEL;
   }
+  if (session.facultyPerson) {
+    return "Faculty";
+  }
   return "no role";
 }
 
 export function AdminHeader({ session }: { session: AdminSession }) {
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   async function handleLogout() {
     setLoading(true);
     await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/admin/login");
-    router.refresh();
+    window.location.assign("/");
   }
 
   return (

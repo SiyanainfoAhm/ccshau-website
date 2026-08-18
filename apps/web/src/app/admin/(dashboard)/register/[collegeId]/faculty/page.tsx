@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import {
   getCollegeForRegisterHub,
@@ -16,9 +16,11 @@ export default async function CollegeFacultyRegisterPage({
   params: Promise<{ collegeId: string }>;
 }) {
   const session = await requireCollegeRegisterAdminOrRedirect();
+  if (isDepartmentHodOnlyUser(session)) {
+    redirect(session.facultyPerson ? "/admin/register/faculty/me" : "/admin");
+  }
   const canEdit = canEditPages(session);
-  const canDelete = canDeletePages(session) || Boolean(session.departmentPageAssignment);
-  const hodOnly = isDepartmentHodOnlyUser(session);
+  const canDelete = canDeletePages(session);
   const { collegeId } = await params;
   const [college, departments, faculty] = await Promise.all([
     getCollegeForRegisterHub(collegeId),
@@ -35,9 +37,6 @@ export default async function CollegeFacultyRegisterPage({
       faculty={faculty}
       canEdit={canEdit}
       canDelete={canDelete}
-      backHref={hodOnly ? "/admin" : undefined}
-      backLabel={hodOnly ? "Dashboard" : undefined}
-      hideDepartmentCta={hodOnly}
     />
   );
 }

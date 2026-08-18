@@ -143,6 +143,12 @@ export function SiteHeader({
             {(!isLight || isHeritage || isMinistry) && (
               <AccessibilityToolbar variant={isLight ? "on-light" : "on-dark"} />
             )}
+            <Link
+              href="/faculty-login"
+              className={`hidden sm:inline ${isHeritage ? "text-[#9e4a5a] hover:underline" : isMinistry ? "text-[#0c3b6e] hover:underline" : isLight ? "text-emerald-700 hover:underline" : "text-amber-200 hover:text-white"}`}
+            >
+              {t("Faculty Login", "संकाय लॉगिन")}
+            </Link>
             {!(isCollegeContext || isPgStudiesContext) && (
               <Link
                 href="/design"

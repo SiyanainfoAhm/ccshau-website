@@ -15,7 +15,15 @@ import type { CaptchaClientConfig } from "@/lib/auth/captcha";
 const devPrefillEmail =
   isDevLoginPrefillEnabled() ? getDevLoginPrefillEmail() : null;
 
-export function LoginForm({ captcha }: { captcha: CaptchaClientConfig }) {
+export function LoginForm({
+  captcha,
+  nextPath = "/admin",
+  submitLabel = "Sign in to CMS",
+}: {
+  captcha: CaptchaClientConfig;
+  nextPath?: string;
+  submitLabel?: string;
+}) {
   const router = useRouter();
   const [email, setEmail] = useState(devPrefillEmail ?? "");
   const [password, setPassword] = useState("");
@@ -48,7 +56,7 @@ export function LoginForm({ captcha }: { captcha: CaptchaClientConfig }) {
         return;
       }
 
-      router.push("/admin");
+      router.push(nextPath);
       router.refresh();
     } catch {
       setError("Network error. Please try again.");
@@ -109,7 +117,7 @@ export function LoginForm({ captcha }: { captcha: CaptchaClientConfig }) {
         disabled={loading}
         className="w-full rounded-lg bg-ccshau-chrome-900 px-4 py-3 font-semibold text-white transition hover:bg-ccshau-chrome-800 disabled:opacity-60"
       >
-        {loading ? "Signing in…" : "Sign in to CMS"}
+        {loading ? "Signing in…" : submitLabel}
       </button>
 
       {devPrefillEmail && (

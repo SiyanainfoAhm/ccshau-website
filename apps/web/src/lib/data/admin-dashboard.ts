@@ -87,6 +87,7 @@ function roleLabel(session: AdminSession): string {
     return map[session.collegeAssignment.role] ?? "College Staff";
   }
   if (session.departmentPageAssignment) return DEPARTMENT_HOD_ROLE_LABEL;
+  if (session.facultyPerson) return "Faculty";
   const role = session.primaryRole;
   const map: Record<string, string> = {
     university_admin: "University Admin",
@@ -107,7 +108,10 @@ export async function getAdminDashboardData(session: AdminSession): Promise<Admi
   const collegeRootId = session.collegeAssignment?.collegePageId;
   const departmentPageId = session.departmentPageAssignment?.departmentPageId;
   const noAccess =
-    session.roles.length === 0 && !session.collegeAssignment && !session.departmentPageAssignment;
+    session.roles.length === 0 &&
+    !session.collegeAssignment &&
+    !session.departmentPageAssignment &&
+    !session.facultyPerson;
   const allowedCmsModules = await getAllowedCmsModulesForSession(session);
   const access = getAdminNavAccess(session, allowedCmsModules);
 
@@ -166,7 +170,7 @@ export async function getAdminDashboardData(session: AdminSession): Promise<Admi
     });
   }
 
-  if (!collegeOnly && !hodOnly && admin) {
+  if (!collegeOnly && !hodOnly && !session.facultyPerson && admin) {
     const [
       newsTotal,
       newsPublished,

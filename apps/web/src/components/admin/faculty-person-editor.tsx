@@ -13,9 +13,13 @@ import { getStoredFileUrl } from "@/lib/storage/urls";
 export function FacultyPersonEditor({
   person,
   readOnly = false,
+  successMessage,
+  ownProfileOnly = false,
 }: {
   person: FacultyPerson;
   readOnly?: boolean;
+  successMessage?: string;
+  ownProfileOnly?: boolean;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -66,7 +70,9 @@ export function FacultyPersonEditor({
         setError(result.error);
         return;
       }
-      setSuccess("Shared profile saved. Other Activities now match on every assignment.");
+      setSuccess(
+        successMessage ?? "Shared profile saved. Other Activities now match on every assignment.",
+      );
       router.refresh();
     });
   }
@@ -82,9 +88,13 @@ export function FacultyPersonEditor({
         <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="text-lg font-semibold text-slate-900">Shared profile</h2>
+              <h2 className="text-lg font-semibold text-slate-900">
+                {ownProfileOnly ? "Your profile" : "Shared profile"}
+              </h2>
               <p className="mt-1 text-xs text-slate-500">
-                Name, photo, contact, qualification, and Other Activities apply everywhere this person is assigned.
+                {ownProfileOnly
+                  ? "You can change only your own name, photo, contact details, specialization, and Other Activities. Use Change password below to update your login password."
+                  : "Name, photo, contact, qualification, and Other Activities apply everywhere this person is assigned."}
               </p>
             </div>
             {!readOnly ? (

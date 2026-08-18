@@ -29,7 +29,8 @@ export function AdminShell({
         access={access}
         collegeName={
           session.collegeAssignment?.collegeName ??
-          session.departmentPageAssignment?.departmentTitle
+          session.departmentPageAssignment?.departmentTitle ??
+          session.facultyPerson?.nameEn
         }
       />
       <div className="flex min-w-0 flex-1 flex-col">

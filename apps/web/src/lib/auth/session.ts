@@ -9,6 +9,8 @@ import {
 import { getCollegeAssignmentForUser } from "@/lib/auth/college-scope-server";
 import type { DepartmentPageAssignment } from "@/lib/auth/department-hod-scope";
 import { getDepartmentPageAssignmentForUser } from "@/lib/auth/department-hod-scope-server";
+import type { FacultyPersonSession } from "@/lib/auth/faculty-scope";
+import { getFacultyPersonForUser } from "@/lib/auth/faculty-scope-server";
 import {
   getAdminNavAccess,
   canAccessAdminPath,
@@ -21,7 +23,7 @@ import type { CmsModule, UserRole } from "@/lib/database/types";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
-export type { CollegeAssignment, DepartmentPageAssignment };
+export type { CollegeAssignment, DepartmentPageAssignment, FacultyPersonSession };
 
 export interface AdminSession {
   userId: string;
@@ -32,6 +34,7 @@ export interface AdminSession {
   departmentId: string | null;
   collegeAssignment: CollegeAssignment | null;
   departmentPageAssignment: DepartmentPageAssignment | null;
+  facultyPerson: FacultyPersonSession | null;
 }
 
 /** One session resolution per RSC request (layout + page + actions share it). */
@@ -48,6 +51,11 @@ export const getAdminSession = cache(async (): Promise<AdminSession | null> => {
     getCollegeAssignmentForUser(user.id),
     getDepartmentPageAssignmentForUser(user.id),
   ]);
+  const facultyPerson = await getFacultyPersonForUser(
+    user.id,
+    user.email,
+    departmentPageAssignment?.departmentPageId,
+  );
   const admin = createAdminClient();
 
   let displayName = user.email;
@@ -76,6 +84,7 @@ export const getAdminSession = cache(async (): Promise<AdminSession | null> => {
     departmentId,
     collegeAssignment,
     departmentPageAssignment,
+    facultyPerson,
   };
 
   if (!canAccessAdmin(session)) return null;

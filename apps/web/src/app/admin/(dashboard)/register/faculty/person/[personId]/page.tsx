@@ -1,14 +1,17 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import {
   getDepartmentsForRegisterForm,
+  getFacultyLoginLink,
   getFacultyPersonForEdit,
   requireCollegeRegisterAdminOrRedirect,
 } from "@/actions/college-register";
 import { FacultyAssignmentsPanel } from "@/components/admin/faculty-assignments-panel";
+import { FacultyLoginLinkPanel } from "@/components/admin/faculty-login-link-panel";
 import { FacultyPersonEditor } from "@/components/admin/faculty-person-editor";
-import { canEditPages } from "@/lib/auth/college-scope";
+import { canEditPages, isSuperAdminSession } from "@/lib/auth/college-scope";
+import { isOwnFacultyProfileOnlyUser } from "@/lib/auth/faculty-scope";
 
 export default async function EditFacultyPersonPage({
   params,
@@ -16,11 +19,20 @@ export default async function EditFacultyPersonPage({
   params: Promise<{ personId: string }>;
 }) {
   const session = await requireCollegeRegisterAdminOrRedirect();
-  const canEdit = canEditPages(session);
   const { personId } = await params;
-  const [data, departments] = await Promise.all([
+
+  if (isOwnFacultyProfileOnlyUser(session)) {
+    if (session.facultyPerson?.id === personId) {
+      redirect("/admin/register/faculty/me");
+    }
+    notFound();
+  }
+
+  const canEdit = canEditPages(session);
+  const [data, departments, loginLink] = await Promise.all([
     getFacultyPersonForEdit(personId),
     getDepartmentsForRegisterForm(),
+    getFacultyLoginLink(personId),
   ]);
 
   if (!data) notFound();
@@ -46,6 +58,14 @@ export default async function EditFacultyPersonPage({
         )}
       </div>
       <FacultyPersonEditor person={data.person} readOnly={!canEdit} />
+      {canEdit ? (
+        <FacultyLoginLinkPanel
+          personId={data.person.id}
+          link={loginLink}
+          defaultEmail={data.person.email}
+          canCreateLogin={isSuperAdminSession(session)}
+        />
+      ) : null}
       <FacultyAssignmentsPanel
         personId={data.person.id}
         personName={data.person.name_en}

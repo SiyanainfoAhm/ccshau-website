@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 
 import { writeAuditLog } from "@/lib/auth/audit";
 import { canDeletePages, canEditPages, isSuperAdminSession } from "@/lib/auth/college-scope";
+import { canEditOwnFacultyPerson, isOwnFacultyProfileOnlyUser } from "@/lib/auth/faculty-scope";
 import { requireAdminSession, requireAdminWithRoles } from "@/lib/auth/session";
 import { Tables } from "@/lib/database/names";
 import {
@@ -18,25 +19,26 @@ import {
   listFacultyForRegister,
   seedDepartmentSidebar,
 } from "@/lib/pages/college-register-helpers";
-import type { FacultyAssignment, FacultyPerson, PageStaff } from "@/lib/database/types";
+import type { FacultyAssignment, FacultyPerson } from "@/lib/database/types";
 import { fail, ok, type ActionResult } from "@/lib/types/action-result";
 import {
   registerDepartmentSchema,
   registerFacultySchema,
   assignExistingFacultySchema,
   updateDepartmentSchema,
-  updateFacultySchema,
   updateFacultyPersonSchema,
   updateFacultyAssignmentSchema,
+  linkFacultyLoginSchema,
 } from "@/lib/validations/college-register";
 import { removeStorageObjects, uploadFacultyImage } from "@/lib/storage/upload";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { readStoredLayoutConfig } from "@/lib/pages/layout-config";
 import {
-  deactivateAssignmentForStaff,
+  assignPersonToDepartment,
+  createFacultyPersonWithAssignment,
+  deleteFacultyAssignment,
   saveFacultyPersonProfile,
   searchFacultyPeople,
-  syncPersonFromPageStaff,
 } from "@/lib/faculty/people";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
@@ -149,6 +151,62 @@ async function requireRegisterSession() {
   return session;
 }
 
+function canAccessFacultyRegister(session: Awaited<ReturnType<typeof requireAdminSession>>) {
+  return (
+    isSuperAdminSession(session) ||
+    Boolean(session.collegeAssignment) ||
+    Boolean(session.departmentPageAssignment)
+  );
+}
+
+async function loadFacultyPersonEditData(
+  personId: string,
+  accessibleIds: Set<string> | "own",
+) {
+  const admin = createAdminClient();
+  if (!admin) return null;
+
+  const { data: person } = await admin.from(Tables.facultyPeople).select("*").eq("id", personId).maybeSingle();
+  if (!person) return null;
+
+  const { data: assignments } = await admin
+    .from(Tables.facultyAssignments)
+    .select("*")
+    .eq("person_id", personId)
+    .order("sort_order");
+  const rows = (assignments ?? []) as FacultyAssignment[];
+  if (!rows.length && accessibleIds !== "own") return null;
+
+  if (accessibleIds !== "own" && !rows.some((row) => accessibleIds.has(row.page_id))) {
+    return null;
+  }
+
+  const pageIds = [...new Set(rows.map((row) => row.page_id))];
+  const { data: pages } = pageIds.length
+    ? await admin.from(Tables.pages).select("id, title_en, college_root_id, slug").in("id", pageIds)
+    : { data: [] };
+  const pageById = new Map((pages ?? []).map((p) => [p.id, p]));
+  const collegeIds = [...new Set((pages ?? []).map((p) => p.college_root_id).filter(Boolean))] as string[];
+  const { data: colleges } = collegeIds.length
+    ? await admin.from(Tables.pages).select("id, title_en").in("id", collegeIds)
+    : { data: [] };
+  const collegeById = new Map((colleges ?? []).map((c) => [c.id, c.title_en as string]));
+
+  return {
+    person: person as FacultyPerson,
+    assignments: rows.map((row) => {
+      const page = pageById.get(row.page_id);
+      return {
+        assignment: row,
+        departmentTitle: (page?.title_en as string) ?? "Department",
+        collegeTitle: page?.college_root_id ? collegeById.get(page.college_root_id) ?? "" : "",
+        collegeRootId: (page?.college_root_id as string | null) ?? null,
+        canEdit: accessibleIds === "own" ? true : accessibleIds.has(row.page_id),
+      };
+    }),
+  };
+}
+
 export async function registerDepartmentAction(
   formData: FormData,
 ): Promise<ActionResult<{ id: string; slug: string }>> {
@@ -237,6 +295,9 @@ export async function registerFacultyAction(
 ): Promise<ActionResult<{ id: string; detailPath: string | null }>> {
   try {
     const session = await requireRegisterSession();
+    if (isOwnFacultyProfileOnlyUser(session)) {
+      return fail("You can only update your own profile.");
+    }
     if (!canEditPages(session)) {
       return fail("You do not have permission to add faculty.");
     }
@@ -276,7 +337,7 @@ export async function registerFacultyAction(
     if (!slug) return fail("Profile URL slug is required.");
 
     const { data: existingSlug } = await admin
-      .from(Tables.pageStaff)
+      .from(Tables.facultyAssignments)
       .select("id")
       .eq("page_id", input.departmentPageId)
       .eq("staff_slug", slug)
@@ -286,22 +347,21 @@ export async function registerFacultyAction(
 
     const email = (input.email || "").trim().toLowerCase();
     if (email) {
-      const { data: existingEmail } = await admin
-        .from(Tables.pageStaff)
+      const { data: existingPeople } = await admin
+        .from(Tables.facultyPeople)
         .select("id, name_en")
-        .eq("page_id", input.departmentPageId)
         .ilike("email", email)
-        .maybeSingle();
-      if (existingEmail) {
+        .limit(2);
+      if (existingPeople?.length) {
         return fail(
-          `A faculty member with this email already exists in this department (${existingEmail.name_en}). Edit that profile instead of creating a duplicate.`,
+          `This email already belongs to ${existingPeople[0].name_en}. Use Add existing to assign that person to this department.`,
         );
       }
     }
 
     if (input.memberType === "hod") {
       const { count } = await admin
-        .from(Tables.pageStaff)
+        .from(Tables.facultyAssignments)
         .select("id", { count: "exact", head: true })
         .eq("page_id", input.departmentPageId)
         .eq("member_type", "hod")
@@ -315,39 +375,37 @@ export async function registerFacultyAction(
     const detailPath = await buildFacultyDetailPath(input.departmentPageId, slug);
     const sortOrder = input.sortOrder;
 
-    const { data, error } = await admin
-      .from(Tables.pageStaff)
-      .insert({
-        page_id: input.departmentPageId,
-        member_type: input.memberType,
-        staff_slug: slug,
-        name_en: input.nameEn,
-        name_hi: input.nameHi || null,
-        designation_en: input.designationEn,
-        designation_hi: input.designationHi || null,
-        specialization_en: input.specializationEn || null,
-        specialization_hi: input.specializationHi || null,
-        image_path: input.imagePath || null,
-        mobile: input.mobile || null,
+    let created: { personId: string; assignmentId: string };
+    try {
+      created = await createFacultyPersonWithAssignment(admin, {
+        nameEn: input.nameEn,
+        nameHi: input.nameHi,
+        imagePath: input.imagePath || null,
         email: email || null,
-        experience_en: input.experienceEn || null,
-        experience_hi: input.experienceHi || null,
-        qualification_en: input.qualificationEn || null,
-        qualification_hi: input.qualificationHi || null,
-        detail_content_en: input.detailContentEn || null,
-        detail_content_hi: input.detailContentHi || null,
-        detail_href: detailPath,
-        sort_order: sortOrder,
-        is_active: true,
-      })
-      .select("id")
-      .single();
-
-    if (error || !data) return fail(error?.message ?? "Failed to register faculty.");
+        mobile: input.mobile,
+        qualificationEn: input.qualificationEn,
+        qualificationHi: input.qualificationHi,
+        experienceEn: input.experienceEn,
+        experienceHi: input.experienceHi,
+        specializationEn: input.specializationEn,
+        specializationHi: input.specializationHi,
+        detailContentEn: input.detailContentEn,
+        detailContentHi: input.detailContentHi,
+      }, {
+        pageId: input.departmentPageId,
+        staffSlug: slug,
+        memberType: input.memberType,
+        designationEn: input.designationEn,
+        designationHi: input.designationHi,
+        sortOrder,
+      });
+    } catch (createError) {
+      return fail(createError instanceof Error ? createError.message : "Failed to register faculty.");
+    }
 
     const imageResult = await resolveFacultyImagePath(
       admin,
-      data.id,
+      created.personId,
       formData,
       input.imagePath,
       input.imagePath || null,
@@ -356,36 +414,32 @@ export async function registerFacultyAction(
 
     if (imageResult.data && imageResult.data !== (input.imagePath || null)) {
       const { error: imageError } = await admin
-        .from(Tables.pageStaff)
+        .from(Tables.facultyPeople)
         .update({ image_path: imageResult.data })
-        .eq("id", data.id);
+        .eq("id", created.personId);
       if (imageError) return fail(imageError.message);
-    }
-
-    const { data: staffRow } = await admin.from(Tables.pageStaff).select("*").eq("id", data.id).maybeSingle();
-    if (staffRow) {
-      try {
-        await syncPersonFromPageStaff(admin, staffRow as PageStaff, { overwritePersonProfile: false });
-      } catch (syncError) {
-        return fail(syncError instanceof Error ? syncError.message : "Faculty saved, but shared profile sync failed.");
-      }
     }
 
     await writeAuditLog({
       userId: session.userId,
       action: "create",
-      entityType: "page_staff",
-      entityId: data.id,
-      details: { memberType: input.memberType, departmentPageId: input.departmentPageId },
+      entityType: "faculty_person",
+      entityId: created.personId,
+      details: {
+        assignmentId: created.assignmentId,
+        memberType: input.memberType,
+        departmentPageId: input.departmentPageId,
+      },
     });
 
     revalidatePath("/admin/register");
     revalidatePath("/admin/register/faculty");
+    revalidatePath(`/admin/register/faculty/person/${created.personId}`);
     if (detailPath) {
       revalidatePath(detailPath);
     }
 
-    return ok({ id: data.id, detailPath });
+    return ok({ id: created.personId, detailPath });
   } catch (e) {
     return fail(e instanceof Error ? e.message : "Failed to register faculty.");
   }
@@ -558,82 +612,50 @@ export async function deleteDepartmentAction(departmentId: string): Promise<Acti
   }
 }
 
-export async function getFacultyForEdit(staffId: string) {
+export async function getFacultyForEdit(assignmentId: string) {
   const session = await requireRegisterSession();
   const admin = createAdminClient();
   if (!admin) return null;
 
-  const { data: staff } = await admin
-    .from(Tables.pageStaff)
-    .select("*")
-    .eq("id", staffId)
+  const { data: assignment } = await admin
+    .from(Tables.facultyAssignments)
+    .select("id, person_id, page_id")
+    .eq("id", assignmentId)
     .maybeSingle();
 
-  if (!staff) return null;
+  if (!assignment) return null;
 
-  const row = staff as PageStaff;
-  await assertRegisterPageAccess(session, row.page_id);
+  await assertRegisterPageAccess(session, assignment.page_id as string);
 
   const departments = await listDepartmentsForRegister(session);
-  const dept = departments.find((d) => d.id === row.page_id);
+  const dept = departments.find((d) => d.id === assignment.page_id);
   if (!dept) return null;
 
-  const { data: link } = await admin
-    .from(Tables.facultyAssignments)
-    .select("person_id")
-    .eq("source_staff_id", staffId)
-    .maybeSingle();
-
-  return { staff: row, department: dept, personId: (link?.person_id as string | null) ?? null };
+  return {
+    staff: null,
+    department: dept,
+    personId: assignment.person_id as string,
+  };
 }
 
 export async function getFacultyPersonForEdit(personId: string) {
-  const session = await requireRegisterSession();
-  const admin = createAdminClient();
-  if (!admin) return null;
+  const session = await requireAdminSession();
+  const isOwn = canEditOwnFacultyPerson(session, personId);
+  if (isOwnFacultyProfileOnlyUser(session) && !isOwn) return null;
+  if (!isOwn && !canAccessFacultyRegister(session)) return null;
 
-  const { data: person } = await admin.from(Tables.facultyPeople).select("*").eq("id", personId).maybeSingle();
-  if (!person) return null;
-
-  const { data: assignments } = await admin
-    .from(Tables.facultyAssignments)
-    .select("*")
-    .eq("person_id", personId)
-    .order("sort_order");
-  const rows = (assignments ?? []) as FacultyAssignment[];
-  if (!rows.length) return null;
-
-  const accessible = await listDepartmentsForRegister(session);
-  const accessibleIds = new Set(accessible.map((d) => d.id));
-  if (!rows.some((row) => accessibleIds.has(row.page_id))) {
-    return null;
+  if (isOwn) {
+    return loadFacultyPersonEditData(personId, "own");
   }
 
-  const pageIds = [...new Set(rows.map((row) => row.page_id))];
-  const { data: pages } = await admin
-    .from(Tables.pages)
-    .select("id, title_en, college_root_id, slug")
-    .in("id", pageIds);
-  const pageById = new Map((pages ?? []).map((p) => [p.id, p]));
-  const collegeIds = [...new Set((pages ?? []).map((p) => p.college_root_id).filter(Boolean))] as string[];
-  const { data: colleges } = collegeIds.length
-    ? await admin.from(Tables.pages).select("id, title_en").in("id", collegeIds)
-    : { data: [] };
-  const collegeById = new Map((colleges ?? []).map((c) => [c.id, c.title_en as string]));
+  const accessible = await listDepartmentsForRegister(session);
+  return loadFacultyPersonEditData(personId, new Set(accessible.map((d) => d.id)));
+}
 
-  return {
-    person: person as FacultyPerson,
-    assignments: rows.map((row) => {
-      const page = pageById.get(row.page_id);
-      return {
-        assignment: row,
-        departmentTitle: (page?.title_en as string) ?? "Department",
-        collegeTitle: page?.college_root_id ? collegeById.get(page.college_root_id) ?? "" : "",
-        collegeRootId: (page?.college_root_id as string | null) ?? null,
-        canEdit: accessibleIds.has(row.page_id),
-      };
-    }),
-  };
+export async function getOwnFacultyPersonForEdit() {
+  const session = await requireAdminSession();
+  if (!session.facultyPerson) return null;
+  return loadFacultyPersonEditData(session.facultyPerson.id, "own");
 }
 
 export async function updateFacultyPersonAction(
@@ -641,8 +663,16 @@ export async function updateFacultyPersonAction(
   formData: FormData,
 ): Promise<ActionResult<{ id: string }>> {
   try {
-    const session = await requireRegisterSession();
-    if (!canEditPages(session)) return fail("You do not have permission to edit faculty.");
+    const session = await requireAdminSession();
+    const isOwn = canEditOwnFacultyPerson(session, personId);
+    if (!isOwn) {
+      if (isOwnFacultyProfileOnlyUser(session)) {
+        return fail("You can only update your own profile.");
+      }
+      if (!canAccessFacultyRegister(session) || !canEditPages(session)) {
+        return fail("You do not have permission to edit faculty.");
+      }
+    }
     const parsed = updateFacultyPersonSchema.safeParse({
       nameEn: formData.get("nameEn"),
       nameHi: formData.get("nameHi") || undefined,
@@ -664,7 +694,7 @@ export async function updateFacultyPersonAction(
     if (!admin) return fail("Database not configured.");
     const personData = await getFacultyPersonForEdit(personId);
     if (!personData) return fail("Faculty person not found.");
-    if (!personData.assignments.some((row) => row.canEdit)) {
+    if (!isOwn && !personData.assignments.some((row) => row.canEdit)) {
       return fail("You do not have permission to edit this profile.");
     }
 
@@ -702,6 +732,7 @@ export async function updateFacultyPersonAction(
     });
     revalidatePath("/admin/register/faculty");
     revalidatePath(`/admin/register/faculty/person/${personId}`);
+    revalidatePath("/admin/register/faculty/me");
     return ok({ id: personId });
   } catch (e) {
     return fail(e instanceof Error ? e.message : "Failed to update faculty profile.");
@@ -714,6 +745,9 @@ export async function updateFacultyAssignmentAction(
 ): Promise<ActionResult> {
   try {
     const session = await requireRegisterSession();
+    if (isOwnFacultyProfileOnlyUser(session)) {
+      return fail("You can only update your own profile.");
+    }
     if (!canEditPages(session)) return fail("You do not have permission to edit assignments.");
     const parsed = updateFacultyAssignmentSchema.safeParse({
       memberType: formData.get("memberType"),
@@ -766,26 +800,6 @@ export async function updateFacultyAssignmentAction(
       })
       .eq("id", assignmentId);
     if (error) return fail(error.message);
-
-    if (row.source_staff_id) {
-      const { data: person } = await admin
-        .from(Tables.facultyPeople)
-        .select("specialization_en, specialization_hi")
-        .eq("id", row.person_id)
-        .maybeSingle();
-      await admin
-        .from(Tables.pageStaff)
-        .update({
-          member_type: parsed.data.memberType,
-          designation_en: parsed.data.designationEn,
-          designation_hi: parsed.data.designationHi || null,
-          specialization_en: specEn || person?.specialization_en || null,
-          specialization_hi: specHi || person?.specialization_hi || null,
-          sort_order: parsed.data.sortOrder,
-          is_active: parsed.data.isActive ?? true,
-        })
-        .eq("id", row.source_staff_id);
-    }
 
     await writeAuditLog({
       userId: session.userId,
@@ -862,170 +876,24 @@ export async function getFacultyDuplicateReportAction(collegePageId: string) {
 }
 
 export async function updateFacultyAction(
-  staffId: string,
+  assignmentId: string,
   formData: FormData,
 ): Promise<ActionResult<{ id: string; detailPath: string | null }>> {
-  try {
-    const session = await requireRegisterSession();
-    if (!canEditPages(session)) {
-      return fail("You do not have permission to edit faculty.");
-    }
-    const parsed = updateFacultySchema.safeParse({
-      departmentPageId: formData.get("departmentPageId"),
-      memberType: formData.get("memberType"),
-      nameEn: formData.get("nameEn"),
-      nameHi: formData.get("nameHi") || undefined,
-      designationEn: formData.get("designationEn"),
-      designationHi: formData.get("designationHi") || undefined,
-      specializationEn: formData.get("specializationEn") || undefined,
-      specializationHi: formData.get("specializationHi") || undefined,
-      imagePath: formData.get("imagePath") || undefined,
-      mobile: formData.get("mobile") || undefined,
-      email: formData.get("email") || undefined,
-      experienceEn: formData.get("experienceEn") || undefined,
-      experienceHi: formData.get("experienceHi") || undefined,
-      qualificationEn: formData.get("qualificationEn") || undefined,
-      qualificationHi: formData.get("qualificationHi") || undefined,
-      detailContentEn: formData.get("detailContentEn") || undefined,
-      detailContentHi: formData.get("detailContentHi") || undefined,
-      staffSlug: formData.get("staffSlug"),
-      sortOrder: formData.get("sortOrder") ?? (formData.get("memberType") === "hod" ? 0 : 1),
-    });
-
-    if (!parsed.success) {
-      return fail("Validation failed", parsed.error.flatten().fieldErrors);
-    }
-
-    const input = parsed.data;
-    const admin = createAdminClient();
-    if (!admin) return fail("Database not configured.");
-
-    const { data: existing } = await admin
-      .from(Tables.pageStaff)
-      .select("*")
-      .eq("id", staffId)
-      .maybeSingle();
-
-    if (!existing) return fail("Faculty not found.");
-
-    const existingRow = existing as PageStaff;
-    await assertRegisterPageAccess(session, existingRow.page_id);
-    await assertRegisterPageAccess(session, input.departmentPageId);
-
-    const slug = input.staffSlug.trim().toLowerCase();
-    if (!slug) return fail("Profile URL slug is required.");
-
-    const { data: slugTaken } = await admin
-      .from(Tables.pageStaff)
-      .select("id")
-      .eq("page_id", input.departmentPageId)
-      .eq("staff_slug", slug)
-      .neq("id", staffId)
-      .maybeSingle();
-
-    if (slugTaken) return fail("A faculty profile with this URL slug already exists in this department.");
-
-    const email = (input.email || "").trim().toLowerCase();
-    if (email) {
-      const { data: existingEmail } = await admin
-        .from(Tables.pageStaff)
-        .select("id, name_en")
-        .eq("page_id", input.departmentPageId)
-        .ilike("email", email)
-        .neq("id", staffId)
-        .maybeSingle();
-      if (existingEmail) {
-        return fail(
-          `A faculty member with this email already exists in this department (${existingEmail.name_en}). Edit that profile instead of creating a duplicate.`,
-        );
-      }
-    }
-
-    if (input.memberType === "hod") {
-      const { data: otherHod } = await admin
-        .from(Tables.pageStaff)
-        .select("id")
-        .eq("page_id", input.departmentPageId)
-        .eq("member_type", "hod")
-        .eq("is_active", true)
-        .neq("id", staffId)
-        .maybeSingle();
-
-      if (otherHod) {
-        return fail("This department already has a Head of Department. Edit the existing HOD or choose Faculty.");
-      }
-    }
-
-    const detailPath = await buildFacultyDetailPath(input.departmentPageId, slug);
-    const sortOrder = input.sortOrder;
-
-    const imageResult = await resolveFacultyImagePath(
-      admin,
-      staffId,
-      formData,
-      input.imagePath,
-      existingRow.image_path,
-    );
-    if (!imageResult.success) return imageResult;
-
-    const { error } = await admin
-      .from(Tables.pageStaff)
-      .update({
-        page_id: input.departmentPageId,
-        member_type: input.memberType,
-        staff_slug: slug,
-        name_en: input.nameEn,
-        name_hi: input.nameHi || null,
-        designation_en: input.designationEn,
-        designation_hi: input.designationHi || null,
-        specialization_en: input.specializationEn || null,
-        specialization_hi: input.specializationHi || null,
-        image_path: imageResult.data,
-        mobile: input.mobile || null,
-        email: email || null,
-        experience_en: input.experienceEn || null,
-        experience_hi: input.experienceHi || null,
-        qualification_en: input.qualificationEn || null,
-        qualification_hi: input.qualificationHi || null,
-        detail_content_en: input.detailContentEn || null,
-        detail_content_hi: input.detailContentHi || null,
-        detail_href: detailPath,
-        sort_order: sortOrder,
-      })
-      .eq("id", staffId);
-
-    if (error) return fail(error.message);
-
-    const { data: staffRow } = await admin.from(Tables.pageStaff).select("*").eq("id", staffId).maybeSingle();
-    if (staffRow) {
-      try {
-        await syncPersonFromPageStaff(admin, staffRow as PageStaff, { overwritePersonProfile: true });
-      } catch (syncError) {
-        return fail(syncError instanceof Error ? syncError.message : "Faculty saved, but shared profile sync failed.");
-      }
-    }
-
-    await writeAuditLog({
-      userId: session.userId,
-      action: "update",
-      entityType: "page_staff",
-      entityId: staffId,
-      details: { memberType: input.memberType, departmentPageId: input.departmentPageId },
-    });
-
-    revalidatePath("/admin/register/faculty");
-    revalidatePath(`/admin/register/faculty/${staffId}`);
-    if (detailPath) revalidatePath(detailPath);
-
-    return ok({ id: staffId, detailPath });
-  } catch (e) {
-    return fail(e instanceof Error ? e.message : "Failed to update faculty.");
-  }
+  const data = await getFacultyForEdit(assignmentId);
+  if (!data?.personId) return fail("Faculty not found.");
+  const result = await updateFacultyPersonAction(data.personId, formData);
+  if (!result.success) return result;
+  const slug = String(formData.get("staffSlug") ?? "").trim().toLowerCase();
+  const detailPath = slug ? await buildFacultyDetailPath(data.department.id, slug) : null;
+  return ok({ id: data.personId, detailPath });
 }
 
-export async function deleteFacultyAction(staffId: string): Promise<ActionResult> {
+export async function deleteFacultyAction(assignmentId: string): Promise<ActionResult> {
   try {
     const session = await requireRegisterSession();
+    if (isOwnFacultyProfileOnlyUser(session)) {
+      return fail("You can only update your own profile.");
+    }
     if (!canDeletePages(session) && !session.departmentPageAssignment) {
       return fail("You do not have permission to delete faculty.");
     }
@@ -1034,31 +902,32 @@ export async function deleteFacultyAction(staffId: string): Promise<ActionResult
     if (!admin) return fail("Database not configured.");
 
     const { data: existing } = await admin
-      .from(Tables.pageStaff)
+      .from(Tables.facultyAssignments)
       .select("*")
-      .eq("id", staffId)
+      .eq("id", assignmentId)
       .maybeSingle();
 
-    if (!existing) return fail("Faculty not found.");
+    if (!existing) return fail("Faculty assignment not found.");
 
-    const row = existing as PageStaff;
+    const row = existing as FacultyAssignment;
     await assertRegisterPageAccess(session, row.page_id);
 
-    const detailPath = row.detail_href;
+    const detailPath = row.staff_slug
+      ? await buildFacultyDetailPath(row.page_id, row.staff_slug)
+      : null;
 
-    await deactivateAssignmentForStaff(admin, staffId);
-
-    const { error } = await admin.from(Tables.pageStaff).delete().eq("id", staffId);
-    if (error) return fail(error.message);
+    await deleteFacultyAssignment(admin, assignmentId);
 
     await writeAuditLog({
       userId: session.userId,
       action: "delete",
-      entityType: "page_staff",
-      entityId: staffId,
+      entityType: "faculty_assignment",
+      entityId: assignmentId,
+      details: { personId: row.person_id, pageId: row.page_id },
     });
 
     revalidatePath("/admin/register/faculty");
+    revalidatePath(`/admin/register/faculty/person/${row.person_id}`);
     if (detailPath) revalidatePath(detailPath);
 
     return ok(undefined);
@@ -1069,7 +938,7 @@ export async function deleteFacultyAction(staffId: string): Promise<ActionResult
 
 export async function searchFacultyPeopleAction(query: string) {
   const session = await requireRegisterSession();
-  if (!canEditPages(session)) return [];
+  if (isOwnFacultyProfileOnlyUser(session) || !canEditPages(session)) return [];
   const admin = createAdminClient();
   if (!admin) return [];
   return searchFacultyPeople(admin, query);
@@ -1080,6 +949,9 @@ export async function assignExistingFacultyAction(
 ): Promise<ActionResult<{ id: string; detailPath: string | null }>> {
   try {
     const session = await requireRegisterSession();
+    if (isOwnFacultyProfileOnlyUser(session)) {
+      return fail("You can only update your own profile.");
+    }
     if (!canEditPages(session)) {
       return fail("You do not have permission to assign faculty.");
     }
@@ -1120,7 +992,7 @@ export async function assignExistingFacultyAction(
 
     const staffSlug = personRow.global_slug;
     const { data: slugTaken } = await admin
-      .from(Tables.pageStaff)
+      .from(Tables.facultyAssignments)
       .select("id")
       .eq("page_id", input.departmentPageId)
       .eq("staff_slug", staffSlug)
@@ -1129,7 +1001,7 @@ export async function assignExistingFacultyAction(
 
     if (input.memberType === "hod") {
       const { count } = await admin
-        .from(Tables.pageStaff)
+        .from(Tables.facultyAssignments)
         .select("id", { count: "exact", head: true })
         .eq("page_id", input.departmentPageId)
         .eq("member_type", "hod")
@@ -1140,54 +1012,34 @@ export async function assignExistingFacultyAction(
     }
 
     const detailPath = await buildFacultyDetailPath(input.departmentPageId, staffSlug);
-    const { data, error } = await admin
-      .from(Tables.pageStaff)
-      .insert({
-        page_id: input.departmentPageId,
-        member_type: input.memberType,
-        staff_slug: staffSlug,
-        name_en: personRow.name_en,
-        name_hi: personRow.name_hi,
-        designation_en: input.designationEn,
-        designation_hi: input.designationHi || null,
-        specialization_en: input.specializationEn || personRow.specialization_en,
-        specialization_hi: input.specializationHi || personRow.specialization_hi,
-        image_path: personRow.image_path,
-        mobile: personRow.mobile,
-        email: personRow.email,
-        experience_en: personRow.experience_en,
-        experience_hi: personRow.experience_hi,
-        qualification_en: personRow.qualification_en,
-        qualification_hi: personRow.qualification_hi,
-        detail_content_en: personRow.detail_content_en,
-        detail_content_hi: personRow.detail_content_hi,
-        detail_href: detailPath,
-        sort_order: input.sortOrder,
-        is_active: true,
-      })
-      .select("id")
-      .single();
-    if (error || !data) return fail(error?.message ?? "Failed to assign faculty.");
-
-    const { data: staffRow } = await admin.from(Tables.pageStaff).select("*").eq("id", data.id).maybeSingle();
-    if (staffRow) {
-      try {
-        await syncPersonFromPageStaff(admin, staffRow as PageStaff, { overwritePersonProfile: false });
-      } catch (syncError) {
-        return fail(syncError instanceof Error ? syncError.message : "Assigned, but shared profile sync failed.");
-      }
+    let assignmentId: string;
+    try {
+      const created = await assignPersonToDepartment(admin, personRow, {
+        pageId: input.departmentPageId,
+        staffSlug,
+        memberType: input.memberType,
+        designationEn: input.designationEn,
+        designationHi: input.designationHi,
+        specializationEn: input.specializationEn,
+        specializationHi: input.specializationHi,
+        sortOrder: input.sortOrder,
+      });
+      assignmentId = created.assignmentId;
+    } catch (assignError) {
+      return fail(assignError instanceof Error ? assignError.message : "Failed to assign faculty.");
     }
 
     await writeAuditLog({
       userId: session.userId,
       action: "create",
-      entityType: "page_staff",
-      entityId: data.id,
+      entityType: "faculty_assignment",
+      entityId: assignmentId,
       details: { assignedPersonId: personRow.id, departmentPageId: input.departmentPageId },
     });
     revalidatePath("/admin/register/faculty");
+    revalidatePath(`/admin/register/faculty/person/${personRow.id}`);
     if (detailPath) revalidatePath(detailPath);
-    return ok({ id: data.id, detailPath });
+    return ok({ id: personRow.id, detailPath });
   } catch (e) {
     return fail(e instanceof Error ? e.message : "Failed to assign faculty.");
   }
@@ -1204,6 +1056,167 @@ export async function requireCollegeRegisterAdmin() {
     throw new Error("Insufficient permissions.");
   }
   return session;
+}
+
+export type FacultyLoginLink = {
+  personId: string;
+  userId: string | null;
+  email: string | null;
+  displayName: string | null;
+};
+
+export async function getFacultyLoginLink(personId: string): Promise<FacultyLoginLink | null> {
+  const data = await getFacultyPersonForEdit(personId);
+  if (!data) return null;
+  if (!data.person.user_id) {
+    return { personId, userId: null, email: data.person.email, displayName: null };
+  }
+  const admin = createAdminClient();
+  if (!admin) return { personId, userId: data.person.user_id, email: data.person.email, displayName: null };
+  const { data: profile } = await admin
+    .from(Tables.profiles)
+    .select("email, display_name")
+    .eq("id", data.person.user_id)
+    .maybeSingle();
+  return {
+    personId,
+    userId: data.person.user_id,
+    email: profile?.email ?? data.person.email,
+    displayName: (profile?.display_name as string | null) ?? null,
+  };
+}
+
+async function assertCanManageFacultyLogin(personId: string) {
+  const session = await requireAdminSession();
+  if (isOwnFacultyProfileOnlyUser(session)) {
+    return { ok: false as const, error: "You cannot change login links." };
+  }
+  if (!canAccessFacultyRegister(session) || !canEditPages(session)) {
+    return { ok: false as const, error: "You do not have permission to link a faculty login." };
+  }
+  const data = await getFacultyPersonForEdit(personId);
+  if (!data) return { ok: false as const, error: "Faculty person not found." };
+  return { ok: true as const, session, person: data.person };
+}
+
+export async function linkFacultyLoginAction(
+  personId: string,
+  formData: FormData,
+): Promise<ActionResult<{ userId: string }>> {
+  try {
+    const access = await assertCanManageFacultyLogin(personId);
+    if (!access.ok) return fail(access.error);
+
+    const parsed = linkFacultyLoginSchema.safeParse({
+      email: formData.get("email"),
+      password: formData.get("password") || undefined,
+    });
+    if (!parsed.success) return fail("Validation failed", parsed.error.flatten().fieldErrors);
+
+    const admin = createAdminClient();
+    if (!admin) return fail("Database not configured.");
+
+    const email = parsed.data.email.trim().toLowerCase();
+    const password = parsed.data.password?.trim() || "";
+    let userId: string | null = null;
+
+    const { data: existingProfile } = await admin
+      .from(Tables.profiles)
+      .select("id, email")
+      .ilike("email", email)
+      .maybeSingle();
+
+    if (existingProfile?.id) {
+      userId = existingProfile.id as string;
+    } else if (password) {
+      if (password.length < 8) {
+        return fail("Password must be at least 8 characters.");
+      }
+      if (!isSuperAdminSession(access.session)) {
+        return fail("Only a super admin can create a new login. Link an existing user, or ask Users & roles to invite them.");
+      }
+      const { data: authData, error: authError } = await admin.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: { display_name: access.person.name_en },
+      });
+      if (authError || !authData.user) {
+        return fail(authError?.message ?? "Failed to create login.");
+      }
+      userId = authData.user.id;
+      const { error: profileError } = await admin.from(Tables.profiles).insert({
+        id: userId,
+        display_name: access.person.name_en,
+        email,
+        is_active: true,
+      });
+      if (profileError) {
+        await admin.auth.admin.deleteUser(userId);
+        return fail(profileError.message);
+      }
+    } else {
+      return fail("No user with that email. Enter a password to create a login (super admin), or invite the user first.");
+    }
+
+    const { data: taken } = await admin
+      .from(Tables.facultyPeople)
+      .select("id, name_en")
+      .eq("user_id", userId)
+      .neq("id", personId)
+      .maybeSingle();
+    if (taken) {
+      return fail(`That login is already linked to ${taken.name_en as string}.`);
+    }
+
+    const { error } = await admin
+      .from(Tables.facultyPeople)
+      .update({ user_id: userId, email: access.person.email || email })
+      .eq("id", personId);
+    if (error) return fail(error.message);
+
+    await writeAuditLog({
+      userId: access.session.userId,
+      action: "update",
+      entityType: "faculty_person_login",
+      entityId: personId,
+      details: { linkedUserId: userId, email },
+    });
+    revalidatePath(`/admin/register/faculty/person/${personId}`);
+    revalidatePath("/admin/register/faculty/me");
+    return ok({ userId });
+  } catch (e) {
+    return fail(e instanceof Error ? e.message : "Failed to link faculty login.");
+  }
+}
+
+export async function unlinkFacultyLoginAction(personId: string): Promise<ActionResult> {
+  try {
+    const access = await assertCanManageFacultyLogin(personId);
+    if (!access.ok) return fail(access.error);
+
+    const admin = createAdminClient();
+    if (!admin) return fail("Database not configured.");
+
+    const { error } = await admin
+      .from(Tables.facultyPeople)
+      .update({ user_id: null })
+      .eq("id", personId);
+    if (error) return fail(error.message);
+
+    await writeAuditLog({
+      userId: access.session.userId,
+      action: "update",
+      entityType: "faculty_person_login",
+      entityId: personId,
+      details: { unlinked: true },
+    });
+    revalidatePath(`/admin/register/faculty/person/${personId}`);
+    revalidatePath("/admin/register/faculty/me");
+    return ok(undefined);
+  } catch (e) {
+    return fail(e instanceof Error ? e.message : "Failed to unlink faculty login.");
+  }
 }
 
 export async function requireCollegeRegisterAdminOrRedirect() {

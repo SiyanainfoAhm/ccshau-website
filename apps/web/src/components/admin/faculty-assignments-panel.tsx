@@ -55,15 +55,11 @@ export function FacultyAssignmentsPanel({
     });
   }
 
-  function handleRemove(staffId: string | null, label: string) {
-    if (!staffId) {
-      setError("This assignment has no staff row to remove.");
-      return;
-    }
+  function handleRemove(assignmentId: string, label: string) {
     if (!confirm(`Remove ${personName} from ${label}? The shared profile is kept.`)) return;
     setError(null);
     startTransition(async () => {
-      const result = await deleteFacultyAction(staffId);
+      const result = await deleteFacultyAction(assignmentId);
       if (!result.success) {
         setError(result.error ?? "Remove failed.");
         return;
@@ -180,7 +176,7 @@ export function FacultyAssignmentsPanel({
                       <button
                         type="button"
                         disabled={isPending}
-                        onClick={() => handleRemove(item.source_staff_id, row.departmentTitle)}
+                        onClick={() => handleRemove(item.id, row.departmentTitle)}
                         className="rounded px-2 py-1 text-sm text-red-600 hover:bg-red-50"
                       >
                         Remove

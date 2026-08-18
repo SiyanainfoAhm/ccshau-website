@@ -15,8 +15,8 @@ export default async function CollegeRegisterHubPage() {
   const colleges = await getCollegesForRegisterForm();
   const canRegisterMicrosite = isSuperAdminSession(session);
 
-  if (isDepartmentHodOnlyUser(session) && session.departmentPageAssignment?.collegePageId) {
-    redirect(`/admin/register/${session.departmentPageAssignment.collegePageId}/faculty`);
+  if (isDepartmentHodOnlyUser(session)) {
+    redirect(session.facultyPerson ? "/admin/register/faculty/me" : "/admin");
   }
 
   if (!canRegisterMicrosite && colleges.length === 1) {

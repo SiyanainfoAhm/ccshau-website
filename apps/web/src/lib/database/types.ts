@@ -584,6 +584,7 @@ export interface FacultyPerson {
   detail_content_en: string | null;
   detail_content_hi: string | null;
   legacy_user_id: string | null;
+  user_id: string | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;

@@ -192,7 +192,7 @@ export async function listStaffPagesForRegister(
   }
 
   const { count } = await admin
-    .from(Tables.pageStaff)
+    .from(Tables.facultyAssignments)
     .select("id", { count: "exact", head: true })
     .eq("page_id", collegePageId)
     .eq("is_active", true);
@@ -263,88 +263,87 @@ async function listFacultyForRegisterFromDepartments(
   admin: NonNullable<ReturnType<typeof createAdminClient>>,
   departments: DepartmentOption[],
 ): Promise<FacultyListItem[]> {
-
   const deptIds = departments.map((d) => d.id);
   const deptById = new Map(departments.map((d) => [d.id, d]));
+  if (!deptIds.length) return [];
 
-  const { data: staffRows } = await admin
-    .from(Tables.pageStaff)
-    .select("id, page_id, name_en, email, designation_en, member_type, staff_slug, detail_href, is_active, sort_order")
+  const { data: assignmentRows } = await admin
+    .from(Tables.facultyAssignments)
+    .select("id, person_id, page_id, designation_en, member_type, staff_slug, is_active, sort_order")
     .in("page_id", deptIds)
     .eq("is_active", true)
     .order("sort_order")
-    .order("name_en");
+    .order("staff_slug");
 
-  const list = ((staffRows ?? []) as Array<{
+  const rows = (assignmentRows ?? []) as Array<{
     id: string;
+    person_id: string;
     page_id: string;
-    name_en: string;
-    email: string | null;
     designation_en: string;
-    member_type: "hod" | "faculty" | null;
+    member_type: "hod" | "faculty";
     staff_slug: string | null;
-    detail_href: string | null;
     is_active: boolean;
     sort_order: number;
-  }>).map((row) => {
-    const dept = deptById.get(row.page_id)!;
-    return {
-      id: row.id,
-      page_id: row.page_id,
-      person_id: null as string | null,
-      name_en: row.name_en,
-      email: row.email,
-      designation_en: row.designation_en,
-      member_type: (row.member_type ?? "faculty") as "hod" | "faculty",
-      staff_slug: row.staff_slug,
-      detail_href: row.detail_href,
-      is_active: row.is_active,
-      sort_order: row.sort_order ?? 0,
-      department_title: dept.title_en,
-      department_slug: dept.slug,
-      college_title: dept.college_title,
-      college_slug: dept.college_slug,
-      other_departments: [] as string[],
-    };
-  });
+  }>;
+  const personIds = [...new Set(rows.map((row) => row.person_id))];
+  if (!personIds.length) return [];
 
-  const staffIds = list.map((row) => row.id);
-  if (staffIds.length) {
-    const { data: links } = await admin
+  const [{ data: people }, { data: siblings }] = await Promise.all([
+    admin.from(Tables.facultyPeople).select("id, name_en, email").in("id", personIds),
+    admin
       .from(Tables.facultyAssignments)
-      .select("source_staff_id, person_id")
-      .in("source_staff_id", staffIds);
-    const personByStaff = new Map(
-      ((links ?? []) as Array<{ source_staff_id: string; person_id: string }>).map((row) => [
-        row.source_staff_id,
-        row.person_id,
-      ]),
-    );
-    const personIds = [...new Set([...personByStaff.values()])];
-    if (personIds.length) {
-      const { data: siblings } = await admin
-        .from(Tables.facultyAssignments)
-        .select("person_id, page_id")
-        .in("person_id", personIds)
-        .eq("is_active", true);
-      const extraPageIds = [...new Set((siblings ?? []).map((row) => row.page_id as string))];
-      const { data: extraPages } = extraPageIds.length
-        ? await admin.from(Tables.pages).select("id, title_en").in("id", extraPageIds)
-        : { data: [] };
-      const titleByPage = new Map((extraPages ?? []).map((p) => [p.id, p.title_en as string]));
-      for (const item of list) {
-        const personId = personByStaff.get(item.id);
-        if (!personId) continue;
-        item.person_id = personId;
-        item.other_departments = (siblings ?? [])
-          .filter((row) => row.person_id === personId && row.page_id !== item.page_id)
-          .map((row) => titleByPage.get(row.page_id as string))
-          .filter((title): title is string => Boolean(title));
-      }
-    }
-  }
+      .select("person_id, page_id")
+      .in("person_id", personIds)
+      .eq("is_active", true),
+  ]);
+  const personById = new Map(
+    ((people ?? []) as Array<{ id: string; name_en: string; email: string | null }>).map((row) => [row.id, row]),
+  );
+  const extraPageIds = [...new Set((siblings ?? []).map((row) => row.page_id as string))];
+  const { data: extraPages } = extraPageIds.length
+    ? await admin.from(Tables.pages).select("id, title_en").in("id", extraPageIds)
+    : { data: [] };
+  const titleByPage = new Map((extraPages ?? []).map((p) => [p.id, p.title_en as string]));
 
-  return list;
+  return rows
+    .slice()
+    .sort((a, b) => {
+      const aName = personById.get(a.person_id)?.name_en || "";
+      const bName = personById.get(b.person_id)?.name_en || "";
+      return aName.localeCompare(bName) || a.sort_order - b.sort_order;
+    })
+    .flatMap((row) => {
+      const person = personById.get(row.person_id);
+      const dept = deptById.get(row.page_id);
+      if (!person || !dept) return [];
+      const detailHref =
+        dept.college_slug && dept.section_slug && row.staff_slug
+          ? `/college/${dept.college_slug}/${dept.section_slug}/${dept.slug}/faculty/${row.staff_slug}`
+          : null;
+      return [
+        {
+          id: row.id,
+          page_id: row.page_id,
+          person_id: row.person_id,
+          name_en: person.name_en,
+          email: person.email,
+          designation_en: row.designation_en,
+          member_type: row.member_type ?? "faculty",
+          staff_slug: row.staff_slug,
+          detail_href: detailHref,
+          is_active: row.is_active,
+          sort_order: row.sort_order ?? 0,
+          department_title: dept.title_en,
+          department_slug: dept.slug,
+          college_title: dept.college_title,
+          college_slug: dept.college_slug,
+          other_departments: (siblings ?? [])
+            .filter((sib) => sib.person_id === row.person_id && sib.page_id !== row.page_id)
+            .map((sib) => titleByPage.get(sib.page_id as string))
+            .filter((title): title is string => Boolean(title)),
+        },
+      ];
+    });
 }
 
 export async function getOrCreateDepartmentSection(

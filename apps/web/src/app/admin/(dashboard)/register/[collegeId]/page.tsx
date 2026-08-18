@@ -15,7 +15,7 @@ export default async function CollegeRegisterDetailPage({
   const { collegeId } = await params;
 
   if (isDepartmentHodOnlyUser(session)) {
-    redirect(`/admin/register/${collegeId}/faculty`);
+    redirect(session.facultyPerson ? "/admin/register/faculty/me" : "/admin");
   }
 
   const college = await getCollegeForRegisterHub(collegeId);

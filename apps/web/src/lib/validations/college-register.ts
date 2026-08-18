@@ -78,4 +78,9 @@ export const updateFacultyAssignmentSchema = z.object({
 
 export const updateDepartmentSchema = registerDepartmentSchema.omit({ collegePageId: true });
 
+export const linkFacultyLoginSchema = z.object({
+  email: z.string().email("Enter a valid email address"),
+  password: z.string().optional(),
+});
+
 export const updateFacultySchema = registerFacultySchema;
