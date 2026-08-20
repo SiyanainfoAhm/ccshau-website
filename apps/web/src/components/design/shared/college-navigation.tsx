@@ -15,7 +15,12 @@ import {
   getCollegeSubsectionPath,
 } from "@/lib/pages/routes";
 import { formatMenuLabel } from "@/lib/i18n/menu-label";
-import type { PublicCollegePage } from "@/lib/data/public-types";
+import type { PublicCollegePage, PublicCollegeSection } from "@/lib/data/public-types";
+
+type CollegeMiddleNavItem =
+  | { type: "section"; section: PublicCollegeSection }
+  | { type: "external"; labelEn: string; labelHi: string; href: string }
+  | { type: "faculty"; labelEn: string; labelHi: string; href: string };
 
 function parseCollegeNavState(pathname: string, collegeSlug: string) {
   const base = `/college/${collegeSlug}`;
@@ -89,34 +94,34 @@ export function CollegeNavigation({ college }: { college: PublicCollegePage }) {
   });
 
   const reservedNavSlugs = new Set(["home", "contact", "contact-us"]);
-  const sectionLinks = college.sections
+  const sectionLinks: CollegeMiddleNavItem[] = college.sections
     .filter((section) => !reservedNavSlugs.has(section.slug))
     .map((section) => ({ type: "section" as const, section }));
-  const opacLink = {
-    type: "external" as const,
+  const opacLink: CollegeMiddleNavItem = {
+    type: "external",
     labelEn: "Online Catalogue",
     labelHi: "ऑनलाइन कैटलॉग",
     href: "https://haulibopac.ltsinformatics.com",
   };
-  const facultyLink = {
-    type: "faculty" as const,
+  const facultyLink: CollegeMiddleNavItem = {
+    type: "faculty",
     labelEn: "Faculty",
     labelHi: "संकाय",
     href: `${homePath}?tab=faculty`,
   };
-  const middleLinks =
+  const middleLinks: CollegeMiddleNavItem[] =
     college.collegeSlug === "nehru-library"
       ? (() => {
-          const digitalIdx = sectionLinks.findIndex((item) => item.section.slug === "digital-library");
+          const digitalIdx = sectionLinks.findIndex(
+            (item) => item.type === "section" && item.section.slug === "digital-library",
+          );
           const next = [...sectionLinks];
           if (digitalIdx >= 0) next.splice(digitalIdx, 0, opacLink);
           else next.push(opacLink);
           next.push(facultyLink);
           return next;
         })()
-      : college.collegeSlug === "campus-school"
-        ? sectionLinks
-        : sectionLinks;
+      : sectionLinks;
   const links = [
     { type: "home" as const, labelEn: "Home", labelHi: "होम" },
     ...middleLinks,
