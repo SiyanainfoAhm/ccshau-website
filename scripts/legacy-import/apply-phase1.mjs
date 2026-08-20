@@ -180,6 +180,7 @@ async function main() {
     user: process.env.LEGACY_MYSQL_USER || "root",
     password: process.env.LEGACY_MYSQL_PASSWORD || "",
     database: process.env.LEGACY_MYSQL_DATABASE || "hau_db",
+    charset: "utf8mb4",
     dateStrings: true,
   };
 

@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useLanguage } from "@/components/design/shared/language-context";
+import { useEscapeKey } from "@/lib/a11y/use-escape-key";
 import { compareBySortOrderThenTitle, isCollegeDepartmentMenuSubsection } from "@/lib/pages/college-nav";
 import {
   getCollegeContactPath,
@@ -72,19 +73,53 @@ export function CollegeNavigation({ college }: { college: PublicCollegePage }) {
   const { lang, t } = useLanguage();
   const pathname = usePathname();
   const homePath = getCollegePublicHomePath(college.collegeSlug);
+  const [facultyTab, setFacultyTab] = useState(false);
+  useEffect(() => {
+    setFacultyTab(new URLSearchParams(window.location.search).get("tab") === "faculty");
+  }, [pathname]);
   const { isHomePage, isContactPage, activeSectionSlug, activeSubsectionSlug } = parseCollegeNavState(
     pathname,
     college.collegeSlug,
   );
   const [openSectionSlug, setOpenSectionSlug] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
+  useEscapeKey(openSectionSlug != null || mobileOpen, () => {
+    setOpenSectionSlug(null);
+    setMobileOpen(false);
+  });
 
   const reservedNavSlugs = new Set(["home", "contact", "contact-us"]);
+  const sectionLinks = college.sections
+    .filter((section) => !reservedNavSlugs.has(section.slug))
+    .map((section) => ({ type: "section" as const, section }));
+  const opacLink = {
+    type: "external" as const,
+    labelEn: "Online Catalogue",
+    labelHi: "ऑनलाइन कैटलॉग",
+    href: "https://haulibopac.ltsinformatics.com",
+  };
+  const facultyLink = {
+    type: "faculty" as const,
+    labelEn: "Faculty",
+    labelHi: "संकाय",
+    href: `${homePath}?tab=faculty`,
+  };
+  const middleLinks =
+    college.collegeSlug === "nehru-library"
+      ? (() => {
+          const digitalIdx = sectionLinks.findIndex((item) => item.section.slug === "digital-library");
+          const next = [...sectionLinks];
+          if (digitalIdx >= 0) next.splice(digitalIdx, 0, opacLink);
+          else next.push(opacLink);
+          next.push(facultyLink);
+          return next;
+        })()
+      : college.collegeSlug === "campus-school"
+        ? sectionLinks
+        : sectionLinks;
   const links = [
     { type: "home" as const, labelEn: "Home", labelHi: "होम" },
-    ...college.sections
-      .filter((section) => !reservedNavSlugs.has(section.slug))
-      .map((section) => ({ type: "section" as const, section })),
+    ...middleLinks,
     { type: "contact" as const, labelEn: "Contact Us", labelHi: "संपर्क करें" },
   ];
 
@@ -101,7 +136,7 @@ export function CollegeNavigation({ college }: { college: PublicCollegePage }) {
           aria-expanded={mobileOpen}
         >
           {t("College Menu", "महाविद्यालय मेनू")}
-          <ChevronDown className={`h-4 w-4 transition ${mobileOpen ? "rotate-180" : ""}`} />
+          <ChevronDown className={`h-4 w-4 transition ${mobileOpen ? "rotate-180" : ""}`} aria-hidden />
         </button>
       </div>
 
@@ -112,7 +147,7 @@ export function CollegeNavigation({ college }: { college: PublicCollegePage }) {
         <ul className="ccshau-main-nav-list mx-auto hidden max-w-7xl items-center justify-center gap-0 px-4 lg:flex">
           {links.map((link, index) => {
             if (link.type === "home") {
-              const isActive = isHomePage;
+              const isActive = isHomePage && !facultyTab;
               return (
                 <li key="home" className="relative flex items-center">
                   {index > 0 && <span className="ccshau-main-nav-separator" aria-hidden />}
@@ -137,6 +172,23 @@ export function CollegeNavigation({ college }: { college: PublicCollegePage }) {
                     onClick={() => setMobileOpen(false)}
                   >
                     {formatMenuLabel(t(link.labelEn, link.labelHi), lang, "upper")}
+                  </Link>
+                </li>
+              );
+            }
+
+            if (link.type === "external" || link.type === "faculty") {
+              return (
+                <li key={link.labelEn} className="relative flex items-center">
+                  {index > 0 && <span className="ccshau-main-nav-separator" aria-hidden />}
+                  <Link
+                    href={link.href}
+                    target={link.type === "external" ? "_blank" : undefined}
+                    rel={link.type === "external" ? "noopener noreferrer" : undefined}
+                    className={collegeNavLinkClass(link.type === "faculty" && isHomePage && facultyTab, false, lang)}
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    {t(link.labelEn, link.labelHi)}
                   </Link>
                 </li>
               );
@@ -168,13 +220,15 @@ export function CollegeNavigation({ college }: { college: PublicCollegePage }) {
                     className={collegeNavLinkClass(isSectionActive, isOpen, lang)}
                   >
                     <span>{t(section.titleEn, section.titleHi ?? section.titleEn)}</span>
-                    <ChevronDown className={`h-4 w-4 shrink-0 opacity-70 transition ${isOpen ? "rotate-180" : ""}`} />
+                    <ChevronDown className={`h-4 w-4 shrink-0 opacity-70 transition ${isOpen ? "rotate-180" : ""}`} aria-hidden />
                   </button>
                   <ul
                     className={`overflow-hidden rounded-lg border border-emerald-200 bg-white py-1 shadow-xl transition ${
                       isOpen ? "mt-1 block" : "hidden"
                     } ml-3 lg:absolute lg:left-0 lg:top-full lg:z-50 lg:ml-0 lg:mt-0 lg:block lg:min-w-[260px] lg:pt-1 ${
-                      isOpen ? "lg:visible lg:opacity-100" : "lg:invisible lg:opacity-0"
+                      isOpen
+                        ? "lg:visible lg:pointer-events-auto lg:opacity-100"
+                        : "lg:invisible lg:pointer-events-none lg:opacity-0"
                     }`}
                   >
                     {menuSubsections.map((subsection) => {
@@ -233,7 +287,7 @@ export function CollegeNavigation({ college }: { college: PublicCollegePage }) {
             <ul>
               {links.map((link) => {
                 if (link.type === "home") {
-                  const isActive = isHomePage;
+                  const isActive = isHomePage && !facultyTab;
                   return (
                     <li key="home-mobile">
                       <Link
@@ -254,6 +308,22 @@ export function CollegeNavigation({ college }: { college: PublicCollegePage }) {
                         href={getCollegeContactPath(college.collegeSlug)}
                         onClick={() => setMobileOpen(false)}
                         className={`flex w-full border-b border-white/5 px-4 py-2.5 text-sm font-semibold text-white/90 transition hover:bg-white/10 hover:text-amber-200 ${isContactPage ? "bg-white/10 text-amber-200" : ""} ${lang === "hi" ? "font-hindi" : ""}`}
+                      >
+                        {t(link.labelEn, link.labelHi)}
+                      </Link>
+                    </li>
+                  );
+                }
+
+                if (link.type === "external" || link.type === "faculty") {
+                  return (
+                    <li key={`${link.labelEn}-mobile`}>
+                      <Link
+                        href={link.href}
+                        target={link.type === "external" ? "_blank" : undefined}
+                        rel={link.type === "external" ? "noopener noreferrer" : undefined}
+                        onClick={() => setMobileOpen(false)}
+                        className={`flex w-full border-b border-white/5 px-4 py-2.5 text-sm font-semibold text-white/90 transition hover:bg-white/10 hover:text-amber-200 ${lang === "hi" ? "font-hindi" : ""}`}
                       >
                         {t(link.labelEn, link.labelHi)}
                       </Link>

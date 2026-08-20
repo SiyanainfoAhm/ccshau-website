@@ -20,7 +20,7 @@ export default async function TenderDetailPage({ params }: { params: Promise<{ s
   return (
     <>
       <SiteHeader variant="future" />
-      <main id="main-content" className="flex-1 bg-slate-50">
+      <main id="main-content" tabIndex={-1} className="flex-1 bg-slate-50">
         <PublicTenderDetail tender={tender} />
       </main>
       <SiteFooter variant="future" />

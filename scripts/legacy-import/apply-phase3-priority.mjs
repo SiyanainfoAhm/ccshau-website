@@ -63,7 +63,8 @@ const PRIORITY_PAGE_MAP = [
     target: "university-calendar-volume-ii",
     sources: ["university-calander-volume-i-i", "university-calendar-volume-ii"],
   },
-  { target: "landscape-unit", sources: ["land-scape-unit", "land-scape-unit-1"] },
+  // Prefer land-scape-unit-1 (college_id 21 on live API) — land-scape-unit dump often loses Hindi as "????".
+  { target: "landscape-unit", sources: ["land-scape-unit-1", "land-scape-unit"], preferred: "land-scape-unit-1" },
   {
     target: "human-resource-management",
     sources: ["human-resources", "human-resource-management", "hrm"],

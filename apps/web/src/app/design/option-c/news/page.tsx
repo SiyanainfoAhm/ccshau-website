@@ -13,7 +13,7 @@ export default function OptionCNewsPage() {
   return (
     <DesignShell className="bg-slate-50">
       <SiteHeader variant="ministry" homeHref="/design/option-c" />
-      <main id="main-content" className="flex-1">
+      <main id="main-content" tabIndex={-1} className="flex-1">
         <MinistryInnerHero title="Latest News & Notices" titleHi="नवीनतम समाचार और सूचनाएं" />
 
         <div className="mx-auto max-w-7xl px-4 py-10">

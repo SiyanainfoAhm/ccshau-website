@@ -3,15 +3,19 @@ import type { PageType } from "@/lib/database/types";
 export const PG_STUDIES_HUB_SLUG = "pg-studies";
 export const HRM_COLLEGE_SLUG = "hrm";
 export const HRM_PUBLIC_PAGE_SLUG = "human-resource-management";
+export const ESTATE_OFFICE_COLLEGE_SLUG = "eo-cum-se";
+export const ESTATE_OFFICE_PUBLIC_PAGE_SLUG = "estate-office";
 
 /** CMS pages that should show an existing college microsite menu. */
 const COLLEGE_SLUG_FOR_CMS_PAGE: Record<string, string> = {
   [HRM_PUBLIC_PAGE_SLUG]: HRM_COLLEGE_SLUG,
+  [ESTATE_OFFICE_PUBLIC_PAGE_SLUG]: ESTATE_OFFICE_COLLEGE_SLUG,
 };
 
 /** Public "Home" for a college microsite when it is published on /pages/*. */
 const COLLEGE_PUBLIC_HOME_PATH: Record<string, string> = {
   [HRM_COLLEGE_SLUG]: `/pages/${HRM_PUBLIC_PAGE_SLUG}`,
+  [ESTATE_OFFICE_COLLEGE_SLUG]: `/pages/${ESTATE_OFFICE_PUBLIC_PAGE_SLUG}`,
 };
 
 export function getCollegeSlugForCmsPage(pageSlug: string): string | null {

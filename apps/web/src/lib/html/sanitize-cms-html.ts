@@ -61,6 +61,17 @@ const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
     col: ["span", "width", "style"],
   },
   allowedSchemes: ["http", "https", "mailto", "tel"],
+  allowedIframeHostnames: [
+    "hau.ac.in",
+    "www.hau.ac.in",
+    "google.com",
+    "www.google.com",
+    "maps.google.com",
+    "youtube.com",
+    "www.youtube.com",
+    "youtube-nocookie.com",
+    "www.youtube-nocookie.com",
+  ],
   allowProtocolRelative: false,
   // Match prior DOMPurify policy for CMS content.
   disallowedTagsMode: "discard",
@@ -71,22 +82,61 @@ const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
       if (cleanedStyle) next.style = cleanedStyle;
       else delete next.style;
       if (next.href) {
-        next.href = rewriteLegacyHauCollegeHref(next.href);
+        const rewritten = rewriteLegacyHauHref(next.href);
+        next.href = rewritten;
+        if (rewritten.startsWith("/") && !rewritten.startsWith("//")) {
+          delete next.target;
+          delete next.rel;
+        }
       }
+      return { tagName, attribs: next };
+    },
+    iframe: (tagName, attribs) => {
+      const next = { ...attribs };
+      if (next.src?.startsWith("//")) {
+        next.src = `https:${next.src}`;
+      }
+      if (!next.title?.trim()) {
+        if (/google\.com\/maps|maps\.google\.com/i.test(next.src || "")) {
+          next.title = "Map";
+        } else if (/youtube\.com|youtu\.be|youtube-nocookie\.com/i.test(next.src || "")) {
+          next.title = "YouTube video";
+        } else if (/\.pdf(\?|#|$)/i.test(next.src || "")) {
+          next.title = "PDF document";
+        } else {
+          next.title = "Embedded content";
+        }
+      }
+      return { tagName, attribs: next };
+    },
+    img: (tagName, attribs) => {
+      const next = { ...attribs };
+      if (next.alt === undefined) next.alt = "";
       return { tagName, attribs: next };
     },
   },
 };
 
-/** Map known migrated hau.ac.in college URLs to this site's public paths. */
-function rewriteLegacyHauCollegeHref(href: string): string {
+/** Map known migrated hau.ac.in URLs to this site's public paths. */
+function rewriteLegacyHauHref(href: string): string {
   const trimmed = href.trim();
   try {
     const url = new URL(trimmed, "https://hau.ac.in");
     const host = url.hostname.replace(/^www\./, "");
-    if (host === "hau.ac.in" && url.pathname.replace(/\/$/, "") === "/college/nehru-library") {
-      return "/college/nehru-library";
+    if (host !== "hau.ac.in") return trimmed;
+
+    const path = url.pathname.replace(/\/$/, "") || "/";
+    const pageMatch = path.match(/^\/page\/([^/]+)$/);
+    if (pageMatch?.[1]) {
+      const slugAliases: Record<string, string> = {
+        "major-initiative": "major-initiatives",
+      };
+      const mapped = slugAliases[pageMatch[1]] ?? pageMatch[1];
+      return `/pages/${mapped}`;
     }
+
+    const collegeMatch = path.match(/^\/college\/(.+)$/);
+    if (collegeMatch?.[1]) return `/college/${collegeMatch[1]}`;
   } catch {
     // Keep original href if it is not a valid URL.
   }

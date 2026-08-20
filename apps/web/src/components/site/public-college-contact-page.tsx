@@ -6,6 +6,7 @@ import { useLanguage } from "@/components/design/shared/language-context";
 import { pickBilingual } from "@/lib/i18n/pick-bilingual";
 import type { PublicCollegePage, PublicOfficeContactLine } from "@/lib/data/public-types";
 import { publicCardClass, publicMutedTextClass } from "@/lib/design/public-page-classes";
+import { findExactContactLine } from "@/lib/pages/college-contact-display";
 
 function findContactLine(lines: PublicOfficeContactLine[], ...keywords: string[]) {
   const lower = keywords.map((k) => k.toLowerCase());
@@ -47,9 +48,16 @@ export function PublicCollegeContactPage({
 }) {
   const { lang, t } = useLanguage();
 
-  const collegeName = pickBilingual(lang, college.titleEn, college.titleHi);
-  const addressLine = findContactLine(contactLines, "mailing", "address");
-  const officeLine = findContactLine(contactLines, "office", "phone", "telephone");
+  const collegeLine = findExactContactLine(contactLines, "College");
+  const collegeName = collegeLine
+    ? pickBilingual(lang, collegeLine.valueEn, collegeLine.valueHi)
+    : pickBilingual(lang, college.titleEn, college.titleHi);
+  const addressLine =
+    findExactContactLine(contactLines, "Address") ??
+    findContactLine(contactLines, "mailing", "address");
+  const officeLine =
+    findExactContactLine(contactLines, "Phone") ??
+    findContactLine(contactLines, "office", "phone", "telephone");
   const emailLine = findContactLine(contactLines, "email", "e-mail");
 
   const address = addressLine

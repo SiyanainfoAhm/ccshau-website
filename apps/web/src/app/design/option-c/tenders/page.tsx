@@ -12,7 +12,7 @@ export default function OptionCTendersPage() {
   return (
     <DesignShell className="bg-slate-50">
       <SiteHeader variant="ministry" homeHref="/design/option-c" />
-      <main id="main-content" className="flex-1">
+      <main id="main-content" tabIndex={-1} className="flex-1">
         <MinistryInnerHero title="Tenders & Auctions" titleHi="निविदाएं और नीलामी" />
 
         <div className="mx-auto max-w-7xl px-4 py-10">

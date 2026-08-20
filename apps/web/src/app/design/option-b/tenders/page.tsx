@@ -12,7 +12,7 @@ export default function TendersPage() {
   return (
     <DesignShell>
       <SiteHeader variant="future" homeHref="/design/option-b" />
-      <main id="main-content" className="flex-1 bg-slate-50">
+      <main id="main-content" tabIndex={-1} className="flex-1 bg-slate-50">
         <div className="gradient-hero px-4 py-14 text-white">
           <div className="mx-auto max-w-7xl">
             <Link

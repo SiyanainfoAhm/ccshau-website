@@ -24,7 +24,7 @@ export default function OptionCPage() {
     <DesignShell className="bg-white">
       <SiteHeader variant="ministry" homeHref="/design/option-c" />
       <NewsTicker variant="ministry" />
-      <main id="main-content" className="flex-1">
+      <main id="main-content" tabIndex={-1} className="flex-1">
         <HeroCarousel variant="ministry" />
         <StatsBar variant="ministry" />
         <DignitariesStrip variant="ministry" />

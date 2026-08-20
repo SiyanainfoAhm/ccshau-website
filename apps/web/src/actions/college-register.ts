@@ -228,7 +228,9 @@ export async function registerDepartmentAction(
       titleHi: formData.get("titleHi") || undefined,
       slug: formData.get("slug"),
       excerptEn: formData.get("excerptEn") || undefined,
+      excerptHi: formData.get("excerptHi") || undefined,
       contentEn: formData.get("contentEn") || undefined,
+      contentHi: formData.get("contentHi") || undefined,
       sortOrder: formData.get("sortOrder") ?? 0,
       showInDepartmentsMenu: formData.get("showInDepartmentsMenu") === "true",
     });
@@ -469,7 +471,9 @@ export async function getDepartmentForEdit(departmentId: string) {
     titleHi: page.title_hi,
     slug: page.slug,
     excerptEn: page.excerpt_en,
+    excerptHi: page.excerpt_hi,
     contentEn: page.content_en,
+    contentHi: page.content_hi,
     sortOrder: page.sort_order ?? 0,
     showInDepartmentsMenu:
       readStoredLayoutConfig(page.layout_config, page.layout_template ?? "office_portal")
@@ -491,7 +495,9 @@ export async function updateDepartmentAction(
       titleHi: formData.get("titleHi") || undefined,
       slug: formData.get("slug"),
       excerptEn: formData.get("excerptEn") || undefined,
+      excerptHi: formData.get("excerptHi") || undefined,
       contentEn: formData.get("contentEn") || undefined,
+      contentHi: formData.get("contentHi") || undefined,
       sortOrder: formData.get("sortOrder") ?? 0,
       showInDepartmentsMenu: formData.get("showInDepartmentsMenu") === "true",
     });
@@ -532,7 +538,9 @@ export async function updateDepartmentAction(
         title_hi: input.titleHi || null,
         slug: nextSlug,
         excerpt_en: input.excerptEn || null,
+        excerpt_hi: input.excerptHi || null,
         content_en: input.contentEn || null,
+        content_hi: input.contentHi || null,
         sort_order: input.sortOrder ?? 0,
         layout_config: layoutConfig,
         updated_by: session.userId,

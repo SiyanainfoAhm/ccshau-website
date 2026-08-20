@@ -11,7 +11,7 @@ export default function NewsDetailPage() {
   return (
     <DesignShell>
       <SiteHeader variant="future" homeHref="/design/option-b" />
-      <main id="main-content" className="flex-1">
+      <main id="main-content" tabIndex={-1} className="flex-1">
         <div className="gradient-hero pattern-dots px-4 py-12 text-white">
           <div className="mx-auto max-w-3xl">
             <Link

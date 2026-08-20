@@ -93,6 +93,17 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (!pathname.startsWith("/admin")) {
+    const legacyPage = pathname.match(/^\/page\/([^/]+)$/);
+    if (legacyPage?.[1]) {
+      const slugAliases: Record<string, string> = {
+        "major-initiative": "major-initiatives",
+      };
+      const mapped = slugAliases[legacyPage[1]] ?? legacyPage[1];
+      return NextResponse.redirect(new URL(`/pages/${mapped}`, request.url), 301);
+    }
+    if (pathname === "/pages/major-initiative") {
+      return NextResponse.redirect(new URL("/pages/major-initiatives", request.url), 301);
+    }
     const redirectResponse = await handleLegacyRedirect(request);
     if (redirectResponse) return redirectResponse;
     return NextResponse.next();

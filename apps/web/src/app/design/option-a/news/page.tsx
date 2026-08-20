@@ -36,7 +36,7 @@ function NewsContent() {
         navItems={optionANavItems}
         showMainNav
       />
-      <main id="main-content" className="flex-1">
+      <main id="main-content" tabIndex={-1} className="flex-1">
         <HeritageInnerHero
           title="News & Notices"
           titleHi="समाचार और सूचनाएं"

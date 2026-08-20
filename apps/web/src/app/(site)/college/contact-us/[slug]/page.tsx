@@ -43,7 +43,7 @@ export default async function CollegeContactPage({ params }: { params: Promise<{
         college={college}
         pageLayoutConfig={college.layoutConfig}
       />
-      <main id="main-content" className="flex-1 bg-slate-50">
+      <main id="main-content" tabIndex={-1} className="flex-1 bg-slate-50">
         <PublicCollegeContactPage
           college={college}
           contactLines={office?.contactLines ?? []}

@@ -9,7 +9,9 @@ export const registerDepartmentSchema = z.object({
     .min(2, "Slug is required")
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Use lowercase letters, numbers, and hyphens"),
   excerptEn: z.string().optional(),
+  excerptHi: z.string().optional(),
   contentEn: z.string().optional(),
+  contentHi: z.string().optional(),
   sortOrder: z.coerce.number().int().min(0).optional().default(0),
   showInDepartmentsMenu: z.boolean().default(true),
 });

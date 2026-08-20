@@ -758,7 +758,11 @@ function NewsTickerMarquee({
 }) {
   const duration = durationSec ?? Math.max(18, items.length * 6);
   return (
-    <div className={`news-ticker-viewport relative ${barClassName}`}>
+    <div
+      className={`news-ticker-viewport relative ${barClassName}`}
+      role="region"
+      aria-label={badgeLabel}
+    >
       <div className={`absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r ${edgeFadeClassName}`} />
       <div className={`absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l ${edgeFadeClassName}`} />
       <div
@@ -822,7 +826,7 @@ export function NewsTicker({
   if (variant === "ministry") {
     const labels = items.map((h) => t(h.titleEn, h.titleHi));
     return (
-      <div className="news-ticker-viewport border-b-2 border-[#0c3b6e] bg-[#0c3b6e] py-2.5 text-sm font-semibold text-white">
+      <div className="news-ticker-viewport border-b-2 border-[#0c3b6e] bg-[#0c3b6e] py-2.5 text-sm font-semibold text-white" role="region" aria-label={t("Notice", "सूचना")}>
         <div
           className="flex animate-marquee gap-12 whitespace-nowrap px-4"
           style={{ ["--marquee-duration" as string]: `${durationSec}s` }}
@@ -855,7 +859,11 @@ export function NewsTicker({
   }
 
   return (
-    <div className="news-ticker-viewport relative bg-gradient-to-r from-[#d4a012] via-[#f0c14b] to-[#d4a012] py-2.5 text-sm font-bold text-emerald-950 shadow-inner">
+    <div
+      className="news-ticker-viewport relative bg-gradient-to-r from-[#d4a012] via-[#f0c14b] to-[#d4a012] py-2.5 text-sm font-bold text-emerald-950 shadow-inner"
+      role="region"
+      aria-label={t("News", "समाचार")}
+    >
       <div className="absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-[#d4a012] to-transparent" />
       <div className="absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-[#d4a012] to-transparent" />
       <div

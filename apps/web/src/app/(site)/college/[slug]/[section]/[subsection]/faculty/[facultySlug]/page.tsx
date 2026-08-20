@@ -47,7 +47,7 @@ export default async function FacultyDetailPage({
   return (
     <>
       <SiteHeader variant="future" homeHref={`/college/${slug}`} college={college} />
-      <main id="main-content" className={publicMainClass}>
+      <main id="main-content" tabIndex={-1} className={publicMainClass}>
         <div className="mx-auto max-w-4xl px-4 py-8">
           <nav className="mb-6 text-sm text-emerald-800">
             <Link href={`/college/${slug}`} className="hover:underline">

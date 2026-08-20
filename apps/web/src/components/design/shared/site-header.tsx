@@ -137,7 +137,7 @@ export function SiteHeader({
               aria-label={lang === "en" ? t("Switch to Hindi", "हिंदी में बदलें") : t("Switch to English", "अंग्रेज़ी में बदलें")}
               className={`flex items-center gap-1 rounded-full px-3 py-1 font-medium transition ${isHeritage ? "bg-white/80 text-violet-700 shadow-sm ring-1 ring-violet-100 hover:bg-violet-50" : isMinistry ? "bg-sky-50 text-[#0c3b6e] hover:bg-sky-100" : isLight ? "bg-emerald-50 text-emerald-800 hover:bg-emerald-100" : "bg-white/10 hover:bg-white/20"}`}
             >
-              <Globe className="h-3.5 w-3.5" />
+              <Globe className="h-3.5 w-3.5" aria-hidden />
               {lang === "en" ? "हिंदी" : "English"}
             </button>
             {(!isLight || isHeritage || isMinistry) && (

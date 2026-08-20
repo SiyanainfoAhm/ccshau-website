@@ -690,17 +690,10 @@ async function resolveSidebarHref(
   if (item.linked_page_id) {
     const linked = pageById.get(item.linked_page_id);
     if (linked) {
-      const parent = linked.parent_id ? pageById.get(linked.parent_id) : null;
-      if (linked.page_type === "college") {
-        if (parent?.page_type === "college") {
-          return `/college/${parent.slug}/${linked.slug}`;
-        }
-        return `/college/${linked.slug}`;
-      }
-      return `/pages/${linked.slug}`;
+      return resolvePagePublicPath(linked, pageById);
     }
   }
-  return item.href ?? "#";
+  return item.href?.trim() || "#";
 }
 
 export async function getOfficePortalDataForPage(
@@ -719,7 +712,7 @@ export async function getOfficePortalDataForPage(
     };
   }
 
-  const [contactsRes, peopleStaff, sidebarRes, pagesRes] = await Promise.all([
+  const [contactsRes, peopleStaffRes, sidebarRes, pagesRes] = await Promise.all([
     admin
       .from(Tables.pageContactLines)
       .select("*")
@@ -745,14 +738,32 @@ export async function getOfficePortalDataForPage(
   const sidebarItems = (sidebarRes.data ?? []) as PageSidebarItem[];
   let effectiveSidebarItems = sidebarItems;
 
-  if (sidebarItems.length === 0 && page.parent_id) {
-    const { data: parentSidebars } = await admin
-      .from(Tables.pageSidebarItems)
-      .select("*")
-      .eq("page_id", page.parent_id)
-      .eq("is_active", true)
-      .order("sort_order");
-    effectiveSidebarItems = (parentSidebars ?? []) as PageSidebarItem[];
+  if (sidebarItems.length === 0) {
+    const ancestorIds = [page.parent_id, page.college_root_id].filter(
+      (id, index, ids): id is string =>
+        Boolean(id) && id !== page.id && ids.indexOf(id) === index,
+    );
+    for (const ancestorId of ancestorIds) {
+      const { data: ancestorSidebars } = await admin
+        .from(Tables.pageSidebarItems)
+        .select("*")
+        .eq("page_id", ancestorId)
+        .eq("is_active", true)
+        .order("sort_order");
+      if ((ancestorSidebars ?? []).length > 0) {
+        effectiveSidebarItems = ancestorSidebars as PageSidebarItem[];
+        break;
+      }
+    }
+  }
+
+  let peopleStaff = peopleStaffRes;
+  if (
+    peopleStaff.length === 0 &&
+    page.college_root_id &&
+    page.college_root_id !== page.id
+  ) {
+    peopleStaff = await listPublicStaffForPage(admin, page.college_root_id);
   }
 
   const sidebarLeft: PublicSidebarLink[] = [];
@@ -888,19 +899,46 @@ export async function getPageStudentCornerItemsByPageId(
     }));
 }
 
+const NEHRU_LIBRARY_TOP_NAV_SLUGS = new Set([
+  "about-library",
+  "resources",
+  "library-timings-holidays",
+  "digital-library",
+]);
+
+const CAMPUS_SCHOOL_TOP_NAV_SLUGS = new Set([
+  "cs-about-us",
+  "cs-messages",
+  "cs-video-gallery",
+  "cs-school-management",
+  "cs-school-info",
+  "campus-school-gallery",
+]);
+
 /** Structural college nav sections only (legacy: Departments + Gallery). */
-function isCollegeTopNavSection(page: Page): boolean {
+function isCollegeTopNavSection(page: Page, collegeSlug?: string): boolean {
+  if (collegeSlug === "nehru-library") {
+    return NEHRU_LIBRARY_TOP_NAV_SLUGS.has(String(page.slug || "").toLowerCase());
+  }
+  if (collegeSlug === "campus-school") {
+    return CAMPUS_SCHOOL_TOP_NAV_SLUGS.has(String(page.slug || "").toLowerCase());
+  }
   const slug = String(page.slug || "").toLowerCase();
   const title = String(page.title_en || "").trim().toLowerCase();
   return (
     /^(department|departments|gallery|dhrm)$/.test(slug) ||
     /(?:^|-)department$/.test(slug) ||
     /(?:^|-)gallery$/.test(slug) ||
+    slug === "alumni-association-executive-committee" ||
     title === "departments" ||
     title === "department" ||
     title === "gallery" ||
     title === "dhrm" ||
-    title === "d h r m"
+    title === "d h r m" ||
+    title === "dsw sections" ||
+    title === "sections" ||
+    title === "alumni ass. executive committee" ||
+    title === "alumni association executive committee"
   );
 }
 
@@ -957,7 +995,9 @@ export async function getPublishedCollegeBySlug(slug: string): Promise<PublicCol
 
   // College top nav should match legacy: Home | Departments | Gallery | Contact —
   // not every CMS child page attached under the college root.
-  const sectionRows = ((sections as Page[]) ?? []).filter(isCollegeTopNavSection);
+  const sectionRows = ((sections as Page[]) ?? []).filter((page) =>
+    isCollegeTopNavSection(page, college.slug),
+  );
   const sectionIds = sectionRows.map((s) => s.id);
 
   let subsectionRows: Page[] = [];

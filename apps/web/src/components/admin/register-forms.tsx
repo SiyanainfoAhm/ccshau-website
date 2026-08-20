@@ -19,7 +19,9 @@ type DepartmentEditData = {
   titleHi: string | null;
   slug: string;
   excerptEn: string | null;
+  excerptHi: string | null;
   contentEn: string | null;
+  contentHi: string | null;
   sortOrder?: number;
   showInDepartmentsMenu?: boolean;
 };
@@ -51,6 +53,9 @@ export function RegisterDepartmentForm({
   const [titleHi, setTitleHi] = useState(department?.titleHi ?? "");
   const [slug, setSlug] = useState(department?.slug ?? "");
   const [contentEn, setContentEn] = useState(department?.contentEn ?? "");
+  const [contentHi, setContentHi] = useState(department?.contentHi ?? "");
+  const [excerptEn, setExcerptEn] = useState(department?.excerptEn ?? "");
+  const [excerptHi, setExcerptHi] = useState(department?.excerptHi ?? "");
   const isEdit = Boolean(department);
 
   function handleTitleBlur() {
@@ -61,18 +66,23 @@ export function RegisterDepartmentForm({
     setError(null);
     setIsTranslating(true);
     try {
-      const result = await translateFieldsEnToHiAction([{ key: "titleHi", text: titleEn }]);
+      const result = await translateFieldsEnToHiAction([
+        { key: "titleHi", text: titleEn },
+        { key: "excerptHi", text: excerptEn },
+        { key: "contentHi", text: contentEn, format: "html" },
+      ]);
       if (!result.success) {
         setError(result.error);
         return;
       }
-      if (result.data.translations.titleHi) {
-        setTitleHi(result.data.translations.titleHi);
-      }
+      const translated = result.data.translations;
+      if (translated.titleHi) setTitleHi(translated.titleHi);
+      if (translated.excerptHi) setExcerptHi(translated.excerptHi);
+      if (translated.contentHi) setContentHi(translated.contentHi);
       if (result.data.warnings.length > 0) {
         setError(result.data.warnings.join(" "));
-      } else if (Object.keys(result.data.translations).length === 0) {
-        setError("Nothing was translated. Enter English department name first.");
+      } else if (Object.keys(translated).length === 0) {
+        setError("Nothing was translated. Enter English text first.");
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Translation failed.");
@@ -222,21 +232,41 @@ export function RegisterDepartmentForm({
             </span>
           </label>
           <label className="block text-sm">
-            <span className="font-medium text-slate-700">Short description</span>
+            <span className="font-medium text-slate-700">Short description (English)</span>
             <textarea
               name="excerptEn"
               rows={2}
-              defaultValue={department?.excerptEn ?? ""}
+              value={excerptEn}
+              onChange={(e) => setExcerptEn(e.target.value)}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+            />
+          </label>
+          <label className="block text-sm">
+            <span className="font-medium text-slate-700">Short description (Hindi)</span>
+            <textarea
+              name="excerptHi"
+              rows={2}
+              value={excerptHi}
+              onChange={(e) => setExcerptHi(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-hindi"
             />
           </label>
           <AdminHtmlField
             name="contentEn"
-            label="About (optional)"
+            label="About (English, optional)"
             value={contentEn}
             onChange={setContentEn}
             rows={8}
             disabled={readOnly}
+          />
+          <AdminHtmlField
+            name="contentHi"
+            label="About (Hindi, optional)"
+            value={contentHi}
+            onChange={setContentHi}
+            rows={8}
+            disabled={readOnly}
+            hindi
           />
         </div>
         <p className="mt-3 text-xs text-slate-500">

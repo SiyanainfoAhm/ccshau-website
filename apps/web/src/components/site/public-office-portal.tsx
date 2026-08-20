@@ -24,6 +24,7 @@ import {
 } from "@/lib/html/extract-pdf-url";
 import { formatMenuLabel } from "@/lib/i18n/menu-label";
 import { pickBilingual } from "@/lib/i18n/pick-bilingual";
+import { officerContactLines } from "@/lib/pages/college-contact-display";
 import { PublicPdfViewer } from "@/components/site/public-pdf-viewer";
 
 function SidebarPanel({
@@ -227,7 +228,7 @@ export function PublicOfficePortal({
                   {t("Telephone", "टेलीफोन")}
                 </h2>
                 <dl className="mt-4 space-y-4">
-                  {office.contactLines.map((line) => (
+                  {officerContactLines(office.contactLines).map((line) => (
                     <div key={line.labelEn} className="border-b border-slate-100 pb-4 last:border-0 last:pb-0">
                       <dt
                         className={`text-sm font-bold text-emerald-900 ${lang === "hi" ? "font-hindi" : ""}`}

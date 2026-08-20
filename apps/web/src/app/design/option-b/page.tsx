@@ -27,7 +27,7 @@ export default function OptionBPage() {
     <DesignShell>
       <SiteHeader variant="future" homeHref="/design/option-b" />
       <NewsTicker />
-      <main id="main-content" className="flex-1">
+      <main id="main-content" tabIndex={-1} className="flex-1">
         <HeroCarousel variant="future" />
         <StatsBar variant="future" />
         <DignitariesStrip />

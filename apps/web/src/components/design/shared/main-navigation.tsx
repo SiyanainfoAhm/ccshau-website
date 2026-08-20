@@ -52,6 +52,9 @@ function MegaMenuPanel({
       className={`absolute left-0 right-0 top-full z-50 pt-1 transition ${
         open ? "visible opacity-100" : "invisible pointer-events-none opacity-0"
       }`}
+      role="region"
+      aria-label={t(item.labelEn, item.labelHi ?? item.labelEn)}
+      aria-hidden={!open}
     >
       <div className="ccshau-mega-panel mx-auto flex max-w-7xl overflow-hidden rounded-b-xl bg-white">
         <div className="ccshau-mega-panel-sidebar w-72 shrink-0 py-2">
@@ -63,6 +66,8 @@ function MegaMenuPanel({
                 key={child.labelEn}
                 type="button"
                 onMouseEnter={() => setActiveChild(index)}
+                onFocus={() => setActiveChild(index)}
+                aria-pressed={isActive}
                 className={`flex w-full items-center justify-between px-4 py-3 text-left text-sm font-bold tracking-wide transition ${
                   isActive ? "is-active" : "text-white/90 hover:bg-white/10"
                 }`}
@@ -74,7 +79,7 @@ function MegaMenuPanel({
                     "title",
                   )}
                 </span>
-                {hasKids && <ChevronRight className="h-4 w-4 shrink-0 opacity-80" />}
+                {hasKids && <ChevronRight className="h-4 w-4 shrink-0 opacity-80" aria-hidden />}
               </button>
             );
           })}
@@ -137,8 +142,10 @@ function SimpleDropdown({
   return (
     <div
       className={`absolute left-0 top-full z-50 min-w-[260px] pt-1 transition ${
-        open ? "visible opacity-100" : "invisible opacity-0"
+        open ? "visible opacity-100" : "invisible pointer-events-none opacity-0"
       }`}
+      role="menu"
+      aria-hidden={!open}
     >
       <div className="ccshau-nav-dropdown rounded-lg bg-white p-2">
         {item.children?.map((child) => (
@@ -310,6 +317,7 @@ export function MainNavigation({
               key={item.labelEn}
               className="relative flex items-center"
               onMouseEnter={() => hasChildren && setOpenLabel(item.labelEn)}
+              onFocusCapture={() => hasChildren && setOpenLabel(item.labelEn)}
             >
               {index > 0 && tone === "future" && <span className="ccshau-main-nav-separator" aria-hidden />}
               {isDropdownTrigger(item.href, hasChildren) ? (
@@ -325,7 +333,7 @@ export function MainNavigation({
                     lang,
                     "upper",
                   )}
-                  <ChevronDown className={`h-4 w-4 opacity-70 transition ${isOpen ? "rotate-180" : ""}`} />
+                  <ChevronDown className={`h-4 w-4 opacity-70 transition ${isOpen ? "rotate-180" : ""}`} aria-hidden />
                 </button>
               ) : (
                 <Link href={href} className={triggerClass} aria-current={isActive ? "page" : undefined}>
@@ -335,7 +343,7 @@ export function MainNavigation({
                     "upper",
                   )}
                   {hasChildren && (
-                    <ChevronDown className={`h-4 w-4 opacity-70 transition ${isOpen ? "rotate-180" : ""}`} />
+                    <ChevronDown className={`h-4 w-4 opacity-70 transition ${isOpen ? "rotate-180" : ""}`} aria-hidden />
                   )}
                 </Link>
               )}

@@ -23,7 +23,7 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ slu
   return (
     <>
       <SiteHeader variant="future" />
-      <main id="main-content" className="flex-1">
+      <main id="main-content" tabIndex={-1} className="flex-1">
         <PublicNewsDetail item={item} />
       </main>
       <SiteFooter variant="future" />

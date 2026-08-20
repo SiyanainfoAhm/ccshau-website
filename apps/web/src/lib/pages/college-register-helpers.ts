@@ -447,7 +447,9 @@ export function departmentInsertRow(
     titleHi?: string;
     slug: string;
     excerptEn?: string;
+    excerptHi?: string;
     contentEn?: string;
+    contentHi?: string;
     sortOrder?: number;
     showInDepartmentsMenu?: boolean;
   },
@@ -459,9 +461,9 @@ export function departmentInsertRow(
     title_en: input.titleEn,
     title_hi: input.titleHi || null,
     excerpt_en: input.excerptEn || `${input.titleEn} department.`,
-    excerpt_hi: null,
+    excerpt_hi: input.excerptHi || null,
     content_en: input.contentEn || `<p>About ${input.titleEn}.</p>`,
-    content_hi: null,
+    content_hi: input.contentHi || null,
     parent_id: parentId,
     page_type: "standard" as const,
     layout_template: "office_portal" as const,

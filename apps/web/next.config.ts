@@ -57,6 +57,31 @@ const nextConfig: NextConfig = {
         destination: "/pages/human-resource-management",
         permanent: false,
       },
+      {
+        source: "/college/eo-cum-se",
+        destination: "/pages/estate-office",
+        permanent: false,
+      },
+      {
+        source: "/awards",
+        destination: "/pages/awards",
+        permanent: false,
+      },
+      {
+        source: "/college/dsw",
+        destination: "/college/directorate-of-students-welfare",
+        permanent: false,
+      },
+      {
+        source: "/college/dsw/:path*",
+        destination: "/college/directorate-of-students-welfare/:path*",
+        permanent: false,
+      },
+      {
+        source: "/college/contact-us/dsw",
+        destination: "/college/contact-us/directorate-of-students-welfare",
+        permanent: false,
+      },
     ];
   },
   images: {

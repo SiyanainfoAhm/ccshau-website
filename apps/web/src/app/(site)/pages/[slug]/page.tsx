@@ -5,6 +5,7 @@ import { PublicCmsOfficePageContent } from "@/components/site/public-cms-office-
 import { PublicCmsPageContent } from "@/components/site/public-cms-page-content";
 import {
   getOfficePortalDataByPageId,
+  getPageGalleryItemsByPageId,
   getPageNewsTickerItemsByPageId,
   getPublishedCollegeBySlug,
   getPublishedPageBySlug,
@@ -12,7 +13,8 @@ import {
 } from "@/lib/data/public";
 import { Tables } from "@/lib/database/names";
 import type { Page } from "@/lib/database/types";
-import { getCollegePublicHomePath, getCollegeSlugForCmsPage, getPublicPagePath } from "@/lib/pages/routes";
+import { parseLayoutConfigJson } from "@/lib/pages/layout-config";
+import { getCollegeContactPath, getCollegePublicHomePath, getCollegeSlugForCmsPage, getPublicPagePath } from "@/lib/pages/routes";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 function usesOfficeAboutLayout(page: Page) {
@@ -59,10 +61,13 @@ export default async function CmsPage({ params }: { params: Promise<{ slug: stri
       : null;
   const collegeSlug = getCollegeSlugForCmsPage(slug);
   const college = collegeSlug ? await getPublishedCollegeBySlug(collegeSlug) : null;
+  const storedLayout = pageRow ? parseLayoutConfigJson(pageRow.layout_config) : null;
   const newsTickerItems =
-    page.layoutConfig?.newsTicker && pageRow
+    (page.layoutConfig?.newsTicker || storedLayout?.newsTicker) && pageRow
       ? await getPageNewsTickerItemsByPageId(pageRow.id)
       : [];
+  const galleryImages =
+    storedLayout?.gallery && pageRow ? await getPageGalleryItemsByPageId(pageRow.id) : [];
 
   return (
     <>
@@ -72,15 +77,17 @@ export default async function CmsPage({ params }: { params: Promise<{ slug: stri
         homeHref={college ? getCollegePublicHomePath(college.collegeSlug) : undefined}
         pageLayoutConfig={college?.layoutConfig ?? page.layoutConfig}
       />
-      <main id="main-content" className="flex-1">
+      <main id="main-content" tabIndex={-1} className="flex-1">
         {office ? (
           <PublicCmsOfficePageContent
             page={page}
             office={office}
             newsTickerItems={newsTickerItems}
+            showHeroContactButton={page.layoutConfig?.heroContactButton ?? false}
+            heroContactHref={college ? getCollegeContactPath(college.collegeSlug) : undefined}
           />
         ) : (
-          <PublicCmsPageContent page={page} />
+          <PublicCmsPageContent page={page} galleryImages={galleryImages} />
         )}
       </main>
       <SiteFooter variant="future" />

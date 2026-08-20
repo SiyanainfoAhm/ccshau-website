@@ -74,7 +74,7 @@ export function PublicDownloadsListing({
   return (
     <>
       <SiteHeader variant="future" />
-      <main id="main-content" className={publicMainClass}>
+      <main id="main-content" tabIndex={-1} className={publicMainClass}>
         <div className="gradient-hero px-4 py-14 text-white">
           <div className="mx-auto max-w-7xl">
             <Link

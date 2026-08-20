@@ -34,7 +34,7 @@ function NewsSampleContent() {
         navItems={optionANavItems}
         showMainNav
       />
-      <main id="main-content" className="flex-1">
+      <main id="main-content" tabIndex={-1} className="flex-1">
         <div className="heritage-rainbow-bar" />
         <div className="border-b border-rose-100 bg-gradient-to-br from-rose-50 via-white to-violet-50 px-4 py-10">
           <div className="mx-auto max-w-3xl">

@@ -17,10 +17,14 @@ export function PublicCollegeGallery({
   images,
   albumTitleEn = "Images",
   albumTitleHi = "छवियाँ",
+  showCaptions = false,
+  imageFit = "cover",
 }: {
   images: PublicGalleryImage[];
   albumTitleEn?: string;
   albumTitleHi?: string;
+  showCaptions?: boolean;
+  imageFit?: "cover" | "contain";
 }) {
   const { lang, t } = useLanguage();
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
@@ -62,38 +66,54 @@ export function PublicCollegeGallery({
 
   const activeImage = activeIndex == null ? null : visibleImages[activeIndex];
 
+  const heading = pickBilingual(lang, albumTitleEn, albumTitleHi);
+
   return (
     <>
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-100 bg-emerald-50 px-6 py-4">
-          <h2 className={`font-display text-2xl font-bold text-slate-900 ${lang === "hi" ? "font-hindi" : ""}`}>
-            {pickBilingual(lang, albumTitleEn, albumTitleHi)}
-          </h2>
-        </div>
+        {heading ? (
+          <div className="border-b border-slate-100 bg-emerald-50 px-6 py-4">
+            <h2 className={`font-display text-2xl font-bold text-slate-900 ${lang === "hi" ? "font-hindi" : ""}`}>
+              {heading}
+            </h2>
+          </div>
+        ) : null}
         <div className="grid grid-cols-2 gap-4 p-6 sm:grid-cols-3 lg:grid-cols-4">
           {visibleImages.map((image, index) => {
             const label = pickBilingual(lang, image.titleEn, image.titleHi) || t("Photo", "फोटो");
             const thumb = (image.thumbnailUrl ?? image.imageUrl)!;
+            const fitClass = imageFit === "contain" ? "object-contain" : "object-cover";
 
             return (
               <button
                 key={image.id}
                 type="button"
                 onClick={() => setActiveIndex(index)}
-                className="group relative aspect-[4/3] overflow-hidden rounded-lg border border-slate-200 bg-slate-100 text-left shadow-sm transition hover:border-emerald-300 hover:shadow-md"
-                aria-label={t(`View image ${index + 1}`, `छवि ${index + 1} देखें`)}
+                className={`group text-left ${
+                  showCaptions
+                    ? "flex flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition hover:border-emerald-300 hover:shadow-md"
+                    : "relative aspect-[4/3] overflow-hidden rounded-lg border border-slate-200 bg-slate-100 shadow-sm transition hover:border-emerald-300 hover:shadow-md"
+                }`}
+                aria-label={t(`View ${label}`, `${label} देखें`)}
               >
-                <Image
-                  src={thumb}
-                  alt={label}
-                  fill
-                  unoptimized={isRemoteSrc(thumb)}
-                  className="object-cover transition duration-300 group-hover:scale-105"
-                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                />
-                <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition group-hover:bg-black/35">
-                  <ZoomIn className="h-8 w-8 text-white opacity-0 transition group-hover:opacity-100" aria-hidden />
-                </div>
+                <span className="relative block aspect-[4/3] w-full overflow-hidden bg-slate-50">
+                  <Image
+                    src={thumb}
+                    alt={label}
+                    fill
+                    unoptimized={isRemoteSrc(thumb)}
+                    className={`${fitClass} transition duration-300 group-hover:scale-105`}
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  />
+                  <span className="absolute inset-0 flex items-center justify-center bg-black/0 transition group-hover:bg-black/35">
+                    <ZoomIn className="h-8 w-8 text-white opacity-0 transition group-hover:opacity-100" aria-hidden />
+                  </span>
+                </span>
+                {showCaptions ? (
+                  <span className="px-3 py-2 text-sm font-semibold leading-snug text-slate-800">
+                    {label}
+                  </span>
+                ) : null}
               </button>
             );
           })}
@@ -156,8 +176,9 @@ export function PublicCollegeGallery({
               sizes="100vw"
               priority
             />
-            <p className="mt-3 text-center text-sm text-white/80" aria-live="polite">
-              {activeIndex + 1} / {visibleImages.length}
+            <p className="mt-3 max-w-3xl text-center text-sm text-white/90" aria-live="polite">
+              {pickBilingual(lang, activeImage.titleEn, activeImage.titleHi) ||
+                `${activeIndex + 1} / ${visibleImages.length}`}
             </p>
           </div>
         </div>

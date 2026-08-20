@@ -81,7 +81,7 @@ export default async function HomePage() {
     <>
       <SiteHeader variant="future" />
       <NewsTicker variant="future" headlines={tickerHeadlines} />
-      <main id="main-content" className="flex-1">
+      <main id="main-content" tabIndex={-1} className="flex-1">
         <HeroCarousel variant="future" slides={banners.length > 0 ? banners : undefined} />
         <QuotesSection variant="future" quotes={homepage.quotes} />
         <AboutSection variant="future" page={aboutPage} />

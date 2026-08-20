@@ -12,7 +12,7 @@ export default function NewsListingPage() {
   return (
     <DesignShell>
       <SiteHeader variant="future" homeHref="/design/option-b" />
-      <main id="main-content" className="flex-1 bg-gradient-to-b from-emerald-50/50 to-white">
+      <main id="main-content" tabIndex={-1} className="flex-1 bg-gradient-to-b from-emerald-50/50 to-white">
         <div className="gradient-hero pattern-dots px-4 py-14 text-white">
           <div className="mx-auto max-w-7xl">
             <Link

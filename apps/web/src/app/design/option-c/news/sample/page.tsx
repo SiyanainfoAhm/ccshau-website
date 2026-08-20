@@ -14,7 +14,7 @@ export default function OptionCNewsSamplePage() {
   return (
     <DesignShell className="bg-white">
       <SiteHeader variant="ministry" homeHref="/design/option-c" />
-      <main id="main-content" className="flex-1">
+      <main id="main-content" tabIndex={-1} className="flex-1">
         <div className="goi-tricolor-bar" />
         <div className="border-b border-slate-200 bg-slate-50 px-4 py-8">
           <div className="mx-auto max-w-3xl">

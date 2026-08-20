@@ -64,7 +64,7 @@ export default function OptionAPage() {
         showMainNav
       />
       <NewsTicker variant="heritage" />
-      <main id="main-content" className="flex-1">
+      <main id="main-content" tabIndex={-1} className="flex-1">
         <HeroCarousel
           variant="heritage"
           primaryCtaHref={`${OPTION_A_BASE}/news`}

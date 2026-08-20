@@ -10,6 +10,7 @@ import { staffPhotoAlt } from "@/lib/a11y/image-alt";
 import { StaffPhoto } from "@/components/site/staff-photo";
 import type { PublicOfficeContactLine, PublicOfficeStaffMember } from "@/lib/data/public-types";
 import { pickBilingual } from "@/lib/i18n/pick-bilingual";
+import { officerContactLines } from "@/lib/pages/college-contact-display";
 
 function findContactLine(lines: PublicOfficeContactLine[], ...keywords: string[]) {
   const lower = keywords.map((k) => k.toLowerCase());
@@ -41,10 +42,12 @@ export function DepartmentAboutSection({
   const { lang, t } = useLanguage();
   const [profileOpen, setProfileOpen] = useState(false);
 
-  const addressLine = findContactLine(contactLines, "mailing", "address");
-  const officeLine = findContactLine(contactLines, "office", "phone", "telephone");
-  const faxLine = findContactLine(contactLines, "fax");
-  const emailLine = findContactLine(contactLines, "email", "e-mail");
+  const officerLines = officerContactLines(contactLines);
+
+  const addressLine = findContactLine(officerLines, "mailing", "address");
+  const officeLine = findContactLine(officerLines, "office", "phone", "telephone");
+  const faxLine = findContactLine(officerLines, "fax");
+  const emailLine = findContactLine(officerLines, "email", "e-mail");
 
   const mailingAddress = addressLine
     ? pickBilingual(lang, addressLine.valueEn, addressLine.valueHi)

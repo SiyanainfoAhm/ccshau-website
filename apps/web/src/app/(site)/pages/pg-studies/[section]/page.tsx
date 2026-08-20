@@ -69,7 +69,7 @@ export default async function PgStudiesSectionPage({
         pgStudiesHub={hub}
         pageLayoutConfig={hub.layoutConfig}
       />
-      <main id="main-content" className="flex-1 bg-slate-50">
+      <main id="main-content" tabIndex={-1} className="flex-1 bg-slate-50">
         {sectionPage.urlSegment === "contact" ? (
           <PublicCollegeContactPage
             college={collegeShim}

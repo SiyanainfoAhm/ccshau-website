@@ -52,6 +52,8 @@ const PREFIX_BY_TARGET_SLUG = {
   "directorate-of-extension-education": "dee",
   "directorate-of-students-welfare": "dsw",
   "pg-studies": "pg",
+  "campus-school": "cs",
+  "nehru-library": "nl",
 };
 
 const GALLERY_LAYOUT = {

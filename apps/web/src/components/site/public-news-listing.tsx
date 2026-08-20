@@ -42,7 +42,7 @@ export function PublicNewsListing({
   return (
     <>
       <SiteHeader variant="future" />
-      <main id="main-content" className={publicMainGradientClass}>
+      <main id="main-content" tabIndex={-1} className={publicMainGradientClass}>
         <div className="gradient-hero pattern-dots px-4 py-14 text-white">
           <div className="mx-auto max-w-7xl">
             <Link
@@ -84,7 +84,10 @@ export function PublicNewsListing({
                 No published news items yet.
               </p>
             ) : (
-              data.items.map((item) => (
+              data.items.map((item) => {
+                const title = t(item.titleEn, item.titleHi ?? item.titleEn);
+                const hasHindi = /[\u0900-\u097F]/.test(title);
+                return (
                 <article
                   key={item.id}
                   className={`group flex items-center gap-4 ${publicListItemClass}`}
@@ -97,8 +100,12 @@ export function PublicNewsListing({
                       {item.category ?? item.noticeType}
                     </span>
                     <h2 className="font-semibold text-slate-900 group-hover:text-emerald-800 dark:text-emerald-50 dark:group-hover:text-amber-200">
-                      <Link href={`/news/${item.slug}`} className="hover:underline">
-                        {t(item.titleEn, item.titleHi ?? item.titleEn)}
+                      <Link
+                        href={`/news/${item.slug}`}
+                        className={`hover:underline ${hasHindi ? "font-hindi" : ""}`}
+                        lang={hasHindi ? "hi" : undefined}
+                      >
+                        {title}
                       </Link>
                     </h2>
                   </div>
@@ -108,7 +115,8 @@ export function PublicNewsListing({
                       : "—"}
                   </time>
                 </article>
-              ))
+                );
+              })
             )}
           </div>
           <PublicPagination data={data} />

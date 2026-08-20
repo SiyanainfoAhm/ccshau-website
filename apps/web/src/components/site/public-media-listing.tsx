@@ -44,7 +44,7 @@ export function PublicMediaListing({
   return (
     <>
       <SiteHeader variant="future" />
-      <main id="main-content" className="flex-1 bg-slate-900 text-white">
+      <main id="main-content" tabIndex={-1} className="flex-1 bg-slate-900 text-white">
         <div className="gradient-hero px-4 py-14">
           <div className="mx-auto max-w-7xl">
             <Link

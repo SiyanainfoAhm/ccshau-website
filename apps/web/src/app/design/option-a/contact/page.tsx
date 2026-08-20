@@ -33,7 +33,7 @@ function ContactContent() {
         navItems={optionANavItems}
         showMainNav
       />
-      <main id="main-content" className="flex-1">
+      <main id="main-content" tabIndex={-1} className="flex-1">
         <HeritageInnerHero
           title="Contact Us"
           titleHi="संपर्क करें"

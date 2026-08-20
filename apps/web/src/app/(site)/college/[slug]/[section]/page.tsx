@@ -74,7 +74,7 @@ export default async function CollegeSectionPage({
         college={data.college}
         pageLayoutConfig={data.college.layoutConfig}
       />
-      <main id="main-content" className="flex-1 bg-slate-50">
+      <main id="main-content" tabIndex={-1} className="flex-1 bg-slate-50">
         <PublicConfigurablePage
           college={data.college}
           layoutConfig={layoutConfig}

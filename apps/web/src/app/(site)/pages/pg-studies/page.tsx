@@ -35,7 +35,7 @@ export default async function PgStudiesHomePage() {
         pgStudiesHub={hub}
         pageLayoutConfig={hub.layoutConfig}
       />
-      <main id="main-content" className="flex-1">
+      <main id="main-content" tabIndex={-1} className="flex-1">
         <PublicCmsOfficePageContent
           page={hub}
           office={office}

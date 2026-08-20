@@ -39,8 +39,9 @@ export function FloatingSocialBar() {
                   </span>
                   <span
                     className={`ccshau-social-rail__icon ccshau-social-rail__icon--${link.platform}`}
+                    aria-hidden="true"
                   >
-                    <Icon className="h-[1.15rem] w-[1.15rem]" />
+                    <Icon className="h-[1.15rem] w-[1.15rem]" aria-hidden="true" />
                   </span>
                 </a>
               </li>

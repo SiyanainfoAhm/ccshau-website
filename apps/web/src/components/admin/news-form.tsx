@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { createNewsAction, updateNewsAction } from "@/actions/news";
+import { translateFieldsEnToHiAction } from "@/actions/translate";
 import { AdminFileUploadField } from "@/components/admin/admin-file-upload-field";
+import { AdminHtmlField } from "@/components/admin/admin-html-field";
 import { AttachmentList, useAttachmentRemovals } from "@/components/admin/attachment-list";
 import type { NewsItem } from "@/lib/database/types";
 import { contentStatusOptions } from "@/lib/auth/content-status-options";
@@ -35,8 +37,40 @@ export function NewsForm({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(initialSuccess);
   const [titleEn, setTitleEn] = useState(news?.title_en ?? "");
+  const [titleHi, setTitleHi] = useState(news?.title_hi ?? "");
   const [slug, setSlug] = useState(news?.slug ?? "");
+  const [bodyEn, setBodyEn] = useState(news?.body_en ?? "");
+  const [bodyHi, setBodyHi] = useState(news?.body_hi ?? "");
+  const [isTranslating, setIsTranslating] = useState(false);
   const { removed, remove, removedJson } = useAttachmentRemovals(news?.attachment_paths ?? []);
+
+  async function handleAutoTranslate() {
+    setError(null);
+    setSuccess(null);
+    setIsTranslating(true);
+    try {
+      const result = await translateFieldsEnToHiAction([
+        { key: "titleHi", text: titleEn },
+        { key: "bodyHi", text: bodyEn, format: "html" },
+      ]);
+      if (!result.success) {
+        setError(result.error);
+        return;
+      }
+      const translated = result.data.translations;
+      if (translated.titleHi) setTitleHi(translated.titleHi);
+      if (translated.bodyHi) setBodyHi(translated.bodyHi);
+      if (result.data.warnings.length > 0) {
+        setError(result.data.warnings.join(" "));
+      } else if (Object.keys(translated).length === 0) {
+        setError("Nothing was translated. Enter English text first.");
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Translation failed.");
+    } finally {
+      setIsTranslating(false);
+    }
+  }
 
   function handleTitleBlur() {
     if (!news && titleEn && !slug) {
@@ -88,7 +122,17 @@ export function NewsForm({
         </div>
       )}
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="mb-4 text-lg font-semibold text-slate-900">News content</h2>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold text-slate-900">News content</h2>
+          <button
+            type="button"
+            onClick={handleAutoTranslate}
+            disabled={isPending || isTranslating}
+            className="rounded-lg border border-emerald-700 px-3 py-1.5 text-sm font-medium text-emerald-800 hover:bg-emerald-50 disabled:opacity-60"
+          >
+            {isTranslating ? "Translating…" : "Auto-translate to Hindi"}
+          </button>
+        </div>
         <div className="grid gap-4 md:grid-cols-2">
           <div className="md:col-span-2">
             <label className="mb-1 block text-sm font-medium text-slate-700">Title (English)</label>
@@ -105,7 +149,8 @@ export function NewsForm({
             <label className="mb-1 block text-sm font-medium text-slate-700">Title (Hindi)</label>
             <input
               name="titleHi"
-              defaultValue={news?.title_hi ?? ""}
+              value={titleHi}
+              onChange={(e) => setTitleHi(e.target.value)}
               className="w-full rounded-lg border border-slate-300 px-3 py-2 font-hindi"
             />
           </div>
@@ -148,21 +193,22 @@ export function NewsForm({
             </select>
           </div>
           <div className="md:col-span-2">
-            <label className="mb-1 block text-sm font-medium text-slate-700">Body (English)</label>
-            <textarea
+            <AdminHtmlField
               name="bodyEn"
-              rows={8}
-              defaultValue={news?.body_en ?? ""}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2"
+              label="Body (English)"
+              value={bodyEn}
+              onChange={setBodyEn}
+              rows={12}
             />
           </div>
           <div className="md:col-span-2">
-            <label className="mb-1 block text-sm font-medium text-slate-700">Body (Hindi)</label>
-            <textarea
+            <AdminHtmlField
               name="bodyHi"
+              label="Body (Hindi)"
+              value={bodyHi}
+              onChange={setBodyHi}
               rows={8}
-              defaultValue={news?.body_hi ?? ""}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 font-hindi"
+              hindi
             />
           </div>
         </div>

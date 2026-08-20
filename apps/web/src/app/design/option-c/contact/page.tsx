@@ -18,7 +18,7 @@ export default function OptionCContactPage() {
   return (
     <DesignShell className="bg-slate-50">
       <SiteHeader variant="ministry" homeHref="/design/option-c" />
-      <main id="main-content" className="flex-1">
+      <main id="main-content" tabIndex={-1} className="flex-1">
         <MinistryInnerHero title="Contact Us" titleHi="संपर्क करें" />
 
         <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 lg:grid-cols-2">

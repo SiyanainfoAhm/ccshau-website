@@ -1,6 +1,8 @@
 /**
  * WCAG 2.1 AA checklist for CCSHAU public site + admin CMS.
  * Used by docs/accessibility and for UAT sign-off tracking.
+ * Visible page copy must not be changed for accessibility work —
+ * prefer ARIA, focus, keyboard, and CSS.
  */
 
 export type WcagStatus = "pass" | "partial" | "fail" | "manual";
@@ -14,8 +16,8 @@ export type WcagCheckItem = {
   routes?: string[];
 };
 
-export const WCAG_CHECKLIST_VERSION = "1.0.0";
-export const WCAG_CHECKLIST_DATE = "2026-07-09";
+export const WCAG_CHECKLIST_VERSION = "1.1.0";
+export const WCAG_CHECKLIST_DATE = "2026-08-20";
 
 export const wcagChecklist: WcagCheckItem[] = [
   {
@@ -23,7 +25,8 @@ export const wcagChecklist: WcagCheckItem[] = [
     criterion: "WCAG 1.1.1",
     title: "Non-text content has text alternatives",
     status: "partial",
-    notes: "Public hero, portraits, gallery use descriptive alt helpers. Admin previews may use decorative empty alt.",
+    notes:
+      "Public hero, portraits, gallery use descriptive alt helpers. CMS imgs get alt=\"\" when missing. Decorative icons use aria-hidden.",
     routes: ["/", "/media", "/college/*"],
   },
   {
@@ -31,14 +34,16 @@ export const wcagChecklist: WcagCheckItem[] = [
     criterion: "WCAG 1.3.1",
     title: "Info and relationships programmatically determinable",
     status: "partial",
-    notes: "Landmarks (header, nav, main, footer), dialog roles, table headers on listings. Some CMS HTML blocks need author discipline.",
+    notes:
+      "Landmarks (header, nav, main, footer), dialog roles, table headers on listings, news ticker regions. CMS HTML still needs author discipline.",
   },
   {
     id: "1.4.3",
     criterion: "WCAG 1.4.3",
     title: "Contrast (minimum)",
     status: "partial",
-    notes: "High-contrast mode available. Light/dark themes audited on major public routes; formal contrast audit pending.",
+    notes:
+      "High-contrast mode available via toolbar. Formal contrast audit of every template still pending.",
   },
   {
     id: "1.4.4",
@@ -52,7 +57,8 @@ export const wcagChecklist: WcagCheckItem[] = [
     criterion: "WCAG 2.1.1",
     title: "Keyboard accessible",
     status: "partial",
-    notes: "Skip link, modals (Escape + focus trap), carousel arrows, mobile menu Escape. Mega-menu hover-first; keyboard disclosure improved.",
+    notes:
+      "Skip link, Escape closes menus/modals, focus opens dropdowns, carousel arrows, focus trap. Mega-menu keyboard paths improved; full audit ongoing.",
   },
   {
     id: "2.1.2",
@@ -60,6 +66,14 @@ export const wcagChecklist: WcagCheckItem[] = [
     title: "No keyboard trap",
     status: "pass",
     notes: "Modal focus trap allows Tab cycle and Escape to exit.",
+  },
+  {
+    id: "2.2.2",
+    criterion: "WCAG 2.2.2",
+    title: "Pause, stop, hide moving content",
+    status: "pass",
+    notes:
+      "News ticker pauses on hover and keyboard focus-within. prefers-reduced-motion disables marquee animation.",
   },
   {
     id: "2.4.1",
@@ -81,7 +95,15 @@ export const wcagChecklist: WcagCheckItem[] = [
     criterion: "WCAG 2.4.7",
     title: "Focus visible",
     status: "pass",
-    notes: "Global :focus-visible styles and high-contrast overrides.",
+    notes:
+      "Global :focus-visible on links, buttons, form controls, summary, and ARIA widgets; high-contrast overrides.",
+  },
+  {
+    id: "3.1.1",
+    criterion: "WCAG 3.1.1",
+    title: "Language of page",
+    status: "pass",
+    notes: "html lang updates with EN/HI preference; LanguageProvider wraps content with lang.",
   },
   {
     id: "3.1.2",
@@ -102,7 +124,8 @@ export const wcagChecklist: WcagCheckItem[] = [
     criterion: "WCAG 4.1.2",
     title: "Name, role, value",
     status: "partial",
-    notes: "Toolbar, dialogs, carousel, pagination nav labelled. Ongoing audit on dynamic widgets.",
+    notes:
+      "Toolbar, dialogs, carousel, pagination, social rail, sidebar tabs (aria-pressed), iframe titles. Ongoing audit on dynamic widgets.",
   },
 ];
 

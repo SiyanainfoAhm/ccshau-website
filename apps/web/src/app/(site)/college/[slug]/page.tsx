@@ -54,7 +54,7 @@ export default async function CollegePage({ params }: { params: Promise<{ slug: 
         college={college}
         pageLayoutConfig={layoutConfig}
       />
-      <main id="main-content" className="flex-1 bg-slate-50">
+      <main id="main-content" tabIndex={-1} className="flex-1 bg-slate-50">
         <PublicConfigurablePage
           college={college}
           layoutConfig={layoutConfig}

@@ -1,6 +1,6 @@
 "use client";
 
-import { Contrast, Moon, RotateCcw, Sun, ZoomIn, ZoomOut } from "lucide-react";
+import { Contrast, Moon, RotateCcw, Sun } from "lucide-react";
 import { useCallback, useSyncExternalStore } from "react";
 
 import {
@@ -27,6 +27,15 @@ function toolbarShellClass(variant: ToolbarVariant): string {
 function toolbarButtonClass(variant: ToolbarVariant, active = false): string {
   const base =
     "rounded-full p-2 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-40";
+  if (variant === "on-light") {
+    return `${base} focus-visible:outline-emerald-600 ${active ? "bg-emerald-100 text-emerald-900" : "hover:bg-emerald-50 hover:text-emerald-900"}`;
+  }
+  return `${base} focus-visible:outline-amber-300 ${active ? "bg-white/25" : "hover:bg-white/15"}`;
+}
+
+function fontSizeButtonClass(variant: ToolbarVariant, active = false): string {
+  const base =
+    "min-w-[1.75rem] rounded px-1.5 py-1 text-xs font-bold leading-none tabular-nums transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-40";
   if (variant === "on-light") {
     return `${base} focus-visible:outline-emerald-600 ${active ? "bg-emerald-100 text-emerald-900" : "hover:bg-emerald-50 hover:text-emerald-900"}`;
   }
@@ -68,6 +77,13 @@ export function AccessibilityToolbar({ variant = "on-dark" }: { variant?: Toolba
     }));
   }, []);
 
+  const resetFont = useCallback(() => {
+    updateAccessibilityPreferences((current) => ({
+      ...current,
+      fontScale: DEFAULT_A11Y_PREFERENCES.fontScale,
+    }));
+  }, []);
+
   const handleReset = useCallback(() => {
     resetAccessibilityPreferences();
   }, []);
@@ -75,6 +91,7 @@ export function AccessibilityToolbar({ variant = "on-dark" }: { variant?: Toolba
   const fontPercent = Math.round(prefs.fontScale * 100);
   const atMinScale = prefs.fontScale <= FONT_SCALE_MIN;
   const atMaxScale = prefs.fontScale >= FONT_SCALE_MAX;
+  const atDefaultScale = prefs.fontScale === DEFAULT_A11Y_PREFERENCES.fontScale;
   const isDefault =
     prefs.theme === DEFAULT_A11Y_PREFERENCES.theme &&
     prefs.fontScale === DEFAULT_A11Y_PREFERENCES.fontScale &&
@@ -86,31 +103,43 @@ export function AccessibilityToolbar({ variant = "on-dark" }: { variant?: Toolba
       role="toolbar"
       aria-label="Accessibility tools"
     >
-      <button
-        type="button"
-        onClick={decreaseFont}
-        disabled={atMinScale}
-        className={toolbarButtonClass(variant)}
-        aria-label="Decrease font size"
+      <div
+        className="flex items-center gap-0.5"
+        role="group"
+        aria-label="Font size"
       >
-        <ZoomOut className="h-4 w-4" aria-hidden />
-      </button>
-      <span
-        className={`min-w-[2.75rem] text-center text-[10px] font-semibold tabular-nums ${variant === "on-light" ? "text-emerald-800" : "text-emerald-100"}`}
-        aria-live="polite"
-        aria-label={`Font size ${fontPercent} percent`}
-      >
-        {fontPercent}%
-      </span>
-      <button
-        type="button"
-        onClick={increaseFont}
-        disabled={atMaxScale}
-        className={toolbarButtonClass(variant)}
-        aria-label="Increase font size"
-      >
-        <ZoomIn className="h-4 w-4" aria-hidden />
-      </button>
+        <button
+          type="button"
+          onClick={decreaseFont}
+          disabled={atMinScale}
+          className={fontSizeButtonClass(variant)}
+          aria-label="Decrease font size"
+        >
+          A−
+        </button>
+        <button
+          type="button"
+          onClick={resetFont}
+          disabled={atDefaultScale}
+          className={fontSizeButtonClass(variant, atDefaultScale)}
+          aria-label="Normal font size"
+          aria-current={atDefaultScale ? "true" : undefined}
+        >
+          A
+        </button>
+        <button
+          type="button"
+          onClick={increaseFont}
+          disabled={atMaxScale}
+          className={fontSizeButtonClass(variant)}
+          aria-label="Increase font size"
+        >
+          A+
+        </button>
+        <span className="sr-only" aria-live="polite">
+          Font size {fontPercent} percent
+        </span>
+      </div>
       <button
         type="button"
         onClick={toggleTheme}

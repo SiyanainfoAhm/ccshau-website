@@ -27,7 +27,7 @@ export default async function FacultyLoginPage() {
   return (
     <>
       <SiteHeader variant="future" />
-      <main id="main-content" className={publicMainClass}>
+      <main id="main-content" tabIndex={-1} className={publicMainClass}>
         <div className="gradient-hero pattern-dots px-4 py-10 text-white">
           <div className="mx-auto max-w-7xl">
             <p className="text-sm text-emerald-100">

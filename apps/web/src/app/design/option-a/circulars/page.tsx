@@ -32,7 +32,7 @@ function CircularsContent() {
         navItems={optionANavItems}
         showMainNav
       />
-      <main id="main-content" className="flex-1">
+      <main id="main-content" tabIndex={-1} className="flex-1">
         <HeritageInnerHero
           title="Circulars & Orders"
           titleHi="परिपत्र और आदेश"

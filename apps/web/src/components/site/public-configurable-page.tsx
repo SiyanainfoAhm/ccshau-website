@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 import { FarmersPortalSection, NewsTicker } from "@/components/design/shared/home-sections";
 import { useLanguage } from "@/components/design/shared/language-context";
@@ -37,24 +38,34 @@ import type {
 import { publicEmptyStateClass, publicSectionCardClass, publicSidebarClass } from "@/lib/design/public-page-classes";
 import { pickBilingual } from "@/lib/i18n/pick-bilingual";
 import type { PageLayoutConfig } from "@/lib/pages/layout-config";
+import { officerContactLines } from "@/lib/pages/college-contact-display";
 import { getCollegeContactPath } from "@/lib/pages/routes";
+
+function normalizePublicPath(path: string) {
+  const bare = path.split(/[?#]/)[0] ?? "";
+  if (bare.length > 1 && bare.endsWith("/")) return bare.slice(0, -1);
+  return bare || "/";
+}
 
 function SidebarPanel({
   title,
   links,
   activeId,
+  highlightHomeWhenIdle = false,
   onSelectContent,
 }: {
   title: string;
   links: PublicSidebarLink[];
   activeId: string | null;
+  highlightHomeWhenIdle?: boolean;
   onSelectContent: (link: PublicSidebarLink) => void;
 }) {
   const { lang, t } = useLanguage();
+  const pathname = usePathname();
   if (links.length === 0) return null;
 
   return (
-    <aside className={publicSidebarClass}>
+    <aside className={`${publicSidebarClass} relative z-20`}>
       <h2 className="border-b border-emerald-100 bg-emerald-50 px-4 py-3 font-display text-lg font-bold text-emerald-900">
         {title}
       </h2>
@@ -65,17 +76,47 @@ function SidebarPanel({
             lang,
             "title",
           );
-          const isActive = activeId === link.id;
+          const href = link.href?.trim() ?? "";
+          const isHomeTab = /^home$/i.test(link.labelEn.trim());
+          const isExternal = /^(https?:|mailto:)/i.test(href);
+          const isCurrent =
+            Boolean(href) && !isExternal && normalizePublicPath(href) === normalizePublicPath(pathname);
+          const isActive =
+            activeId === link.id ||
+            isCurrent ||
+            (!activeId && isHomeTab && !href && highlightHomeWhenIdle);
+          const itemClass = `block px-4 py-2.5 text-sm font-medium transition hover:bg-emerald-50 hover:text-emerald-900 ${isActive ? "bg-emerald-50 text-emerald-900" : "text-slate-700"} ${lang === "hi" ? "font-hindi" : ""}`;
 
-          if (link.href) {
+          if (href) {
             return (
               <li key={link.id}>
-                <Link
-                  href={link.href}
-                  className={`block px-4 py-2.5 text-sm font-medium transition hover:bg-emerald-50 hover:text-emerald-900 ${isActive ? "bg-emerald-50 text-emerald-900" : "text-slate-700"} ${lang === "hi" ? "font-hindi" : ""}`}
+                <a
+                  href={href}
+                  className={itemClass}
+                  aria-current={isCurrent ? "page" : undefined}
+                  target={isExternal ? "_blank" : undefined}
+                  rel={isExternal ? "noopener noreferrer" : undefined}
+                  onClickCapture={
+                    isExternal || isCurrent
+                      ? undefined
+                      : (event) => {
+                          if (
+                            event.button !== 0 ||
+                            event.metaKey ||
+                            event.ctrlKey ||
+                            event.shiftKey ||
+                            event.altKey
+                          ) {
+                            return;
+                          }
+                          event.preventDefault();
+                          event.stopPropagation();
+                          window.location.assign(href);
+                        }
+                  }
                 >
                   {label}
-                </Link>
+                </a>
               </li>
             );
           }
@@ -85,7 +126,8 @@ function SidebarPanel({
               <button
                 type="button"
                 onClick={() => onSelectContent(link)}
-                className={`block w-full px-4 py-2.5 text-left text-sm font-medium transition hover:bg-emerald-50 hover:text-emerald-900 ${isActive ? "bg-emerald-50 text-emerald-900" : "text-slate-700"} ${lang === "hi" ? "font-hindi" : ""}`}
+                className={`w-full text-left ${itemClass}`}
+                aria-pressed={isActive}
               >
                 {label}
               </button>
@@ -233,6 +275,14 @@ export function PublicConfigurablePage({
   const { lang, t } = useLanguage();
   const [selectedSidebar, setSelectedSidebar] = useState<PublicSidebarLink | null>(null);
 
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("tab") !== "faculty") return;
+    const faculty =
+      office?.sidebarRight.find((link) => /^faculty$/i.test(link.labelEn.trim())) ??
+      office?.sidebarLeft.find((link) => /^faculty$/i.test(link.labelEn.trim()));
+    if (faculty) setSelectedSidebar(faculty);
+  }, [office]);
+
   const contentPage = subsection ?? section ?? null;
   const title = formatMenuLabel(
     contentPage
@@ -276,7 +326,8 @@ export function PublicConfigurablePage({
       Boolean(selectedSidebar!.labelHi?.includes("विभागाध्यक्ष")));
 
   const hodMember = office?.staff.find((member) => member.memberType === "hod") ?? null;
-  const isDepartmentLanding = Boolean(subsection) && !selectedSidebar;
+  const isDepartmentLanding =
+    Boolean(subsection) && !selectedSidebar && layoutConfig.leftSidebar;
   const aboutTitle = contentPage
     ? `${t("About", "के बारे में")} ${title}`
     : title;
@@ -287,7 +338,9 @@ export function PublicConfigurablePage({
         ? sidebarContent
         : defaultBodyContent;
   const bodyTitle = selectedSidebar
-    ? pickBilingual(lang, selectedSidebar.labelEn, selectedSidebar.labelHi)
+    ? sidebarHasContent
+      ? null
+      : pickBilingual(lang, selectedSidebar.labelEn, selectedSidebar.labelHi)
     : contentPage
       ? title
       : null;
@@ -422,11 +475,12 @@ export function PublicConfigurablePage({
       >
         <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
           {showLeftSidebar && office && (
-            <aside className="w-full shrink-0 lg:w-[260px] xl:w-[280px]">
+            <aside className="relative z-20 w-full shrink-0 lg:w-[260px] xl:w-[280px]">
               <SidebarPanel
                 title={t("Quick Links", "त्वरित लिंक")}
                 links={office.sidebarLeft}
                 activeId={selectedSidebar?.id ?? null}
+                highlightHomeWhenIdle={!section && !subsection}
                 onSelectContent={setSelectedSidebar}
               />
             </aside>
@@ -480,7 +534,7 @@ export function PublicConfigurablePage({
                     })}
                     {showHeadOfficerContacts && (
                       <dl className="mt-4 space-y-3 border-t border-slate-100 pt-4 text-left">
-                        {office.contactLines.map((line) => (
+                        {officerContactLines(office.contactLines).map((line) => (
                           <div key={line.labelEn}>
                             <dt
                               className={`text-sm font-bold text-blue-800 ${lang === "hi" ? "font-hindi" : ""}`}
@@ -507,7 +561,7 @@ export function PublicConfigurablePage({
                   {t("Telephone", "टेलीफोन")}
                 </h2>
                 <dl className="mt-4 space-y-4">
-                  {office.contactLines.map((line) => (
+                  {officerContactLines(office.contactLines).map((line) => (
                     <div
                       key={line.labelEn}
                       className="border-b border-slate-100 pb-4 last:border-0 last:pb-0"
@@ -601,15 +655,18 @@ export function PublicConfigurablePage({
           </div>
 
           {showRightSidebar && office && (
-            <aside className="w-full shrink-0 lg:w-[260px] xl:w-[280px]">
+            <aside className="relative z-20 w-full shrink-0 lg:w-[260px] xl:w-[280px]">
               <SidebarPanel
                 title={
-                  showLeftSidebar
-                    ? t("Related Links", "संबंधित लिंक")
-                    : t("Quick Links", "त्वरित लिंक")
+                  college.collegeSlug === "nehru-library" || college.collegeSlug === "campus-school"
+                    ? t("Quick Link", "त्वरित लिंक")
+                    : showLeftSidebar
+                      ? t("Related Links", "संबंधित लिंक")
+                      : t("Quick Links", "त्वरित लिंक")
                 }
                 links={office.sidebarRight}
                 activeId={selectedSidebar?.id ?? null}
+                highlightHomeWhenIdle={!section && !subsection}
                 onSelectContent={setSelectedSidebar}
               />
             </aside>
