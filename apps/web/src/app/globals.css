@@ -633,7 +633,7 @@ body {
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  padding: 0.85rem 1rem;
+  padding: 0.85rem 1.44rem;
   font-size: 0.8125rem;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -1328,6 +1328,246 @@ html.dark .cms-html .major-initiative-card__excerpt {
   color: #cbd5e1;
 }
 
+/* International Linkage — 4-up MoU cards; full cover page visible */
+.cms-html:has(.intl-linkage-band),
+.cms-html:has(.intl-linkage-detail) {
+  overflow-x: visible;
+}
+
+.cms-html .intl-linkage-band {
+  margin: 0.25rem 0 2rem;
+  padding: 1.25rem 0.85rem 1.5rem;
+  border-radius: 0.85rem;
+  background: linear-gradient(180deg, #e8f6ef 0%, #f3fbf7 100%);
+  overflow: visible;
+}
+
+.cms-html .intl-linkage-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.15rem;
+  margin: 0;
+  align-items: stretch;
+  width: 100%;
+  max-width: 100%;
+}
+
+@media (min-width: 640px) {
+  .cms-html .intl-linkage-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .cms-html .intl-linkage-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1.1rem;
+  }
+}
+
+.cms-html .intl-linkage-card {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid #cfeedd;
+  border-radius: 0.45rem;
+  background: #fff;
+  box-shadow: 0 2px 10px rgb(15 23 42 / 0.09);
+  min-height: 100%;
+  min-width: 0;
+}
+
+.cms-html .intl-linkage-card__link {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  color: inherit;
+  text-decoration: none;
+}
+
+.cms-html .intl-linkage-card__link:hover .intl-linkage-card__title {
+  color: #3498db;
+}
+
+.cms-html .intl-linkage-card__media {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 3 / 4;
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+/* Show the full MoU page (no crop) */
+.cms-html .intl-linkage-card__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0.4rem 0.4rem 1.7rem;
+  border-radius: 0;
+  background: #fff;
+  object-fit: contain;
+  object-position: center center;
+}
+
+.cms-html .intl-linkage-card__date {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  z-index: 1;
+  margin: 0;
+  padding: 0.28rem 0.7rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  color: #fff;
+  background: #8bc34a;
+  border-radius: 0;
+}
+
+.cms-html .intl-linkage-card__body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.85rem 0.9rem 1.05rem;
+}
+
+.cms-html .intl-linkage-card__title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  margin: 0;
+  overflow: hidden;
+  font-family: var(--font-noto-sans), "Noto Sans", sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: #2563a8;
+}
+
+.cms-html .intl-linkage-card__excerpt {
+  margin: 0;
+  font-size: 0.86rem;
+  line-height: 1.45;
+  color: #334155;
+}
+
+.cms-html .intl-linkage-mou-table {
+  margin-top: 0.5rem;
+  padding-top: 0.25rem;
+  overflow-x: auto;
+}
+
+.cms-html .intl-linkage-mou-table > p {
+  margin: 0 0 0.85rem;
+  font-size: 1.05rem;
+}
+
+.cms-html .intl-linkage-mou-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.cms-html .intl-linkage-mou-table th,
+.cms-html .intl-linkage-mou-table td {
+  padding: 0.55rem 0.65rem;
+  border: 1px solid #e2e8f0;
+  vertical-align: top;
+}
+
+.cms-html .intl-linkage-mou-table th {
+  background: #f1f5f9;
+  font-weight: 700;
+}
+
+/* MoU detail — full document page, wide and clear */
+.cms-html .intl-linkage-detail {
+  margin: 0 auto;
+  max-width: 48rem;
+}
+
+.cms-html .intl-linkage-detail__media {
+  margin: 0 0 1.5rem;
+  padding: 1rem 1rem 1.15rem;
+  text-align: center;
+  background: #fff;
+  border: 1px solid #dbe7e0;
+  border-radius: 0.65rem;
+  box-shadow: 0 4px 18px rgb(15 23 42 / 0.08);
+}
+
+.cms-html .intl-linkage-detail__image {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+  border: 0;
+  background: #fff;
+}
+
+.cms-html .intl-linkage-detail__meta {
+  margin: 0 0 0.75rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #166534;
+}
+
+.cms-html .intl-linkage-detail__purpose {
+  margin: 0 0 1.25rem;
+  font-size: 1.05rem;
+  line-height: 1.55;
+  color: #334155;
+}
+
+.cms-html .intl-linkage-detail__back {
+  margin: 0;
+}
+
+.cms-html .intl-linkage-detail__back a {
+  font-weight: 600;
+  color: #047857;
+  text-decoration: none;
+}
+
+.cms-html .intl-linkage-detail__back a:hover {
+  text-decoration: underline;
+}
+
+html.dark .cms-html .intl-linkage-band {
+  background: linear-gradient(180deg, rgb(6 78 59 / 0.45) 0%, rgb(6 78 59 / 0.2) 100%);
+}
+
+html.dark .cms-html .intl-linkage-card {
+  border-color: rgb(16 185 129 / 0.25);
+  background: rgb(15 23 42 / 0.55);
+}
+
+html.dark .cms-html .intl-linkage-card__media,
+html.dark .cms-html .intl-linkage-card__image {
+  background: #fff;
+}
+
+html.dark .cms-html .intl-linkage-card__title {
+  color: #7dd3fc;
+}
+
+html.dark .cms-html .intl-linkage-card__excerpt {
+  color: #cbd5e1;
+}
+
+html.dark .cms-html .intl-linkage-mou-table th {
+  background: rgb(30 41 59 / 0.8);
+}
+
+html.dark .cms-html .intl-linkage-mou-table th,
+html.dark .cms-html .intl-linkage-mou-table td {
+  border-color: rgb(51 65 85 / 0.8);
+}
+
 /* Legacy organogram / PDF wrappers — fill the padded content column */
 .cms-html .single-event-text {
   width: calc(100% + 2.5rem);
@@ -1417,6 +1657,138 @@ html.dark .cms-html .major-initiative-card__excerpt {
   max-height: none;
   object-fit: contain;
   object-position: center;
+}
+
+/* Controller of Examinations — photo+name left, mailing/email right */
+.cms-html .coe-officer {
+  display: grid;
+  grid-template-columns: minmax(12rem, 18rem) minmax(0, 1fr);
+  gap: 1.25rem 1.75rem;
+  align-items: start;
+  margin: 0 0 1.35rem;
+  padding: 1.1rem 1.2rem;
+  border: 1px solid #bbf7d0;
+  border-radius: 0.85rem;
+  background: linear-gradient(145deg, #ffffff 0%, #ecfdf5 55%, #f0fdf4 100%);
+}
+
+.cms-html .coe-officer__photo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  min-width: 0;
+}
+
+.cms-html .coe-officer__photo > img {
+  display: block;
+  width: 100%;
+  max-width: 17rem;
+  height: auto;
+  aspect-ratio: 8 / 5;
+  object-fit: cover;
+  object-position: center top;
+  margin: 0 0 0.65rem;
+  border: 1px solid #d1fae5;
+  border-radius: 0.45rem;
+  background: #fff;
+  box-shadow: 0 4px 14px -8px rgba(11, 61, 46, 0.28);
+}
+
+.cms-html .coe-officer__photo-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 17rem;
+  aspect-ratio: 8 / 5;
+  margin: 0 0 0.65rem;
+  border: 1px dashed #a7f3d0;
+  border-radius: 0.45rem;
+  background: #f0fdf4;
+  color: #047857;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.cms-html .coe-officer__name,
+.cms-html .coe-officer__role {
+  margin: 0;
+  line-height: 1.35;
+}
+
+.cms-html .coe-officer__name {
+  font-size: 1.02rem;
+  color: #0f172a;
+}
+
+.cms-html .coe-officer__role {
+  margin-top: 0.2rem;
+  font-size: 0.92rem;
+  letter-spacing: 0.02em;
+  color: #065f46;
+}
+
+.cms-html .coe-officer__contact {
+  min-width: 0;
+  padding: 0.85rem 1rem;
+  border: 1px solid #bbf7d0;
+  border-radius: 0.65rem;
+  background: #fff;
+}
+
+.cms-html .coe-officer__contact > p {
+  margin: 0 0 0.35rem;
+  line-height: 1.5;
+  color: #334155;
+  font-size: 0.98rem;
+}
+
+.cms-html .coe-officer__contact-title {
+  margin-bottom: 0.55rem !important;
+  color: #064e3b !important;
+  font-size: 1.05rem !important;
+}
+
+.cms-html .coe-officer__contact a[href^="mailto:"] {
+  color: #047857;
+  font-weight: 600;
+  word-break: break-word;
+}
+
+@media (max-width: 720px) {
+  .cms-html .coe-officer {
+    grid-template-columns: 1fr;
+  }
+
+  .cms-html .coe-officer__photo > img {
+    max-width: 20rem;
+  }
+}
+
+html.dark .cms-html .coe-officer {
+  border-color: rgba(16, 185, 129, 0.35);
+  background: linear-gradient(145deg, rgba(6, 40, 30, 0.75), rgba(6, 78, 59, 0.35));
+}
+
+html.dark .cms-html .coe-officer__contact {
+  border-color: rgba(16, 185, 129, 0.35);
+  background: rgba(15, 23, 42, 0.45);
+}
+
+html.dark .cms-html .coe-officer__name {
+  color: #ecfdf5;
+}
+
+html.dark .cms-html .coe-officer__role,
+html.dark .cms-html .coe-officer__contact-title {
+  color: #6ee7b7 !important;
+}
+
+html.dark .cms-html .coe-officer__contact > p {
+  color: #a7f3d0;
 }
 
 .cms-html .library-elibrary {

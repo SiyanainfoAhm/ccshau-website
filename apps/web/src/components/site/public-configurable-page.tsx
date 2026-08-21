@@ -17,6 +17,7 @@ import {
   extractPdfUrlFromHtml,
   isPrimarilyPdfHtml,
 } from "@/lib/html/extract-pdf-url";
+import { hasCmsHtmlContent } from "@/lib/html/has-cms-html-content";
 import { StaffPhoto } from "@/components/site/staff-photo";
 import { PublicCollegeGallery } from "@/components/site/public-college-gallery";
 import { PublicPdfViewer } from "@/components/site/public-pdf-viewer";
@@ -371,7 +372,7 @@ export function PublicConfigurablePage({
   const showMainContent =
     !showResearchStationsGrid &&
     layoutConfig.mainContent &&
-    Boolean(bodyContent) &&
+    hasCmsHtmlContent(bodyContent) &&
     !showDepartmentAbout;
   const showLeftSidebar =
     layoutConfig.leftSidebar && (office?.sidebarLeft.length ?? 0) > 0;

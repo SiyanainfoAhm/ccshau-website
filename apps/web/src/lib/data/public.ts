@@ -1037,10 +1037,18 @@ export async function getPublishedCollegeBySlug(slug: string): Promise<PublicCol
 }
 
 const PG_STUDIES_DROPDOWN_SLUGS = new Set([
+  "post-graduate-studies",
   "pg-course-catalogue",
   "pg-proforma",
   "seminar-registration",
 ]);
+
+const PG_STUDIES_DROPDOWN_ORDER = [
+  "post-graduate-studies",
+  "pg-course-catalogue",
+  "pg-proforma",
+  "seminar-registration",
+] as const;
 
 const PG_STUDIES_TOP_NAV_SLUGS = new Set(["pg-studies-gallery", "pg-studies-contact"]);
 
@@ -1084,6 +1092,18 @@ export async function getPublishedPgStudiesHub(): Promise<PublicPgStudiesHub | n
   const sectionRows = ((sections as Page[]) ?? []).map(mapPgStudiesSection);
   const base = mapPublicPage(hub);
 
+  const dropdownSections = sectionRows
+    .filter((section) => PG_STUDIES_DROPDOWN_SLUGS.has(section.slug))
+    .sort((a, b) => {
+      const ai = PG_STUDIES_DROPDOWN_ORDER.indexOf(
+        a.slug as (typeof PG_STUDIES_DROPDOWN_ORDER)[number],
+      );
+      const bi = PG_STUDIES_DROPDOWN_ORDER.indexOf(
+        b.slug as (typeof PG_STUDIES_DROPDOWN_ORDER)[number],
+      );
+      return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+    });
+
   return {
     ...base,
     pageId: hub.id,
@@ -1091,7 +1111,7 @@ export async function getPublishedPgStudiesHub(): Promise<PublicPgStudiesHub | n
     layoutTemplate: hub.layout_template ?? "office_portal",
     layoutConfig: mapLayoutConfig(hub),
     featuredImageUrl: base.featuredImageUrl,
-    dropdownSections: sectionRows.filter((section) => PG_STUDIES_DROPDOWN_SLUGS.has(section.slug)),
+    dropdownSections,
     topSections: sectionRows.filter((section) => PG_STUDIES_TOP_NAV_SLUGS.has(section.slug)),
   };
 }

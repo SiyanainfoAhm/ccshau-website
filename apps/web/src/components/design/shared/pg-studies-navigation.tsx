@@ -48,9 +48,10 @@ export function PgStudiesNavigation({ hub }: { hub: PublicPgStudiesHub }) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const gallerySection = hub.topSections.find((section) => section.urlSegment === "gallery");
-  const dropdownActive =
-    isHomePage ||
-    hub.dropdownSections.some((section) => section.urlSegment === activeSection);
+  // Hub home highlights only "Home" — not also "Post Graduate Studies" (avoids double-active).
+  const dropdownActive = hub.dropdownSections.some(
+    (section) => section.urlSegment === activeSection,
+  );
 
   const closeMobile = () => setMobileOpen(false);
 
@@ -111,22 +112,6 @@ export function PgStudiesNavigation({ hub }: { hub: PublicPgStudiesHub }) {
                 dropdownOpen ? "lg:visible lg:opacity-100" : "lg:invisible lg:opacity-0"
               }`}
             >
-              <li>
-                <Link
-                  href={getPgStudiesHubPath()}
-                  onClick={() => {
-                    setDropdownOpen(false);
-                    closeMobile();
-                  }}
-                  className={`block px-4 py-2.5 text-sm font-semibold transition ${
-                    isHomePage
-                      ? "bg-emerald-50 text-emerald-900"
-                      : "text-slate-700 hover:bg-emerald-50 hover:text-emerald-900"
-                  } ${lang === "hi" ? "font-hindi" : ""}`}
-                >
-                  {t("Post Graduate Studies", "स्नातकोत्तर अध्ययन")}
-                </Link>
-              </li>
               {hub.dropdownSections.map((section) => {
                 const href = getPgStudiesSectionPath(section.urlSegment);
                 const isActive = activeSection === section.urlSegment;
@@ -187,15 +172,6 @@ export function PgStudiesNavigation({ hub }: { hub: PublicPgStudiesHub }) {
                   className={`flex w-full border-b border-white/5 px-4 py-2.5 text-sm font-semibold text-white/90 transition hover:bg-white/10 hover:text-amber-200 ${isHomePage ? "bg-white/10 text-amber-200" : ""} ${lang === "hi" ? "font-hindi" : ""}`}
                 >
                   {t("Home", "होम")}
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href={getPgStudiesHubPath()}
-                  onClick={closeMobile}
-                  className={`flex w-full border-b border-white/5 px-4 py-2.5 text-sm font-semibold text-white/90 transition hover:bg-white/10 hover:text-amber-200 ${isHomePage ? "bg-white/10 text-amber-200" : ""} ${lang === "hi" ? "font-hindi" : ""}`}
-                >
-                  {t("Post Graduate Studies", "स्नातकोत्तर अध्ययन")}
                 </Link>
               </li>
               {hub.dropdownSections.map((section) => (

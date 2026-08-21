@@ -8,7 +8,8 @@ export const STAFF_DEFAULT_PHOTO = "/images/staff-default.svg";
 
 /** Explicit pixel sizes (inline style) so dimensions never depend on Tailwind purge. */
 const SIZE_STYLE = {
-  sm: { width: 48, height: 48 },
+  /** Faculty list thumbs — round size +30% from base 48. */
+  sm: { width: 62, height: 62 },
   md: { width: 112, height: 112 },
   /** Head portraits — closer to legacy registrar photo scale. */
   lg: { width: 260, height: 320 },
@@ -55,9 +56,9 @@ export function StaffPhoto({
   }, [src]);
 
   const usingDefault = currentSrc === STAFF_DEFAULT_PHOTO;
-  const roundedClass = rounded === "full" ? "rounded-lg" : "rounded-lg";
   // Keep circular only for tiny list thumbs
-  const shapeClass = rounded === "full" && size === "sm" ? "rounded-full" : roundedClass;
+  const shapeClass =
+    rounded === "full" && size === "sm" ? "rounded-full" : "rounded-lg";
   const dim = SIZE_STYLE[size];
 
   return (
@@ -69,7 +70,7 @@ export function StaffPhoto({
         src={currentSrc}
         alt={usingDefault ? alt || "Staff photo placeholder" : alt}
         fill
-        className="object-cover object-top"
+        className="object-cover object-[center_20%]"
         sizes={`${dim.width}px`}
         unoptimized={shouldSkipOptimization(currentSrc)}
         onError={() => {

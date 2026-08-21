@@ -104,6 +104,10 @@ export async function middleware(request: NextRequest) {
     if (pathname === "/pages/major-initiative") {
       return NextResponse.redirect(new URL("/pages/major-initiatives", request.url), 301);
     }
+    const tieup = pathname.match(/^\/international-tieup\/([^/]+)$/);
+    if (tieup?.[1]) {
+      return NextResponse.redirect(new URL(`/pages/${tieup[1]}`, request.url), 301);
+    }
     const redirectResponse = await handleLegacyRedirect(request);
     if (redirectResponse) return redirectResponse;
     return NextResponse.next();

@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 
 import { useLanguage } from "@/components/design/shared/language-context";
 import { CmsHtmlContent } from "@/components/site/cms-html-content";
+import { hasCmsHtmlContent } from "@/lib/html/has-cms-html-content";
 import { pickBilingual } from "@/lib/i18n/pick-bilingual";
 import type { PublicPage } from "@/lib/data/public-types";
 
@@ -14,6 +15,7 @@ export function PublicEventPortalContent({ page }: { page: PublicPage }) {
   const title = pickBilingual(lang, page.titleEn, page.titleHi);
   const excerpt = pickBilingual(lang, page.excerptEn, page.excerptHi);
   const content = pickBilingual(lang, page.contentEn, page.contentHi);
+  const hasBody = hasCmsHtmlContent(content);
 
   return (
     <>
@@ -43,9 +45,9 @@ export function PublicEventPortalContent({ page }: { page: PublicPage }) {
       </div>
 
       <article className="mx-auto max-w-3xl px-4 py-12">
-        {content ? (
+        {hasBody ? (
           <CmsHtmlContent
-            html={content}
+            html={content!}
             className={`prose prose-emerald max-w-none text-lg leading-relaxed ${lang === "hi" ? "font-hindi" : ""}`}
           />
         ) : (

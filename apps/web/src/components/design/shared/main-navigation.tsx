@@ -37,10 +37,12 @@ function MegaMenuPanel({
   item,
   resolveHref,
   open,
+  onNavigate,
 }: {
   item: PublicNavItem;
   resolveHref: (href: string) => string;
   open: boolean;
+  onNavigate?: () => void;
 }) {
   const { lang, t } = useLanguage();
   const [activeChild, setActiveChild] = useState(0);
@@ -61,25 +63,54 @@ function MegaMenuPanel({
           {level2.map((child, index) => {
             const isActive = index === activeChild;
             const hasKids = Boolean(child.children?.length);
+            const labelClass = lang === "hi" ? "font-hindi normal-case" : "";
+            const label = formatMenuLabel(
+              t(child.labelEn, child.labelHi ?? child.labelEn),
+              lang,
+              "title",
+            );
+            const rowClass = `flex w-full items-center justify-between px-4 py-3 text-left text-sm font-bold tracking-wide transition ${
+              isActive ? "is-active" : "text-white/90 hover:bg-white/10"
+            }`;
+
+            // Leaf items navigate on click; parents only expand the right panel.
+            if (!hasKids) {
+              const href = resolveHref(child.href);
+              if (!href || href === "#") {
+                return (
+                  <span key={child.labelEn} className={`${rowClass} cursor-default opacity-80`}>
+                    <span className={labelClass}>{label}</span>
+                  </span>
+                );
+              }
+              return (
+                <Link
+                  key={child.labelEn}
+                  href={href}
+                  target={child.openInNewTab ? "_blank" : undefined}
+                  rel={child.openInNewTab ? "noopener noreferrer" : undefined}
+                  onMouseEnter={() => setActiveChild(index)}
+                  onFocus={() => setActiveChild(index)}
+                  onClick={() => onNavigate?.()}
+                  className={rowClass}
+                >
+                  <span className={labelClass}>{label}</span>
+                </Link>
+              );
+            }
+
             return (
               <button
                 key={child.labelEn}
                 type="button"
                 onMouseEnter={() => setActiveChild(index)}
                 onFocus={() => setActiveChild(index)}
+                onClick={() => setActiveChild(index)}
                 aria-pressed={isActive}
-                className={`flex w-full items-center justify-between px-4 py-3 text-left text-sm font-bold tracking-wide transition ${
-                  isActive ? "is-active" : "text-white/90 hover:bg-white/10"
-                }`}
+                className={rowClass}
               >
-                <span className={lang === "hi" ? "font-hindi normal-case" : ""}>
-                  {formatMenuLabel(
-                    t(child.labelEn, child.labelHi ?? child.labelEn),
-                    lang,
-                    "title",
-                  )}
-                </span>
-                {hasKids && <ChevronRight className="h-4 w-4 shrink-0 opacity-80" aria-hidden />}
+                <span className={labelClass}>{label}</span>
+                <ChevronRight className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
               </button>
             );
           })}
@@ -93,6 +124,7 @@ function MegaMenuPanel({
                     href={resolveHref(grandchild.href)}
                     target={grandchild.openInNewTab ? "_blank" : undefined}
                     rel={grandchild.openInNewTab ? "noopener noreferrer" : undefined}
+                    onClick={() => onNavigate?.()}
                     className={`block rounded-lg border border-transparent px-4 py-3 text-sm font-semibold text-slate-800 transition hover:bg-white hover:text-emerald-900 hover:shadow-sm ${lang === "hi" ? "font-hindi" : ""}`}
                   >
                     {formatMenuLabel(
@@ -104,10 +136,22 @@ function MegaMenuPanel({
                 </li>
               ))}
             </ul>
+          ) : level2[activeChild] && !level2[activeChild].children?.length ? (
+            <div className="flex h-full min-h-[180px] items-center justify-center p-6 text-center text-sm text-slate-500">
+              {formatMenuLabel(
+                t(
+                  "Click the menu item on the left to open this page.",
+                  "पेज खोलने के लिए बाईं ओर मेनू आइटम पर क्लिक करें।",
+                ),
+                lang,
+                "title",
+              )}
+            </div>
           ) : level2[activeChild] ? (
             <div className="p-4">
               <Link
                 href={resolveHref(level2[activeChild].href)}
+                onClick={() => onNavigate?.()}
                 className="inline-flex items-center gap-2 rounded-lg bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-900 transition hover:bg-emerald-100"
               >
                 {formatMenuLabel(
@@ -361,6 +405,7 @@ export function MainNavigation({
           item={openMegaItem}
           resolveHref={resolveHref}
           open
+          onNavigate={() => setOpenLabel(null)}
         />
       )}
 

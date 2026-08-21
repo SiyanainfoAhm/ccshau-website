@@ -93,8 +93,8 @@ export function SiteFooter({
               </li>
               <li className="flex gap-3">
                 <Mail className="h-4 w-4 shrink-0 text-amber-400" aria-hidden />
-                <a href="mailto:info@hau.ac.in" className="transition hover:text-amber-200">
-                  info@hau.ac.in
+                <a href="mailto:web@hau.ac.in" className="transition hover:text-amber-200">
+                  web@hau.ac.in
                 </a>
               </li>
             </ul>

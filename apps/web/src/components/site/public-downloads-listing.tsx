@@ -19,20 +19,10 @@ import {
   publicMainClass,
   publicSearchInputClass,
 } from "@/lib/design/public-page-classes";
-import { DOWNLOAD_CATEGORIES, formatDownloadCategory } from "@/lib/validations/downloads";
-
-const CATEGORY_LABELS: Record<string, string> = {
-  forms: "Forms",
-  prospectus: "Prospectus",
-  syllabus: "Syllabus",
-  reports: "Reports",
-  guidelines: "Guidelines",
-  other: "Other",
-};
+import { formatDownloadCategory } from "@/lib/validations/downloads";
 
 export function PublicDownloadsListing({
   data,
-  activeCategory,
   activeDepartmentId,
   activeTag,
   initialQuery,
@@ -40,7 +30,6 @@ export function PublicDownloadsListing({
   tags,
 }: {
   data: PaginatedResult<PublicDownloadItem>;
-  activeCategory: string;
   activeDepartmentId: string;
   activeTag: string;
   initialQuery: string;
@@ -59,16 +48,14 @@ export function PublicDownloadsListing({
       else params.set(key, value);
     }
     params.delete("page");
+    // Category pills removed — drop stale category from URL when filtering.
+    params.delete("category");
     router.push(`/downloads?${params.toString()}`);
   }
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
     pushFilters({ q: query.trim() || null });
-  }
-
-  function setCategory(cat: string) {
-    pushFilters({ category: cat === "all" ? null : cat });
   }
 
   return (
@@ -87,13 +74,13 @@ export function PublicDownloadsListing({
               {t("Downloads", "डाउनलोड")}
             </h1>
             <p className="mt-2 text-emerald-100">
-              {t("Forms, prospectus, syllabus, reports and official documents", "प्रपत्र, प्रॉस्पेक्टस और आधिकारिक दस्तावेज़")}
+              {t("Official documents and downloadable files", "आधिकारिक दस्तावेज़ और डाउनलोड फ़ाइलें")}
             </p>
           </div>
         </div>
 
         <div className="mx-auto max-w-7xl px-4 py-10">
-          <form onSubmit={handleSearch} className="mb-4 flex flex-wrap gap-2">
+          <form onSubmit={handleSearch} className="mb-6 flex flex-wrap gap-2">
             <div className="relative min-w-[220px] flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <input
@@ -124,34 +111,6 @@ export function PublicDownloadsListing({
               {t("Search", "खोजें")}
             </button>
           </form>
-
-          <div className="mb-4 flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => setCategory("all")}
-              className={`rounded-full px-4 py-1.5 text-sm font-medium ${
-                activeCategory === "all"
-                  ? publicFilterChipActiveClass
-                  : publicFilterChipInactiveClass
-              }`}
-            >
-              {t("All", "सभी")}
-            </button>
-            {DOWNLOAD_CATEGORIES.map((cat) => (
-              <button
-                key={cat}
-                type="button"
-                onClick={() => setCategory(cat)}
-                className={`rounded-full px-4 py-1.5 text-sm font-medium capitalize ${
-                  activeCategory === cat
-                    ? publicFilterChipActiveClass
-                    : publicFilterChipInactiveClass
-                }`}
-              >
-                {CATEGORY_LABELS[cat] ?? cat}
-              </button>
-            ))}
-          </div>
 
           {tags.length > 0 && (
             <div className="mb-6 flex flex-wrap items-center gap-2">

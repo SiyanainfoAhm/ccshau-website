@@ -149,7 +149,7 @@ export function CollegeNavigation({ college }: { college: PublicCollegePage }) {
         aria-label="College navigation"
         className={`relative ${mobileOpen ? "block" : "hidden"} lg:block`}
       >
-        <ul className="ccshau-main-nav-list mx-auto hidden max-w-7xl items-center justify-center gap-0 px-4 lg:flex">
+        <ul className="ccshau-main-nav-list mx-auto hidden max-w-7xl items-center justify-center gap-0 px-5 lg:flex">
           {links.map((link, index) => {
             if (link.type === "home") {
               const isActive = isHomePage && !facultyTab;

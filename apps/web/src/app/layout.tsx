@@ -41,13 +41,14 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${playfair.variable} ${notoSans.variable} ${notoDevanagari.variable} h-full`}
+      translate="no"
+      className={`notranslate ${playfair.variable} ${notoSans.variable} ${notoDevanagari.variable} h-full`}
       suppressHydrationWarning
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: A11Y_BOOTSTRAP_SCRIPT }} />
       </head>
-      <body className="min-h-full flex flex-col antialiased">
+      <body className="notranslate min-h-full flex flex-col antialiased" suppressHydrationWarning>
         <NavigationProgress />
         {children}
       </body>

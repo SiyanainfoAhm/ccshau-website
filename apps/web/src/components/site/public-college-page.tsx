@@ -7,6 +7,7 @@ import { useLanguage } from "@/components/design/shared/language-context";
 import { CmsHtmlContent } from "@/components/site/cms-html-content";
 import { buildImageAlt } from "@/lib/a11y/image-alt";
 import { publicHeadingClass, publicProseClass } from "@/lib/design/public-page-classes";
+import { hasCmsHtmlContent } from "@/lib/html/has-cms-html-content";
 import { pickBilingual } from "@/lib/i18n/pick-bilingual";
 import { getCollegeContactPath } from "@/lib/pages/routes";
 import type {
@@ -23,15 +24,16 @@ function SectionContent({
   content: string | null;
 }) {
   const { lang } = useLanguage();
+  const hasBody = hasCmsHtmlContent(content);
 
   return (
     <article className="mx-auto max-w-4xl px-4 py-12">
       <h1 className={`font-display text-3xl font-bold ${publicHeadingClass} ${lang === "hi" ? "font-hindi" : ""}`}>
         {title}
       </h1>
-      {content ? (
+      {hasBody ? (
         <CmsHtmlContent
-          html={content}
+          html={content!}
           className={`${publicProseClass} mt-6 max-w-none ${lang === "hi" ? "font-hindi" : ""}`}
         />
       ) : (

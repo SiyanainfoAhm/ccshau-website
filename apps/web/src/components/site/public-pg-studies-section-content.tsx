@@ -13,6 +13,7 @@ import type {
   PublicPgStudiesSection,
 } from "@/lib/data/public-types";
 import { buildImageAlt } from "@/lib/a11y/image-alt";
+import { hasCmsHtmlContent } from "@/lib/html/has-cms-html-content";
 import { pickBilingual } from "@/lib/i18n/pick-bilingual";
 import { getPgStudiesHubPath } from "@/lib/pages/routes";
 
@@ -31,6 +32,7 @@ export function PublicPgStudiesSectionContent({
   const title = pickBilingual(lang, section.titleEn, section.titleHi);
   const bodyHtml = pickBilingual(lang, section.contentEn, section.contentHi);
   const showGallery = section.layoutConfig.gallery && (galleryImages?.length ?? 0) > 0;
+  const hasBody = hasCmsHtmlContent(bodyHtml);
 
   const heroImage =
     heroImageUrl ??
@@ -67,10 +69,10 @@ export function PublicPgStudiesSectionContent({
       <div className="mx-auto max-w-5xl px-4 py-10">
         {showGallery && galleryImages ? (
           <PublicCollegeGallery images={galleryImages} />
-        ) : bodyHtml ? (
+        ) : hasBody ? (
           <article className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
             <CmsHtmlContent
-              html={bodyHtml}
+              html={bodyHtml!}
               className={`prose prose-emerald max-w-none ${lang === "hi" ? "font-hindi" : ""}`}
             />
           </article>
