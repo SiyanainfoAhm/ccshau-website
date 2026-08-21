@@ -20,6 +20,7 @@ import {
 import { getPublicPagePath } from "@/lib/pages/routes";
 import { getStoredFileUrl } from "@/lib/storage/upload";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { normalizeHomepageDignitary } from "@/lib/data/homepage-dignitary";
 
 export interface HomepageCollege {
   slug: string;
@@ -119,10 +120,8 @@ function cmsSlugMatchesLegacy(cmsSlug: string, legacySlug: string, aliases?: str
 
 const HOMEPAGE_QUOTE_SELECT =
   "id, author_en, author_hi, quote_en, quote_hi, image_path, sort_order, is_active";
-const HOMEPAGE_DIGNITARY_SELECT =
-  "id, name_en, name_hi, role_en, role_hi, image_path, sort_order, is_active";
-const HOMEPAGE_INITIATIVE_SELECT =
-  "id, title_en, title_hi, description_en, description_hi, image_path, link_slug, link_href, sort_order, is_active";
+const HOMEPAGE_DIGNITARY_SELECT = "*";
+const HOMEPAGE_INITIATIVE_SELECT =  "id, title_en, title_hi, description_en, description_hi, image_path, link_slug, link_href, sort_order, is_active";
 const HOMEPAGE_CTA_SELECT =
   "id, title_en, title_hi, subtitle_en, subtitle_hi, button_en, button_hi, link_href, is_active";
 
@@ -171,7 +170,9 @@ async function loadHomepageContent(): Promise<HomepageContent> {
   const quotes = enrichHomepageQuotes(
     ((quotesRes.data ?? []) as HomepageQuote[]).map(mapQuote),
   );
-  const dignitaries = ((dignitariesRes.data ?? []) as HomepageDignitary[]).map(mapDignitary);
+  const dignitaries = ((dignitariesRes.data ?? []) as HomepageDignitary[])
+    .map((row) => normalizeHomepageDignitary(row))
+    .map(mapDignitary);
   const flagships = ((initiativesRes.data ?? []) as HomepageInitiative[]).map(mapInitiative);
   const ctaRow = ctaRes.data as HomepageCta | null;
 

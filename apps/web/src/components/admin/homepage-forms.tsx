@@ -17,6 +17,7 @@ import {
   updateHomepageInitiativeAction,
   updateHomepageQuoteAction,
 } from "@/actions/homepage";
+import { translateFieldsEnToHiAction } from "@/actions/translate";
 import { AdminFileUploadField } from "@/components/admin/admin-file-upload-field";
 import type {
   HomepageCta,
@@ -172,6 +173,38 @@ export function HomepageDignitaryForm({ dignitary }: { dignitary?: HomepageDigni
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [nameEn, setNameEn] = useState(dignitary?.name_en ?? "");
+  const [nameHi, setNameHi] = useState(dignitary?.name_hi ?? "");
+  const [roleEn, setRoleEn] = useState(dignitary?.role_en ?? "");
+  const [roleHi, setRoleHi] = useState(dignitary?.role_hi ?? "");
+
+  async function handleAutoTranslate() {
+    setError(null);
+    setIsTranslating(true);
+    try {
+      const result = await translateFieldsEnToHiAction([
+        { key: "nameHi", text: nameEn },
+        { key: "roleHi", text: roleEn },
+      ]);
+      if (!result.success) {
+        setError(result.error);
+        return;
+      }
+      const translated = result.data.translations;
+      if (translated.nameHi) setNameHi(translated.nameHi);
+      if (translated.roleHi) setRoleHi(translated.roleHi);
+      if (result.data.warnings.length > 0) {
+        setError(result.data.warnings.join(" "));
+      } else if (Object.keys(translated).length === 0) {
+        setError("Nothing was translated. Enter English text first.");
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Translation failed.");
+    } finally {
+      setIsTranslating(false);
+    }
+  }
 
   function handleSubmit(formData: FormData) {
     setError(null);
@@ -194,24 +227,58 @@ export function HomepageDignitaryForm({ dignitary }: { dignitary?: HomepageDigni
     });
   }
 
+  const translateDisabled = isPending || isTranslating;
+
   return (
     <form action={handleSubmit} className="max-w-2xl space-y-5">
       {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+      <div className="flex flex-wrap items-center justify-end gap-3">
+        <button
+          type="button"
+          onClick={handleAutoTranslate}
+          disabled={translateDisabled}
+          className="rounded-lg border border-emerald-700 px-3 py-1.5 text-sm font-medium text-emerald-800 hover:bg-emerald-50 disabled:opacity-60"
+        >
+          {isTranslating ? "Translating…" : "Auto-translate to Hindi"}
+        </button>
+      </div>
       <label className="block text-sm">
         <span className="font-medium text-slate-700">Name (English)</span>
-        <input name="nameEn" required defaultValue={dignitary?.name_en ?? ""} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" />
+        <input
+          name="nameEn"
+          required
+          value={nameEn}
+          onChange={(e) => setNameEn(e.target.value)}
+          className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+        />
       </label>
       <label className="block text-sm">
         <span className="font-medium text-slate-700">Name (Hindi)</span>
-        <input name="nameHi" defaultValue={dignitary?.name_hi ?? ""} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-hindi" />
+        <input
+          name="nameHi"
+          value={nameHi}
+          onChange={(e) => setNameHi(e.target.value)}
+          className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-hindi"
+        />
       </label>
       <label className="block text-sm">
         <span className="font-medium text-slate-700">Role (English)</span>
-        <input name="roleEn" required defaultValue={dignitary?.role_en ?? ""} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" />
+        <input
+          name="roleEn"
+          required
+          value={roleEn}
+          onChange={(e) => setRoleEn(e.target.value)}
+          className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+        />
       </label>
       <label className="block text-sm">
         <span className="font-medium text-slate-700">Role (Hindi)</span>
-        <input name="roleHi" defaultValue={dignitary?.role_hi ?? ""} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-hindi" />
+        <input
+          name="roleHi"
+          value={roleHi}
+          onChange={(e) => setRoleHi(e.target.value)}
+          className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-hindi"
+        />
       </label>
       <HomepageImageField
         label="Photo"

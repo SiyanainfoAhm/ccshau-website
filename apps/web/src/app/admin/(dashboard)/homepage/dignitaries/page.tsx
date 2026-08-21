@@ -9,7 +9,7 @@ import { AdminSortableTh } from "@/components/admin/admin-sortable-th";
 import { requireSiteStructureOrRedirect } from "@/lib/auth/site-structure-access";
 import { parseAdminListParams } from "@/lib/data/admin-list";
 
-const DIGNITARIES_SORTS = ["name_en", "role_en", "sort_order", "is_active"] as const;
+const DIGNITARIES_SORTS = ["name_en", "title_en", "sort_order", "is_active"] as const;
 
 export default async function AdminHomepageDignitariesPage({
   searchParams,
@@ -48,7 +48,7 @@ export default async function AdminHomepageDignitariesPage({
             <Suspense fallback={<tr><th className="px-4 py-3">Name</th></tr>}>
               <tr>
                 <AdminSortableTh label="Name" column="name_en" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
-                <AdminSortableTh label="Role" column="role_en" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
+                <AdminSortableTh label="Role" column="title_en" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
                 <AdminSortableTh label="Order" column="sort_order" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
                 <AdminSortableTh label="Active" column="is_active" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
               </tr>

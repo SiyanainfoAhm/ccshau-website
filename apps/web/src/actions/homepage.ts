@@ -34,6 +34,11 @@ import {
 import type { PaginatedResult } from "@/lib/data/pagination";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  dignitaryRoleColumns,
+  isMissingRoleColumnError,
+  normalizeHomepageDignitary,
+} from "@/lib/data/homepage-dignitary";
 
 function revalidateHomepage() {
   revalidatePath("/");
@@ -320,7 +325,7 @@ export async function deleteHomepageQuoteAction(id: string): Promise<ActionResul
 
 // --- Dignitaries ---
 
-const HOMEPAGE_DIGNITARIES_SORTS = ["name_en", "role_en", "sort_order", "is_active"] as const;
+const HOMEPAGE_DIGNITARIES_SORTS = ["name_en", "title_en", "sort_order", "is_active"] as const;
 
 export async function listHomepageDignitariesForAdmin(
   options: AdminListOptions = {},
@@ -336,7 +341,11 @@ export async function listHomepageDignitariesForAdmin(
   if (!admin) return emptyPaginatedResult(opts);
 
   const query = admin.from(Tables.homepageDignitaries).select("*", { count: "exact" });
-  return runPaginatedQuery<HomepageDignitary>(query, opts);
+  const result = await runPaginatedQuery<HomepageDignitary>(query, opts);
+  return {
+    ...result,
+    items: result.items.map((row) => normalizeHomepageDignitary(row)),
+  };
 }
 
 export async function getHomepageDignitaryById(id: string): Promise<HomepageDignitary | null> {
@@ -344,7 +353,7 @@ export async function getHomepageDignitaryById(id: string): Promise<HomepageDign
   const admin = createAdminClient();
   if (!admin) return null;
   const { data } = await admin.from(Tables.homepageDignitaries).select("*").eq("id", id).maybeSingle();
-  return (data as HomepageDignitary) ?? null;
+  return data ? normalizeHomepageDignitary(data) : null;
 }
 
 export async function createHomepageDignitaryAction(
@@ -370,8 +379,7 @@ export async function createHomepageDignitaryAction(
       .insert({
         name_en: input.nameEn,
         name_hi: input.nameHi || null,
-        role_en: input.roleEn,
-        role_hi: input.roleHi || null,
+        ...dignitaryRoleColumns(input.roleEn, input.roleHi).role,
         image_path: imageFile ? "pending" : imageUrl!,
         sort_order: input.sortOrder,
         is_active: input.isActive ?? true,
@@ -379,18 +387,37 @@ export async function createHomepageDignitaryAction(
       .select("id")
       .single();
 
-    if (error) return fail(error.message);
+    let insertData = data;
+    let insertError = error;
+    if (insertError && isMissingRoleColumnError(insertError.message)) {
+      const fallback = await admin
+        .from(Tables.homepageDignitaries)
+        .insert({
+          name_en: input.nameEn,
+          name_hi: input.nameHi || null,
+          ...dignitaryRoleColumns(input.roleEn, input.roleHi).title,
+          image_path: imageFile ? "pending" : imageUrl!,
+          sort_order: input.sortOrder,
+          is_active: input.isActive ?? true,
+        })
+        .select("id")
+        .single();
+      insertData = fallback.data;
+      insertError = fallback.error;
+    }
+
+    if (insertError || !insertData) return fail(insertError?.message ?? "Failed to create dignitary.");
 
     if (imageFile) {
-      const upload = await uploadHomepageDignitaryImage(admin, data.id, imageFile);
+      const upload = await uploadHomepageDignitaryImage(admin, insertData.id, imageFile);
       if (!upload.success) {
-        await admin.from(Tables.homepageDignitaries).delete().eq("id", data.id);
+        await admin.from(Tables.homepageDignitaries).delete().eq("id", insertData.id);
         return upload;
       }
       const { error: updateError } = await admin
         .from(Tables.homepageDignitaries)
         .update({ image_path: upload.data })
-        .eq("id", data.id);
+        .eq("id", insertData.id);
       if (updateError) return fail(updateError.message);
     }
 
@@ -398,11 +425,11 @@ export async function createHomepageDignitaryAction(
       userId: session.userId,
       action: "create",
       entityType: "homepage_dignitary",
-      entityId: data.id,
+      entityId: insertData.id,
     });
     revalidateHomepage();
     revalidatePath("/admin/homepage/dignitaries");
-    return ok({ id: data.id });
+    return ok({ id: insertData.id });
   } catch (e) {
     return fail(e instanceof Error ? e.message : "Failed to create dignitary.");
   }
@@ -443,15 +470,30 @@ export async function updateHomepageDignitaryAction(
       .update({
         name_en: input.nameEn,
         name_hi: input.nameHi || null,
-        role_en: input.roleEn,
-        role_hi: input.roleHi || null,
+        ...dignitaryRoleColumns(input.roleEn, input.roleHi).role,
         image_path: imagePathResult.data,
         sort_order: input.sortOrder,
         is_active: input.isActive ?? true,
       })
       .eq("id", id);
 
-    if (error) return fail(error.message);
+    let updateError = error;
+    if (updateError && isMissingRoleColumnError(updateError.message)) {
+      const fallback = await admin
+        .from(Tables.homepageDignitaries)
+        .update({
+          name_en: input.nameEn,
+          name_hi: input.nameHi || null,
+          ...dignitaryRoleColumns(input.roleEn, input.roleHi).title,
+          image_path: imagePathResult.data,
+          sort_order: input.sortOrder,
+          is_active: input.isActive ?? true,
+        })
+        .eq("id", id);
+      updateError = fallback.error;
+    }
+
+    if (updateError) return fail(updateError.message);
     await writeAuditLog({
       userId: session.userId,
       action: "update",
