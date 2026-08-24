@@ -1,11 +1,13 @@
 "use client";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useCallback, useRef, type ReactNode } from "react";
+import { useCallback, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 
 import { useLanguage } from "@/components/design/shared/language-context";
 
 type CarouselVariant = "heritage" | "future" | "ministry";
+
+const OVERFLOW_EPSILON = 2;
 
 export function HomepageScrollCarousel({
   children,
@@ -20,6 +22,62 @@ export function HomepageScrollCarousel({
 }) {
   const { t } = useLanguage();
   const trackRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const updateOverflow = useCallback(() => {
+    const el = trackRef.current;
+    if (!el) return;
+    const maxScroll = el.scrollWidth - el.clientWidth;
+    const overflow = maxScroll > OVERFLOW_EPSILON;
+    setCanScrollLeft(overflow && el.scrollLeft > OVERFLOW_EPSILON);
+    setCanScrollRight(overflow && el.scrollLeft < maxScroll - OVERFLOW_EPSILON);
+  }, []);
+
+  useLayoutEffect(() => {
+    const el = trackRef.current;
+    if (!el) return;
+
+    const resizeObserver = new ResizeObserver(() => updateOverflow());
+    const observeAll = () => {
+      resizeObserver.disconnect();
+      resizeObserver.observe(el);
+      for (const child of Array.from(el.children)) {
+        resizeObserver.observe(child);
+      }
+    };
+
+    observeAll();
+    updateOverflow();
+
+    const mutationObserver = new MutationObserver(() => {
+      observeAll();
+      updateOverflow();
+    });
+    mutationObserver.observe(el, { childList: true, subtree: true });
+
+    el.addEventListener("scroll", updateOverflow, { passive: true });
+    window.addEventListener("resize", updateOverflow);
+
+    const images = el.querySelectorAll("img");
+    images.forEach((image) => {
+      if (!image.complete) {
+        image.addEventListener("load", updateOverflow);
+        image.addEventListener("error", updateOverflow);
+      }
+    });
+
+    return () => {
+      resizeObserver.disconnect();
+      mutationObserver.disconnect();
+      el.removeEventListener("scroll", updateOverflow);
+      window.removeEventListener("resize", updateOverflow);
+      images.forEach((image) => {
+        image.removeEventListener("load", updateOverflow);
+        image.removeEventListener("error", updateOverflow);
+      });
+    };
+  }, [updateOverflow, children]);
 
   const scroll = useCallback(
     (direction: -1 | 1) => {
@@ -27,6 +85,8 @@ export function HomepageScrollCarousel({
     },
     [scrollStep],
   );
+
+  const overflows = canScrollLeft || canScrollRight;
 
   const controlClass =
     variant === "heritage"
@@ -37,32 +97,38 @@ export function HomepageScrollCarousel({
 
   return (
     <div className="relative mt-10">
-      <button
-        type="button"
-        onClick={() => scroll(-1)}
-        className={`absolute -left-2 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border transition sm:h-10 sm:w-10 lg:-left-5 ${controlClass}`}
-        aria-label={t("Previous", "पिछला")}
-      >
-        <ChevronLeft className="h-5 w-5" aria-hidden />
-      </button>
+      {canScrollLeft ? (
+        <button
+          type="button"
+          onClick={() => scroll(-1)}
+          className={`absolute -left-2 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border transition sm:h-10 sm:w-10 lg:-left-5 ${controlClass}`}
+          aria-label={t("Previous", "पिछला")}
+        >
+          <ChevronLeft className="h-5 w-5" aria-hidden />
+        </button>
+      ) : null}
 
       <div
         ref={trackRef}
         role="region"
         aria-label={ariaLabel}
-        className="homepage-carousel-track flex gap-5 overflow-x-auto scroll-smooth pb-3 pt-1 snap-x snap-mandatory"
+        className={`homepage-carousel-track flex gap-5 overflow-x-auto scroll-smooth pb-3 pt-1 snap-x snap-mandatory ${
+          overflows ? "justify-start" : "justify-center"
+        }`}
       >
         {children}
       </div>
 
-      <button
-        type="button"
-        onClick={() => scroll(1)}
-        className={`absolute -right-2 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border transition sm:h-10 sm:w-10 lg:-right-5 ${controlClass}`}
-        aria-label={t("Next", "अगला")}
-      >
-        <ChevronRight className="h-5 w-5" aria-hidden />
-      </button>
+      {canScrollRight ? (
+        <button
+          type="button"
+          onClick={() => scroll(1)}
+          className={`absolute -right-2 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border transition sm:h-10 sm:w-10 lg:-right-5 ${controlClass}`}
+          aria-label={t("Next", "अगला")}
+        >
+          <ChevronRight className="h-5 w-5" aria-hidden />
+        </button>
+      ) : null}
     </div>
   );
 }

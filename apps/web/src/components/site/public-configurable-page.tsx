@@ -48,6 +48,36 @@ function normalizePublicPath(path: string) {
   return bare || "/";
 }
 
+/** Sidebar tabs that should render the assigned HOD / Head of Section profile. */
+function isHodSidebarLabel(labelEn: string, labelHi?: string | null) {
+  const en = labelEn.trim().toLowerCase();
+  if (/head of (?:the )?(department|section)\b/.test(en) || /^(hod|hos)$/.test(en)) {
+    return true;
+  }
+  const hi = (labelHi ?? "").trim();
+  return hi.includes("विभागाध्यक्ष") || hi.includes("अनुभाग प्रमुख");
+}
+
+function findFacultySidebarLink(office?: PublicOfficePortalData | null) {
+  if (!office) return null;
+  return (
+    office.sidebarRight.find((link) => /^faculty$/i.test(link.labelEn.trim())) ??
+    office.sidebarLeft.find((link) => /^faculty$/i.test(link.labelEn.trim())) ??
+    null
+  );
+}
+
+function defaultSidebarSelection(office?: PublicOfficePortalData | null) {
+  const firstQuickLink = office?.sidebarLeft.find((link) => !link.href?.trim());
+  if (
+    firstQuickLink &&
+    isHodSidebarLabel(firstQuickLink.labelEn, firstQuickLink.labelHi)
+  ) {
+    return firstQuickLink;
+  }
+  return null;
+}
+
 function SidebarPanel({
   title,
   links,
@@ -274,14 +304,19 @@ export function PublicConfigurablePage({
   cta?: HomepageCtaItem | null;
 }) {
   const { lang, t } = useLanguage();
-  const [selectedSidebar, setSelectedSidebar] = useState<PublicSidebarLink | null>(null);
+  const [selectedSidebar, setSelectedSidebar] = useState<PublicSidebarLink | null>(
+    () => defaultSidebarSelection(office),
+  );
 
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("tab") !== "faculty") return;
-    const faculty =
-      office?.sidebarRight.find((link) => /^faculty$/i.test(link.labelEn.trim())) ??
-      office?.sidebarLeft.find((link) => /^faculty$/i.test(link.labelEn.trim()));
-    if (faculty) setSelectedSidebar(faculty);
+    const tab = new URLSearchParams(window.location.search).get("tab");
+    if (tab === "faculty") {
+      const faculty = findFacultySidebarLink(office);
+      if (faculty) setSelectedSidebar(faculty);
+      return;
+    }
+
+    setSelectedSidebar((current) => current ?? defaultSidebarSelection(office));
   }, [office]);
 
   const contentPage = subsection ?? section ?? null;
@@ -322,9 +357,8 @@ export function PublicConfigurablePage({
       Boolean(selectedSidebar!.labelHi?.includes("परिचय")));
   const isHodSidebar =
     Boolean(selectedSidebar) &&
-    !sidebarHasContent &&
-    (selectedSidebar!.labelEn.toLowerCase().includes("head of department") ||
-      Boolean(selectedSidebar!.labelHi?.includes("विभागाध्यक्ष")));
+    isHodSidebarLabel(selectedSidebar!.labelEn, selectedSidebar!.labelHi) &&
+    !hasCmsHtmlContent(sidebarContent);
 
   const hodMember = office?.staff.find((member) => member.memberType === "hod") ?? null;
   const isDepartmentLanding =
@@ -595,14 +629,17 @@ export function PublicConfigurablePage({
             {showHodSidebarProfile && office && (
               hodMember ? (
                 <DepartmentAboutSection
-                  sectionTitle={bodyTitle ?? t("Head of Department", "विभागाध्यक्ष")}
+                  sectionTitle={bodyTitle ?? t("Head of Section", "अनुभाग प्रमुख")}
                   member={hodMember}
                   contactLines={office.contactLines}
                   aboutHtml={defaultBodyContent}
                 />
               ) : (
                 <p className={`${publicEmptyStateClass} p-6 shadow-sm`}>
-                  {t("Head of Department has not been assigned yet.", "विभागाध्यक्ष अभी नियुक्त नहीं किया गया है।")}
+                  {t(
+                    "Head of Section has not been assigned yet.",
+                    "अनुभाग प्रमुख अभी नियुक्त नहीं किया गया है।",
+                  )}
                 </p>
               )
             )}
