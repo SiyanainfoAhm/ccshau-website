@@ -177,10 +177,10 @@ export const legacyColleges: LegacyCollege[] = [
     color: "from-sky-400 to-blue-400",
   },
   {
-    slug: "ic-college-of-home-science",
+    slug: "ic-college-of-community-science",
     slugAliases: [
       "ic-college-community-science",
-      "ic-college-of-community-science",
+      "ic-college-of-home-science",
     ],
     nameEn: "I.C. College of Community Science",
     nameHi: "आई.सी. समुदाय विज्ञान महाविद्यालय",
