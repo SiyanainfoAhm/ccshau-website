@@ -36,7 +36,7 @@ import type {
   PublicResearchStationCard,
   PublicSidebarLink,
 } from "@/lib/data/public-types";
-import { publicEmptyStateClass, publicSectionCardClass, publicSidebarClass } from "@/lib/design/public-page-classes";
+import { publicEmptyStateClass, publicSectionCardClass, publicSidebarClass, typeExcerptClass, typeHeroExcerptClass, typeHeroTitleClass, typePageTitleClass, publicProseClass } from "@/lib/design/public-page-classes";
 import { pickBilingual } from "@/lib/i18n/pick-bilingual";
 import type { PageLayoutConfig } from "@/lib/pages/layout-config";
 import { officerContactLines } from "@/lib/pages/college-contact-display";
@@ -463,13 +463,13 @@ export function PublicConfigurablePage({
               {t("Welcome to The", "में आपका स्वागत है")}
             </p>
             <h1
-              className={`mt-2 font-display text-3xl font-bold leading-tight md:text-4xl ${lang === "hi" ? "font-hindi" : ""}`}
+              className={`mt-2 ${typeHeroTitleClass} ${lang === "hi" ? "font-hindi" : ""}`}
             >
               {title}
             </h1>
             {excerpt && (
               <p
-                className={`mt-4 max-w-2xl text-lg text-emerald-100 ${lang === "hi" ? "font-hindi" : ""}`}
+                className={`mt-4 max-w-2xl ${typeHeroExcerptClass} ${lang === "hi" ? "font-hindi" : ""}`}
               >
                 {excerpt}
               </p>
@@ -490,12 +490,12 @@ export function PublicConfigurablePage({
         <div className="border-b border-slate-200 bg-white dark:border-emerald-900/50 dark:bg-emerald-950/30">
           <div className="mx-auto max-w-7xl px-4 py-8">
             <h1
-              className={`font-display text-3xl font-bold text-slate-900 ${lang === "hi" ? "font-hindi" : ""}`}
+              className={`${typePageTitleClass} ${lang === "hi" ? "font-hindi" : ""}`}
             >
               {title}
             </h1>
             {excerpt && (
-              <p className={`mt-2 text-slate-600 ${lang === "hi" ? "font-hindi" : ""}`}>{excerpt}</p>
+              <p className={`mt-2 ${typeExcerptClass} ${lang === "hi" ? "font-hindi" : ""}`}>{excerpt}</p>
             )}
           </div>
         </div>
@@ -656,7 +656,7 @@ export function PublicConfigurablePage({
               <article className={`${publicSectionCardClass} overflow-hidden p-0`}>
                 {bodyTitle && (
                   <h2
-                    className={`border-b border-emerald-100 bg-gradient-to-r from-emerald-50 to-white px-5 py-3.5 font-display text-xl font-bold text-emerald-900 sm:px-6 sm:text-2xl ${lang === "hi" ? "font-hindi" : ""}`}
+                    className={`border-b border-emerald-100 bg-gradient-to-r from-emerald-50 to-white px-5 py-3.5 type-section-title text-emerald-900 sm:px-6 ${lang === "hi" ? "font-hindi" : ""}`}
                   >
                     {bodyTitle}
                   </h2>
@@ -673,7 +673,7 @@ export function PublicConfigurablePage({
               <article className={`${publicSectionCardClass} overflow-hidden p-0`}>
                 {bodyTitle && (
                   <h2
-                    className={`border-b border-emerald-100 bg-gradient-to-r from-emerald-50 to-white px-5 py-3.5 font-display text-xl font-bold text-emerald-900 sm:px-6 sm:text-2xl ${lang === "hi" ? "font-hindi" : ""}`}
+                    className={`border-b border-emerald-100 bg-gradient-to-r from-emerald-50 to-white px-5 py-3.5 type-section-title text-emerald-900 sm:px-6 ${lang === "hi" ? "font-hindi" : ""}`}
                   >
                     {bodyTitle}
                   </h2>
@@ -681,7 +681,7 @@ export function PublicConfigurablePage({
                 <div className="px-5 py-5 sm:px-6 sm:py-6">
                   <CmsHtmlContent
                     html={bodyContent!}
-                    className={`prose prose-emerald max-w-none ${lang === "hi" ? "font-hindi" : ""}`}
+                    className={`${publicProseClass} ${lang === "hi" ? "font-hindi" : ""}`}
                   />
                 </div>
               </article>

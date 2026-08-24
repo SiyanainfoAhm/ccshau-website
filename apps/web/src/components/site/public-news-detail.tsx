@@ -7,7 +7,7 @@ import { useLanguage } from "@/components/design/shared/language-context";
 import { CmsHtmlContent } from "@/components/site/cms-html-content";
 import { pickBilingual } from "@/lib/i18n/pick-bilingual";
 import type { PublicNewsItem } from "@/lib/data/public-types";
-import { publicHeadingClass, publicProseClass } from "@/lib/design/public-page-classes";
+import { publicProseClass, typeHeroTitleClass, typeSectionTitleClass } from "@/lib/design/public-page-classes";
 
 export function PublicNewsDetail({ item }: { item: PublicNewsItem }) {
   const { lang, t } = useLanguage();
@@ -41,7 +41,7 @@ export function PublicNewsDetail({ item }: { item: PublicNewsItem }) {
             )}
           </div>
           <h1
-            className={`mt-4 font-display text-4xl font-bold leading-tight md:text-5xl ${lang === "hi" ? "font-hindi" : ""}`}
+            className={`mt-4 ${typeHeroTitleClass} ${lang === "hi" ? "font-hindi" : ""}`}
           >
             {title}
           </h1>
@@ -60,7 +60,7 @@ export function PublicNewsDetail({ item }: { item: PublicNewsItem }) {
 
         {item.attachmentPaths.length > 0 && (
           <div className="not-prose mt-10 space-y-3">
-            <h2 className={`font-display text-xl font-bold ${publicHeadingClass}`}>
+            <h2 className={typeSectionTitleClass}>
               {t("Attachments", "संलग्नक")}
             </h2>
             {item.attachmentPaths.map((file) => (

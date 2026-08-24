@@ -1,7 +1,21 @@
 /** Strip risky markup from admin-authored CMS HTML before rendering. */
 import sanitizeHtml from "sanitize-html";
 
-function stripLinkPaintStyles(style: string | undefined): string | undefined {
+const CMS_TYPOGRAPHY_STYLE_PROPS = new Set([
+  "color",
+  "text-decoration",
+  "text-decoration-line",
+  "font",
+  "font-family",
+  "font-size",
+  "font-size-adjust",
+  "line-height",
+  "text-align",
+  "letter-spacing",
+  "word-spacing",
+]);
+
+function stripCmsPaintStyles(style: string | undefined): string | undefined {
   if (!style) return undefined;
   const cleaned = style
     .split(";")
@@ -9,7 +23,7 @@ function stripLinkPaintStyles(style: string | undefined): string | undefined {
     .filter(Boolean)
     .filter((part) => {
       const prop = part.split(":")[0]?.trim().toLowerCase();
-      return prop !== "color" && prop !== "text-decoration" && prop !== "text-decoration-line";
+      return Boolean(prop) && !CMS_TYPOGRAPHY_STYLE_PROPS.has(prop);
     })
     .join("; ");
   return cleaned || undefined;
@@ -76,9 +90,16 @@ const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
   // Match prior DOMPurify policy for CMS content.
   disallowedTagsMode: "discard",
   transformTags: {
+    "*": (tagName, attribs) => {
+      const next = { ...attribs };
+      const cleanedStyle = stripCmsPaintStyles(next.style);
+      if (cleanedStyle) next.style = cleanedStyle;
+      else delete next.style;
+      return { tagName, attribs: next };
+    },
     a: (tagName, attribs) => {
       const next = { ...attribs };
-      const cleanedStyle = stripLinkPaintStyles(next.style);
+      const cleanedStyle = stripCmsPaintStyles(next.style);
       if (cleanedStyle) next.style = cleanedStyle;
       else delete next.style;
       if (next.href) {

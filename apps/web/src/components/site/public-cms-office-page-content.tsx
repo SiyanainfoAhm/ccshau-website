@@ -14,6 +14,7 @@ import type {
   PublicOfficeStaffMember,
 } from "@/lib/data/public-types";
 import { buildImageAlt } from "@/lib/a11y/image-alt";
+import { typeHeroTitleClass } from "@/lib/design/public-page-classes";
 import { pickBilingual } from "@/lib/i18n/pick-bilingual";
 import { getPgStudiesSectionPath } from "@/lib/pages/routes";
 
@@ -102,7 +103,7 @@ export function PublicCmsOfficePageContent({
             {t("Welcome to The", "में आपका स्वागत है")}
           </p>
           <h1
-            className={`mt-2 font-display text-3xl font-bold leading-tight md:text-4xl ${lang === "hi" ? "font-hindi" : ""}`}
+            className={`mt-2 ${typeHeroTitleClass} ${lang === "hi" ? "font-hindi" : ""}`}
           >
             {title}
           </h1>

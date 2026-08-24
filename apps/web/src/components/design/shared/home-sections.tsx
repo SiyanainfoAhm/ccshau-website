@@ -21,6 +21,7 @@ import { HomepageScrollCarousel } from "@/components/design/shared/homepage-scro
 import { ScrollReveal } from "@/components/design/shared/scroll-reveal";
 import { usePublicSiteChrome } from "@/components/site/public-site-context";
 import { SELECTED_LAYOUT } from "@/lib/design/selected-layout";
+import { typeKickerClass } from "@/lib/design/public-page-classes";
 import type { HomepageCollege, HomepageCtaItem, HomepageFlagshipItem, HomepageQuoteItem } from "@/lib/data/homepage";
 import type {
   PublicCircularItem,
@@ -158,10 +159,10 @@ export function NewsSection({
     >
       <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className={`text-sm font-bold uppercase tracking-widest ${variant === "heritage" ? "text-violet-600" : variant === "ministry" ? "text-[#e8850c]" : "text-emerald-600"}`}>
+          <p className={`${typeKickerClass} ${variant === "heritage" ? "text-violet-600" : variant === "ministry" ? "text-[#e8850c]" : "text-emerald-600"}`}>
             {t("Stay Updated", "अपडेट रहें")}
           </p>
-          <h2 className={`font-display text-3xl font-bold md:text-4xl ${variant === "heritage" ? "text-gradient-heritage" : "text-slate-900 dark:text-white"}`}>
+          <h2 className={`type-section-title ${variant === "heritage" ? "text-gradient-heritage" : "text-slate-900 dark:text-white"}`}>
             {t("Latest News & Notices", "नवीनतम समाचार और सूचनाएं")}
           </h2>
         </div>
@@ -272,10 +273,10 @@ export function CollegesGrid({
       }`}
     >
       <div className="mx-auto max-w-7xl px-4">
-        <h2 className={`text-center font-display text-3xl font-bold md:text-4xl ${variant === "heritage" ? "text-gradient-heritage" : "text-slate-900 dark:text-white"}`}>
+        <h2 className={`text-center type-section-title ${variant === "heritage" ? "text-gradient-heritage" : "text-slate-900 dark:text-white"}`}>
           {t("Education at University", "विश्वविद्यालय में शिक्षा")}
         </h2>
-        <p className={`mx-auto mt-3 max-w-2xl text-center ${variant === "heritage" ? "text-slate-600" : "text-slate-600 dark:text-emerald-100/80"}`}>
+        <p className={`mx-auto mt-3 max-w-2xl text-center type-body ${variant === "heritage" ? "text-slate-600" : "text-slate-600 dark:text-emerald-100/80"}`}>
           {t(
             "Nine colleges offering world-class agricultural education and research",
             "विश्व स्तरीय कृषि शिक्षा और अनुसंधान प्रदान करने वाले नौ महाविद्यालय",
@@ -348,7 +349,7 @@ export function QuickLinksStrip({
     return (
       <section className="border-y-2 border-slate-200 bg-slate-50 py-10">
         <div className="mx-auto max-w-7xl px-4">
-          <h2 className="mb-6 text-center font-display text-2xl font-bold text-slate-900">
+          <h2 className="mb-6 text-center type-section-title text-slate-900">
             {t("Quick Links", "त्वरित लिंक")}
           </h2>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
@@ -370,10 +371,10 @@ export function QuickLinksStrip({
   return (
     <section className="mx-auto max-w-7xl px-4 py-14">
       <div className="mb-8 text-center">
-        <p className={`text-sm font-bold uppercase tracking-widest ${variant === "heritage" ? "text-orange-600" : "text-emerald-600"}`}>
+        <p className={`${typeKickerClass} ${variant === "heritage" ? "text-orange-600" : "text-emerald-600"}`}>
           {t("Quick Access", "त्वरित पहुंच")}
         </p>
-        <h2 className={`font-display text-3xl font-bold ${variant === "heritage" ? "text-gradient-heritage" : "text-slate-900 dark:text-white"}`}>
+        <h2 className={`type-section-title ${variant === "heritage" ? "text-gradient-heritage" : "text-slate-900 dark:text-white"}`}>
           {t("Everything You Need, One Click Away", "आपकी जरूरत, एक क्लिक दूर")}
         </h2>
       </div>
@@ -570,10 +571,10 @@ export function SpotlightSection({ variant = "future" }: { variant?: "heritage" 
         <section className="border-y-4 border-[#0c3b6e] bg-white py-14">
           <div className="mx-auto max-w-4xl px-4">
             <div className="rounded-md border-2 border-slate-200 bg-slate-50 p-8">
-              <p className="text-sm font-bold uppercase tracking-widest text-[#e8850c]">
+              <p className={`${typeKickerClass} text-[#e8850c]`}>
                 {t("Accessibility & Digital India", "पहुंच और डिजिटल इंडिया")}
               </p>
-              <h2 className="mt-3 font-display text-2xl font-bold text-slate-900 md:text-3xl">
+              <h2 className="mt-3 type-section-title text-slate-900">
                 {t("Built for Every Citizen", "हर नागरिक के लिए")}
               </h2>
               <p className="mt-4 leading-relaxed text-slate-700">
@@ -606,10 +607,10 @@ export function SpotlightSection({ variant = "future" }: { variant?: "heritage" 
 
       <div className="relative mx-auto grid max-w-7xl gap-8 px-4 lg:grid-cols-2 lg:items-center">
         <div className="animate-fade-up">
-          <p className="text-sm font-bold uppercase tracking-widest text-amber-300">
+          <p className={`${typeKickerClass} text-amber-300`}>
             {t("From the Vice-Chancellor", "कुलपति का संदेश")}
           </p>
-          <h2 className="mt-3 font-display text-3xl font-bold leading-tight text-white md:text-4xl">
+          <h2 className="mt-3 type-section-title text-white">
             {t(
               "Nurturing Agripreneurs for a Sustainable Tomorrow",
               "सतत कल के लिए कृषि उद्यमियों का पोषण",
@@ -678,15 +679,15 @@ export function DignitariesStrip({
           : "border-emerald-100 bg-white/80 dark:border-emerald-900/40 dark:bg-emerald-950/20"
     }`}>
       <div className="mx-auto max-w-7xl px-4">
-        <p className={`mb-8 text-center text-xs font-bold uppercase tracking-[0.2em] ${
+        <h2 className={`mb-8 text-center type-section-title ${
           variant === "ministry"
             ? "text-[#0c3b6e]"
             : variant === "future"
-              ? "text-emerald-700 dark:text-emerald-400"
-              : "text-violet-600"
+              ? "text-slate-900 dark:text-white"
+              : "text-violet-700"
         }`}>
           {t("Dignitaries", "गणमान्य व्यक्ति")}
-        </p>
+        </h2>
         <HomepageScrollCarousel
           ariaLabel={t("Dignitaries", "गणमान्य व्यक्ति")}
           variant={variant}
@@ -916,11 +917,11 @@ export function AboutSection({
           }`}
         >
           <div>
-            <p className={`text-sm font-bold uppercase tracking-widest ${variant === "heritage" ? "text-rose-500" : variant === "ministry" ? "text-[#e8850c]" : "text-emerald-600"}`}>
+            <p className={`${typeKickerClass} ${variant === "heritage" ? "text-rose-500" : variant === "ministry" ? "text-[#e8850c]" : "text-emerald-600"}`}>
               {t(titleEn, titleHi)}
             </p>
             {showHeading && (
-              <h2 className={`mt-3 font-display text-3xl font-bold md:text-4xl ${variant === "heritage" ? "text-gradient-heritage" : "text-slate-900 dark:text-white"}`}>
+              <h2 className={`mt-3 type-section-title ${variant === "heritage" ? "text-gradient-heritage" : "text-slate-900 dark:text-white"}`}>
                 {t(headingEn, headingHi)}
               </h2>
             )}
@@ -977,7 +978,7 @@ export function MinistryNotificationsSection() {
     <ScrollReveal>
       <section className="border-y-2 border-slate-200 bg-white py-14">
         <div className="mx-auto max-w-7xl px-4">
-          <h2 className="text-center font-display text-3xl font-bold text-slate-900">
+          <h2 className="text-center type-section-title text-slate-900">
             {t("Notifications", "सूचनाएं")}
           </h2>
           <div className="mt-10 grid gap-6 md:grid-cols-3">
@@ -1022,7 +1023,7 @@ export function HeritageNotificationsSection() {
     <ScrollReveal>
       <section className="bg-gradient-to-br from-teal-50/30 via-white to-orange-50/30 py-16">
         <div className="mx-auto max-w-7xl px-4">
-          <h2 className="text-center font-display text-3xl font-bold text-gradient-heritage md:text-4xl">
+          <h2 className="text-center type-section-title text-gradient-heritage">
             {t("Notifications", "सूचनाएं")}
           </h2>
           <div className="mt-10 grid gap-6 md:grid-cols-3">
@@ -1204,7 +1205,7 @@ export function NotificationsSection({
       >
         <div className="mx-auto max-w-7xl px-4">
           <h2
-            className={`text-center font-display text-3xl font-bold md:text-4xl ${
+            className={`text-center type-section-title ${
               variant === "heritage"
                 ? "text-gradient-heritage"
                 : variant === "ministry"
@@ -1337,7 +1338,7 @@ export function FarmersPortalSection({
             </div>
             <div>
               <h2
-                className={`font-display text-2xl font-bold md:text-3xl ${
+                className={`type-section-title ${
                   variant === "heritage" ? "text-slate-800" : "text-white"
                 }`}
               >
@@ -1417,10 +1418,10 @@ export function MediaGallerySection({
         <div className="mx-auto max-w-7xl px-4">
           <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
             <div>
-              <p className={`text-sm font-bold uppercase tracking-widest ${isHeritage ? "text-fuchsia-600" : isMinistry ? "text-[#e8850c]" : "text-amber-400"}`}>
+              <p className={`${typeKickerClass} ${isHeritage ? "text-fuchsia-600" : isMinistry ? "text-[#e8850c]" : "text-amber-400"}`}>
                 {t("Media Gallery", "मीडिया गैलरी")}
               </p>
-              <h2 className={`font-display text-3xl font-bold md:text-4xl ${isHeritage ? "text-gradient-heritage" : isMinistry ? "text-slate-900" : ""}`}>
+              <h2 className={`type-section-title ${isHeritage ? "text-gradient-heritage" : isMinistry ? "text-slate-900" : ""}`}>
                 {t("Photo & Video Gallery", "फोटो और वीडियो गैलरी")}
               </h2>
             </div>
@@ -1505,10 +1506,10 @@ export function FlagshipsSection({
     <ScrollReveal>
       <section className={`mx-auto max-w-7xl px-4 py-16 ${isHeritage ? "bg-gradient-to-br from-lime-50/40 via-white to-indigo-50/40" : isMinistry ? "bg-white" : ""}`}>
         <div className="text-center">
-          <p className={`text-sm font-bold uppercase tracking-widest ${isHeritage ? "text-lime-600" : isMinistry ? "text-[#e8850c]" : "text-emerald-600"}`}>
+          <p className={`${typeKickerClass} ${isHeritage ? "text-lime-600" : isMinistry ? "text-[#e8850c]" : "text-emerald-600"}`}>
             {t("Flagships", "प्रमुख पहल")}
           </p>
-          <h2 className={`font-display text-3xl font-bold md:text-4xl ${isHeritage ? "text-gradient-heritage" : "text-slate-900 dark:text-white"}`}>
+          <h2 className={`type-section-title ${isHeritage ? "text-gradient-heritage" : "text-slate-900 dark:text-white"}`}>
             {t("Flagships", "प्रमुख पहल")}
           </h2>
         </div>
@@ -1578,7 +1579,7 @@ export function PartnersSection({
           : "border-emerald-100 bg-emerald-50/50 dark:border-emerald-900/40 dark:bg-emerald-950/20"
     }`}>
       <div className="mx-auto max-w-7xl px-4">
-        <p className={`mb-6 text-center text-xs font-bold uppercase tracking-[0.2em] ${
+        <p className={`mb-6 text-center ${typeKickerClass} ${
           variant === "heritage" ? "text-violet-600" : variant === "ministry" ? "text-[#0c3b6e]" : "text-emerald-700"
         }`}>
           {t("Our Partners", "हमारे साझेदार")}

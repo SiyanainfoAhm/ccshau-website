@@ -15,6 +15,7 @@ import type {
 import { buildImageAlt } from "@/lib/a11y/image-alt";
 import { hasCmsHtmlContent } from "@/lib/html/has-cms-html-content";
 import { pickBilingual } from "@/lib/i18n/pick-bilingual";
+import { publicProseClass, typeHeroTitleClass } from "@/lib/design/public-page-classes";
 import { getPgStudiesHubPath } from "@/lib/pages/routes";
 
 export function PublicPgStudiesSectionContent({
@@ -58,9 +59,7 @@ export function PublicPgStudiesSectionContent({
           >
             <ArrowLeft className="h-4 w-4" /> {t("PG Studies Home", "स्नातकोत्तर अध्ययन होम")}
           </Link>
-          <h1
-            className={`font-display text-3xl font-bold leading-tight md:text-4xl ${lang === "hi" ? "font-hindi" : ""}`}
-          >
+          <h1 className={`${typeHeroTitleClass} ${lang === "hi" ? "font-hindi" : ""}`}>
             {title}
           </h1>
         </div>
@@ -73,7 +72,7 @@ export function PublicPgStudiesSectionContent({
           <article className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
             <CmsHtmlContent
               html={bodyHtml!}
-              className={`prose prose-emerald max-w-none ${lang === "hi" ? "font-hindi" : ""}`}
+              className={`${publicProseClass} ${lang === "hi" ? "font-hindi" : ""}`}
             />
           </article>
         ) : (

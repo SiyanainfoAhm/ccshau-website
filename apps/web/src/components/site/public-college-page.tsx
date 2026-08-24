@@ -6,7 +6,12 @@ import Link from "next/link";
 import { useLanguage } from "@/components/design/shared/language-context";
 import { CmsHtmlContent } from "@/components/site/cms-html-content";
 import { buildImageAlt } from "@/lib/a11y/image-alt";
-import { publicHeadingClass, publicProseClass } from "@/lib/design/public-page-classes";
+import {
+  publicProseClass,
+  typeHeroExcerptClass,
+  typeHeroTitleClass,
+  typePageTitleClass,
+} from "@/lib/design/public-page-classes";
 import { hasCmsHtmlContent } from "@/lib/html/has-cms-html-content";
 import { pickBilingual } from "@/lib/i18n/pick-bilingual";
 import { getCollegeContactPath } from "@/lib/pages/routes";
@@ -28,7 +33,7 @@ function SectionContent({
 
   return (
     <article className="mx-auto max-w-4xl px-4 py-12">
-      <h1 className={`font-display text-3xl font-bold ${publicHeadingClass} ${lang === "hi" ? "font-hindi" : ""}`}>
+      <h1 className={`${typePageTitleClass} ${lang === "hi" ? "font-hindi" : ""}`}>
         {title}
       </h1>
       {hasBody ? (
@@ -83,13 +88,11 @@ export function PublicCollegeHome({ college }: { college: PublicCollegePage }) {
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-amber-300">
             {t("Welcome to The", "में आपका स्वागत है")}
           </p>
-          <h1
-            className={`mt-2 font-display text-3xl font-bold leading-tight md:text-5xl ${lang === "hi" ? "font-hindi" : ""}`}
-          >
+          <h1 className={`mt-2 ${typeHeroTitleClass} ${lang === "hi" ? "font-hindi" : ""}`}>
             {title}
           </h1>
           {excerpt && (
-            <p className={`mt-4 max-w-2xl text-lg text-emerald-100 ${lang === "hi" ? "font-hindi" : ""}`}>
+            <p className={`mt-4 max-w-2xl ${typeHeroExcerptClass} ${lang === "hi" ? "font-hindi" : ""}`}>
               {excerpt}
             </p>
           )}
@@ -106,7 +109,7 @@ export function PublicCollegeHome({ college }: { college: PublicCollegePage }) {
         <article className="mx-auto max-w-4xl px-4 py-12">
           <CmsHtmlContent
             html={content}
-            className={`prose prose-emerald max-w-none ${lang === "hi" ? "font-hindi" : ""}`}
+            className={`${publicProseClass} ${lang === "hi" ? "font-hindi" : ""}`}
           />
         </article>
       )}

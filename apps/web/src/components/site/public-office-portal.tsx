@@ -16,7 +16,7 @@ import type {
   PublicSidebarLink,
 } from "@/lib/data/public-types";
 import { buildImageAlt, staffPhotoAlt } from "@/lib/a11y/image-alt";
-import { publicSectionCardClass, publicSidebarClass } from "@/lib/design/public-page-classes";
+import { publicProseClass, publicSectionCardClass, publicSidebarClass, typeHeroTitleClass } from "@/lib/design/public-page-classes";
 import {
   extractPdfCaptionFromHtml,
   extractPdfUrlFromHtml,
@@ -155,7 +155,7 @@ export function PublicOfficePortal({
             {t("Welcome to The", "में आपका स्वागत है")}
           </p>
           <h1
-            className={`mt-2 font-display text-3xl font-bold leading-tight md:text-4xl ${lang === "hi" ? "font-hindi" : ""}`}
+            className={`mt-2 ${typeHeroTitleClass} ${lang === "hi" ? "font-hindi" : ""}`}
           >
             {title}
           </h1>
@@ -308,7 +308,7 @@ export function PublicOfficePortal({
               <article className={`${publicSectionCardClass} overflow-hidden p-0`}>
                 {bodyTitle && (
                   <h2
-                    className={`border-b border-emerald-100 bg-gradient-to-r from-emerald-50 to-white px-5 py-3.5 font-display text-xl font-bold text-emerald-900 sm:px-6 sm:text-2xl ${lang === "hi" ? "font-hindi" : ""}`}
+                    className={`border-b border-emerald-100 bg-gradient-to-r from-emerald-50 to-white px-5 py-3.5 type-section-title text-emerald-900 sm:px-6 ${lang === "hi" ? "font-hindi" : ""}`}
                   >
                     {bodyTitle}
                   </h2>
@@ -325,7 +325,7 @@ export function PublicOfficePortal({
               <article className={`${publicSectionCardClass} overflow-hidden p-0`}>
                 {bodyTitle && (
                   <h2
-                    className={`border-b border-emerald-100 bg-gradient-to-r from-emerald-50 to-white px-5 py-3.5 font-display text-xl font-bold text-emerald-900 sm:px-6 sm:text-2xl ${lang === "hi" ? "font-hindi" : ""}`}
+                    className={`border-b border-emerald-100 bg-gradient-to-r from-emerald-50 to-white px-5 py-3.5 type-section-title text-emerald-900 sm:px-6 ${lang === "hi" ? "font-hindi" : ""}`}
                   >
                     {bodyTitle}
                   </h2>
@@ -333,7 +333,7 @@ export function PublicOfficePortal({
                 <div className="px-5 py-5 sm:px-6 sm:py-6">
                   <CmsHtmlContent
                     html={bodyContent}
-                    className={`prose prose-emerald max-w-none ${lang === "hi" ? "font-hindi" : ""}`}
+                    className={`${publicProseClass} ${lang === "hi" ? "font-hindi" : ""}`}
                   />
                 </div>
               </article>

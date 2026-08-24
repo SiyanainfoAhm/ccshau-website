@@ -16,6 +16,7 @@ import {
   publicFilterChipActiveClass,
   publicFilterChipInactiveClass,
   publicMainClass,
+  typeHeroTitleClass,
 } from "@/lib/design/public-page-classes";
 import { formatTenderCategory, TENDER_CATEGORIES } from "@/lib/validations/tenders";
 
@@ -69,7 +70,7 @@ export function PublicTendersListing({
             >
               <ArrowLeft className="h-4 w-4" /> Back to home
             </Link>
-            <h1 className="font-display text-4xl font-bold">Tenders & Auctions</h1>
+            <h1 className={typeHeroTitleClass}>Tenders & Auctions</h1>
             <p className="mt-2 text-emerald-100">निविदाएं और नीलामी</p>
           </div>
         </div>

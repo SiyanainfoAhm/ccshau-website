@@ -22,6 +22,8 @@ import {
   publicInputClass,
   publicMainClass,
   publicMutedTextClass,
+  typeHeroTitleClass,
+  typeSectionTitleClass,
 } from "@/lib/design/public-page-classes";
 
 const offices = [
@@ -74,14 +76,14 @@ export function PublicContactPage({
             >
               <ArrowLeft className="h-4 w-4" /> Back to home
             </Link>
-            <h1 className="font-display text-4xl font-bold">Contact Us</h1>
+            <h1 className={typeHeroTitleClass}>Contact Us</h1>
             <p className="mt-2 font-hindi text-emerald-100">संपर्क करें</p>
           </div>
         </div>
 
         <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 lg:grid-cols-2">
           <div>
-            <h2 className={`font-display text-2xl font-bold ${publicHeadingClass}`}>Get in Touch</h2>
+            <h2 className={`${typeSectionTitleClass}`}>Get in Touch</h2>
             <div className="mt-6 space-y-4">
               {offices.map((o) => (
                 <div key={o.name} className={publicCardSoftClass}>
@@ -107,14 +109,14 @@ export function PublicContactPage({
 
           {ticketNumber ? (
             <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-8 text-center dark:border-emerald-800 dark:bg-emerald-950/30">
-              <h2 className={`font-display text-2xl font-bold ${publicHeadingClass}`}>Thank you</h2>
+              <h2 className={`${typeSectionTitleClass}`}>Thank you</h2>
               <p className={`mt-3 ${publicMutedTextClass}`}>Your feedback has been submitted.</p>
               <p className="mt-4 font-mono text-lg font-bold text-[#0b3d2e]">{ticketNumber}</p>
               <p className="mt-2 text-sm text-slate-500">Save this ticket number for follow-up.</p>
             </div>
           ) : (
             <form action={handleSubmit} className={`${publicCardSoftClass} p-8 shadow-xl`}>
-              <h2 className={`font-display text-2xl font-bold ${publicHeadingClass}`}>Send Feedback</h2>
+              <h2 className={`${typeSectionTitleClass}`}>Send Feedback</h2>
               <p className={`mt-1 text-sm ${publicMutedTextClass}`}>Department-wise enquiry form</p>
               {error && (
                 <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>

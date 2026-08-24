@@ -13,6 +13,8 @@ import {
   publicHeadingClass,
   publicListItemClass,
   publicProseClass,
+  typeHeroTitleClass,
+  typeSectionTitleClass,
 } from "@/lib/design/public-page-classes";
 
 export function PublicTenderDetail({ tender }: { tender: PublicTenderItem }) {
@@ -58,7 +60,7 @@ export function PublicTenderDetail({ tender }: { tender: PublicTenderItem }) {
             )}
           </div>
           <h1
-            className={`mt-4 font-display text-4xl font-bold leading-tight ${lang === "hi" ? "font-hindi" : ""}`}
+            className={`mt-4 ${typeHeroTitleClass} ${lang === "hi" ? "font-hindi" : ""}`}
           >
             {title}
           </h1>
@@ -119,7 +121,7 @@ export function PublicTenderDetail({ tender }: { tender: PublicTenderItem }) {
 
         {tender.documents.length > 0 && (
           <div className="mt-10 space-y-3">
-            <h2 className={`font-display text-xl font-bold ${publicHeadingClass}`}>
+            <h2 className={typeSectionTitleClass}>
               {t("Documents", "दस्तावेज़")}
             </h2>
             {tender.documents.map((doc) => (
@@ -139,7 +141,7 @@ export function PublicTenderDetail({ tender }: { tender: PublicTenderItem }) {
 
         {tender.corrigenda.length > 0 && (
           <div className="mt-10 space-y-4">
-            <h2 className={`font-display text-xl font-bold ${publicHeadingClass}`}>
+            <h2 className={typeSectionTitleClass}>
               {t("Corrigenda", "शुद्धिपत्र")}
             </h2>
             {tender.corrigenda.map((c) => (

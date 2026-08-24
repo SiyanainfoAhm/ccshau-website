@@ -20,6 +20,7 @@ import {
   publicMutedTextClass,
   publicHeadingClass,
   publicSearchInputClass,
+  typeHeroTitleClass,
 } from "@/lib/design/public-page-classes";
 import { PublicPagination } from "@/components/site/public-pagination";
 
@@ -85,7 +86,7 @@ export function PublicSearchPage({
             >
               <ArrowLeft className="h-4 w-4" /> Back to home
             </Link>
-            <h1 className="font-display text-4xl font-bold">
+            <h1 className={typeHeroTitleClass}>
               {t("Search", "खोज")}
             </h1>
             <p className="mt-2 text-emerald-100">

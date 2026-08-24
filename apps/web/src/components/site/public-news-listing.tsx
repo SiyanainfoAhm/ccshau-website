@@ -16,6 +16,7 @@ import {
   publicListItemClass,
   publicMainGradientClass,
   publicMutedTextClass,
+  typeHeroTitleClass,
 } from "@/lib/design/public-page-classes";
 
 const CATEGORIES = ["All", "general", "examination", "admission", "recruitment", "extension", "research", "events"];
@@ -51,7 +52,7 @@ export function PublicNewsListing({
             >
               <ArrowLeft className="h-4 w-4" /> Back to home
             </Link>
-            <h1 className="font-display text-4xl font-bold">
+            <h1 className={typeHeroTitleClass}>
               {t("Latest News & Notices", "नवीनतम समाचार और सूचनाएं")}
             </h1>
           </div>

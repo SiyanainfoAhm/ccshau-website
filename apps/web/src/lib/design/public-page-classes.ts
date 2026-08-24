@@ -16,9 +16,34 @@ export const publicInputClass =
 
 export const publicSearchInputClass = `${publicInputClass} pl-10 pr-4`;
 
-export const publicMutedTextClass = "text-slate-600 dark:text-emerald-100/80";
+export const publicMutedTextClass = "type-body text-slate-600 dark:text-emerald-100/80";
 
+/** Color-only heading helper (prefer typePageTitleClass / typeSectionTitleClass for size). */
 export const publicHeadingClass = "font-display text-slate-900 dark:text-emerald-50";
+
+/** Page-level H1 (CMS/college/listings). */
+export const typePageTitleClass =
+  "type-page-title text-slate-900 dark:text-emerald-50";
+
+/** Hero H1 on dark banner — size only; keep parent text-white. */
+export const typeHeroTitleClass = "type-page-title";
+
+/** Section H2. */
+export const typeSectionTitleClass =
+  "type-section-title text-slate-900 dark:text-emerald-50";
+
+/** Uppercase eyebrow above a section title. */
+export const typeKickerClass = "type-kicker";
+
+/** Smaller H3-style title. */
+export const typeSubsectionTitleClass =
+  "type-subsection-title text-slate-900 dark:text-emerald-50";
+
+/** Intro / excerpt under a page title. */
+export const typeExcerptClass = "type-body-lg text-slate-600 dark:text-emerald-100/80";
+
+/** Hero excerpt on dark banner. */
+export const typeHeroExcerptClass = "type-body-lg text-emerald-100";
 
 export const publicEmptyStateClass =
   "rounded-2xl border border-dashed border-emerald-200 bg-white p-10 text-center text-slate-500 dark:border-emerald-800 dark:bg-emerald-950/20 dark:text-emerald-200/70";
@@ -46,5 +71,6 @@ export const publicPaginationBtnClass =
 export const publicPaginationDisabledClass =
   "inline-flex items-center gap-1 rounded-lg border border-slate-100 px-3 py-2 text-sm text-slate-300 dark:border-emerald-900/30 dark:text-emerald-800";
 
+/** Prose wrapper for CMS bodies — typography size comes from .cms-html tokens. */
 export const publicProseClass =
-  "prose prose-emerald max-w-none text-lg leading-relaxed text-slate-600 dark:prose-invert dark:text-emerald-100/90 prose-a:font-semibold prose-a:text-emerald-700 prose-a:no-underline hover:prose-a:underline dark:prose-a:text-emerald-300 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1";
+  "prose prose-emerald max-w-none type-body text-slate-600 dark:prose-invert dark:text-emerald-100/90 prose-a:font-semibold prose-a:text-emerald-700 prose-a:no-underline hover:prose-a:underline dark:prose-a:text-emerald-300 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1";

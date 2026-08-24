@@ -73,7 +73,7 @@ export function PublicCollegeGallery({
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         {heading ? (
           <div className="border-b border-slate-100 bg-emerald-50 px-6 py-4">
-            <h2 className={`font-display text-2xl font-bold text-slate-900 ${lang === "hi" ? "font-hindi" : ""}`}>
+            <h2 className={`type-section-title text-slate-900 ${lang === "hi" ? "font-hindi" : ""}`}>
               {heading}
             </h2>
           </div>

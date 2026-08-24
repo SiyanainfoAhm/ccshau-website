@@ -7,6 +7,12 @@ import { useLanguage } from "@/components/design/shared/language-context";
 import { CmsHtmlContent } from "@/components/site/cms-html-content";
 import { PublicCollegeGallery } from "@/components/site/public-college-gallery";
 import type { PublicGalleryImage } from "@/lib/data/public-types";
+import {
+  publicProseClass,
+  typeExcerptClass,
+  typeHeroExcerptClass,
+  typeHeroTitleClass,
+} from "@/lib/design/public-page-classes";
 import { hasCmsHtmlContent } from "@/lib/html/has-cms-html-content";
 import { formatMenuLabel } from "@/lib/i18n/menu-label";
 import { pickBilingual } from "@/lib/i18n/pick-bilingual";
@@ -46,20 +52,24 @@ export function PublicCmsPageContent({
   const excerpt = pickBilingual(lang, page.excerptEn, page.excerptHi);
   const hasGallery = galleryImages.length > 0;
   const hasBody = hasCmsHtmlContent(content);
+  const isAboutPage = page.slug === "about";
   const wideLayout =
     hasGallery ||
     isIntlPage ||
+    isAboutPage ||
     Boolean(
       content &&
         /(?:major-initiatives-grid|intl-linkage-mou-table)/i.test(content),
     );
   const shellMax = isIntlListing
     ? "max-w-7xl"
-    : isIntlDetail
-      ? "max-w-5xl"
-      : wideLayout
-        ? "max-w-6xl"
-        : "max-w-3xl";
+    : isAboutPage
+      ? "max-w-6xl"
+      : isIntlDetail
+        ? "max-w-5xl"
+        : wideLayout
+          ? "max-w-6xl"
+          : "max-w-5xl";
   const backHref = isIntlDetail ? "/pages/international-linkage" : "/";
   const backLabel = isIntlDetail ? "International Linkage" : "Home";
   // Detail body already includes purpose + MoU image; avoid duplicating excerpt.
@@ -75,29 +85,31 @@ export function PublicCmsPageContent({
           >
             <ArrowLeft className="h-4 w-4" /> {backLabel}
           </Link>
-          <h1
-            className={`font-display text-3xl font-bold leading-tight sm:text-4xl ${lang === "hi" ? "font-hindi" : ""}`}
-          >
+          <h1 className={`${typeHeroTitleClass} ${lang === "hi" ? "font-hindi" : ""}`}>
             {title}
           </h1>
           {isIntlDetail && excerpt ? (
-            <p className="mt-3 max-w-3xl text-base text-emerald-100/90 sm:text-lg">
+            <p className={`mt-3 max-w-3xl text-emerald-100/90 ${typeHeroExcerptClass}`}>
               {excerpt}
             </p>
           ) : null}
         </div>
       </div>
 
-      <article className={`mx-auto px-4 py-10 sm:py-12 ${shellMax}`}>
+      <article
+        className={`mx-auto px-4 py-10 sm:py-12 ${shellMax} ${
+          isAboutPage ? "cms-article-about" : ""
+        }`}
+      >
         {showExcerpt ? (
-          <p className={`mb-6 text-lg text-slate-600 ${lang === "hi" ? "font-hindi" : ""}`}>
+          <p className={`mb-6 ${typeExcerptClass} ${lang === "hi" ? "font-hindi" : ""}`}>
             {excerpt}
           </p>
         ) : null}
         {hasBody ? (
           <CmsHtmlContent
             html={content!}
-            className={`prose prose-emerald max-w-none ${lang === "hi" ? "font-hindi" : ""}`}
+            className={`${publicProseClass} ${isAboutPage ? "cms-html--article" : ""} ${lang === "hi" ? "font-hindi" : ""}`}
           />
         ) : null}
         {hasGallery ? (

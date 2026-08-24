@@ -16,6 +16,7 @@ import {
   publicCardClass,
   publicMainClass,
   publicSearchInputClass,
+  typeHeroTitleClass,
 } from "@/lib/design/public-page-classes";
 
 export function PublicCircularsListing({
@@ -51,7 +52,7 @@ export function PublicCircularsListing({
             >
               <ArrowLeft className="h-4 w-4" /> Back to home
             </Link>
-            <h1 className="font-display text-4xl font-bold">
+            <h1 className={typeHeroTitleClass}>
               {t("Circulars & Orders", "परिपत्र और आदेश")}
             </h1>
             <p className="mt-2 text-emerald-100">

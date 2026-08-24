@@ -12,6 +12,7 @@ import type { PaginatedResult } from "@/lib/data/pagination";
 import type { PublicMediaAlbumItem } from "@/lib/data/public-types";
 import { buildImageAlt } from "@/lib/a11y/image-alt";
 import { SELECTED_LAYOUT } from "@/lib/design/selected-layout";
+import { typeHeroTitleClass } from "@/lib/design/public-page-classes";
 import { PublicPagination } from "@/components/site/public-pagination";
 
 const ALBUM_TYPES = [
@@ -53,7 +54,7 @@ export function PublicMediaListing({
             >
               <ArrowLeft className="h-4 w-4" /> Back to home
             </Link>
-            <h1 className="font-display text-4xl font-bold">
+            <h1 className={typeHeroTitleClass}>
               {t("Media Centre", "मीडिया केंद्र")}
             </h1>
             <p className="mt-2 text-emerald-100">

@@ -16,6 +16,7 @@ import {
 } from "@/lib/calendar/month";
 import type { PublicCalendarEvent, PublicPageSummary } from "@/lib/data/public-types";
 import { SELECTED_LAYOUT } from "@/lib/design/selected-layout";
+import { typeHeroTitleClass } from "@/lib/design/public-page-classes";
 
 const WEEKDAYS_EN = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const WEEKDAYS_HI = ["रवि", "सोम", "मंगल", "बुध", "गुरु", "शुक्र", "शनि"];
@@ -77,7 +78,7 @@ export function PublicEventsCalendar({
               <ArrowLeft className="h-4 w-4" />
               {t("Back to home", "होम पर वापस")}
             </Link>
-            <h1 className="font-display text-4xl font-bold">
+            <h1 className={typeHeroTitleClass}>
               {t("Events Calendar", "कार्यक्रम कैलेंडर")}
             </h1>
             <p className="mt-2 max-w-2xl text-emerald-100">

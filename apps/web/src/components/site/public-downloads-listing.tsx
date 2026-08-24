@@ -18,6 +18,7 @@ import {
   publicFilterChipInactiveClass,
   publicMainClass,
   publicSearchInputClass,
+  typeHeroTitleClass,
 } from "@/lib/design/public-page-classes";
 import { formatDownloadCategory } from "@/lib/validations/downloads";
 
@@ -70,10 +71,10 @@ export function PublicDownloadsListing({
             >
               <ArrowLeft className="h-4 w-4" /> Back to home
             </Link>
-            <h1 className="font-display text-4xl font-bold">
+            <h1 className={typeHeroTitleClass}>
               {t("Downloads", "डाउनलोड")}
             </h1>
-            <p className="mt-2 text-emerald-100">
+            <p className="mt-2 type-body-lg text-emerald-100">
               {t("Official documents and downloadable files", "आधिकारिक दस्तावेज़ और डाउनलोड फ़ाइलें")}
             </p>
           </div>

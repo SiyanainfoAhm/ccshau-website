@@ -6,6 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { useLanguage } from "@/components/design/shared/language-context";
 import { CmsHtmlContent } from "@/components/site/cms-html-content";
 import { hasCmsHtmlContent } from "@/lib/html/has-cms-html-content";
+import { publicProseClass, typeHeroExcerptClass, typeHeroTitleClass } from "@/lib/design/public-page-classes";
 import { pickBilingual } from "@/lib/i18n/pick-bilingual";
 import type { PublicPage } from "@/lib/data/public-types";
 
@@ -31,13 +32,11 @@ export function PublicEventPortalContent({ page }: { page: PublicPage }) {
           <p className="text-sm font-semibold uppercase tracking-widest text-amber-300">
             {t("Event portal", "कार्यक्रम पोर्टल")}
           </p>
-          <h1
-            className={`mt-2 font-display text-4xl font-bold leading-tight md:text-5xl ${lang === "hi" ? "font-hindi" : ""}`}
-          >
+          <h1 className={`mt-2 ${typeHeroTitleClass} ${lang === "hi" ? "font-hindi" : ""}`}>
             {title}
           </h1>
           {excerpt && (
-            <p className={`mt-4 text-lg text-emerald-100 ${lang === "hi" ? "font-hindi" : ""}`}>
+            <p className={`mt-4 ${typeHeroExcerptClass} ${lang === "hi" ? "font-hindi" : ""}`}>
               {excerpt}
             </p>
           )}
@@ -48,7 +47,7 @@ export function PublicEventPortalContent({ page }: { page: PublicPage }) {
         {hasBody ? (
           <CmsHtmlContent
             html={content!}
-            className={`prose prose-emerald max-w-none text-lg leading-relaxed ${lang === "hi" ? "font-hindi" : ""}`}
+            className={`${publicProseClass} ${lang === "hi" ? "font-hindi" : ""}`}
           />
         ) : (
           <p className="text-slate-500">{t("Content coming soon.", "सामग्री शीघ्र उपलब्ध होगी।")}</p>
