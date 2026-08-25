@@ -11,6 +11,7 @@ import { StaffPhoto } from "@/components/site/staff-photo";
 import type { PublicOfficeContactLine, PublicOfficeStaffMember } from "@/lib/data/public-types";
 import { pickBilingual } from "@/lib/i18n/pick-bilingual";
 import { officerContactLines } from "@/lib/pages/college-contact-display";
+import { publicProseClass, typeSectionTitleClass, typeSubsectionTitleClass } from "@/lib/design/public-page-classes";
 
 function findContactLine(lines: PublicOfficeContactLine[], ...keywords: string[]) {
   const lower = keywords.map((k) => k.toLowerCase());
@@ -84,7 +85,7 @@ export function DepartmentAboutSection({
       <section className="overflow-hidden rounded-lg border border-emerald-100 bg-[#eef5e8] shadow-sm">
       <div className="border-b-2 border-[#6b9b37] bg-[#eef5e8] px-6 py-5">
         <h2
-          className={`font-display text-2xl font-semibold text-[#1f4d2e] md:text-[1.65rem] ${lang === "hi" ? "font-hindi" : ""}`}
+          className={`${typeSectionTitleClass} text-[#1f4d2e] ${lang === "hi" ? "font-hindi" : ""}`}
         >
           {sectionTitle}
         </h2>
@@ -103,7 +104,7 @@ export function DepartmentAboutSection({
 
             <div className="min-w-0 flex-1 text-center sm:text-left">
               <p
-                className={`text-xl font-bold leading-snug text-slate-800 md:text-[1.35rem] ${lang === "hi" ? "font-hindi" : ""}`}
+                className={`${typeSubsectionTitleClass} leading-snug ${lang === "hi" ? "font-hindi" : ""}`}
               >
                 {pickBilingual(lang, member.nameEn, member.nameHi)}
               </p>
@@ -189,7 +190,7 @@ export function DepartmentAboutSection({
         {aboutHtml ? (
           <CmsHtmlContent
             html={aboutHtml}
-            className={`${member ? "mt-8 border-t border-emerald-200/80 pt-6" : ""} prose prose-sm max-w-none text-justify leading-relaxed text-slate-800 prose-p:font-serif prose-headings:font-display ${lang === "hi" ? "font-hindi" : ""}`}
+            className={`${member ? "mt-8 border-t border-emerald-200/80 pt-6" : ""} ${publicProseClass} ${lang === "hi" ? "font-hindi" : ""}`}
           />
         ) : null}
       </div>

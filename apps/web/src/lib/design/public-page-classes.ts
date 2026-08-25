@@ -21,11 +21,14 @@ export const publicMutedTextClass = "type-body text-slate-600 dark:text-emerald-
 /** Color-only heading helper (prefer typePageTitleClass / typeSectionTitleClass for size). */
 export const publicHeadingClass = "font-display text-slate-900 dark:text-emerald-50";
 
+/** Homepage hero display title (larger than page H1). */
+export const typeHeroDisplayClass = "type-hero-display";
+
 /** Page-level H1 (CMS/college/listings). */
 export const typePageTitleClass =
   "type-page-title text-slate-900 dark:text-emerald-50";
 
-/** Hero H1 on dark banner — size only; keep parent text-white. */
+/** College/CMS page hero H1 on banner — size only; keep parent text-white. */
 export const typeHeroTitleClass = "type-page-title";
 
 /** Section H2. */
@@ -35,12 +38,22 @@ export const typeSectionTitleClass =
 /** Uppercase eyebrow above a section title. */
 export const typeKickerClass = "type-kicker";
 
-/** Smaller H3-style title. */
+/** Smaller H3-style title (cards, sidebars, widgets). */
 export const typeSubsectionTitleClass =
   "type-subsection-title text-slate-900 dark:text-emerald-50";
 
+/** Subsection title without forced text color (banners / colored parents). */
+export const typeSubsectionTitleBareClass = "type-subsection-title";
+
+/** Sidebar / panel heading inside college chrome. */
+export const typeSidebarHeadingClass =
+  "type-subsection-title text-emerald-900";
+
 /** Intro / excerpt under a page title. */
 export const typeExcerptClass = "type-body-lg text-slate-600 dark:text-emerald-100/80";
+
+/** Large body copy without forced color. */
+export const typeBodyLgClass = "type-body-lg";
 
 /** Hero excerpt on dark banner. */
 export const typeHeroExcerptClass = "type-body-lg text-emerald-100";

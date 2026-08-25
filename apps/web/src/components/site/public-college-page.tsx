@@ -68,8 +68,7 @@ export function PublicCollegeHome({ college }: { college: PublicCollegePage }) {
           priority
           sizes="100vw"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/35 to-black/20" />
-        <div className="relative mx-auto flex max-w-4xl flex-col items-center px-4 py-16 text-center text-white">
+        <div className="relative mx-auto flex max-w-4xl flex-col items-center px-4 py-16 text-center text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.55),0_2px_12px_rgba(0,0,0,0.35)]">
           {college.logoImageUrl ? (
             <div className="mb-4 overflow-hidden rounded-xl bg-white p-2 shadow-xl">
               <Image
@@ -81,7 +80,7 @@ export function PublicCollegeHome({ college }: { college: PublicCollegePage }) {
               />
             </div>
           ) : (
-            <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-xl bg-white/90 font-display text-2xl font-bold text-emerald-900 shadow-xl">
+            <div className={`mb-4 flex h-20 w-20 items-center justify-center rounded-xl bg-white/90 type-subsection-title text-emerald-900 shadow-xl`}>
               HAU
             </div>
           )}

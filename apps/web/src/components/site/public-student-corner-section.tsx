@@ -8,6 +8,7 @@ import { useLanguage } from "@/components/design/shared/language-context";
 import type { PublicStudentCornerItem } from "@/lib/data/public-types";
 import { pickBilingual } from "@/lib/i18n/pick-bilingual";
 import type { Lang } from "@/lib/i18n/language-storage";
+import { typeSubsectionTitleClass } from "@/lib/design/public-page-classes";
 
 const INITIAL_VISIBLE_COUNT = 9;
 const SEARCH_THRESHOLD = 20;
@@ -96,7 +97,7 @@ export function PublicStudentCornerSection({ items }: { items: PublicStudentCorn
             </span>
             <div>
               <h2
-                className={`font-display text-xl font-bold text-emerald-950 ${lang === "hi" ? "font-hindi" : ""}`}
+                className={`${typeSubsectionTitleClass} text-emerald-950 ${lang === "hi" ? "font-hindi" : ""}`}
               >
                 {t("Student Corner", "छात्र कोना")}
               </h2>

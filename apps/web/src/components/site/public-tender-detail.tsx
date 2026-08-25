@@ -15,6 +15,7 @@ import {
   publicProseClass,
   typeHeroTitleClass,
   typeSectionTitleClass,
+  typeSubsectionTitleClass,
 } from "@/lib/design/public-page-classes";
 
 export function PublicTenderDetail({ tender }: { tender: PublicTenderItem }) {
@@ -84,7 +85,7 @@ export function PublicTenderDetail({ tender }: { tender: PublicTenderItem }) {
       <article className="mx-auto max-w-3xl px-4 py-12">
         {tender.status === "cancelled" && (cancellationNotice || tender.cancellationDocument) && (
           <div className="mb-10 rounded-xl border border-red-200 bg-red-50 p-6 dark:border-red-900/50 dark:bg-red-950/30">
-            <h2 className={`font-display text-xl font-bold text-red-900 dark:text-red-200`}>
+            <h2 className={`${typeSubsectionTitleClass} text-red-900 dark:text-red-200`}>
               {t("Cancellation notice", "रद्दीकरण सूचना")}
             </h2>
             {cancellationNotice && (

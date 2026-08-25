@@ -21,7 +21,7 @@ import { HomepageScrollCarousel } from "@/components/design/shared/homepage-scro
 import { ScrollReveal } from "@/components/design/shared/scroll-reveal";
 import { usePublicSiteChrome } from "@/components/site/public-site-context";
 import { SELECTED_LAYOUT } from "@/lib/design/selected-layout";
-import { typeKickerClass } from "@/lib/design/public-page-classes";
+import { typeKickerClass, typeSubsectionTitleBareClass, typeSubsectionTitleClass } from "@/lib/design/public-page-classes";
 import type { HomepageCollege, HomepageCtaItem, HomepageFlagshipItem, HomepageQuoteItem } from "@/lib/data/homepage";
 import type {
   PublicCircularItem,
@@ -316,7 +316,7 @@ export function CollegesGrid({
                   <GraduationCap className="h-12 w-12 opacity-90" aria-hidden />
                 </div>
               ) : null}
-              <h3 className={`relative font-display text-base font-bold leading-tight ${variant === "future" ? "text-slate-800 dark:text-emerald-50" : ""}`}>
+              <h3 className={`relative ${typeSubsectionTitleBareClass} leading-tight ${variant === "future" ? "text-slate-800 dark:text-emerald-50" : ""}`}>
                 {t(college.nameEn, college.nameHi)}
               </h3>
               <span className={`relative mt-4 inline-flex items-center gap-1 text-sm font-semibold ${variant === "heritage" ? "text-[#146c43]" : variant === "ministry" ? "text-[#0c3b6e]" : "text-emerald-700 dark:text-amber-300"}`}>
@@ -477,7 +477,7 @@ function InspirationQuoteCard({
       </div>
 
       <h3
-        className={`relative z-10 font-display text-base font-bold tracking-wide sm:text-[17px] ${
+        className={`relative z-10 ${typeSubsectionTitleBareClass} tracking-wide ${
           variant === "ministry" ? "text-[#0c3b6e]" : theme.authorClass
         }`}
       >
@@ -645,7 +645,7 @@ export function SpotlightSection({ variant = "future" }: { variant?: "heritage" 
                 <p className="text-xs font-bold uppercase tracking-widest text-amber-300">
                   {t("Research Spotlight", "अनुसंधान स्पॉटलाइट")}
                 </p>
-                <p className="mt-2 font-display text-xl font-bold text-white">
+                <p className={`mt-2 ${typeSubsectionTitleBareClass} text-white`}>
                   {t("Climate-Resilient Wheat Varieties", "जलवायु-सहनशील गेहूं किस्में")}
                 </p>
               </div>
@@ -954,7 +954,7 @@ export function AboutSection({
               <p className={`text-xs font-bold uppercase tracking-wider ${variant === "heritage" ? "text-violet-600" : variant === "ministry" ? "text-[#0c3b6e]" : "text-amber-200"}`}>
                 {t("Since 1970", "1970 से")}
               </p>
-              <p className={`mt-1 font-display text-lg font-bold ${variant === "heritage" || variant === "ministry" ? "text-slate-800" : "text-white"}`}>
+              <p className={`mt-1 ${typeSubsectionTitleBareClass} ${variant === "heritage" || variant === "ministry" ? "text-slate-800" : "text-white"}`}>
                 {t("Hisar, Haryana, India", "हिसार, हरियाणा, भारत")}
               </p>
             </div>
@@ -984,7 +984,7 @@ export function MinistryNotificationsSection() {
           <div className="mt-10 grid gap-6 md:grid-cols-3">
             {columns.map((col) => (
               <div key={col.key} className="ministry-card overflow-hidden rounded-md">
-                <h3 className={`${col.accent} px-5 py-3 font-display text-lg font-bold text-white`}>
+                <h3 className={`${col.accent} px-5 py-3 ${typeSubsectionTitleBareClass} text-white`}>
                   {t(col.titleEn, col.titleHi)}
                 </h3>
                 <ul className="space-y-3 p-5">
@@ -1031,7 +1031,7 @@ export function HeritageNotificationsSection() {
               const theme = HERITAGE_NOTIF_THEMES[i];
               return (
               <div key={col.key} className={`overflow-hidden rounded-2xl border bg-white shadow-md ${theme.border}`}>
-                <h3 className={`bg-gradient-to-r ${theme.header} px-6 py-4 font-display text-lg font-bold text-white`}>
+                <h3 className={`bg-gradient-to-r ${theme.header} px-6 py-4 ${typeSubsectionTitleBareClass} text-white`}>
                   {t(col.titleEn, col.titleHi)}
                 </h3>
                 <div className="p-6">
@@ -1227,7 +1227,7 @@ export function NotificationsSection({
                       : "border-slate-100"
                 }`}
               >
-                <h3 className={`${col.accent} px-5 py-3 font-display text-lg font-bold text-white`}>
+                <h3 className={`${col.accent} px-5 py-3 ${typeSubsectionTitleBareClass} text-white`}>
                   {t(col.titleEn, col.titleHi)}
                 </h3>
                 <ul className="space-y-3 p-5">
@@ -1538,7 +1538,7 @@ export function FlagshipsSection({
                 <div className={`absolute inset-0 bg-gradient-to-t to-transparent ${isMinistry ? "from-slate-900/60" : isHeritage ? "from-slate-800/70" : "from-[#082952]/90"}`} />
               </div>
               <div className="p-5">
-                <h3 className="font-display text-lg font-bold text-slate-900 dark:text-emerald-50">
+                <h3 className={typeSubsectionTitleClass}>
                   {t(item.titleEn, item.titleHi)}
                 </h3>
                 <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-slate-600 dark:text-emerald-100/80">
@@ -1592,7 +1592,7 @@ export function PartnersSection({
                 href={item.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`font-display text-lg font-bold transition ${
+                className={`${typeSubsectionTitleBareClass} transition ${
                   variant === "heritage"
                     ? "text-slate-500 hover:text-violet-600"
                     : variant === "ministry"
@@ -1606,7 +1606,7 @@ export function PartnersSection({
               <Link
                 key={item.name}
                 href={item.href}
-                className={`font-display text-lg font-bold transition ${
+                className={`${typeSubsectionTitleBareClass} transition ${
                   variant === "heritage"
                     ? "text-slate-500 hover:text-violet-600"
                     : variant === "ministry"

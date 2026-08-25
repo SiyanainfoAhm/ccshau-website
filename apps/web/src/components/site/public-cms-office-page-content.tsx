@@ -91,8 +91,7 @@ export function PublicCmsOfficePageContent({
           priority
           sizes="100vw"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/40 to-black/25" />
-        <div className="relative mx-auto max-w-4xl px-4 py-14 text-center text-white md:py-16">
+        <div className="relative mx-auto max-w-4xl px-4 py-14 text-center text-white md:py-16 [text-shadow:0_1px_3px_rgba(0,0,0,0.55),0_2px_12px_rgba(0,0,0,0.35)]">
           <Link
             href="/"
             className="mb-6 inline-flex items-center gap-2 text-sm text-emerald-200 hover:text-white"

@@ -85,7 +85,11 @@ const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
     "www.youtube.com",
     "youtube-nocookie.com",
     "www.youtube-nocookie.com",
+    "ccshau.blob.core.windows.net",
+    "localhost",
   ],
+  // Same-origin CMS PDF embeds use paths like /documents/*.pdf
+  allowIframeRelativeUrls: true,
   allowProtocolRelative: false,
   // Match prior DOMPurify policy for CMS content.
   disallowedTagsMode: "discard",

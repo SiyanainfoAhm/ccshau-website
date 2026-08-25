@@ -36,7 +36,7 @@ import type {
   PublicResearchStationCard,
   PublicSidebarLink,
 } from "@/lib/data/public-types";
-import { publicEmptyStateClass, publicSectionCardClass, publicSidebarClass, typeExcerptClass, typeHeroExcerptClass, typeHeroTitleClass, typePageTitleClass, publicProseClass } from "@/lib/design/public-page-classes";
+import { publicEmptyStateClass, publicSectionCardClass, publicSidebarClass, typeExcerptClass, typeHeroExcerptClass, typeHeroTitleClass, typePageTitleClass, publicProseClass, typeSectionTitleClass, typeSidebarHeadingClass, typeSubsectionTitleClass } from "@/lib/design/public-page-classes";
 import { pickBilingual } from "@/lib/i18n/pick-bilingual";
 import type { PageLayoutConfig } from "@/lib/pages/layout-config";
 import { officerContactLines } from "@/lib/pages/college-contact-display";
@@ -97,7 +97,7 @@ function SidebarPanel({
 
   return (
     <aside className={`${publicSidebarClass} relative z-20`}>
-      <h2 className="border-b border-emerald-100 bg-emerald-50 px-4 py-3 font-display text-lg font-bold text-emerald-900">
+      <h2 className={`border-b border-emerald-100 bg-emerald-50 px-4 py-3 ${typeSidebarHeadingClass}`}>
         {title}
       </h2>
       <ul className="divide-y divide-slate-100">
@@ -206,7 +206,7 @@ function StaffDirectoryTable({
       <div className={`overflow-hidden ${publicSectionCardClass}`}>
       {title && (
         <h2
-          className={`border-b border-slate-100 px-6 py-4 font-display text-2xl font-bold text-slate-900 ${lang === "hi" ? "font-hindi" : ""}`}
+          className={`border-b border-slate-100 px-6 py-4 ${typeSectionTitleClass} ${lang === "hi" ? "font-hindi" : ""}`}
         >
           {title}
         </h2>
@@ -372,6 +372,13 @@ export function PublicConfigurablePage({
       : selectedSidebar
         ? sidebarContent
         : defaultBodyContent;
+  const bodyPdfUrl =
+    bodyContent && isPrimarilyPdfHtml(bodyContent)
+      ? extractPdfUrlFromHtml(bodyContent)
+      : null;
+  const bodyPdfCaption = bodyPdfUrl
+    ? extractPdfCaptionFromHtml(bodyContent)
+    : null;
   const bodyTitle = selectedSidebar
     ? sidebarHasContent
       ? null
@@ -446,8 +453,7 @@ export function PublicConfigurablePage({
             priority
             sizes="100vw"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/40 to-black/25" />
-          <div className="relative mx-auto flex max-w-4xl flex-col items-center px-4 py-14 text-center text-white md:py-16">
+          <div className="relative mx-auto flex max-w-4xl flex-col items-center px-4 py-14 text-center text-white md:py-16 [text-shadow:0_1px_3px_rgba(0,0,0,0.55),0_2px_12px_rgba(0,0,0,0.35)]">
             {heroLogo && (
               <div className="mb-4 overflow-hidden rounded-xl bg-white p-2 shadow-xl dark:bg-emerald-950/40">
                 <Image
@@ -546,7 +552,7 @@ export function PublicConfigurablePage({
                   />
                   <div className="min-w-0 flex-1 text-center sm:text-left">
                     <p
-                      className={`font-display text-xl font-bold text-red-900 ${lang === "hi" ? "font-hindi" : ""}`}
+                      className={`${typeSubsectionTitleClass} ${lang === "hi" ? "font-hindi" : ""}`}
                     >
                       {pickBilingual(
                         lang,
@@ -592,7 +598,7 @@ export function PublicConfigurablePage({
 
             {showContacts && office && (
               <div className={`${publicSectionCardClass} p-6`}>
-                <h2 className="font-display text-lg font-bold text-slate-900">
+                <h2 className={typeSubsectionTitleClass}>
                   {t("Telephone", "टेलीफोन")}
                 </h2>
                 <dl className="mt-4 space-y-4">
@@ -652,7 +658,7 @@ export function PublicConfigurablePage({
               <PublicCollegeGallery images={galleryImages} />
             )}
 
-            {showMainContent && sidebarPdfUrl && (
+            {showMainContent && bodyPdfUrl && (
               <article className={`${publicSectionCardClass} overflow-hidden p-0`}>
                 {bodyTitle && (
                   <h2
@@ -662,14 +668,14 @@ export function PublicConfigurablePage({
                   </h2>
                 )}
                 <PublicPdfViewer
-                  src={sidebarPdfUrl}
+                  src={bodyPdfUrl}
                   title={bodyTitle}
-                  caption={sidebarPdfCaption}
+                  caption={bodyPdfCaption}
                 />
               </article>
             )}
 
-            {showMainContent && !sidebarPdfUrl && (
+            {showMainContent && !bodyPdfUrl && (
               <article className={`${publicSectionCardClass} overflow-hidden p-0`}>
                 {bodyTitle && (
                   <h2

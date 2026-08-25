@@ -34,6 +34,16 @@ const nextConfig: NextConfig = {
     // Middleware/proxy buffers multipart bodies before Server Actions; default is 10 MB.
     proxyClientMaxBodySize: "105mb",
   },
+  async rewrites() {
+    return [
+      // Same-origin PDF proxy so browsers can embed Azure docs in iframes.
+      {
+        source: "/documents/college-wise-degree-programmes.pdf",
+        destination:
+          "https://ccshau.blob.core.windows.net/ccshaucontainer/pages-pdf/1697605726.pdf",
+      },
+    ];
+  },
   async redirects() {
     return [
       { source: "/index.aspx", destination: "/", permanent: true },

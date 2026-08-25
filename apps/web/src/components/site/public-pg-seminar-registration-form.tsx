@@ -15,6 +15,7 @@ import {
 import type { CaptchaClientConfig } from "@/lib/auth/captcha";
 import type { PublicPgStudiesHub } from "@/lib/data/public-types";
 import { buildImageAlt } from "@/lib/a11y/image-alt";
+import { typeHeroTitleClass, typeSectionTitleClass, typeSubsectionTitleClass } from "@/lib/design/public-page-classes";
 import { getPgStudiesHubPath } from "@/lib/pages/routes";
 
 const inputClass =
@@ -118,15 +119,14 @@ export function PublicPgSeminarRegistrationForm({
           priority
           sizes="100vw"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/40 to-black/25" />
-        <div className="relative mx-auto max-w-4xl px-4 py-10 text-center text-white md:py-12">
+        <div className="relative mx-auto max-w-4xl px-4 py-10 text-center text-white md:py-12 [text-shadow:0_1px_3px_rgba(0,0,0,0.55),0_2px_12px_rgba(0,0,0,0.35)]">
           <Link
             href={getPgStudiesHubPath()}
             className="mb-4 inline-flex items-center gap-2 text-sm text-emerald-200 hover:text-white"
           >
             <ArrowLeft className="h-4 w-4" /> {t("PG Studies Home", "स्नातकोत्तर अध्ययन होम")}
           </Link>
-          <h1 className={`font-display text-3xl font-bold md:text-4xl ${lang === "hi" ? "font-hindi" : ""}`}>
+          <h1 className={`${typeHeroTitleClass} ${lang === "hi" ? "font-hindi" : ""}`}>
             {t("Registration Form", "पंजीकरण प्रपत्र")}
           </h1>
           <p className={`mt-2 text-sm text-emerald-100 md:text-base ${lang === "hi" ? "font-hindi" : ""}`}>
@@ -141,7 +141,7 @@ export function PublicPgSeminarRegistrationForm({
       <div className="mx-auto max-w-5xl px-4 py-10">
         {registrationNumber ? (
           <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-8 text-center shadow-sm">
-            <h2 className="font-display text-2xl font-bold text-emerald-900">
+            <h2 className={`${typeSectionTitleClass} text-emerald-900`}>
               {t("Registration Submitted", "पंजीकरण जमा हो गया")}
             </h2>
             <p className="mt-3 text-slate-600">
@@ -160,7 +160,7 @@ export function PublicPgSeminarRegistrationForm({
             action={handleSubmit}
             className="rounded-xl border border-emerald-100 bg-white p-6 shadow-sm md:p-8"
           >
-            <h2 className="text-center font-display text-xl font-bold uppercase tracking-wide text-slate-800">
+            <h2 className={`text-center ${typeSubsectionTitleClass} uppercase tracking-wide`}>
               {t("Registration Form", "पंजीकरण प्रपत्र")}
             </h2>
             <p className={`mt-2 text-center text-sm text-slate-600 ${lang === "hi" ? "font-hindi" : ""}`}>

@@ -16,7 +16,7 @@ import type {
   PublicSidebarLink,
 } from "@/lib/data/public-types";
 import { buildImageAlt, staffPhotoAlt } from "@/lib/a11y/image-alt";
-import { publicProseClass, publicSectionCardClass, publicSidebarClass, typeHeroTitleClass } from "@/lib/design/public-page-classes";
+import { publicProseClass, publicSectionCardClass, publicSidebarClass, typeHeroTitleClass, typeSidebarHeadingClass, typeSubsectionTitleClass } from "@/lib/design/public-page-classes";
 import {
   extractPdfCaptionFromHtml,
   extractPdfUrlFromHtml,
@@ -43,7 +43,7 @@ function SidebarPanel({
 
   return (
     <aside className={publicSidebarClass}>
-      <h2 className="border-b border-emerald-100 bg-emerald-50 px-4 py-3 font-display text-lg font-bold text-emerald-900">
+      <h2 className={`border-b border-emerald-100 bg-emerald-50 px-4 py-3 ${typeSidebarHeadingClass}`}>
         {title}
       </h2>
       <ul className="divide-y divide-slate-100">
@@ -113,14 +113,14 @@ export function PublicOfficePortal({
   const sidebarContent = selectedSidebar
     ? pickBilingual(lang, selectedSidebar.contentEn, selectedSidebar.contentHi)
     : null;
-  const sidebarPdfUrl =
-    sidebarContent && isPrimarilyPdfHtml(sidebarContent)
-      ? extractPdfUrlFromHtml(sidebarContent)
-      : null;
-  const sidebarPdfCaption = sidebarPdfUrl
-    ? extractPdfCaptionFromHtml(sidebarContent)
-    : null;
   const bodyContent = sidebarContent || defaultBodyContent;
+  const bodyPdfUrl =
+    bodyContent && isPrimarilyPdfHtml(bodyContent)
+      ? extractPdfUrlFromHtml(bodyContent)
+      : null;
+  const bodyPdfCaption = bodyPdfUrl
+    ? extractPdfCaptionFromHtml(bodyContent)
+    : null;
   const bodyTitleRaw = selectedSidebar
     ? pickBilingual(lang, selectedSidebar.labelEn, selectedSidebar.labelHi)
     : section
@@ -149,8 +149,7 @@ export function PublicOfficePortal({
           priority
           sizes="100vw"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/40 to-black/25" />
-        <div className="relative mx-auto flex max-w-4xl flex-col items-center px-4 py-14 text-center text-white">
+        <div className="relative mx-auto flex max-w-4xl flex-col items-center px-4 py-14 text-center text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.55),0_2px_12px_rgba(0,0,0,0.35)]">
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-amber-300">
             {t("Welcome to The", "में आपका स्वागत है")}
           </p>
@@ -196,7 +195,7 @@ export function PublicOfficePortal({
                   />
                   <div className="text-center sm:text-left">
                     <p
-                      className={`font-display text-xl font-bold text-slate-900 ${lang === "hi" ? "font-hindi" : ""}`}
+                      className={`${typeSubsectionTitleClass} ${lang === "hi" ? "font-hindi" : ""}`}
                     >
                       {pickBilingual(
                         lang,
@@ -224,7 +223,7 @@ export function PublicOfficePortal({
 
             {office.contactLines.length > 0 && !selectedSidebar && (
               <div className={`${publicSectionCardClass} p-6`}>
-                <h2 className="font-display text-lg font-bold text-slate-900">
+                <h2 className={typeSubsectionTitleClass}>
                   {t("Telephone", "टेलीफोन")}
                 </h2>
                 <dl className="mt-4 space-y-4">
@@ -304,7 +303,7 @@ export function PublicOfficePortal({
               </div>
             )}
 
-            {bodyContent && sidebarPdfUrl && (
+            {bodyContent && bodyPdfUrl && (
               <article className={`${publicSectionCardClass} overflow-hidden p-0`}>
                 {bodyTitle && (
                   <h2
@@ -314,14 +313,14 @@ export function PublicOfficePortal({
                   </h2>
                 )}
                 <PublicPdfViewer
-                  src={sidebarPdfUrl}
+                  src={bodyPdfUrl}
                   title={bodyTitle}
-                  caption={sidebarPdfCaption}
+                  caption={bodyPdfCaption}
                 />
               </article>
             )}
 
-            {bodyContent && !sidebarPdfUrl && (
+            {bodyContent && !bodyPdfUrl && (
               <article className={`${publicSectionCardClass} overflow-hidden p-0`}>
                 {bodyTitle && (
                   <h2

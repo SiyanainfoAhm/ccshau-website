@@ -12,7 +12,7 @@ import type { PaginatedResult } from "@/lib/data/pagination";
 import type { PublicMediaAlbumItem } from "@/lib/data/public-types";
 import { buildImageAlt } from "@/lib/a11y/image-alt";
 import { SELECTED_LAYOUT } from "@/lib/design/selected-layout";
-import { typeHeroTitleClass } from "@/lib/design/public-page-classes";
+import { typeHeroTitleClass, typeSubsectionTitleBareClass } from "@/lib/design/public-page-classes";
 import { PublicPagination } from "@/components/site/public-pagination";
 
 const ALBUM_TYPES = [
@@ -122,7 +122,7 @@ export function PublicMediaListing({
                     <p className="text-xs font-bold uppercase tracking-wider text-amber-400">
                       {album.albumType.replace(/_/g, " ")}
                     </p>
-                    <h2 className="mt-1 font-display text-lg font-bold group-hover:text-amber-200">
+                    <h2 className={`mt-1 ${typeSubsectionTitleBareClass} group-hover:text-amber-200`}>
                       {t(album.titleEn, album.titleHi ?? album.titleEn)}
                     </h2>
                     <div className="mt-2 flex items-center gap-3 text-xs text-emerald-200/80">

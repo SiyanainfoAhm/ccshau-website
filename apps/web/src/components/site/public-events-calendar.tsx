@@ -16,7 +16,7 @@ import {
 } from "@/lib/calendar/month";
 import type { PublicCalendarEvent, PublicPageSummary } from "@/lib/data/public-types";
 import { SELECTED_LAYOUT } from "@/lib/design/selected-layout";
-import { typeHeroTitleClass } from "@/lib/design/public-page-classes";
+import { typeHeroTitleClass, typeSubsectionTitleClass } from "@/lib/design/public-page-classes";
 
 const WEEKDAYS_EN = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const WEEKDAYS_HI = ["रवि", "सोम", "मंगल", "बुध", "गुरु", "शुक्र", "शनि"];
@@ -94,7 +94,7 @@ export function PublicEventsCalendar({
           <div className="grid gap-8 lg:grid-cols-[1.4fr_1fr]">
             <section className="rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm">
               <div className="mb-6 flex items-center justify-between gap-4">
-                <h2 className="font-display text-xl font-bold text-slate-900">
+                <h2 className={typeSubsectionTitleClass}>
                   {calendarMonthLabel(year, month, locale)}
                 </h2>
                 <div className="flex items-center gap-2">
@@ -180,7 +180,7 @@ export function PublicEventsCalendar({
 
             <aside className="space-y-6">
               <section className="rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm">
-                <h2 className="flex items-center gap-2 font-display text-lg font-bold text-slate-900">
+                <h2 className={`flex items-center gap-2 ${typeSubsectionTitleClass}`}>
                   <CalendarDays className="h-5 w-5 text-emerald-700" />
                   {t("Upcoming events", "आगामी कार्यक्रम")}
                 </h2>
@@ -211,7 +211,7 @@ export function PublicEventsCalendar({
 
               {portals.length > 0 && (
                 <section className="rounded-2xl border border-amber-200 bg-amber-50/50 p-6 shadow-sm">
-                  <h2 className="font-display text-lg font-bold text-slate-900">
+                  <h2 className={typeSubsectionTitleClass}>
                     {t("Event portals", "कार्यक्रम पोर्टल")}
                   </h2>
                   <p className="mt-1 text-sm text-slate-600">

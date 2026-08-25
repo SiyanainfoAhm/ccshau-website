@@ -13,6 +13,7 @@ import {
   heroBannerTitle,
 } from "@/lib/banners/hero-display";
 import type { PublicHeroSlide } from "@/lib/data/public-types";
+import { typeBodyLgClass, typeHeroDisplayClass } from "@/lib/design/public-page-classes";
 import { SELECTED_LAYOUT } from "@/lib/design/selected-layout";
 import { heroSlides as mockHeroSlides, university } from "@/lib/mock/site-content";
 
@@ -86,12 +87,12 @@ export function HeroCarousel({
               </span>
             </div>
             {displayTitle && (
-              <h1 className="mt-4 font-display text-4xl font-bold leading-tight text-slate-900 md:text-5xl">
+              <h1 className={`mt-4 ${typeHeroDisplayClass} text-slate-900`}>
                 {t(displayTitle, slide.titleHi ?? displayTitle)}
               </h1>
             )}
             {displaySubtitle && (
-              <p className="mt-4 text-lg leading-relaxed text-slate-700">{displaySubtitle}</p>
+              <p className={`mt-4 ${typeBodyLgClass} text-slate-700`}>{displaySubtitle}</p>
             )}
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
@@ -130,7 +131,7 @@ export function HeroCarousel({
             <span className="inline-flex w-fit items-center gap-2 rounded-full bg-gradient-to-r from-rose-100 via-amber-50 to-sky-100 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-violet-700 ring-1 ring-white">
               {t(university.accreditationEn, university.accreditationHi)}
             </span>
-            <h1 className="mt-6 font-display text-4xl font-bold leading-[1.12] md:text-5xl">
+            <h1 className={`mt-6 ${typeHeroDisplayClass}`}>
               {displayTitle ? (
                 <span className="text-gradient-heritage">
                   {t(displayTitle, slide.titleHi ?? displayTitle)}
@@ -138,7 +139,7 @@ export function HeroCarousel({
               ) : null}
             </h1>
             {displaySubtitle && (
-              <p className="mt-5 text-lg leading-relaxed text-slate-600">{displaySubtitle}</p>
+              <p className={`mt-5 ${typeBodyLgClass} text-slate-600`}>{displaySubtitle}</p>
             )}
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
@@ -227,7 +228,7 @@ export function HeroCarousel({
       <div className="relative mx-auto flex min-h-[90vh] max-w-7xl flex-col justify-center px-4 py-20">
         <div className="animate-fade-up stagger-children">
           {displayTitle && (
-            <h1 className="max-w-4xl font-display text-5xl font-bold leading-[1.1] text-white drop-shadow-[0_3px_16px_rgba(0,0,0,0.65)] md:text-7xl">
+            <h1 className={`max-w-4xl ${typeHeroDisplayClass} text-white drop-shadow-[0_3px_16px_rgba(0,0,0,0.65)]`}>
               <span className="text-gradient-gold">
                 {t(displayTitle, slide.titleHi ?? displayTitle)}
               </span>
@@ -236,7 +237,7 @@ export function HeroCarousel({
 
           {displaySubtitle && (
             <p
-              className={`max-w-2xl text-xl leading-relaxed text-white/95 drop-shadow-[0_2px_10px_rgba(0,0,0,0.7)] ${displayTitle ? "mt-6" : ""}`}
+              className={`max-w-2xl ${typeBodyLgClass} text-white/95 drop-shadow-[0_2px_10px_rgba(0,0,0,0.7)] ${displayTitle ? "mt-6" : ""}`}
             >
               {displaySubtitle}
             </p>

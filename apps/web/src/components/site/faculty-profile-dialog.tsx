@@ -11,6 +11,7 @@ import { FacultyProfilePrintButton } from "@/components/site/faculty-profile-pri
 import { StaffPhoto } from "@/components/site/staff-photo";
 import type { PublicOfficeStaffMember } from "@/lib/data/public-types";
 import { pickBilingual } from "@/lib/i18n/pick-bilingual";
+import { typeSubsectionTitleClass } from "@/lib/design/public-page-classes";
 
 export function FacultyProfileDialog({
   member,
@@ -49,7 +50,7 @@ export function FacultyProfileDialog({
         className="faculty-profile-print-root relative z-10 flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl outline-none"
       >
         <div className="flex shrink-0 items-start justify-between gap-4 border-b border-emerald-100 bg-emerald-50 px-6 py-4">
-          <h2 id={titleId} className={`font-display text-lg font-bold text-slate-900 ${lang === "hi" ? "font-hindi" : ""}`}>
+          <h2 id={titleId} className={`${typeSubsectionTitleClass} ${lang === "hi" ? "font-hindi" : ""}`}>
             {pickBilingual(lang, member.nameEn, member.nameHi)}
           </h2>
           <div className="flex shrink-0 items-center gap-2">
