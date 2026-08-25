@@ -149,14 +149,6 @@ export function SiteHeader({
             >
               {t("Faculty Login", "संकाय लॉगिन")}
             </Link>
-            {!(isCollegeContext || isPgStudiesContext) && (
-              <Link
-                href="/design"
-                className={`hidden sm:inline ${isHeritage ? "text-[#9e4a5a] hover:underline" : isMinistry ? "text-[#0c3b6e] hover:underline" : isLight ? "text-emerald-700 hover:underline" : "text-amber-200 hover:text-white"}`}
-              >
-                {t("Design Gallery", "डिज़ाइन गैलरी")}
-              </Link>
-            )}
           </div>
         </div>
       </div>
