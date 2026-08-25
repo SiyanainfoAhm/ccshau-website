@@ -11,7 +11,9 @@
     "start": "next start",
     "start:local": "dotenv -e .env.local --override -- next start",
     "perf:check": "npm run build && npm run start:local",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@azure/storage-blob": "^12.33.0",
@@ -35,7 +37,8 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "3.2.4"
   },
   "optionalDependencies": {
     "@tailwindcss/oxide-linux-x64-gnu": "4.3.1",

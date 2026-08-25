@@ -11,6 +11,7 @@
     "build": "npm run build --workspace=web",
     "start": "npm run start --workspace=web",
     "lint": "npm run lint --workspace=web",
+    "test": "npm run test --workspace=web",
     "dry-run": "npm run dry-run --prefix scripts/legacy-import",
     "apply:phase1": "npm run apply:phase1 --prefix scripts/legacy-import",
     "apply:phase2": "npm run apply:phase2 --prefix scripts/legacy-import",
