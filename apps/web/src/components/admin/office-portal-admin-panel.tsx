@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
@@ -1094,9 +1095,12 @@ function StaffDirectoryEditor({
       {canEdit ? (
         <p className="mt-2 text-sm text-slate-600">
           To add a new person, use{" "}
-          <a href="/admin/register/faculty" className="font-medium text-emerald-700 hover:underline">
+          <Link
+            href="/admin/register/faculty"
+            className="font-medium text-emerald-700 hover:underline"
+          >
             Admin → Faculty
-          </a>
+          </Link>
           . You can attach an existing faculty member to this page below.
         </p>
       ) : null}
