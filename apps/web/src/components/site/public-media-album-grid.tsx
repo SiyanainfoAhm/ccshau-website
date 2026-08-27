@@ -153,8 +153,11 @@ export function PublicMediaAlbumGrid({
           />
           <button
             type="button"
-            onClick={close}
-            className="absolute right-4 top-4 z-10 rounded-full bg-white/10 p-2 text-white transition hover:bg-white/20"
+            onClick={(event) => {
+              event.stopPropagation();
+              close();
+            }}
+            className="absolute right-4 top-4 z-20 rounded-full bg-white/10 p-2 text-white transition hover:bg-white/20"
             aria-label="Close"
           >
             <X className="h-6 w-6" aria-hidden />
@@ -164,16 +167,22 @@ export function PublicMediaAlbumGrid({
             <>
               <button
                 type="button"
-                onClick={showPrev}
-                className="absolute left-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white transition hover:bg-white/20"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  showPrev();
+                }}
+                className="absolute left-4 top-1/2 z-20 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white transition hover:bg-white/20"
                 aria-label="Previous image"
               >
                 <ChevronLeft className="h-7 w-7" aria-hidden />
               </button>
               <button
                 type="button"
-                onClick={showNext}
-                className="absolute right-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white transition hover:bg-white/20"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  showNext();
+                }}
+                className="absolute right-4 top-1/2 z-20 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white transition hover:bg-white/20"
                 aria-label="Next image"
               >
                 <ChevronRight className="h-7 w-7" aria-hidden />
@@ -183,7 +192,7 @@ export function PublicMediaAlbumGrid({
 
           <div
             ref={lightboxRef}
-            className="relative z-10 flex max-h-[90vh] w-full max-w-6xl flex-col items-center outline-none"
+            className="pointer-events-none relative z-10 flex max-h-[90vh] w-full max-w-6xl flex-col items-center outline-none"
             role="dialog"
             aria-modal="true"
             aria-label="Image viewer"
@@ -194,12 +203,12 @@ export function PublicMediaAlbumGrid({
               alt={activeImage.alt}
               width={1600}
               height={1200}
-              className="mx-auto max-h-[85vh] w-auto max-w-full object-contain"
+              className="pointer-events-auto mx-auto max-h-[85vh] w-auto max-w-full object-contain"
               sizes="100vw"
               priority
             />
             {(activeImage.item.titleEn || activeImage.item.captionEn) && (
-              <div className="mt-3 max-w-3xl text-center text-sm text-white/90">
+              <div className="pointer-events-auto mt-3 max-w-3xl text-center text-sm text-white/90">
                 {activeImage.item.titleEn && (
                   <p className="font-semibold">{activeImage.item.titleEn}</p>
                 )}
@@ -208,7 +217,7 @@ export function PublicMediaAlbumGrid({
                 )}
               </div>
             )}
-            <p className="mt-2 text-center text-sm text-white/80" aria-live="polite">
+            <p className="pointer-events-auto mt-2 text-center text-sm text-white/80" aria-live="polite">
               {activeIndex + 1} / {zoomableImages.length}
             </p>
           </div>
