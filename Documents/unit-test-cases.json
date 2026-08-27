@@ -1,8 +1,42 @@
 {
-  "generatedAt": "2026-08-27T03:37:15.497Z",
-  "totalFiles": 50,
-  "totalTests": 205,
+  "generatedAt": "2026-08-27T04:24:11.617Z",
+  "totalFiles": 52,
+  "totalTests": 227,
   "suites": [
+    {
+      "rel": "src/app/api/api-routes.test.ts",
+      "describes": [
+        "GET /api/health",
+        "POST /api/auth/login",
+        "POST /api/auth/logout",
+        "POST /api/auth/change-password",
+        "POST /api/auth/password-reset-request",
+        "POST /api/auth/password-reset-confirm",
+        "GET /api/downloads/[id]/file",
+        "GET /api/cron/*"
+      ],
+      "its": [
+        "returns ok status with timestamp",
+        "returns 400 for invalid JSON",
+        "returns 400 for validation errors",
+        "returns 401 for invalid credentials",
+        "returns 503 when auth env is missing",
+        "returns success",
+        "returns 400 for invalid payload",
+        "returns 401 when not signed in",
+        "returns 400 for invalid email",
+        "returns generic success for valid email",
+        "returns 503 when email is not configured",
+        "returns 400 for mismatched passwords",
+        "returns 401 without recovery session",
+        "returns 404 when download not found",
+        "redirects to stored file URL",
+        "returns 401 without authorization",
+        "process-tenders returns ok when authorized",
+        "process-downloads returns ok when authorized"
+      ],
+      "count": 18
+    },
     {
       "rel": "src/lib/a11y/image-alt.test.ts",
       "describes": [
@@ -674,6 +708,19 @@
         "requires valid uuids"
       ],
       "count": 6
+    },
+    {
+      "rel": "src/smoke/api-routes.smoke.test.ts",
+      "describes": [
+        "API HTTP smoke"
+      ],
+      "its": [
+        "GET /api/health returns 200",
+        "POST /api/auth/login returns 400 for invalid body",
+        "GET /api/cron/process-tenders returns 401 without secret",
+        "GET /api/downloads/[id]/file returns 404 for unknown id"
+      ],
+      "count": 4
     },
     {
       "rel": "src/smoke/public-pages.smoke.test.ts",

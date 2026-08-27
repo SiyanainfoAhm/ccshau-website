@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>CCSHAU CI/CD Step-by-Step Guide</title>
+  <style>
+    @page { size: A4; margin: 18mm 16mm; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Segoe UI", Calibri, Arial, sans-serif;
+      font-size: 11pt;
+      line-height: 1.45;
+      color: #1a1a1a;
+      max-width: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    h1 {
+      font-size: 22pt;
+      color: #0b3d2e;
+      border-bottom: 3px solid #0b3d2e;
+      padding-bottom: 8px;
+      margin: 0 0 12px;
+    }
+    h2 {
+      font-size: 15pt;
+      color: #0b3d2e;
+      margin: 22px 0 8px;
+      page-break-after: avoid;
+    }
+    h3 {
+      font-size: 12pt;
+      color: #145a32;
+      margin: 16px 0 6px;
+      page-break-after: avoid;
+    }
+    p, li { margin: 0 0 6px; }
+    ul, ol { margin: 6px 0 12px 20px; padding: 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 14px;
+      font-size: 10pt;
+      page-break-inside: avoid;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 6px 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: #e8f5e9; font-weight: 600; }
+    tr:nth-child(even) td { background: #fafafa; }
+    code, pre {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 9pt;
+    }
+    pre {
+      background: #f4f4f4;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 10px 12px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      page-break-inside: avoid;
+    }
+    .meta {
+      color: #555;
+      font-size: 10pt;
+      margin-bottom: 16px;
+    }
+    .overview {
+      background: #f0f7f4;
+      border-left: 4px solid #0b3d2e;
+      padding: 10px 12px;
+      margin: 12px 0 18px;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #ddd;
+      margin: 18px 0;
+    }
+    .footer {
+      margin-top: 24px;
+      font-size: 9pt;
+      color: #666;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <h1>CCSHAU Website — CI/CD Step-by-Step Guide</h1>
+  <p class="meta">
+    <strong>Repository:</strong> github.com/SiyanainfoAhm/ccshau-website<br />
+    <strong>Production branch:</strong> main &nbsp;|&nbsp;
+    <strong>Stack:</strong> Next.js · Supabase · Vercel · GitHub Actions<br />
+    <strong>App root:</strong> apps/web (monorepo)
+  </p>
+
+  <div class="overview">
+    <strong>Overview</strong>
+    <table>
+      <tr><th>Step</th><th>Where</th><th>What happens</th></tr>
+      <tr><td>CI</td><td>GitHub Actions</td><td>lint → test → build</td></tr>
+      <tr><td>CD</td><td>Vercel</td><td>preview on PR, production on main</td></tr>
+      <tr><td>DB</td><td>Supabase</td><td>migrations manual (not auto in CI)</td></tr>
+    </table>
+  </div>
+
+  <h2>Part A — One-time setup</h2>
+
+  <h3>1. GitHub repository access</h3>
+  <ul>
+    <li>You need <strong>push</strong> access to <code>SiyanainfoAhm/ccshau-website</code>.</li>
+    <li>Enable Actions: GitHub → Settings → Actions → General → allow workflows.</li>
+  </ul>
+
+  <h3>2. Connect Vercel to GitHub</h3>
+  <ol>
+    <li>Go to vercel.com → <strong>Add New Project</strong> → import <code>ccshau-website</code></li>
+    <li><strong>Root Directory:</strong> <code>apps/web</code> (required for monorepo)</li>
+    <li><strong>Framework:</strong> Next.js (auto-detected)</li>
+    <li><strong>Production branch:</strong> <code>main</code></li>
+    <li>Enable <strong>Preview Deployments</strong> for pull requests</li>
+  </ol>
+  <p>Config file: <code>apps/web/vercel.json</code> — region <code>bom1</code> (Mumbai).</p>
+
+  <h3>3. Vercel environment variables</h3>
+  <p>Vercel → Project → Settings → Environment Variables</p>
+  <table>
+    <tr><th>Variable</th><th>Scope</th><th>Notes</th></tr>
+    <tr><td>NEXT_PUBLIC_SUPABASE_URL</td><td>Production, Preview</td><td>Supabase project URL</td></tr>
+    <tr><td>NEXT_PUBLIC_SUPABASE_ANON_KEY</td><td>Production, Preview</td><td>Public anon key</td></tr>
+    <tr><td>SUPABASE_SERVICE_ROLE_KEY</td><td>Production, Preview</td><td>Server only — secret</td></tr>
+    <tr><td>NEXT_PUBLIC_SITE_URL</td><td>Production, Preview</td><td>Live URL / preview URL</td></tr>
+    <tr><td>NEXT_PUBLIC_AZURE_STORAGE_ACCOUNT</td><td>Production, Preview</td><td>Blob account</td></tr>
+    <tr><td>NEXT_PUBLIC_AZURE_STORAGE_CONTAINER</td><td>Production, Preview</td><td>Container name</td></tr>
+    <tr><td>AZURE_STORAGE_CONNECTION_STRING</td><td>Production, Preview</td><td>Server uploads — secret</td></tr>
+    <tr><td>CRON_SECRET</td><td>Production</td><td>Cron route auth</td></tr>
+  </table>
+  <p>Optional: Power Automate and CAPTCHA keys — see <code>apps/web/.env.example</code>.</p>
+
+  <h3>4. GitHub secrets (optional — backup only)</h3>
+  <p>For <code>.github/workflows/daily-backup.yml</code>: SUPABASE_ACCESS_TOKEN, SUPABASE_DB_PASSWORD, etc.</p>
+
+  <h2>Part B — End-to-end release flow</h2>
+
+  <h3>Step 1 — Local pre-check</h3>
+  <pre>cd C:\Jatin\Projects\CCSHAU_Project
+npm ci
+npm run lint
+npm test
+npm run build</pre>
+  <p>All four must pass before pushing. Optional: <code>npm run test:smoke</code> (dev server required).</p>
+
+  <h3>Step 2 — Create a feature branch</h3>
+  <pre>git checkout main
+git pull origin main
+git checkout -b feat/your-feature-name
+git add &lt;files&gt;
+git commit -m "Describe your change"
+git push -u origin feat/your-feature-name</pre>
+
+  <h3>Step 3 — Open a Pull Request</h3>
+  <ol>
+    <li>GitHub → ccshau-website → Compare &amp; pull request</li>
+    <li>Base: <code>main</code> ← your feature branch</li>
+    <li>Create PR — triggers CI and Vercel preview in parallel</li>
+  </ol>
+
+  <h3>Step 4 — Watch CI (GitHub Actions)</h3>
+  <p>PR → Checks → job <strong>CI / lint-and-build</strong>:</p>
+  <ul>
+    <li>npm ci</li>
+    <li>npm run lint</li>
+    <li>npm test (227 Vitest cases)</li>
+    <li>npm run build</li>
+  </ul>
+  <p>If failed: fix locally → commit → push (CI re-runs).</p>
+
+  <h3>Step 5 — Watch CD preview (Vercel)</h3>
+  <p>Vercel bot comments a Preview URL on the PR. Verify homepage, admin login, college page, images.</p>
+
+  <h3>Step 6 — Review and merge</h3>
+  <p>When CI and preview are good → Merge pull request → optionally delete branch.</p>
+
+  <h3>Step 7 — Production deploy (automatic)</h3>
+  <table>
+    <tr><th>System</th><th>Action</th></tr>
+    <tr><td>GitHub Actions</td><td>CI runs again on main</td></tr>
+    <tr><td>Vercel</td><td>Production deploy → Ready</td></tr>
+  </table>
+
+  <h3>Step 8 — Database migrations (if any)</h3>
+  <pre>npx supabase link --project-ref fvveqziyusjgqejowkfp
+npx supabase db push</pre>
+  <p>Run after merge — not automated in CI today.</p>
+
+  <h2>Part C — Post-deploy verification</h2>
+  <table>
+    <tr><th>Check</th><th>How</th></tr>
+    <tr><td>CI green on main</td><td>GitHub Actions tab</td></tr>
+    <tr><td>Vercel Ready</td><td>Vercel dashboard</td></tr>
+    <tr><td>Site live</td><td>Open production domain</td></tr>
+    <tr><td>Health API</td><td>GET /api/health → status ok</td></tr>
+    <tr><td>Admin login</td><td>/admin/login</td></tr>
+    <tr><td>Uploads</td><td>Test admin upload + public view</td></tr>
+  </table>
+
+  <h2>Part D — Troubleshooting</h2>
+  <table>
+    <tr><th>Problem</th><th>Fix</th></tr>
+    <tr><td>CI fails on npm test</td><td>Run npm test locally; fix; push</td></tr>
+    <tr><td>CI fails on build</td><td>Run npm run build locally</td></tr>
+    <tr><td>Vercel build fails</td><td>Set root directory to apps/web</td></tr>
+    <tr><td>Preview OK, prod broken</td><td>Add Production env vars in Vercel</td></tr>
+    <tr><td>Blank images on preview</td><td>Add Azure vars to Preview scope</td></tr>
+    <tr><td>No Vercel link on PR</td><td>Reconnect Vercel to GitHub repo</td></tr>
+  </table>
+
+  <h2>Part E — CI workflow reference</h2>
+  <p>File: <code>.github/workflows/ci.yml</code></p>
+  <p>Triggers: push and pull_request to <code>main</code> or <code>develop</code>.</p>
+
+  <h2>Part F — First E2E run checklist</h2>
+  <ol>
+    <li>Confirm Vercel project with root <code>apps/web</code></li>
+    <li>Set Production + Preview environment variables</li>
+    <li>Run local: npm ci, lint, test, build</li>
+    <li>Push feature branch and open PR</li>
+    <li>Wait for green CI + Vercel preview</li>
+    <li>Test preview URL</li>
+    <li>Merge to main</li>
+    <li>Confirm production deployment</li>
+  </ol>
+
+  <hr />
+  <p class="footer">CCSHAU Website Development — CI/CD Step-by-Step Guide</p>
+</body>
+</html>
