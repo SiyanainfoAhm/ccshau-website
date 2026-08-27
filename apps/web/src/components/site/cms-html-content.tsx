@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 
 import { normalizeCmsHtml, sanitizeCmsHtml } from "@/lib/html/sanitize-cms-html";
+
+const emptySubscribe = () => () => {};
 
 /**
  * Renders CMS HTML after mount so browser DOM rewrites (and extensions such as
@@ -15,12 +17,8 @@ export function CmsHtmlContent({
   html: string;
   className?: string;
 }) {
-  const [ready, setReady] = useState(false);
+  const ready = useSyncExternalStore(emptySubscribe, () => true, () => false);
   const safeHtml = sanitizeCmsHtml(normalizeCmsHtml(html));
-
-  useEffect(() => {
-    setReady(true);
-  }, []);
 
   return (
     <div

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 /** Shown when staff photo is missing or fails to load. */
 export const STAFF_DEFAULT_PHOTO = "/images/staff-default.svg";
@@ -49,11 +49,8 @@ export function StaffPhoto({
   className?: string;
 }) {
   const resolved = src?.trim() || STAFF_DEFAULT_PHOTO;
-  const [currentSrc, setCurrentSrc] = useState(resolved);
-
-  useEffect(() => {
-    setCurrentSrc(src?.trim() || STAFF_DEFAULT_PHOTO);
-  }, [src]);
+  const [failedForSrc, setFailedForSrc] = useState<string | null>(null);
+  const currentSrc = failedForSrc === resolved ? STAFF_DEFAULT_PHOTO : resolved;
 
   const usingDefault = currentSrc === STAFF_DEFAULT_PHOTO;
   // Keep circular only for tiny list thumbs
@@ -74,8 +71,8 @@ export function StaffPhoto({
         sizes={`${dim.width}px`}
         unoptimized={shouldSkipOptimization(currentSrc)}
         onError={() => {
-          if (currentSrc !== STAFF_DEFAULT_PHOTO) {
-            setCurrentSrc(STAFF_DEFAULT_PHOTO);
+          if (resolved !== STAFF_DEFAULT_PHOTO) {
+            setFailedForSrc(resolved);
           }
         }}
       />

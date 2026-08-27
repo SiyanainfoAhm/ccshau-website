@@ -4,6 +4,10 @@ const data = JSON.parse(fs.readFileSync("Documents/unit-test-cases.json", "utf8"
 
 const categories = [
   {
+    name: "API routes",
+    match: (rel) => rel.includes("/app/api/") || rel.includes("api-routes.smoke"),
+  },
+  {
     name: "Auth & CMS access",
     match: (rel) =>
       rel.includes("/auth/") ||
@@ -31,7 +35,9 @@ const categories = [
   },
   {
     name: "Public HTTP smoke",
-    match: (rel) => rel.includes("/smoke/") || rel.includes("public-pages.smoke"),
+    match: (rel) =>
+      (rel.includes("/smoke/") && !rel.includes("api-routes.smoke")) ||
+      rel.includes("public-pages.smoke"),
   },
   {
     name: "i18n / a11y / helpers",
@@ -118,8 +124,8 @@ md += `---
 
 ## Out of scope (intentionally skipped)
 
-- Login lockout tests
-- Captcha tests
+- Login lockout tests (mocked in API route tests)
+- Captcha verification behavior (mocked in API route tests)
 - Full Azure Blob upload (network) — validation + path + URL pipeline is covered without cloud I/O
 - Supabase DB integration / e2e browser automation (Playwright)
 

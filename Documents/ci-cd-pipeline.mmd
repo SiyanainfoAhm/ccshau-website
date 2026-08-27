@@ -1,0 +1,44 @@
+---
+title: CCSHAU Website — CI/CD Pipeline
+config:
+  theme: base
+  themeVariables:
+    fontSize: 14px
+---
+flowchart TD
+  subgraph Dev["Phase 1 — Developer"]
+    A["1. Write code<br/>(apps/web)"] --> B["2. Push branch / open PR<br/>(target: main or develop)"]
+  end
+
+  subgraph CI["Phase 2 — CI · GitHub Actions (.github/workflows/ci.yml)"]
+    B --> C["3. Checkout + Node 20"]
+    C --> D["4. npm ci"]
+    D --> E["5. npm run lint"]
+    E --> F["6. npm test<br/>(227 Vitest cases)"]
+    F --> G["7. npm run build<br/>(placeholder env vars)"]
+    G --> H{"All checks pass?"}
+  end
+
+  subgraph Preview["Phase 3 — Preview · Vercel (parallel)"]
+    H -->|Yes| I["8. Vercel install + build<br/>(apps/web/vercel.json)"]
+    I --> J["9. Preview URL<br/>(unique per PR)"]
+    H -->|No| K["Fix code and push again"]
+    K --> B
+  end
+
+  subgraph Review["Phase 4 — Review"]
+    J --> L["10. Review CI status + preview"]
+    L --> M["11. Approve and merge PR"]
+  end
+
+  subgraph CD["Phase 5 — CD · Vercel Production"]
+    M --> N["12. Merge to main"]
+    N --> O["13. CI runs again on main"]
+    N --> P["14. Vercel production deploy<br/>(region: bom1 Mumbai)"]
+    P --> Q["15. Live site"]
+  end
+
+  subgraph Ops["Ops — Daily backup (separate workflow)"]
+    R["daily-backup.yml<br/>~08:00 IST"] --> S["Verify Supabase backups"]
+    S --> T["Storage inventory + DB dump artifacts"]
+  end

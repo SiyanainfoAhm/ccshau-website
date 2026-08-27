@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useState } from "react";
 
 import { FarmersPortalSection, NewsTicker } from "@/components/design/shared/home-sections";
 import { useLanguage } from "@/components/design/shared/language-context";
@@ -304,20 +304,23 @@ export function PublicConfigurablePage({
   cta?: HomepageCtaItem | null;
 }) {
   const { lang, t } = useLanguage();
-  const [selectedSidebar, setSelectedSidebar] = useState<PublicSidebarLink | null>(
-    () => defaultSidebarSelection(office),
-  );
-
-  useEffect(() => {
-    const tab = new URLSearchParams(window.location.search).get("tab");
-    if (tab === "faculty") {
-      const faculty = findFacultySidebarLink(office);
-      if (faculty) setSelectedSidebar(faculty);
-      return;
-    }
-
-    setSelectedSidebar((current) => current ?? defaultSidebarSelection(office));
-  }, [office]);
+  const searchParams = useSearchParams();
+  const isFacultyTab = searchParams.get("tab") === "faculty";
+  const autoSelectedSidebar =
+    (isFacultyTab ? findFacultySidebarLink(office) : null) ??
+    defaultSidebarSelection(office);
+  const selectionScope = `${isFacultyTab}:${autoSelectedSidebar?.id ?? "none"}`;
+  const [sidebarOverride, setSidebarOverride] = useState<{
+    scope: string;
+    link: PublicSidebarLink | null;
+  } | null>(null);
+  const selectedSidebar =
+    sidebarOverride?.scope === selectionScope
+      ? sidebarOverride.link
+      : autoSelectedSidebar;
+  const setSelectedSidebar = (link: PublicSidebarLink | null) => {
+    setSidebarOverride({ scope: selectionScope, link });
+  };
 
   const contentPage = subsection ?? section ?? null;
   const title = formatMenuLabel(
@@ -338,13 +341,6 @@ export function PublicConfigurablePage({
     ? pickBilingual(lang, selectedSidebar.contentEn, selectedSidebar.contentHi)
     : null;
   const sidebarHasContent = Boolean(sidebarContent?.trim());
-  const sidebarPdfUrl =
-    sidebarContent && isPrimarilyPdfHtml(sidebarContent)
-      ? extractPdfUrlFromHtml(sidebarContent)
-      : null;
-  const sidebarPdfCaption = sidebarPdfUrl
-    ? extractPdfCaptionFromHtml(sidebarContent)
-    : null;
   const isFacultySidebar =
     Boolean(selectedSidebar) &&
     !sidebarHasContent &&

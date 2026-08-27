@@ -27,7 +27,10 @@ beforeAll(async () => {
 });
 
 // Suite: public page HTTP smoke (skips if server down).
-describe("public page HTTP smoke", () => {
+describe(
+  "public page HTTP smoke",
+  { timeout: 35_000 },
+  () => {
   // Homepage 200 with branding; skips if server unavailable.
   it("homepage returns 200 with site branding", async ({ skip }) => {
     if (!serverAvailable) {

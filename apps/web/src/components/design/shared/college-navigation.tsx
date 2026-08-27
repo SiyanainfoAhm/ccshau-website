@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { ChevronDown } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { useLanguage } from "@/components/design/shared/language-context";
 import { useEscapeKey } from "@/lib/a11y/use-escape-key";
@@ -77,11 +77,9 @@ function collegeNavLinkClass(active: boolean, isOpen: boolean, lang: string) {
 export function CollegeNavigation({ college }: { college: PublicCollegePage }) {
   const { lang, t } = useLanguage();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const homePath = getCollegePublicHomePath(college.collegeSlug);
-  const [facultyTab, setFacultyTab] = useState(false);
-  useEffect(() => {
-    setFacultyTab(new URLSearchParams(window.location.search).get("tab") === "faculty");
-  }, [pathname]);
+  const facultyTab = searchParams.get("tab") === "faculty";
   const { isHomePage, isContactPage, activeSectionSlug, activeSubsectionSlug } = parseCollegeNavState(
     pathname,
     college.collegeSlug,
