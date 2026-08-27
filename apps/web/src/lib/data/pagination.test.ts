@@ -1,3 +1,8 @@
+/**
+ * Tests for `@/lib/data/pagination`.
+ * Covers page-param parsing, paginated result shaping, and index ranges.
+ */
+
 import { describe, expect, it } from "vitest";
 
 import {
@@ -7,7 +12,9 @@ import {
   parsePageParam,
 } from "@/lib/data/pagination";
 
+// Suite: pagination helpers for list endpoints.
 describe("pagination", () => {
+  // Positive pages parse; zero/negative/invalid fall back to 1 or default.
   it("parses positive page numbers with fallback", () => {
     expect(parsePageParam("3")).toBe(3);
     expect(parsePageParam("0")).toBe(1);
@@ -16,6 +23,7 @@ describe("pagination", () => {
     expect(parsePageParam(undefined, 5)).toBe(5);
   });
 
+  // Builds result metadata and from/to index ranges for a page.
   it("builds paginated result and range", () => {
     expect(buildPaginatedResult(["a", "b"], 30, 2, DEFAULT_PAGE_SIZE)).toEqual({
       items: ["a", "b"],

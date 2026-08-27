@@ -1,8 +1,15 @@
+/**
+ * Tests for `@/lib/media/video-playback`.
+ * Covers YouTube/Vimeo embed URLs, file playback, and http(s) URL checks.
+ */
+
 import { describe, expect, it } from "vitest";
 
 import { getVideoPlayback, isHttpUrl } from "@/lib/media/video-playback";
 
+// Suite: getVideoPlayback.
 describe("getVideoPlayback", () => {
+  // YouTube watch, short, and youtu.be URLs become embed URLs.
   it("embeds YouTube watch, short, and youtu.be URLs", () => {
     expect(
       getVideoPlayback("https://www.youtube.com/watch?v=dQw4w9WgXcQ"),
@@ -22,6 +29,7 @@ describe("getVideoPlayback", () => {
     });
   });
 
+  // Vimeo watch and player URLs become player embed URLs.
   it("embeds Vimeo URLs", () => {
     expect(getVideoPlayback("https://vimeo.com/123456789")).toEqual({
       kind: "embed",
@@ -35,6 +43,7 @@ describe("getVideoPlayback", () => {
     });
   });
 
+  // Other http(s) URLs are treated as direct file playback.
   it("treats other http(s) URLs as file playback", () => {
     expect(
       getVideoPlayback("https://cdn.example.com/clip.mp4"),
@@ -44,6 +53,7 @@ describe("getVideoPlayback", () => {
     });
   });
 
+  // Empty, invalid, and non-http schemes return null.
   it("rejects empty and non-http URLs", () => {
     expect(getVideoPlayback("")).toBeNull();
     expect(getVideoPlayback("not a url")).toBeNull();
@@ -51,7 +61,9 @@ describe("getVideoPlayback", () => {
   });
 });
 
+// Suite: isHttpUrl.
 describe("isHttpUrl", () => {
+  // Only http and https URLs validate as true.
   it("validates http(s) only", () => {
     expect(isHttpUrl("https://example.com")).toBe(true);
     expect(isHttpUrl("http://example.com")).toBe(true);

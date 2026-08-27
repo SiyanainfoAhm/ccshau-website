@@ -1,3 +1,7 @@
+/**
+ * Vitest coverage for downloadFormSchema plus parseDownloadTags and
+ * formatDownloadCategory helpers.
+ */
 import { describe, expect, it } from "vitest";
 
 import {
@@ -6,7 +10,9 @@ import {
   parseDownloadTags,
 } from "@/lib/validations/downloads";
 
+// Suite: download form and tag/category helpers.
 describe("downloads validation", () => {
+  // Accepts titled download; rejects empty titleEn.
   it("validates download form payload", () => {
     expect(
       downloadFormSchema.safeParse({
@@ -23,6 +29,7 @@ describe("downloads validation", () => {
     ).toBe(false);
   });
 
+  // Dedupes/lowercases tags; formats category or em dash for null.
   it("parses tags and formats categories", () => {
     expect(parseDownloadTags(" Forms, PDF , forms ")).toEqual(["forms", "pdf"]);
     expect(parseDownloadTags("")).toEqual([]);

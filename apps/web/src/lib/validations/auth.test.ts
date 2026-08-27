@@ -1,3 +1,7 @@
+/**
+ * Vitest coverage for auth schemas: login, password reset request/confirm,
+ * and change-password (match + differ-from-current rules).
+ */
 import { describe, expect, it } from "vitest";
 
 import {
@@ -7,7 +11,9 @@ import {
   passwordResetRequestSchema,
 } from "@/lib/validations/auth";
 
+// Suite: login email and password shape.
 describe("loginSchema", () => {
+  // Accepts well-formed email and password length.
   it("accepts valid credentials", () => {
     const result = loginSchema.safeParse({
       email: "admin@ccshau.ac.in",
@@ -16,6 +22,7 @@ describe("loginSchema", () => {
     expect(result.success).toBe(true);
   });
 
+  // Rejects invalid email and too-short password.
   it("rejects invalid email and short password", () => {
     const result = loginSchema.safeParse({
       email: "not-an-email",
@@ -25,7 +32,9 @@ describe("loginSchema", () => {
   });
 });
 
+// Suite: password reset request email-only payload.
 describe("passwordResetRequestSchema", () => {
+  // Accepts valid email; rejects malformed email.
   it("requires a valid email", () => {
     expect(
       passwordResetRequestSchema.safeParse({ email: "ok@ccshau.ac.in" })
@@ -37,7 +46,9 @@ describe("passwordResetRequestSchema", () => {
   });
 });
 
+// Suite: password reset confirm match rule.
 describe("passwordResetConfirmSchema", () => {
+  // Accepts matching pair; rejects mismatched confirm.
   it("requires matching passwords", () => {
     expect(
       passwordResetConfirmSchema.safeParse({
@@ -54,7 +65,9 @@ describe("passwordResetConfirmSchema", () => {
   });
 });
 
+// Suite: change password match and not-same-as-current rules.
 describe("changePasswordSchema", () => {
+  // Accepts new!=current with match; rejects same-as-current or mismatch.
   it("requires match and different new password", () => {
     expect(
       changePasswordSchema.safeParse({

@@ -1,9 +1,15 @@
+/**
+ * Tests for rbac primitives: hasRole matching (with optional department
+ * scope) and highestRole ranking over role assignments.
+ */
 import { describe, expect, it } from "vitest";
 
 import { hasRole, highestRole } from "@/lib/auth/rbac";
 import type { UserRoleAssignment } from "@/lib/auth/rbac";
 
+/* hasRole: allow-list match, super_admin, and department scoping. */
 describe("hasRole", () => {
+  // Returns true only when an assignment intersects the allowed role list.
   it("matches allowed roles", () => {
     const assignments: UserRoleAssignment[] = [
       { role: "editor", departmentId: "dept-a" },
@@ -12,6 +18,7 @@ describe("hasRole", () => {
     expect(hasRole(assignments, ["super_admin"])).toBe(false);
   });
 
+  // Super admin matches only when included in the allowed list.
   it("treats super_admin as allowed when listed", () => {
     const assignments: UserRoleAssignment[] = [
       { role: "super_admin", departmentId: null },
@@ -20,6 +27,7 @@ describe("hasRole", () => {
     expect(hasRole(assignments, ["editor"])).toBe(false);
   });
 
+  // Dept-scoped roles require matching dept; null-dept roles apply globally.
   it("scopes by department when departmentId is provided", () => {
     const assignments: UserRoleAssignment[] = [
       { role: "editor", departmentId: "dept-a" },
@@ -31,7 +39,9 @@ describe("hasRole", () => {
   });
 });
 
+/* highestRole: rank among assignments and empty-list edge case. */
 describe("highestRole", () => {
+  // Picks the top-ranked role from mixed assignments (dept_admin / super_admin).
   it("returns the highest ranked role", () => {
     expect(
       highestRole([
@@ -46,6 +56,7 @@ describe("highestRole", () => {
     ).toBe("super_admin");
   });
 
+  // Empty assignment list yields null rather than a default role.
   it("returns null when there are no assignments", () => {
     expect(highestRole([])).toBeNull();
   });

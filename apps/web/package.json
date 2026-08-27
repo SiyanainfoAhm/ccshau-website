@@ -13,7 +13,8 @@
     "perf:check": "npm run build && npm run start:local",
     "lint": "eslint",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:smoke": "vitest run src/lib/storage/upload-pipeline.smoke.test.ts src/lib/data/homepage-public.smoke.test.ts src/smoke/public-pages.smoke.test.ts"
   },
   "dependencies": {
     "@azure/storage-blob": "^12.33.0",

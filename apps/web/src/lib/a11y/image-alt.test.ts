@@ -1,3 +1,8 @@
+/**
+ * Tests for `@/lib/a11y/image-alt`.
+ * Covers accessible alt-text priority, language selection, and hero/staff/gallery helpers.
+ */
+
 import { describe, expect, it } from "vitest";
 
 import {
@@ -7,7 +12,9 @@ import {
   staffPhotoAlt,
 } from "@/lib/a11y/image-alt";
 
+// Suite: buildImageAlt and specialized alt helpers.
 describe("image-alt", () => {
+  // Prefers explicit alt, then name/designation, else default label.
   it("prefers explicit alt then caption then name/title", () => {
     expect(
       buildImageAlt({
@@ -26,6 +33,7 @@ describe("image-alt", () => {
     expect(buildImageAlt({})).toBe("CCSHAU image");
   });
 
+  // Uses Hindi alt when lang is hi.
   it("prefers Hindi when lang is hi", () => {
     expect(
       buildImageAlt({
@@ -36,6 +44,7 @@ describe("image-alt", () => {
     ).toBe("हिंदी");
   });
 
+  // heroSlideAlt, staffPhotoAlt, and galleryImageAlt use their own fallbacks.
   it("builds hero, staff, and gallery alts", () => {
     expect(
       heroSlideAlt({

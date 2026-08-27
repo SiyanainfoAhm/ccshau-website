@@ -1,3 +1,7 @@
+/**
+ * Vitest coverage for user admin schemas: invite, role assignment,
+ * profile update, college assignment, and department HOD assignment.
+ */
 import { describe, expect, it } from "vitest";
 
 import {
@@ -11,7 +15,9 @@ import {
 const UUID = "11111111-1111-4111-8111-111111111111";
 const UUID_B = "22222222-2222-4222-8222-222222222222";
 
+// Suite: invite-user form validation.
 describe("inviteUserSchema", () => {
+  // Accepts email, display name, and password without college fields.
   it("accepts a basic invite", () => {
     const result = inviteUserSchema.safeParse({
       email: "user@ccshau.ac.in",
@@ -21,6 +27,7 @@ describe("inviteUserSchema", () => {
     expect(result.success).toBe(true);
   });
 
+  // College page and college role must be provided together.
   it("requires college role and college together", () => {
     expect(
       inviteUserSchema.safeParse({
@@ -52,7 +59,9 @@ describe("inviteUserSchema", () => {
   });
 });
 
+// Suite: role assignment department scoping rules.
 describe("assignRoleSchema", () => {
+  // Scoped roles require departmentId.
   it("requires department for scoped roles", () => {
     expect(
       assignRoleSchema.safeParse({ role: "editor" }).success,
@@ -65,6 +74,7 @@ describe("assignRoleSchema", () => {
     ).toBe(true);
   });
 
+  // University-wide roles reject departmentId.
   it("rejects department on university-wide roles", () => {
     expect(
       assignRoleSchema.safeParse({
@@ -78,7 +88,9 @@ describe("assignRoleSchema", () => {
   });
 });
 
+// Suite: user profile update display-name rules.
 describe("updateUserSchema", () => {
+  // Accepts sufficient displayName; rejects too-short name.
   it("requires display name", () => {
     expect(
       updateUserSchema.safeParse({ displayName: "OK" }).success,
@@ -89,7 +101,9 @@ describe("updateUserSchema", () => {
   });
 });
 
+// Suite: college and HOD assignment UUID requirements.
 describe("assignCollegeSchema / assignDepartmentHodSchema", () => {
+  // Accepts valid UUIDs; rejects non-UUID or empty department page id.
   it("requires valid uuids", () => {
     expect(
       assignCollegeSchema.safeParse({

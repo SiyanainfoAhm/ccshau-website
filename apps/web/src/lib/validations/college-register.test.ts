@@ -1,3 +1,7 @@
+/**
+ * Vitest coverage for college-register schemas: department registration,
+ * faculty registration, and assign-existing-faculty payloads.
+ */
 import { describe, expect, it } from "vitest";
 
 import {
@@ -9,7 +13,9 @@ import {
 const UUID = "11111111-1111-4111-8111-111111111111";
 const UUID_B = "22222222-2222-4222-8222-222222222222";
 
+// Suite: college register department and faculty forms.
 describe("college-register schemas", () => {
+  // Accepts kebab slug; rejects spaced/invalid slug.
   it("validates department registration", () => {
     expect(
       registerDepartmentSchema.safeParse({
@@ -27,6 +33,7 @@ describe("college-register schemas", () => {
     ).toBe(false);
   });
 
+  // Accepts new faculty register and existing faculty assignment.
   it("validates faculty registration and assignment", () => {
     expect(
       registerFacultySchema.safeParse({

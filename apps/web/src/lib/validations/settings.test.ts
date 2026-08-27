@@ -1,3 +1,7 @@
+/**
+ * Vitest coverage for settings schemas: security boolean flags (coerce) and
+ * social media URL fields (empty clear vs http(s) only).
+ */
 import { describe, expect, it } from "vitest";
 
 import {
@@ -5,7 +9,9 @@ import {
   socialMediaSettingsSchema,
 } from "@/lib/validations/settings";
 
+// Suite: security settings boolean coercion.
 describe("securitySettingsSchema", () => {
+  // Accepts booleans; non-empty string "false" coerces to true.
   it("accepts boolean flags (coerce treats non-empty strings as true)", () => {
     const parsed = securitySettingsSchema.safeParse({
       captchaEnabled: true,
@@ -32,7 +38,9 @@ describe("securitySettingsSchema", () => {
   });
 });
 
+// Suite: social media URL settings validation.
 describe("socialMediaSettingsSchema", () => {
+  // Empty strings allowed to clear stored URLs.
   it("accepts empty strings to clear URLs", () => {
     const result = socialMediaSettingsSchema.safeParse({
       twitterUrl: "",
@@ -44,6 +52,7 @@ describe("socialMediaSettingsSchema", () => {
     expect(result.success).toBe(true);
   });
 
+  // Accepts http and https social profile URLs.
   it("accepts valid http(s) URLs", () => {
     expect(
       socialMediaSettingsSchema.safeParse({
@@ -56,6 +65,7 @@ describe("socialMediaSettingsSchema", () => {
     ).toBe(true);
   });
 
+  // Rejects javascript: and non-URL strings.
   it("rejects non-http URLs", () => {
     expect(
       socialMediaSettingsSchema.safeParse({

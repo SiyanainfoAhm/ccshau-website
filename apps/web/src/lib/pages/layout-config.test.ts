@@ -1,3 +1,8 @@
+/**
+ * Tests for `@/lib/pages/layout-config`.
+ * Covers layout presets, merges, HOD lock keys, and college/office layout detection.
+ */
+
 import { describe, expect, it } from "vitest";
 
 import {
@@ -14,13 +19,16 @@ import {
   usesConfigurableCollegeLayout,
 } from "@/lib/pages/layout-config";
 
+// Suite: layout-config helpers.
 describe("layout-config", () => {
+  // Template name maps to the expected preset flags.
   it("returns presets by template", () => {
     expect(presetForLayoutTemplate("office_portal").staff).toBe(true);
     expect(presetForLayoutTemplate("college_home").collegeTopMenu).toBe(true);
     expect(presetForLayoutTemplate("standard").hero).toBe(false);
   });
 
+  // Stored boolean overrides merge onto template presets.
   it("merges stored boolean overrides onto presets", () => {
     const merged = mergeLayoutConfig(
       { hero: false, gallery: true },
@@ -31,6 +39,7 @@ describe("layout-config", () => {
     expect(merged.staff).toBe(true);
   });
 
+  // Complete configs pass; partial/null fail; JSON parse drops junk keys.
   it("detects complete layout config and parses JSON", () => {
     expect(hasCompleteLayoutConfig(LAYOUT_PRESETS.minimal)).toBe(true);
     expect(hasCompleteLayoutConfig({ hero: true })).toBe(false);
@@ -42,6 +51,7 @@ describe("layout-config", () => {
     expect(parseLayoutConfigJson("nope")).toBeNull();
   });
 
+  // HOD saves keep locked keys; editable keys like hero may change.
   it("preserves locked layout keys when HOD saves", () => {
     const existing = LAYOUT_PRESETS.office_portal;
     const next = {
@@ -59,6 +69,7 @@ describe("layout-config", () => {
     expect(DEPARTMENT_HOD_EDITABLE_LAYOUT_KEYS).toContain("hero");
   });
 
+  // College layout pages and office-portal data needs are detected correctly.
   it("detects college layout pages and office data needs", () => {
     expect(isCollegeLayoutPage({ page_type: "college" })).toBe(true);
     expect(

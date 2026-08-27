@@ -1,3 +1,8 @@
+/**
+ * Tests for `@/lib/social/public-social-links`.
+ * Covers building public social link lists from site settings.
+ */
+
 import { describe, expect, it } from "vitest";
 
 import type { SiteSettings } from "@/lib/database/types";
@@ -22,7 +27,9 @@ function settings(
   };
 }
 
+// Suite: socialLinksFromSettings.
 describe("socialLinksFromSettings", () => {
+  // Empty platforms omitted; configured URLs trimmed and included.
   it("omits empty platforms and returns configured links", () => {
     expect(socialLinksFromSettings(settings())).toEqual([]);
 

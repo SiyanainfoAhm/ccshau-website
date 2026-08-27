@@ -1,3 +1,7 @@
+/**
+ * Tests for department-hod-scope: HOD-only detection, assigned department
+ * page edit rights, and who may manage HOD assignments.
+ */
 import { describe, expect, it } from "vitest";
 
 import {
@@ -18,7 +22,9 @@ const hodAssignment = {
   role: "dept_hod" as const,
 };
 
+/* HOD-only classification, page edit scope, and assignment management. */
 describe("department-hod-scope", () => {
+  // Assignment alone (no university/college roles) marks HOD-only.
   it("detects HOD-only users", () => {
     const hodOnly = mockAdminSession({
       roles: [],
@@ -29,6 +35,7 @@ describe("department-hod-scope", () => {
     expect(isDepartmentHodOnlyUser(hodOnly)).toBe(true);
   });
 
+  // Extra university CMS or college assignment clears HOD-only.
   it("is not HOD-only when university CMS or college assignment exists", () => {
     const hodPlusEditor = mockAdminSession({
       role: "editor",
@@ -50,6 +57,7 @@ describe("department-hod-scope", () => {
     expect(isDepartmentHodOnlyUser(hodPlusCollege)).toBe(false);
   });
 
+  // Edit allowed only when pageId matches the assigned department page.
   it("allows edit only for the assigned department page", () => {
     const hodOnly = mockAdminSession({
       roles: [],
@@ -60,6 +68,7 @@ describe("department-hod-scope", () => {
     expect(canEditAssignedDepartmentPage(hodOnly, "other-page")).toBe(false);
   });
 
+  // Super admin and college admin manage HODs; college editor and uni admin do not.
   it("allows HOD assignment management for super admin and college admin", () => {
     expect(
       sessionCanManageDepartmentHodAssignments(

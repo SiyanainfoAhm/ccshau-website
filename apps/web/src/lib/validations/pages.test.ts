@@ -1,3 +1,7 @@
+/**
+ * Vitest coverage for pageFormSchema: minimal page shape, slug/title rules,
+ * college contact-location requirements, and map coordinate bounds.
+ */
 import { describe, expect, it } from "vitest";
 
 import { pageFormSchema } from "@/lib/validations/pages";
@@ -10,12 +14,15 @@ const basePage = {
   status: "draft" as const,
 };
 
+// Suite: CMS page create/edit form validation.
 describe("pageFormSchema", () => {
+  // Accepts minimal standard draft page.
   it("accepts a minimal valid page", () => {
     const result = pageFormSchema.safeParse(basePage);
     expect(result.success).toBe(true);
   });
 
+  // Rejects empty titleEn and invalid slug; accepts kebab slug.
   it("requires english title and valid slug", () => {
     expect(pageFormSchema.safeParse({ ...basePage, titleEn: "" }).success).toBe(
       false,
@@ -28,6 +35,7 @@ describe("pageFormSchema", () => {
     ).toBe(true);
   });
 
+  // When contactLocationEnabled, requires addressEn and phone paths.
   it("requires address and phone when college contact location is enabled", () => {
     const result = pageFormSchema.safeParse({
       ...basePage,
@@ -42,6 +50,7 @@ describe("pageFormSchema", () => {
     }
   });
 
+  // Accepts college contact when address, phone, and email are present.
   it("accepts college contact location when address, phone, and email are set", () => {
     const result = pageFormSchema.safeParse({
       ...basePage,
@@ -54,6 +63,7 @@ describe("pageFormSchema", () => {
     expect(result.success).toBe(true);
   });
 
+  // Rejects lat/lng outside range; accepts valid Hisar coords.
   it("rejects out-of-range map coordinates", () => {
     expect(
       pageFormSchema.safeParse({ ...basePage, mapLat: "120" }).success,

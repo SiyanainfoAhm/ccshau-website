@@ -1,0 +1,690 @@
+{
+  "generatedAt": "2026-08-27T03:37:15.497Z",
+  "totalFiles": 50,
+  "totalTests": 205,
+  "suites": [
+    {
+      "rel": "src/lib/a11y/image-alt.test.ts",
+      "describes": [
+        "image-alt"
+      ],
+      "its": [
+        "prefers explicit alt then caption then name/title",
+        "prefers Hindi when lang is hi",
+        "builds hero, staff, and gallery alts"
+      ],
+      "count": 3
+    },
+    {
+      "rel": "src/lib/auth/admin-nav-access.test.ts",
+      "describes": [
+        "admin-nav-access"
+      ],
+      "its": [
+        "gives super admin full path access",
+        "blocks super-admin-only paths for university admin",
+        "limits faculty-only users to dashboard and own profile",
+        "enforces cms module allow-list on content paths"
+      ],
+      "count": 4
+    },
+    {
+      "rel": "src/lib/auth/cms-module-access.test.ts",
+      "describes": [
+        "cms-module-access"
+      ],
+      "its": [
+        "maps admin paths to cms modules",
+        "allows all modules when allow-list is null",
+        "enforces allow-list for content modules"
+      ],
+      "count": 3
+    },
+    {
+      "rel": "src/lib/auth/cms-page-access.test.ts",
+      "describes": [
+        "CMS scope smoke - page access",
+        "CMS scope smoke - create pages",
+        "CMS scope smoke - admin nav paths"
+      ],
+      "its": [
+        "HOD can only open assigned department page",
+        "college-only admin can only open pages in assigned college",
+        "university editor can open college pages; strict dept scope blocks other depts",
+        "super admin and university admin can open any page",
+        "faculty-only session without page roles is denied",
+        "blocks HOD from creating pages; allows college editor",
+        "college-only create must stay under assigned college root",
+        "limits college-only users to pages + register",
+        "limits HOD-only users to pages list/edit and own faculty profile"
+      ],
+      "count": 9
+    },
+    {
+      "rel": "src/lib/auth/cms-roles.test.ts",
+      "describes": [
+        "cms-roles"
+      ],
+      "its": [
+        "detects role membership",
+        "allows editors to edit but not publish",
+        "allows reviewers to publish but not edit",
+        "treats university admins as university-wide",
+        "scopes department content for dept editors",
+        "detects viewer-only sessions"
+      ],
+      "count": 6
+    },
+    {
+      "rel": "src/lib/auth/college-scope.test.ts",
+      "describes": [
+        "college-scope"
+      ],
+      "its": [
+        "detects super and university admin sessions",
+        "detects college-only users without university CMS roles",
+        "allows admin access for CMS, college, HOD, or faculty sessions",
+        "gates edit / publish / delete / university content by role",
+        "restricts college root creation to super admins",
+        "scopes college root access to assigned college for college-only users",
+        "builds university CMS page list OR filter"
+      ],
+      "count": 7
+    },
+    {
+      "rel": "src/lib/auth/content-status-options.test.ts",
+      "describes": [
+        "contentStatusOptions",
+        "tenderStatusOptions"
+      ],
+      "its": [
+        "hides published when user cannot publish",
+        "hides open when user cannot publish"
+      ],
+      "count": 2
+    },
+    {
+      "rel": "src/lib/auth/department-hod-scope.test.ts",
+      "describes": [
+        "department-hod-scope"
+      ],
+      "its": [
+        "detects HOD-only users",
+        "is not HOD-only when university CMS or college assignment exists",
+        "allows edit only for the assigned department page",
+        "allows HOD assignment management for super admin and college admin"
+      ],
+      "count": 4
+    },
+    {
+      "rel": "src/lib/auth/faculty-scope.test.ts",
+      "describes": [
+        "faculty-scope"
+      ],
+      "its": [
+        "detects faculty-only users",
+        "is not faculty-only when university cms role exists"
+      ],
+      "count": 2
+    },
+    {
+      "rel": "src/lib/auth/rbac.test.ts",
+      "describes": [
+        "hasRole",
+        "highestRole"
+      ],
+      "its": [
+        "matches allowed roles",
+        "treats super_admin as allowed when listed",
+        "scopes by department when departmentId is provided",
+        "returns the highest ranked role",
+        "returns null when there are no assignments"
+      ],
+      "count": 5
+    },
+    {
+      "rel": "src/lib/banners/hero-display.test.ts",
+      "describes": [
+        "hero-display"
+      ],
+      "its": [
+        "normalizes whitespace",
+        "treats university name labels as generic",
+        "hides generic hero titles",
+        "hides subtitle when it matches title or is generic"
+      ],
+      "count": 4
+    },
+    {
+      "rel": "src/lib/calendar/month.test.ts",
+      "describes": [
+        "calendar/month"
+      ],
+      "its": [
+        "parses valid year and month",
+        "falls back for invalid year or month",
+        "computes days and first weekday",
+        "shifts months across year boundary"
+      ],
+      "count": 4
+    },
+    {
+      "rel": "src/lib/data/homepage-public.smoke.test.ts",
+      "describes": [
+        "homepage + college microsite public smoke (structure)"
+      ],
+      "its": [
+        "resolves homepage college cards to public college URLs",
+        "maps alias CMS slug onto legacy college card",
+        "builds college microsite home and section paths",
+        "office portal layout needs portal data load for microsite home"
+      ],
+      "count": 4
+    },
+    {
+      "rel": "src/lib/data/pagination.test.ts",
+      "describes": [
+        "pagination"
+      ],
+      "its": [
+        "parses positive page numbers with fallback",
+        "builds paginated result and range"
+      ],
+      "count": 2
+    },
+    {
+      "rel": "src/lib/faculty/parse-legacy-profile.test.ts",
+      "describes": [
+        "parse-legacy-profile"
+      ],
+      "its": [
+        "detects plain legacy profile text",
+        "splits content into titled sections",
+        "parses key/value lines and tabular rows"
+      ],
+      "count": 3
+    },
+    {
+      "rel": "src/lib/html/extract-pdf-url.test.ts",
+      "describes": [
+        "extractPdfUrlFromHtml",
+        "isPrimarilyPdfHtml",
+        "extractPdfCaptionFromHtml"
+      ],
+      "its": [
+        "returns null for empty html",
+        "extracts pdf from iframe src",
+        "extracts pdf from anchor href when no iframe",
+        "returns null when no pdf url is present",
+        "is true for short pdf-only iframe content",
+        "is false for long body content that also links a pdf",
+        "is false when there is no pdf",
+        "returns short caption text",
+        "returns null for long stripped text"
+      ],
+      "count": 9
+    },
+    {
+      "rel": "src/lib/html/has-cms-html-content.test.ts",
+      "describes": [
+        "hasCmsHtmlContent"
+      ],
+      "its": [
+        "is false for empty values",
+        "is true when visible text remains",
+        "is true for media-only markup without text",
+        "ignores script and style text"
+      ],
+      "count": 4
+    },
+    {
+      "rel": "src/lib/html/sanitize-cms-html.test.ts",
+      "describes": [
+        "sanitizeCmsHtml",
+        "normalizeCmsHtml"
+      ],
+      "its": [
+        "returns empty string for empty input",
+        "keeps same-origin pdf iframe src",
+        "keeps azure blob pdf iframe src",
+        "strips font-family and text-align from inline styles",
+        "removes script tags",
+        "adds a default title on iframe without title",
+        "promotes a single short plain line to h2",
+        "wraps longer plain sentence text in a paragraph",
+        "promotes plain heading-like lines to h2",
+        "leaves existing block html intact"
+      ],
+      "count": 10
+    },
+    {
+      "rel": "src/lib/i18n/menu-label.test.ts",
+      "describes": [
+        "menu-label"
+      ],
+      "its": [
+        "uppercases English nav labels",
+        "title-cases submenu labels and keeps small words lowercase",
+        "leaves Hindi unchanged"
+      ],
+      "count": 3
+    },
+    {
+      "rel": "src/lib/i18n/pick-bilingual.test.ts",
+      "describes": [
+        "pickBilingual"
+      ],
+      "its": [
+        "prefers hindi when lang is hi",
+        "falls back to english when hindi is empty",
+        "prefers english when lang is en",
+        "falls back to hindi when english is empty",
+        "returns empty string when both missing"
+      ],
+      "count": 5
+    },
+    {
+      "rel": "src/lib/media/video-playback.test.ts",
+      "describes": [
+        "getVideoPlayback",
+        "isHttpUrl"
+      ],
+      "its": [
+        "embeds YouTube watch, short, and youtu.be URLs",
+        "embeds Vimeo URLs",
+        "treats other http(s) URLs as file playback",
+        "rejects empty and non-http URLs",
+        "validates http(s) only"
+      ],
+      "count": 5
+    },
+    {
+      "rel": "src/lib/pages/layout-config.test.ts",
+      "describes": [
+        "layout-config"
+      ],
+      "its": [
+        "returns presets by template",
+        "merges stored boolean overrides onto presets",
+        "detects complete layout config and parses JSON",
+        "preserves locked layout keys when HOD saves",
+        "detects college layout pages and office data needs"
+      ],
+      "count": 5
+    },
+    {
+      "rel": "src/lib/pages/microsite-kind.test.ts",
+      "describes": [
+        "microsite-kind"
+      ],
+      "its": [
+        "detects microsite roots",
+        "infers academic vs directorate from parent slug"
+      ],
+      "count": 2
+    },
+    {
+      "rel": "src/lib/pages/resolve-public-path.test.ts",
+      "describes": [
+        "resolve-public-path"
+      ],
+      "its": [
+        "detects colleges container and college ancestry",
+        "resolves college root page type under colleges container",
+        "builds ancestor chain for child pages",
+        "maps public paths for college section, subsection, and PG studies",
+        "computes placement and path from page map"
+      ],
+      "count": 5
+    },
+    {
+      "rel": "src/lib/pages/routes.test.ts",
+      "describes": [
+        "routes helpers"
+      ],
+      "its": [
+        "maps public page paths by type",
+        "maps HRM / estate CMS pages to college menu slugs",
+        "uses /pages home for HRM and estate microsites",
+        "builds college section and contact paths",
+        "maps pg-studies nested url segments",
+        "detects mega menu depth"
+      ],
+      "count": 6
+    },
+    {
+      "rel": "src/lib/security/rate-limit.test.ts",
+      "describes": [
+        "checkRateLimit",
+        "clientIpFromHeaders"
+      ],
+      "its": [
+        "allows requests under the limit and blocks when exceeded",
+        "starts a new window after reset",
+        "prefers first x-forwarded-for hop",
+        "falls back to x-real-ip then unknown"
+      ],
+      "count": 4
+    },
+    {
+      "rel": "src/lib/social/public-social-links.test.ts",
+      "describes": [
+        "socialLinksFromSettings"
+      ],
+      "its": [
+        "omits empty platforms and returns configured links"
+      ],
+      "count": 1
+    },
+    {
+      "rel": "src/lib/storage/config.test.ts",
+      "describes": [
+        "storage path builders"
+      ],
+      "its": [
+        "builds deterministic blob keys and sanitizes filenames"
+      ],
+      "count": 1
+    },
+    {
+      "rel": "src/lib/storage/upload-pipeline.smoke.test.ts",
+      "describes": [
+        "upload pipeline smoke"
+      ],
+      "its": [
+        "accepts JPEG through validate → path → public URL",
+        "accepts PDF news attachment end-to-end",
+        "accepts page featured image path after validation",
+        "rejects executable and magic-byte mismatches before upload",
+        "accepts MP4 via media upload pipeline and rejects PDF as media"
+      ],
+      "count": 5
+    },
+    {
+      "rel": "src/lib/storage/urls.test.ts",
+      "describes": [
+        "storage urls"
+      ],
+      "its": [
+        "builds blob URLs from account and container",
+        "maps legacy buckets onto a single configured container",
+        "resolves stored paths and absolute URLs"
+      ],
+      "count": 3
+    },
+    {
+      "rel": "src/lib/storage/validate.test.ts",
+      "describes": [
+        "sniffUploadMime",
+        "validateUploadFile",
+        "validateMediaUploadFile",
+        "assertUploadMagicBytes",
+        "sanitizeFileName"
+      ],
+      "its": [
+        "detects common image and document magic bytes",
+        "detects ZIP and OLE containers",
+        "accepts allowed types under size limits",
+        "rejects disallowed types and oversized files",
+        "allows video types within media limits",
+        "rejects mismatched content vs declared type",
+        "allows JPEG bytes claimed as PNG (image quirk)",
+        "strips unsafe characters"
+      ],
+      "count": 8
+    },
+    {
+      "rel": "src/lib/utils/format-datetime.test.ts",
+      "describes": [
+        "format-datetime"
+      ],
+      "its": [
+        "formats valid ISO timestamps in Asia/Kolkata",
+        "returns original string for invalid dates",
+        "detects expiry against now"
+      ],
+      "count": 3
+    },
+    {
+      "rel": "src/lib/utils/slug.test.ts",
+      "describes": [
+        "slugify"
+      ],
+      "its": [
+        "lowercases and hyphenates spaces",
+        "strips punctuation and collapses separators",
+        "trims leading and trailing hyphens",
+        "returns empty string for empty input"
+      ],
+      "count": 4
+    },
+    {
+      "rel": "src/lib/validations/auth.test.ts",
+      "describes": [
+        "loginSchema",
+        "passwordResetRequestSchema",
+        "passwordResetConfirmSchema",
+        "changePasswordSchema"
+      ],
+      "its": [
+        "accepts valid credentials",
+        "rejects invalid email and short password",
+        "requires a valid email",
+        "requires matching passwords",
+        "requires match and different new password"
+      ],
+      "count": 5
+    },
+    {
+      "rel": "src/lib/validations/college-register.test.ts",
+      "describes": [
+        "college-register schemas"
+      ],
+      "its": [
+        "validates department registration",
+        "validates faculty registration and assignment"
+      ],
+      "count": 2
+    },
+    {
+      "rel": "src/lib/validations/college-wizard.test.ts",
+      "describes": [
+        "collegeWizardSchema"
+      ],
+      "its": [
+        "accepts a valid academic college wizard payload",
+        "rejects bad slug / missing required contact fields"
+      ],
+      "count": 2
+    },
+    {
+      "rel": "src/lib/validations/downloads.test.ts",
+      "describes": [
+        "downloads validation"
+      ],
+      "its": [
+        "validates download form payload",
+        "parses tags and formats categories"
+      ],
+      "count": 2
+    },
+    {
+      "rel": "src/lib/validations/media.test.ts",
+      "describes": [
+        "media schemas"
+      ],
+      "its": [
+        "validates album form fields",
+        "requires http(s) video URLs when provided"
+      ],
+      "count": 2
+    },
+    {
+      "rel": "src/lib/validations/medium-forms.test.ts",
+      "describes": [
+        "bannerFormSchema",
+        "circularFormSchema",
+        "homepage schemas",
+        "relatedLinkFormSchema",
+        "feedbackUpdateSchema",
+        "contact-emails helpers"
+      ],
+      "its": [
+        "requires title and accepts optional URL",
+        "requires English title and status",
+        "validates quote, dignitary, initiative, and CTA",
+        "requires title and valid URL",
+        "accepts admin status updates",
+        "parses and normalizes email lists",
+        "enforces required contact emails when configured"
+      ],
+      "count": 7
+    },
+    {
+      "rel": "src/lib/validations/menus.test.ts",
+      "describes": [
+        "menus validation"
+      ],
+      "its": [
+        "validates menu locations",
+        "requires an English label"
+      ],
+      "count": 2
+    },
+    {
+      "rel": "src/lib/validations/news.test.ts",
+      "describes": [
+        "newsFormSchema"
+      ],
+      "its": [
+        "accepts a minimal valid news item",
+        "requires english title and valid slug",
+        "accepts notice types and coerces featured flags",
+        "rejects unknown notice type"
+      ],
+      "count": 4
+    },
+    {
+      "rel": "src/lib/validations/office-portal.test.ts",
+      "describes": [
+        "office-portal schemas"
+      ],
+      "its": [
+        "requires contact label and value",
+        "requires staff name and designation",
+        "requires ticker headline",
+        "requires sidebar URL or English content"
+      ],
+      "count": 4
+    },
+    {
+      "rel": "src/lib/validations/pages.test.ts",
+      "describes": [
+        "pageFormSchema"
+      ],
+      "its": [
+        "accepts a minimal valid page",
+        "requires english title and valid slug",
+        "requires address and phone when college contact location is enabled",
+        "accepts college contact location when address, phone, and email are set",
+        "rejects out-of-range map coordinates"
+      ],
+      "count": 5
+    },
+    {
+      "rel": "src/lib/validations/pg-seminar-registration.test.ts",
+      "describes": [
+        "pgSeminarRegistrationSchema",
+        "yes/no helpers"
+      ],
+      "its": [
+        "accepts a minimal valid registration",
+        "rejects inverted date range",
+        "requires country when foreigner is yes",
+        "parses and converts yes/no values"
+      ],
+      "count": 4
+    },
+    {
+      "rel": "src/lib/validations/public-feedback.test.ts",
+      "describes": [
+        "publicFeedbackSchema"
+      ],
+      "its": [
+        "accepts valid public feedback",
+        "requires name, email, department, subject, and message length"
+      ],
+      "count": 2
+    },
+    {
+      "rel": "src/lib/validations/redirects.test.ts",
+      "describes": [
+        "redirectFormSchema"
+      ],
+      "its": [
+        "accepts valid absolute-path redirects",
+        "rejects paths without leading slash and invalid types"
+      ],
+      "count": 2
+    },
+    {
+      "rel": "src/lib/validations/settings.test.ts",
+      "describes": [
+        "securitySettingsSchema",
+        "socialMediaSettingsSchema"
+      ],
+      "its": [
+        "accepts boolean flags (coerce treats non-empty strings as true)",
+        "accepts empty strings to clear URLs",
+        "accepts valid http(s) URLs",
+        "rejects non-http URLs"
+      ],
+      "count": 4
+    },
+    {
+      "rel": "src/lib/validations/tenders.test.ts",
+      "describes": [
+        "tenderFormSchema",
+        "corrigendumFormSchema",
+        "formatTenderCategory"
+      ],
+      "its": [
+        "accepts a minimal valid tender",
+        "requires english title and slug format",
+        "accepts known lifecycle statuses",
+        "requires a title",
+        "capitalizes category labels"
+      ],
+      "count": 5
+    },
+    {
+      "rel": "src/lib/validations/users.test.ts",
+      "describes": [
+        "inviteUserSchema",
+        "assignRoleSchema",
+        "updateUserSchema",
+        "assignCollegeSchema / assignDepartmentHodSchema"
+      ],
+      "its": [
+        "accepts a basic invite",
+        "requires college role and college together",
+        "requires department for scoped roles",
+        "rejects department on university-wide roles",
+        "requires display name",
+        "requires valid uuids"
+      ],
+      "count": 6
+    },
+    {
+      "rel": "src/smoke/public-pages.smoke.test.ts",
+      "describes": [
+        "public page HTTP smoke"
+      ],
+      "its": [
+        "homepage returns 200 with site branding",
+        "college microsite home returns 200"
+      ],
+      "count": 2
+    }
+  ]
+}

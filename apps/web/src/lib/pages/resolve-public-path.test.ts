@@ -1,3 +1,8 @@
+/**
+ * Tests for `@/lib/pages/resolve-public-path`.
+ * Covers college ancestry, public path resolution, and page placement helpers.
+ */
+
 import { describe, expect, it } from "vitest";
 
 import {
@@ -11,7 +16,9 @@ import {
   resolvePublicPagePath,
 } from "@/lib/pages/resolve-public-path";
 
+// Suite: resolve-public-path helpers.
 describe("resolve-public-path", () => {
+  // Detects colleges container slug and college parent ancestry.
   it("detects colleges container and college ancestry", () => {
     expect(isCollegesContainerSlug("colleges")).toBe(true);
     expect(isCollegesContainerSlug("other")).toBe(false);
@@ -36,6 +43,7 @@ describe("resolve-public-path", () => {
     ).toBe(false);
   });
 
+  // College root type stays college only under colleges container (or no parent).
   it("resolves college root page type under colleges container", () => {
     expect(resolveCollegeRootPageType("college", null, null)).toBe("college");
     expect(resolveCollegeRootPageType("college", "p1", "colleges")).toBe(
@@ -47,6 +55,7 @@ describe("resolve-public-path", () => {
     expect(resolveCollegeRootPageType("standard", null, null)).toBe("standard");
   });
 
+  // Builds parent/grandparent ancestor objects for nested child pages.
   it("builds ancestor chain for child pages", () => {
     expect(
       ancestorsForChildPage({
@@ -76,6 +85,7 @@ describe("resolve-public-path", () => {
     });
   });
 
+  // Maps section/subsection/PG/college/standard slugs to public URLs.
   it("maps public paths for college section, subsection, and PG studies", () => {
     expect(
       resolvePublicPagePath("about", "standard", {
@@ -104,6 +114,7 @@ describe("resolve-public-path", () => {
     expect(resolvePublicPagePath("about")).toBe("/pages/about");
   });
 
+  // Placement and path resolution walk the page map correctly.
   it("computes placement and path from page map", () => {
     const college = {
       id: "c1",

@@ -1,3 +1,8 @@
+/**
+ * Tests for `@/lib/storage/config` path builders.
+ * Covers deterministic blob keys and filename sanitization in path segments.
+ */
+
 import { describe, expect, it } from "vitest";
 
 import {
@@ -10,7 +15,9 @@ import {
   tenderAttachmentPath,
 } from "@/lib/storage/config";
 
+// Suite: storage path builders.
 describe("storage path builders", () => {
+  // Builds expected blob keys and sanitizes unsafe filename characters.
   it("builds deterministic blob keys and sanitizes filenames", () => {
     expect(newsAttachmentPath("n1", "Report (1).pdf")).toBe(
       "news/n1/Report__1_.pdf",

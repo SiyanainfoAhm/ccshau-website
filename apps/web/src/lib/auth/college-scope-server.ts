@@ -13,6 +13,7 @@ import {
   isUniversityAdminSession,
   type CollegeAssignment,
 } from "./college-scope";
+import { evaluateCmsPageAccess } from "./cms-page-access";
 
 export type { CollegeAssignment };
 
@@ -63,50 +64,32 @@ export async function assertPageAccess(
   const page = data as Page;
   const collegeRootId = page.college_root_id ?? (await getPageCollegeRootId(page));
 
-  if (session.departmentPageAssignment) {
-    if (session.departmentPageAssignment.departmentPageId !== page.id) {
-      throw new Error("You do not have permission to access this department page.");
-    }
-    return page;
+  let allowedCmsModules: Awaited<ReturnType<typeof getAllowedCmsModulesForSession>> = null;
+  if (
+    !session.departmentPageAssignment &&
+    !isCollegeOnlyUser(session) &&
+    !isSuperAdminSession(session) &&
+    !isUniversityAdminSession(session) &&
+    hasUniversityCmsRole(session)
+  ) {
+    allowedCmsModules = await getAllowedCmsModulesForSession(session);
   }
 
-  if (isCollegeOnlyUser(session)) {
-    if (!collegeRootId || session.collegeAssignment?.collegePageId !== collegeRootId) {
-      throw new Error("You do not have permission to access this college page.");
-    }
-    return page;
+  const access = evaluateCmsPageAccess(
+    session,
+    {
+      pageId: page.id,
+      collegeRootId,
+      departmentId: page.department_id,
+    },
+    allowedCmsModules,
+  );
+
+  if (!access.ok) {
+    throw new Error(access.reason);
   }
 
-  if (isSuperAdminSession(session) || isUniversityAdminSession(session)) return page;
-
-  if (hasUniversityCmsRole(session)) {
-    const allowedModules = await getAllowedCmsModulesForSession(session);
-    const strictDepartmentScope = Boolean(session.departmentId && allowedModules !== null);
-
-    if (strictDepartmentScope) {
-      // Match listPagesForAdmin: department_id must match. Do not 404 pages that
-      // appear in the list solely because college_root_id is also set.
-      if (page.department_id !== session.departmentId) {
-        throw new Error("You do not have permission to access this page.");
-      }
-      return page;
-    }
-
-    if (collegeRootId) return page;
-    if (session.departmentId && page.department_id && page.department_id !== session.departmentId) {
-      throw new Error("You do not have permission to access this page.");
-    }
-    return page;
-  }
-
-  if (session.collegeAssignment) {
-    if (collegeRootId !== session.collegeAssignment.collegePageId) {
-      throw new Error("You do not have permission to access this college page.");
-    }
-    return page;
-  }
-
-  throw new Error("You do not have permission to access this page.");
+  return page;
 }
 
 export async function listCollegesForAdmin(): Promise<

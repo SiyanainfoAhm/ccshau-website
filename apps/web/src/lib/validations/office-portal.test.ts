@@ -1,3 +1,7 @@
+/**
+ * Vitest coverage for office-portal schemas: contact lines, staff,
+ * news ticker items, and sidebar items (URL/content/linked page rules).
+ */
 import { describe, expect, it } from "vitest";
 
 import {
@@ -9,7 +13,9 @@ import {
 
 const UUID = "11111111-1111-4111-8111-111111111111";
 
+// Suite: office portal page block field validation.
 describe("office-portal schemas", () => {
+  // Contact lines need both labelEn and valueEn.
   it("requires contact label and value", () => {
     expect(
       pageContactLineSchema.safeParse({
@@ -23,6 +29,7 @@ describe("office-portal schemas", () => {
     ).toBe(false);
   });
 
+  // Staff requires nameEn and non-empty designationEn.
   it("requires staff name and designation", () => {
     expect(
       pageStaffSchema.safeParse({
@@ -39,6 +46,7 @@ describe("office-portal schemas", () => {
     ).toBe(false);
   });
 
+  // Ticker items require non-empty titleEn.
   it("requires ticker headline", () => {
     expect(
       pageNewsTickerItemSchema.safeParse({ titleEn: "Notice" }).success,
@@ -48,6 +56,7 @@ describe("office-portal schemas", () => {
     );
   });
 
+  // Sidebar needs href, contentEn, or linkedPageId; bare label fails.
   it("requires sidebar URL or English content", () => {
     expect(
       pageSidebarItemSchema.safeParse({

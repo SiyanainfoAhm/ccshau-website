@@ -1,3 +1,8 @@
+/**
+ * Tests for `@/lib/pages/microsite-kind`.
+ * Covers microsite root detection and academic vs directorate kind inference.
+ */
+
 import { describe, expect, it } from "vitest";
 
 import {
@@ -5,7 +10,9 @@ import {
   isMicrositeRoot,
 } from "@/lib/pages/microsite-kind";
 
+// Suite: microsite kind helpers.
 describe("microsite-kind", () => {
+  // Root when id matches college_root_id and page_type is college.
   it("detects microsite roots", () => {
     expect(
       isMicrositeRoot({
@@ -30,6 +37,7 @@ describe("microsite-kind", () => {
     ).toBe(false);
   });
 
+  // Parent slug "colleges" => academic; otherwise directorate (incl. null parent).
   it("infers academic vs directorate from parent slug", () => {
     const parents = new Map([
       ["p-colleges", "colleges"],

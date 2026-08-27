@@ -1,3 +1,7 @@
+/**
+ * Vitest coverage for publicFeedbackSchema: public site feedback form
+ * (name, email, department UUID, subject, message length).
+ */
 import { describe, expect, it } from "vitest";
 
 import { publicFeedbackSchema } from "@/lib/validations/public-feedback";
@@ -12,11 +16,14 @@ const baseFeedback = {
   message: "Please update the contact number on the page.",
 };
 
+// Suite: public feedback submission form validation.
 describe("publicFeedbackSchema", () => {
+  // Accepts complete valid feedback payload.
   it("accepts valid public feedback", () => {
     expect(publicFeedbackSchema.safeParse(baseFeedback).success).toBe(true);
   });
 
+  // Rejects short name, bad email, non-UUID dept, short subject/message.
   it("requires name, email, department, subject, and message length", () => {
     expect(
       publicFeedbackSchema.safeParse({ ...baseFeedback, submitterName: "A" })

@@ -1,3 +1,7 @@
+/**
+ * Vitest coverage for pgSeminarRegistrationSchema and yes/no helpers:
+ * minimal registration, date range order, foreigner/country rules.
+ */
 import { describe, expect, it } from "vitest";
 
 import {
@@ -6,6 +10,7 @@ import {
   yesNoToBoolean,
 } from "@/lib/validations/pg-seminar-registration";
 
+// Suite: PG seminar registration form validation.
 describe("pgSeminarRegistrationSchema", () => {
   const base = {
     studentName: "Student One",
@@ -14,10 +19,12 @@ describe("pgSeminarRegistrationSchema", () => {
     durationTo: "2026-01-03",
   };
 
+  // Accepts name, admission number, and ordered date range.
   it("accepts a minimal valid registration", () => {
     expect(pgSeminarRegistrationSchema.safeParse(base).success).toBe(true);
   });
 
+  // Rejects when durationFrom is after durationTo.
   it("rejects inverted date range", () => {
     expect(
       pgSeminarRegistrationSchema.safeParse({
@@ -28,6 +35,7 @@ describe("pgSeminarRegistrationSchema", () => {
     ).toBe(false);
   });
 
+  // Foreigner yes requires countryName; with country accepts.
   it("requires country when foreigner is yes", () => {
     expect(
       pgSeminarRegistrationSchema.safeParse({
@@ -45,7 +53,9 @@ describe("pgSeminarRegistrationSchema", () => {
   });
 });
 
+// Suite: yes/no parse and boolean conversion helpers.
 describe("yes/no helpers", () => {
+  // parseYesNo only allows yes/no; yesNoToBoolean maps yes/no/undefined.
   it("parses and converts yes/no values", () => {
     expect(parseYesNo("yes")).toBe("yes");
     expect(parseYesNo("maybe")).toBeUndefined();

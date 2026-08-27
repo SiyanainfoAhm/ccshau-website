@@ -1,7 +1,12 @@
+/**
+ * Vitest coverage for collegeWizardSchema: academic college bootstrap
+ * payload (title/slug/prefix/contact) and map coordinate bounds.
+ */
 import { describe, expect, it } from "vitest";
 
 import { collegeWizardSchema } from "@/lib/validations/college-wizard";
 
+// Suite: college creation wizard form validation.
 describe("collegeWizardSchema", () => {
   const base = {
     titleEn: "College of Agriculture",
@@ -12,6 +17,7 @@ describe("collegeWizardSchema", () => {
     email: "coa@hau.ac.in",
   };
 
+  // Accepts full payload; defaults blueprint and seedDefaultSections.
   it("accepts a valid academic college wizard payload", () => {
     const result = collegeWizardSchema.safeParse(base);
     expect(result.success).toBe(true);
@@ -21,6 +27,7 @@ describe("collegeWizardSchema", () => {
     }
   });
 
+  // Rejects bad slug, empty email, and out-of-range mapLat.
   it("rejects bad slug / missing required contact fields", () => {
     expect(
       collegeWizardSchema.safeParse({

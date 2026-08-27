@@ -1,3 +1,7 @@
+/**
+ * Vitest coverage for mediaAlbumFormSchema and mediaItemFormSchema:
+ * album title/slug/type, and video URL http(s) rules.
+ */
 import { describe, expect, it } from "vitest";
 
 import {
@@ -5,7 +9,9 @@ import {
   mediaItemFormSchema,
 } from "@/lib/validations/media";
 
+// Suite: media album and media item form validation.
 describe("media schemas", () => {
+  // Accepts kebab slug album; rejects spaced/invalid slug.
   it("validates album form fields", () => {
     expect(
       mediaAlbumFormSchema.safeParse({
@@ -25,6 +31,7 @@ describe("media schemas", () => {
     ).toBe(false);
   });
 
+  // Video URLs must be http(s); image items ok without videoUrl.
   it("requires http(s) video URLs when provided", () => {
     expect(
       mediaItemFormSchema.safeParse({

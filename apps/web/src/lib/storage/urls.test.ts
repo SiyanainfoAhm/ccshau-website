@@ -1,3 +1,8 @@
+/**
+ * Tests for `@/lib/storage/urls`.
+ * Covers Azure blob URL building and resolving stored/public media paths.
+ */
+
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -6,11 +11,13 @@ import {
   resolvePublicMediaUrl,
 } from "@/lib/storage/urls";
 
+// Suite: storage URL helpers.
 describe("storage urls", () => {
   afterEach(() => {
     vi.unstubAllEnvs();
   });
 
+  // Builds blob URLs from account/container and encodes path spaces.
   it("builds blob URLs from account and container", () => {
     vi.stubEnv("NEXT_PUBLIC_AZURE_STORAGE_ACCOUNT", "ccshau");
     vi.stubEnv("NEXT_PUBLIC_AZURE_STORAGE_CONTAINER", "");
@@ -25,6 +32,7 @@ describe("storage urls", () => {
     );
   });
 
+  // Legacy bucket names remap onto the single configured container.
   it("maps legacy buckets onto a single configured container", () => {
     vi.stubEnv("NEXT_PUBLIC_AZURE_STORAGE_BASE_URL", "https://ccshau.blob.core.windows.net");
     vi.stubEnv("NEXT_PUBLIC_AZURE_STORAGE_CONTAINER", "ccshaucontainer");
@@ -34,6 +42,7 @@ describe("storage urls", () => {
     );
   });
 
+  // Absolute URLs pass through; stored paths resolve; invalid paths return null.
   it("resolves stored paths and absolute URLs", () => {
     vi.stubEnv("NEXT_PUBLIC_AZURE_STORAGE_ACCOUNT", "ccshau");
     vi.stubEnv("NEXT_PUBLIC_AZURE_STORAGE_CONTAINER", "");
