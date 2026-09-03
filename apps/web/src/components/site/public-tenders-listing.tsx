@@ -7,6 +7,7 @@ import { FormEvent, useState } from "react";
 
 import { SiteFooter } from "@/components/design/shared/site-footer";
 import { SiteHeader } from "@/components/design/shared/site-header";
+import { useLanguage } from "@/components/design/shared/language-context";
 import { PublicPagination } from "@/components/site/public-pagination";
 import type { PaginatedResult } from "@/lib/data/pagination";
 import type { PublicTenderItem } from "@/lib/data/public-types";
@@ -33,8 +34,9 @@ export function PublicTendersListing({
   activeCategory: string;
   activeDepartmentId: string;
   searchQuery: string;
-  departments: { id: string; nameEn: string }[];
+  departments: { id: string; nameEn: string; nameHi: string | null }[];
 }) {
+  const { t } = useLanguage();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [keyword, setKeyword] = useState(searchQuery);
@@ -109,7 +111,7 @@ export function PublicTendersListing({
               <option value="">All departments</option>
               {departments.map((dept) => (
                 <option key={dept.id} value={dept.id}>
-                  {dept.nameEn}
+                  {t(dept.nameEn, dept.nameHi ?? dept.nameEn)}
                 </option>
               ))}
             </select>
@@ -174,7 +176,7 @@ export function PublicTendersListing({
                             href={`/tenders/${tender.slug}`}
                             className="font-medium text-slate-900 hover:text-emerald-800 hover:underline"
                           >
-                            {tender.titleEn}
+                            {t(tender.titleEn, tender.titleHi ?? tender.titleEn)}
                           </Link>
                         </div>
                         {tender.tenderNumber && (

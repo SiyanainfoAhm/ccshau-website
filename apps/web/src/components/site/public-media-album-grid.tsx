@@ -5,7 +5,9 @@ import { ChevronLeft, ChevronRight, Play, X, ZoomIn } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { buildImageAlt } from "@/lib/a11y/image-alt";
+import { useLanguage } from "@/components/design/shared/language-context";
 import { useModalA11y } from "@/lib/a11y/use-modal-a11y";
+import { pickBilingual } from "@/lib/i18n/pick-bilingual";
 import { publicCardClass } from "@/lib/design/public-page-classes";
 import type { PublicMediaItem } from "@/lib/data/public-types";
 import { getVideoPlayback } from "@/lib/media/video-playback";
@@ -22,6 +24,7 @@ export function PublicMediaAlbumGrid({
   items: PublicMediaItem[];
   albumTitleEn: string;
 }) {
+  const { lang } = useLanguage();
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const lightboxRef = useRef<HTMLDivElement>(null);
 
@@ -132,10 +135,18 @@ export function PublicMediaAlbumGrid({
                   </button>
                 ) : null}
               </div>
-              {(item.titleEn || item.captionEn) && (
+              {(item.titleEn || item.titleHi || item.captionEn || item.captionHi) && (
                 <figcaption className="p-4 text-sm">
-                  {item.titleEn && <p className="font-semibold text-slate-900">{item.titleEn}</p>}
-                  {item.captionEn && <p className="mt-1 text-slate-600">{item.captionEn}</p>}
+                  {(item.titleEn || item.titleHi) && (
+                    <p className="font-semibold text-slate-900">
+                      {pickBilingual(lang, item.titleEn, item.titleHi)}
+                    </p>
+                  )}
+                  {(item.captionEn || item.captionHi) && (
+                    <p className="mt-1 text-slate-600">
+                      {pickBilingual(lang, item.captionEn, item.captionHi)}
+                    </p>
+                  )}
                 </figcaption>
               )}
             </figure>
@@ -207,13 +218,20 @@ export function PublicMediaAlbumGrid({
               sizes="100vw"
               priority
             />
-            {(activeImage.item.titleEn || activeImage.item.captionEn) && (
+            {(activeImage.item.titleEn ||
+              activeImage.item.titleHi ||
+              activeImage.item.captionEn ||
+              activeImage.item.captionHi) && (
               <div className="pointer-events-auto mt-3 max-w-3xl text-center text-sm text-white/90">
-                {activeImage.item.titleEn && (
-                  <p className="font-semibold">{activeImage.item.titleEn}</p>
+                {(activeImage.item.titleEn || activeImage.item.titleHi) && (
+                  <p className="font-semibold">
+                    {pickBilingual(lang, activeImage.item.titleEn, activeImage.item.titleHi)}
+                  </p>
                 )}
-                {activeImage.item.captionEn && (
-                  <p className="mt-1 text-white/75">{activeImage.item.captionEn}</p>
+                {(activeImage.item.captionEn || activeImage.item.captionHi) && (
+                  <p className="mt-1 text-white/75">
+                    {pickBilingual(lang, activeImage.item.captionEn, activeImage.item.captionHi)}
+                  </p>
                 )}
               </div>
             )}

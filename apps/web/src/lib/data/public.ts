@@ -92,7 +92,11 @@ function isBannerActive(banner: Banner, now = Date.now()): boolean {
 function resolveMenuHref(item: MenuItem, pageById: Map<string, Page>): string {
   if (item.page_id) {
     const page = pageById.get(item.page_id);
-    return page ? resolvePagePublicPath(page, pageById) : "#";
+    if (page) return resolvePagePublicPath(page, pageById);
+    // Fall back to stored href when page_id is set but missing from the published map
+    // (e.g. pagination gaps or unpublished target).
+    if (item.href?.trim()) return item.href.trim();
+    return "#";
   }
   return item.href ?? "#";
 }
@@ -384,17 +388,23 @@ function mapTenderToPublicItem(
   };
 }
 
-export async function getPublicTenderFilterDepartments(): Promise<{ id: string; nameEn: string }[]> {
+export async function getPublicTenderFilterDepartments(): Promise<
+  { id: string; nameEn: string; nameHi: string | null }[]
+> {
   const admin = createAdminClient();
   if (!admin) return [];
 
   const { data } = await admin
     .from(Tables.departments)
-    .select("id, name_en")
+    .select("id, name_en, name_hi")
     .eq("is_active", true)
     .order("sort_order");
 
-  return (data ?? []).map((dept) => ({ id: dept.id, nameEn: dept.name_en }));
+  return (data ?? []).map((dept) => ({
+    id: dept.id,
+    nameEn: dept.name_en,
+    nameHi: dept.name_hi,
+  }));
 }
 
 export async function getPublicTenders(options?: {
@@ -526,6 +536,29 @@ function loadPublishedPageById(pages: Page[] | null): Map<string, Page> {
   return new Map((pages ?? []).map((p) => [p.id, p]));
 }
 
+/** Supabase caps each response at 1000 rows — page through for menu href resolution. */
+async function listPublishedPagesForPathMap(
+  admin: NonNullable<ReturnType<typeof createAdminClient>>,
+): Promise<Page[]> {
+  const pageSize = 1000;
+  const all: Page[] = [];
+
+  for (let from = 0; ; from += pageSize) {
+    const { data } = await admin
+      .from(Tables.pages)
+      .select("id, slug, page_type, parent_id")
+      .eq("status", "published")
+      .order("id")
+      .range(from, from + pageSize - 1);
+
+    if (!data?.length) break;
+    all.push(...(data as Page[]));
+    if (data.length < pageSize) break;
+  }
+
+  return all;
+}
+
 async function getMenuLinks(location: "header" | "footer" | "quick_links"): Promise<PublicQuickLink[]> {
   const admin = createAdminClient();
   if (!admin) return mockQuickLinkItems();
@@ -539,19 +572,19 @@ async function getMenuLinks(location: "header" | "footer" | "quick_links"): Prom
 
   if (!menu) return location === "header" ? [] : mockQuickLinkItems();
 
-  const [{ data: items }, { data: pages }] = await Promise.all([
+  const [{ data: items }, pages] = await Promise.all([
     admin
       .from(Tables.menuItems)
       .select(MENU_ITEM_PUBLIC_SELECT)
       .eq("menu_id", menu.id)
       .eq("is_active", true)
       .order("sort_order"),
-    admin.from(Tables.pages).select("id, slug, page_type, parent_id").eq("status", "published"),
+    listPublishedPagesForPathMap(admin),
   ]);
 
   if (!items?.length) return location === "header" ? [] : mockQuickLinkItems();
 
-  const pageById = loadPublishedPageById(pages as Page[]);
+  const pageById = loadPublishedPageById(pages);
 
   if (location === "header") return [];
 
@@ -586,18 +619,18 @@ async function loadPublicSiteChrome(): Promise<PublicSiteChrome> {
   let headerNav: PublicNavItem[] = mockHeaderNav();
 
   if (headerMenu) {
-    const [{ data: headerItems }, { data: pages }] = await Promise.all([
+    const [{ data: headerItems }, pages] = await Promise.all([
       admin
         .from(Tables.menuItems)
         .select(MENU_ITEM_PUBLIC_SELECT)
         .eq("menu_id", headerMenu.id)
         .eq("is_active", true)
         .order("sort_order"),
-      admin.from(Tables.pages).select("id, slug, page_type, parent_id").eq("status", "published"),
+      listPublishedPagesForPathMap(admin),
     ]);
 
     if (headerItems?.length) {
-      const pageById = loadPublishedPageById(pages as Page[]);
+      const pageById = loadPublishedPageById(pages);
       headerNav = buildNavTree(headerItems as MenuItem[], pageById);
     }
   }
@@ -728,7 +761,7 @@ export async function getOfficePortalDataForPage(
       .order("sort_order"),
     pageById
       ? Promise.resolve({ data: [...pageById.values()] })
-      : admin.from(Tables.pages).select("id, slug, page_type, parent_id").eq("status", "published"),
+      : listPublishedPagesForPathMap(admin).then((pages) => ({ data: pages })),
   ]);
 
   const pagesMap =
@@ -1352,17 +1385,23 @@ export async function getPublicDownloadTags(): Promise<string[]> {
   return [...tagSet].sort((a, b) => a.localeCompare(b));
 }
 
-export async function getPublicDownloadFilterDepartments(): Promise<{ id: string; nameEn: string }[]> {
+export async function getPublicDownloadFilterDepartments(): Promise<
+  { id: string; nameEn: string; nameHi: string | null }[]
+> {
   const admin = createAdminClient();
   if (!admin) return [];
 
   const { data } = await admin
     .from(Tables.departments)
-    .select("id, name_en")
+    .select("id, name_en, name_hi")
     .eq("is_active", true)
     .order("sort_order");
 
-  return (data ?? []).map((dept) => ({ id: dept.id, nameEn: dept.name_en }));
+  return (data ?? []).map((dept) => ({
+    id: dept.id,
+    nameEn: dept.name_en,
+    nameHi: dept.name_hi,
+  }));
 }
 
 export async function getPublishedDownloads(options?: {

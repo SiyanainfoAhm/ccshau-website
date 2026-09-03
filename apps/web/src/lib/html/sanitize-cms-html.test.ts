@@ -44,6 +44,16 @@ describe("sanitizeCmsHtml", () => {
     expect(out).toContain("Body");
   });
 
+  // Strips legacy Word background paint from inline styles.
+  it("strips background and background-color from inline styles", () => {
+    const html =
+      '<span style="font-size: 18px; background: white; background-color: rgb(255, 255, 255); margin: 0;">Text</span>';
+    const out = sanitizeCmsHtml(html);
+    expect(out).not.toMatch(/background/i);
+    expect(out).not.toMatch(/font-size/i);
+    expect(out).toContain("Text");
+  });
+
   // Script tags are removed while surrounding safe content remains.
   it("removes script tags", () => {
     const out = sanitizeCmsHtml('<p>Safe</p><script>alert(1)</script>');

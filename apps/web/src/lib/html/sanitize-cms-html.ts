@@ -15,6 +15,17 @@ const CMS_TYPOGRAPHY_STYLE_PROPS = new Set([
   "word-spacing",
 ]);
 
+/** Legacy Word/Froala paste — strip box paint so theme background shows through. */
+const CMS_PAINT_STYLE_PROPS = new Set([
+  "background",
+  "background-color",
+  "background-image",
+  "background-repeat",
+  "background-position",
+  "background-size",
+  "background-attachment",
+]);
+
 function stripCmsPaintStyles(style: string | undefined): string | undefined {
   if (!style) return undefined;
   const cleaned = style
@@ -23,7 +34,10 @@ function stripCmsPaintStyles(style: string | undefined): string | undefined {
     .filter(Boolean)
     .filter((part) => {
       const prop = part.split(":")[0]?.trim().toLowerCase();
-      return Boolean(prop) && !CMS_TYPOGRAPHY_STYLE_PROPS.has(prop);
+      if (!prop) return false;
+      if (CMS_TYPOGRAPHY_STYLE_PROPS.has(prop)) return false;
+      if (CMS_PAINT_STYLE_PROPS.has(prop)) return false;
+      return true;
     })
     .join("; ");
   return cleaned || undefined;
