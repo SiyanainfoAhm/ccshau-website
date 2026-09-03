@@ -1287,6 +1287,17 @@ html.dark #main-content :where(.border-slate-200, .border-emerald-100) {
   font-size: var(--type-body) !important;
   line-height: var(--type-body-line) !important;
   font-weight: 400;
+  color: var(--type-body-color);
+}
+
+/* Legacy CMS often sets background:white on spans — keep theme surface visible. */
+.cms-html :where(p, span, div, li, td, th, strong, em, a) {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+.cms-html :where(span, p, li, td, th) {
+  color: inherit;
 }
 
 /* Full-width article pages (About Us, etc.): photo + copy use the shell width. */

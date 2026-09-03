@@ -29,14 +29,20 @@ export function PublicCollegeGallery({
   const { lang, t } = useLanguage();
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const lightboxRef = useRef<HTMLDivElement>(null);
+  const visibleImages = images.filter((image) => Boolean(image.thumbnailUrl ?? image.imageUrl));
+  const imageCount = visibleImages.length;
 
   const close = useCallback(() => setActiveIndex(null), []);
   const showPrev = useCallback(() => {
-    setActiveIndex((index) => (index == null ? null : (index - 1 + images.length) % images.length));
-  }, [images.length]);
+    setActiveIndex((index) =>
+      index == null || imageCount === 0 ? null : (index - 1 + imageCount) % imageCount,
+    );
+  }, [imageCount]);
   const showNext = useCallback(() => {
-    setActiveIndex((index) => (index == null ? null : (index + 1) % images.length));
-  }, [images.length]);
+    setActiveIndex((index) =>
+      index == null || imageCount === 0 ? null : (index + 1) % imageCount,
+    );
+  }, [imageCount]);
 
   useModalA11y({
     open: activeIndex != null,
@@ -56,9 +62,7 @@ export function PublicCollegeGallery({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [activeIndex, showNext, showPrev]);
 
-  const visibleImages = images.filter((image) => Boolean(image.thumbnailUrl ?? image.imageUrl));
-
-  if (visibleImages.length === 0) {
+  if (imageCount === 0) {
     return (
       <p className="text-center text-slate-500">{t("Gallery images coming soon.", "गैलरी छवियाँ जल्द आ रही हैं।")}</p>
     );
@@ -130,27 +134,36 @@ export function PublicCollegeGallery({
           />
           <button
             type="button"
-            onClick={close}
-            className="absolute right-4 top-4 z-10 rounded-full bg-white/10 p-2 text-white transition hover:bg-white/20"
+            onClick={(event) => {
+              event.stopPropagation();
+              close();
+            }}
+            className="absolute right-4 top-4 z-20 rounded-full bg-white/10 p-2 text-white transition hover:bg-white/20"
             aria-label={t("Close", "बंद करें")}
           >
             <X className="h-6 w-6" aria-hidden />
           </button>
 
-          {visibleImages.length > 1 && (
+          {imageCount > 1 && (
             <>
               <button
                 type="button"
-                onClick={showPrev}
-                className="absolute left-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white transition hover:bg-white/20"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  showPrev();
+                }}
+                className="absolute left-4 top-1/2 z-20 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white transition hover:bg-white/20"
                 aria-label={t("Previous image", "पिछली छवि")}
               >
                 <ChevronLeft className="h-7 w-7" aria-hidden />
               </button>
               <button
                 type="button"
-                onClick={showNext}
-                className="absolute right-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white transition hover:bg-white/20"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  showNext();
+                }}
+                className="absolute right-4 top-1/2 z-20 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white transition hover:bg-white/20"
                 aria-label={t("Next image", "अगली छवि")}
               >
                 <ChevronRight className="h-7 w-7" aria-hidden />
@@ -160,7 +173,7 @@ export function PublicCollegeGallery({
 
           <div
             ref={lightboxRef}
-            className="relative z-10 flex max-h-[90vh] w-full max-w-6xl flex-col items-center outline-none"
+            className="pointer-events-none relative z-10 flex max-h-[90vh] w-full max-w-6xl flex-col items-center outline-none"
             role="dialog"
             aria-modal="true"
             aria-label={t("Image viewer", "छवि दर्शक")}
@@ -172,11 +185,11 @@ export function PublicCollegeGallery({
               width={1600}
               height={1200}
               unoptimized={isRemoteSrc(activeImage.imageUrl)}
-              className="mx-auto max-h-[85vh] w-auto max-w-full object-contain"
+              className="pointer-events-auto mx-auto max-h-[85vh] w-auto max-w-full object-contain"
               sizes="100vw"
               priority
             />
-            <p className="mt-3 max-w-3xl text-center text-sm text-white/90" aria-live="polite">
+            <p className="pointer-events-auto mt-3 max-w-3xl text-center text-sm text-white/90" aria-live="polite">
               {pickBilingual(lang, activeImage.titleEn, activeImage.titleHi) ||
                 `${activeIndex + 1} / ${visibleImages.length}`}
             </p>

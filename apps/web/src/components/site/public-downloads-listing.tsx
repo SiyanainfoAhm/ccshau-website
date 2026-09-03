@@ -34,7 +34,7 @@ export function PublicDownloadsListing({
   activeDepartmentId: string;
   activeTag: string;
   initialQuery: string;
-  departments: { id: string; nameEn: string }[];
+  departments: { id: string; nameEn: string; nameHi: string | null }[];
   tags: string[];
 }) {
   const { t } = useLanguage();
@@ -101,7 +101,7 @@ export function PublicDownloadsListing({
               <option value="">{t("All departments", "सभी विभाग")}</option>
               {departments.map((dept) => (
                 <option key={dept.id} value={dept.id}>
-                  {dept.nameEn}
+                  {t(dept.nameEn, dept.nameHi ?? dept.nameEn)}
                 </option>
               ))}
             </select>

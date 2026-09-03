@@ -886,46 +886,119 @@ function StaffMemberForm({
     item.image_path.startsWith("http://") ||
     item.image_path.startsWith("https://");
 
+  const [nameEn, setNameEn] = useState(item?.name_en ?? "");
+  const [nameHi, setNameHi] = useState(item?.name_hi ?? "");
+  const [designationEn, setDesignationEn] = useState(item?.designation_en ?? "");
+  const [designationHi, setDesignationHi] = useState(item?.designation_hi ?? "");
+  const [specializationEn, setSpecializationEn] = useState(item?.specialization_en ?? "");
+  const [specializationHi, setSpecializationHi] = useState(item?.specialization_hi ?? "");
+  const [qualificationEn, setQualificationEn] = useState(item?.qualification_en ?? "");
+  const [qualificationHi, setQualificationHi] = useState(item?.qualification_hi ?? "");
+  const [experienceEn, setExperienceEn] = useState(item?.experience_en ?? "");
+  const [experienceHi, setExperienceHi] = useState(item?.experience_hi ?? "");
+  const [detailContentEn, setDetailContentEn] = useState(item?.detail_content_en ?? "");
+  const [detailContentHi, setDetailContentHi] = useState(item?.detail_content_hi ?? "");
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [translateError, setTranslateError] = useState<string | null>(null);
+
+  async function handleAutoTranslate() {
+    setTranslateError(null);
+    setIsTranslating(true);
+    try {
+      const result = await translateFieldsEnToHiAction([
+        { key: "nameHi", text: nameEn },
+        { key: "designationHi", text: designationEn },
+        { key: "specializationHi", text: specializationEn },
+        { key: "qualificationHi", text: qualificationEn },
+        { key: "experienceHi", text: experienceEn },
+        { key: "detailContentHi", text: detailContentEn, format: "html" },
+      ]);
+      if (!result.success) {
+        setTranslateError(result.error);
+        return;
+      }
+      const t = result.data.translations;
+      if (t.nameHi) setNameHi(t.nameHi);
+      if (t.designationHi) setDesignationHi(t.designationHi);
+      if (t.specializationHi) setSpecializationHi(t.specializationHi);
+      if (t.qualificationHi) setQualificationHi(t.qualificationHi);
+      if (t.experienceHi) setExperienceHi(t.experienceHi);
+      if (t.detailContentHi) setDetailContentHi(t.detailContentHi);
+      if (result.data.warnings.length > 0) {
+        setTranslateError(result.data.warnings.join(" "));
+      } else if (Object.keys(t).length === 0) {
+        setTranslateError("Enter English text before translating.");
+      }
+    } catch (e) {
+      setTranslateError(e instanceof Error ? e.message : "Translation failed.");
+    } finally {
+      setIsTranslating(false);
+    }
+  }
+
   return (
     <form
       className="grid gap-3 border-t border-slate-100 pt-4 sm:grid-cols-2"
-      action={onSubmit}
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSubmit(new FormData(e.currentTarget));
+      }}
     >
+      <div className="flex flex-wrap items-center justify-between gap-2 sm:col-span-2">
+        <p className="text-sm font-medium text-slate-700">Staff member details</p>
+        <button
+          type="button"
+          onClick={handleAutoTranslate}
+          disabled={isPending || isTranslating}
+          className="rounded-lg border border-emerald-700 px-3 py-1.5 text-sm font-medium text-emerald-800 hover:bg-emerald-50 disabled:opacity-60"
+        >
+          {isTranslating ? "Translating…" : "Auto-translate to Hindi"}
+        </button>
+      </div>
+      {translateError ? (
+        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 sm:col-span-2">{translateError}</p>
+      ) : null}
       <input
         name="nameEn"
         required
-        defaultValue={item?.name_en ?? ""}
+        value={nameEn}
+        onChange={(e) => setNameEn(e.target.value)}
         placeholder="Name (English)"
         className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
       />
       <input
         name="nameHi"
-        defaultValue={item?.name_hi ?? ""}
+        value={nameHi}
+        onChange={(e) => setNameHi(e.target.value)}
         placeholder="Name (Hindi)"
         className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-hindi"
       />
       <input
         name="designationEn"
         required
-        defaultValue={item?.designation_en ?? ""}
+        value={designationEn}
+        onChange={(e) => setDesignationEn(e.target.value)}
         placeholder="Designation (English)"
         className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
       />
       <input
         name="designationHi"
-        defaultValue={item?.designation_hi ?? ""}
+        value={designationHi}
+        onChange={(e) => setDesignationHi(e.target.value)}
         placeholder="Designation (Hindi)"
         className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-hindi"
       />
       <input
         name="specializationEn"
-        defaultValue={item?.specialization_en ?? ""}
+        value={specializationEn}
+        onChange={(e) => setSpecializationEn(e.target.value)}
         placeholder="Specialization (English)"
         className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
       />
       <input
         name="specializationHi"
-        defaultValue={item?.specialization_hi ?? ""}
+        value={specializationHi}
+        onChange={(e) => setSpecializationHi(e.target.value)}
         placeholder="Specialization (Hindi)"
         className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-hindi"
       />
@@ -975,47 +1048,51 @@ function StaffMemberForm({
       />
       <input
         name="qualificationEn"
-        defaultValue={item?.qualification_en ?? ""}
+        value={qualificationEn}
+        onChange={(e) => setQualificationEn(e.target.value)}
         placeholder="Qualification (English)"
         className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
       />
       <input
         name="qualificationHi"
-        defaultValue={item?.qualification_hi ?? ""}
+        value={qualificationHi}
+        onChange={(e) => setQualificationHi(e.target.value)}
         placeholder="Qualification (Hindi)"
         className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-hindi"
       />
       <input
         name="experienceEn"
-        defaultValue={item?.experience_en ?? ""}
+        value={experienceEn}
+        onChange={(e) => setExperienceEn(e.target.value)}
         placeholder="Experience (English)"
         className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
       />
       <input
         name="experienceHi"
-        defaultValue={item?.experience_hi ?? ""}
+        value={experienceHi}
+        onChange={(e) => setExperienceHi(e.target.value)}
         placeholder="Experience (Hindi)"
         className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-hindi"
       />
-      <label className="sm:col-span-2 text-sm">
-        <span className="mb-1 block font-medium text-slate-700">Other Activities / full profile (English HTML)</span>
-        <textarea
+      <div className="sm:col-span-2">
+        <AdminHtmlField
           name="detailContentEn"
+          label="Other Activities / full profile (English HTML)"
+          value={detailContentEn}
+          onChange={setDetailContentEn}
           rows={10}
-          defaultValue={item?.detail_content_en ?? ""}
-          placeholder="Academic qualifications, career profile, research interest, teaching interest…"
-          className="w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm"
         />
-      </label>
-      <label className="sm:col-span-2 text-sm">
-        <span className="mb-1 block font-medium text-slate-700">Other Activities / full profile (Hindi HTML)</span>
-        <textarea
+      </div>
+      <div className="sm:col-span-2">
+        <AdminHtmlField
           name="detailContentHi"
+          label="Other Activities / full profile (Hindi HTML)"
+          value={detailContentHi}
+          onChange={setDetailContentHi}
           rows={8}
-          defaultValue={item?.detail_content_hi ?? ""}
-          className="w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm font-hindi"
+          hindi
         />
-      </label>
+      </div>
       <input
         name="detailHref"
         defaultValue={item?.detail_href ?? ""}
