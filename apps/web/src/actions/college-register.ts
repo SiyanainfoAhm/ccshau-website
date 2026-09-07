@@ -639,9 +639,11 @@ export async function getFacultyForEdit(assignmentId: string) {
   const accessibleIds = await listAccessibleStaffPageIds(session);
   if (!accessibleIds.has(assignment.page_id as string)) return null;
 
+  // Minimal department shape for callers that need page id (e.g. detail path).
+  // Do not require listDepartmentsForRegister — microsite roots hold staff too.
   return {
     staff: null,
-    department: null,
+    department: { id: assignment.page_id as string },
     personId: assignment.person_id as string,
   };
 }
