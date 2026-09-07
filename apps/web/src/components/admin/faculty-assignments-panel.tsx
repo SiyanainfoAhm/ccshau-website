@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { deleteFacultyAction, updateFacultyAssignmentAction } from "@/actions/college-register";
+import { translateFieldsEnToHiAction } from "@/actions/translate";
 import { AssignExistingFacultyForm } from "@/components/admin/assign-existing-faculty-form";
 import type { FacultyAssignment } from "@/lib/database/types";
 
@@ -19,6 +20,156 @@ type DepartmentOption = {
   title_en: string;
   college_title: string;
 };
+
+function AssignmentEditForm({
+  item,
+  collegeTitle,
+  departmentTitle,
+  isPending,
+  onCancel,
+  onSave,
+}: {
+  item: FacultyAssignment;
+  collegeTitle: string;
+  departmentTitle: string;
+  isPending: boolean;
+  onCancel: () => void;
+  onSave: (formData: FormData) => void;
+}) {
+  const [designationEn, setDesignationEn] = useState(item.designation_en);
+  const [designationHi, setDesignationHi] = useState(item.designation_hi ?? "");
+  const [specializationEn, setSpecializationEn] = useState(item.specialization_en ?? "");
+  const [specializationHi, setSpecializationHi] = useState(item.specialization_hi ?? "");
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [translateError, setTranslateError] = useState<string | null>(null);
+
+  async function handleAutoTranslate() {
+    setTranslateError(null);
+    setIsTranslating(true);
+    try {
+      const result = await translateFieldsEnToHiAction([
+        { key: "designationHi", text: designationEn },
+        { key: "specializationHi", text: specializationEn },
+      ]);
+      if (!result.success) {
+        setTranslateError(result.error);
+        return;
+      }
+      const t = result.data.translations;
+      if (t.designationHi) setDesignationHi(t.designationHi);
+      if (t.specializationHi) setSpecializationHi(t.specializationHi);
+      if (result.data.warnings.length > 0) {
+        setTranslateError(result.data.warnings.join(" "));
+      } else if (Object.keys(t).length === 0) {
+        setTranslateError("Enter English text before translating.");
+      }
+    } catch (e) {
+      setTranslateError(e instanceof Error ? e.message : "Translation failed.");
+    } finally {
+      setIsTranslating(false);
+    }
+  }
+
+  const disabled = isPending || isTranslating;
+
+  return (
+    <form action={onSave} className="grid gap-3 md:grid-cols-2">
+      <div className="flex flex-wrap items-start justify-between gap-3 md:col-span-2">
+        <p className="text-sm font-medium text-slate-800">
+          {collegeTitle ? `${collegeTitle} → ` : ""}
+          {departmentTitle}
+        </p>
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={handleAutoTranslate}
+          className="rounded-lg border border-emerald-700 px-3 py-1.5 text-sm font-medium text-emerald-800 hover:bg-emerald-50 disabled:opacity-60"
+        >
+          {isTranslating ? "Translating…" : "Auto-translate to Hindi"}
+        </button>
+      </div>
+      {translateError ? (
+        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 md:col-span-2">{translateError}</p>
+      ) : null}
+      <label className="block text-sm md:col-span-2">
+        <span className="font-medium text-slate-700">Designation</span>
+        <input
+          name="designationEn"
+          required
+          value={designationEn}
+          onChange={(e) => setDesignationEn(e.target.value)}
+          className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+        />
+      </label>
+      <label className="block text-sm md:col-span-2">
+        <span className="font-medium text-slate-700">Designation (Hindi)</span>
+        <input
+          name="designationHi"
+          value={designationHi}
+          onChange={(e) => setDesignationHi(e.target.value)}
+          className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-hindi"
+        />
+      </label>
+      <label className="block text-sm">
+        <span className="font-medium text-slate-700">Role</span>
+        <select
+          name="memberType"
+          defaultValue={item.member_type}
+          className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+        >
+          <option value="faculty">Faculty</option>
+          <option value="hod">Head of Department</option>
+        </select>
+      </label>
+      <label className="block text-sm">
+        <span className="font-medium text-slate-700">Display order</span>
+        <input
+          name="sortOrder"
+          type="number"
+          min={0}
+          defaultValue={item.sort_order}
+          className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+        />
+      </label>
+      <label className="block text-sm md:col-span-2">
+        <span className="font-medium text-slate-700">Specialization override (optional)</span>
+        <textarea
+          name="specializationEn"
+          rows={2}
+          value={specializationEn}
+          onChange={(e) => setSpecializationEn(e.target.value)}
+          className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+        />
+      </label>
+      <label className="block text-sm md:col-span-2">
+        <span className="font-medium text-slate-700">Specialization override (Hindi)</span>
+        <textarea
+          name="specializationHi"
+          rows={2}
+          value={specializationHi}
+          onChange={(e) => setSpecializationHi(e.target.value)}
+          className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-hindi"
+        />
+      </label>
+      <div className="flex gap-2 md:col-span-2">
+        <button
+          type="submit"
+          disabled={disabled}
+          className="rounded-lg bg-ccshau-chrome-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+        >
+          Save assignment
+        </button>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="rounded-lg border border-slate-300 px-4 py-2 text-sm"
+        >
+          Cancel
+        </button>
+      </div>
+    </form>
+  );
+}
 
 export function FacultyAssignmentsPanel({
   personId,
@@ -113,46 +264,14 @@ export function FacultyAssignmentsPanel({
           return (
             <li key={item.id} className="rounded-lg border border-slate-100 p-3">
               {editing ? (
-                <form
-                  action={(formData) => handleUpdate(item.id, formData)}
-                  className="grid gap-3 md:grid-cols-2"
-                >
-                  <p className="text-sm font-medium text-slate-800 md:col-span-2">
-                    {row.collegeTitle ? `${row.collegeTitle} → ` : ""}
-                    {row.departmentTitle}
-                  </p>
-                  <label className="block text-sm md:col-span-2">
-                    <span className="font-medium text-slate-700">Designation</span>
-                    <input name="designationEn" required defaultValue={item.designation_en} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" />
-                  </label>
-                  <label className="block text-sm md:col-span-2">
-                    <span className="font-medium text-slate-700">Designation (Hindi)</span>
-                    <input name="designationHi" defaultValue={item.designation_hi ?? ""} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-hindi" />
-                  </label>
-                  <label className="block text-sm">
-                    <span className="font-medium text-slate-700">Role</span>
-                    <select name="memberType" defaultValue={item.member_type} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2">
-                      <option value="faculty">Faculty</option>
-                      <option value="hod">Head of Department</option>
-                    </select>
-                  </label>
-                  <label className="block text-sm">
-                    <span className="font-medium text-slate-700">Display order</span>
-                    <input name="sortOrder" type="number" min={0} defaultValue={item.sort_order} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" />
-                  </label>
-                  <label className="block text-sm md:col-span-2">
-                    <span className="font-medium text-slate-700">Specialization override (optional)</span>
-                    <textarea name="specializationEn" rows={2} defaultValue={item.specialization_en ?? ""} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" />
-                  </label>
-                  <div className="flex gap-2 md:col-span-2">
-                    <button type="submit" disabled={isPending} className="rounded-lg bg-ccshau-chrome-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">
-                      Save assignment
-                    </button>
-                    <button type="button" onClick={() => setEditingId(null)} className="rounded-lg border border-slate-300 px-4 py-2 text-sm">
-                      Cancel
-                    </button>
-                  </div>
-                </form>
+                <AssignmentEditForm
+                  item={item}
+                  collegeTitle={row.collegeTitle}
+                  departmentTitle={row.departmentTitle}
+                  isPending={isPending}
+                  onCancel={() => setEditingId(null)}
+                  onSave={(formData) => handleUpdate(item.id, formData)}
+                />
               ) : (
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
@@ -162,7 +281,9 @@ export function FacultyAssignmentsPanel({
                     </p>
                     <p className="text-sm text-slate-600">
                       {item.designation_en}
-                      <span className={`ml-2 inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${item.member_type === "hod" ? "bg-amber-100 text-amber-800" : "bg-slate-100 text-slate-700"}`}>
+                      <span
+                        className={`ml-2 inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${item.member_type === "hod" ? "bg-amber-100 text-amber-800" : "bg-slate-100 text-slate-700"}`}
+                      >
                         {item.member_type === "hod" ? "HOD" : "Faculty"}
                       </span>
                       {!item.is_active ? <span className="ml-2 text-xs text-slate-400">Inactive</span> : null}
@@ -170,7 +291,11 @@ export function FacultyAssignmentsPanel({
                   </div>
                   {row.canEdit && canEdit ? (
                     <div className="flex gap-2">
-                      <button type="button" onClick={() => setEditingId(item.id)} className="rounded px-2 py-1 text-sm text-emerald-700 hover:bg-emerald-50">
+                      <button
+                        type="button"
+                        onClick={() => setEditingId(item.id)}
+                        className="rounded px-2 py-1 text-sm text-emerald-700 hover:bg-emerald-50"
+                      >
                         Edit designation
                       </button>
                       <button

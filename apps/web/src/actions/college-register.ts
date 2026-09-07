@@ -16,6 +16,7 @@ import {
   getOrCreateDepartmentSection,
   listCollegesForRegister,
   listDepartmentsForRegister,
+  listAccessibleStaffPageIds,
   listFacultyForRegister,
   seedDepartmentSidebar,
 } from "@/lib/pages/college-register-helpers";
@@ -635,13 +636,12 @@ export async function getFacultyForEdit(assignmentId: string) {
 
   await assertRegisterPageAccess(session, assignment.page_id as string);
 
-  const departments = await listDepartmentsForRegister(session);
-  const dept = departments.find((d) => d.id === assignment.page_id);
-  if (!dept) return null;
+  const accessibleIds = await listAccessibleStaffPageIds(session);
+  if (!accessibleIds.has(assignment.page_id as string)) return null;
 
   return {
     staff: null,
-    department: dept,
+    department: null,
     personId: assignment.person_id as string,
   };
 }
@@ -656,8 +656,8 @@ export async function getFacultyPersonForEdit(personId: string) {
     return loadFacultyPersonEditData(personId, "own");
   }
 
-  const accessible = await listDepartmentsForRegister(session);
-  return loadFacultyPersonEditData(personId, new Set(accessible.map((d) => d.id)));
+  const accessibleIds = await listAccessibleStaffPageIds(session);
+  return loadFacultyPersonEditData(personId, accessibleIds);
 }
 
 export async function getOwnFacultyPersonForEdit() {

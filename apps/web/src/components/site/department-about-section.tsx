@@ -108,11 +108,15 @@ export function DepartmentAboutSection({
               >
                 {pickBilingual(lang, member.nameEn, member.nameHi)}
               </p>
-              <p
-                className={`mt-1 text-sm font-medium text-slate-500 ${lang === "hi" ? "font-hindi" : ""}`}
-              >
-                {pickBilingual(lang, member.designationEn, member.designationHi)}
-              </p>
+              {Boolean(
+                pickBilingual(lang, member.designationEn, member.designationHi)?.trim(),
+              ) && (
+                <p
+                  className={`mt-1 text-sm font-medium text-slate-500 ${lang === "hi" ? "font-hindi" : ""}`}
+                >
+                  {pickBilingual(lang, member.designationEn, member.designationHi)}
+                </p>
+              )}
 
               {mailingAddress && (
                 <div className="mt-5">
