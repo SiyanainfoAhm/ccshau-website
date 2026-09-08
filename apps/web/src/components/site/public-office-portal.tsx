@@ -193,7 +193,7 @@ export function PublicOfficePortal({
                     rounded="lg"
                     className="mx-auto sm:mx-0"
                   />
-                  <div className="text-center sm:text-left">
+                  <div className="min-w-0 flex-1 text-center sm:text-justify">
                     <p
                       className={`${typeSubsectionTitleClass} ${lang === "hi" ? "font-hindi" : ""}`}
                     >
@@ -226,7 +226,7 @@ export function PublicOfficePortal({
                 <h2 className={typeSubsectionTitleClass}>
                   {t("Telephone", "टेलीफोन")}
                 </h2>
-                <dl className="mt-4 space-y-4">
+                <dl className="mt-4 space-y-4 text-justify">
                   {officerContactLines(office.contactLines).map((line) => (
                     <div key={line.labelEn} className="border-b border-slate-100 pb-4 last:border-0 last:pb-0">
                       <dt

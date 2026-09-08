@@ -102,7 +102,7 @@ export function DepartmentAboutSection({
               className="mx-auto sm:mx-0"
             />
 
-            <div className="min-w-0 flex-1 text-center sm:text-left">
+            <div className="min-w-0 flex-1 text-center sm:text-justify">
               <p
                 className={`${typeSubsectionTitleClass} leading-snug ${lang === "hi" ? "font-hindi" : ""}`}
               >
