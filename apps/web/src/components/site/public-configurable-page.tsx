@@ -200,6 +200,7 @@ function StaffDirectoryTable({
 }) {
   const { lang, t } = useLanguage();
   const [selectedMember, setSelectedMember] = useState<PublicOfficeStaffMember | null>(null);
+  const emptyMessage = t("No information available !", "कोई जानकारी उपलब्ध नहीं है !");
 
   return (
     <>
@@ -211,6 +212,13 @@ function StaffDirectoryTable({
           {title}
         </h2>
       )}
+      {staff.length === 0 ? (
+        <p
+          className={`px-6 py-10 text-center text-sm text-slate-500 ${lang === "hi" ? "font-hindi" : ""}`}
+        >
+          {emptyMessage}
+        </p>
+      ) : (
       <div className="overflow-x-auto">
         <table className="min-w-full text-left text-sm">
           <thead className="bg-emerald-50 text-xs font-bold uppercase tracking-wide text-emerald-900">
@@ -266,6 +274,7 @@ function StaffDirectoryTable({
           </tbody>
         </table>
       </div>
+      )}
       </div>
 
       {selectedMember && (
@@ -397,8 +406,9 @@ export function PublicConfigurablePage({
     layoutConfig.contacts && !selectedSidebar && hasContactLines && !showHeadOfficer;
   const showHeadOfficerContacts =
     showHeadOfficer && layoutConfig.contacts && hasContactLines;
-  const showStaffTable =
-    isFacultySidebar && (office?.staff.length ?? 0) > 0;
+  const facultyDirectoryStaff =
+    office?.staff.filter((member) => member.memberType !== "hod") ?? [];
+  const showStaffTable = isFacultySidebar;
   const showResearchStationsGrid =
     (researchStations?.length ?? 0) > 0 && !selectedSidebar;
   const showDepartmentAbout =
@@ -411,6 +421,13 @@ export function PublicConfigurablePage({
     layoutConfig.mainContent &&
     hasCmsHtmlContent(bodyContent) &&
     !showDepartmentAbout;
+  const showEmptySidebarContent =
+    Boolean(selectedSidebar) &&
+    !showStaffTable &&
+    !showHodSidebarProfile &&
+    !showDepartmentAbout &&
+    !showMainContent &&
+    !hasCmsHtmlContent(sidebarContent);
   const showLeftSidebar =
     layoutConfig.leftSidebar && (office?.sidebarLeft.length ?? 0) > 0;
   const showRightSidebar =
@@ -646,8 +663,27 @@ export function PublicConfigurablePage({
               )
             )}
 
-            {showStaffTable && office && (
-              <StaffDirectoryTable staff={office.staff} title={isFacultySidebar ? bodyTitle : null} />
+            {showStaffTable && (
+              <StaffDirectoryTable
+                // Legacy HAU faculty tables exclude the HOD (shown only under Head of Department).
+                staff={facultyDirectoryStaff}
+                title={isFacultySidebar ? bodyTitle : null}
+              />
+            )}
+
+            {showEmptySidebarContent && selectedSidebar && (
+              <div className={`overflow-hidden ${publicSectionCardClass}`}>
+                <h2
+                  className={`border-b border-slate-100 px-6 py-4 ${typeSectionTitleClass} ${lang === "hi" ? "font-hindi" : ""}`}
+                >
+                  {pickBilingual(lang, selectedSidebar.labelEn, selectedSidebar.labelHi)}
+                </h2>
+                <p
+                  className={`px-6 py-10 text-center text-sm text-slate-500 ${lang === "hi" ? "font-hindi" : ""}`}
+                >
+                  {t("No information available !", "कोई जानकारी उपलब्ध नहीं है !")}
+                </p>
+              </div>
             )}
 
             {showGallery && galleryImages && (
@@ -689,7 +725,7 @@ export function PublicConfigurablePage({
               </article>
             )}
 
-            {!showMainContent && !showHeadOfficer && !showContacts && !showStaffTable && !showDepartmentAbout && !showHodSidebarProfile && !showGallery && !showStudentCorner && !showResearchStationsGrid && !selectedSidebar && (
+            {!showMainContent && !showHeadOfficer && !showContacts && !showStaffTable && !showEmptySidebarContent && !showDepartmentAbout && !showHodSidebarProfile && !showGallery && !showStudentCorner && !showResearchStationsGrid && !selectedSidebar && (
               <p className="text-center text-slate-500">{t("Content coming soon.", "सामग्री जल्द आ रही है।")}</p>
             )}
           </div>

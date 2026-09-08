@@ -1,5 +1,8 @@
 import { assertPageAccess } from "@/lib/auth/college-scope-server";
-import { isSuperAdminSession } from "@/lib/auth/college-scope";
+import {
+  isSuperAdminSession,
+  sessionCanAccessCollegeRoot,
+} from "@/lib/auth/college-scope";
 import type { AdminSession } from "@/lib/auth/session";
 import { Tables } from "@/lib/database/names";
 import type { Page } from "@/lib/database/types";
@@ -220,6 +223,38 @@ export async function listStaffPagesForRegister(
   };
 
   return [rootOption, ...departments];
+}
+
+/**
+ * Page ids an admin may open on faculty edit: child departments plus microsite
+ * roots that hold faculty (KVKs / research stations where staff live on the root).
+ */
+export async function listAccessibleStaffPageIds(session: AdminSession): Promise<Set<string>> {
+  const departments = await listDepartmentsForRegister(session);
+  const ids = new Set(departments.map((d) => d.id));
+  const admin = createAdminClient();
+  if (!admin) return ids;
+
+  const { data: assignmentRows } = await admin
+    .from(Tables.facultyAssignments)
+    .select("page_id")
+    .eq("is_active", true);
+  const pageIds = [...new Set((assignmentRows ?? []).map((row) => row.page_id as string))];
+  if (!pageIds.length) return ids;
+
+  const { data: pages } = await admin
+    .from(Tables.pages)
+    .select("id, college_root_id, layout_template, page_type")
+    .in("id", pageIds);
+
+  for (const page of pages ?? []) {
+    if (page.layout_template !== "office_portal") continue;
+    if (!isMicrositeRoot(page)) continue;
+    if (!sessionCanAccessCollegeRoot(session, page.id)) continue;
+    ids.add(page.id);
+  }
+
+  return ids;
 }
 
 export interface FacultyListItem {

@@ -114,7 +114,11 @@ export function PublicCollegeGallery({
                   </span>
                 </span>
                 {showCaptions ? (
-                  <span className="px-3 py-2 text-sm font-semibold leading-snug text-slate-800">
+                  <span
+                    className={`px-3 py-2 text-sm font-semibold leading-snug break-words text-slate-800 ${
+                      lang === "hi" ? "font-hindi" : ""
+                    }`}
+                  >
                     {label}
                   </span>
                 ) : null}

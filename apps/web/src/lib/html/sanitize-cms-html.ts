@@ -151,12 +151,13 @@ const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
     img: (tagName, attribs) => {
       const next = { ...attribs };
       if (next.alt === undefined) next.alt = "";
+      if (next.src) next.src = rewriteLegacyHauHref(next.src);
       return { tagName, attribs: next };
     },
   },
 };
 
-/** Map known migrated hau.ac.in URLs to this site's public paths. */
+/** Map known migrated hau.ac.in URLs to this site's public paths / Azure blob. */
 function rewriteLegacyHauHref(href: string): string {
   const trimmed = href.trim();
   try {
@@ -165,6 +166,13 @@ function rewriteLegacyHauHref(href: string): string {
     if (host !== "hau.ac.in") return trimmed;
 
     const path = url.pathname.replace(/\/$/, "") || "/";
+
+    // Migrated media: hau storage → Azure legacy-storage container
+    const uploadMatch = path.match(/^\/storage\/app\/uploads\/(.+)$/);
+    if (uploadMatch?.[1]) {
+      return `https://ccshau.blob.core.windows.net/ccshaucontainer/legacy-storage/${uploadMatch[1]}`;
+    }
+
     const pageMatch = path.match(/^\/page\/([^/]+)$/);
     if (pageMatch?.[1]) {
       const slugAliases: Record<string, string> = {

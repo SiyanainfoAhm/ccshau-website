@@ -29,6 +29,17 @@ const BAD_HI_PATTERNS = [
   /^Thrust Area$/i,
   /^Thurst Area$/i,
   /^थ्रस्ट क्षेत्र$/i,
+  /थ्रस्ट/,
+  /^अधिदेश/,
+  /भ्रष्ट/,
+  /^स्टाफ सूची$/,
+  /^चल रहे अनुसंधान/,
+  /^गैर-शिक्षण/,
+  /^प्रमुख धान/,
+  /^जोर देने/,
+  /^Ongoing /,
+  /Achievements$/,
+  / एवं /,
 ];
 
 function loadEnvFile(path) {
