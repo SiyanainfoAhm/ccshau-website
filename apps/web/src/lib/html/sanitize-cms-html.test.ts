@@ -33,13 +33,13 @@ describe("sanitizeCmsHtml", () => {
     );
   });
 
-  // Strips font-family/text-align but keeps other safe style props.
-  it("strips font-family and text-align from inline styles", () => {
+  // Strips font-family but keeps text-align and other safe style props.
+  it("strips font-family but keeps text-align from inline styles", () => {
     const html =
       '<p style="font-family: Times New Roman; text-align: justify; margin-top: 8px;">Body</p>';
     const out = sanitizeCmsHtml(html);
     expect(out).not.toMatch(/font-family/i);
-    expect(out).not.toMatch(/text-align/i);
+    expect(out).toMatch(/text-align:\s*justify/i);
     expect(out).toMatch(/margin-top:\s*8px/i);
     expect(out).toContain("Body");
   });

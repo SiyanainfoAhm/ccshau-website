@@ -10,7 +10,7 @@ const CMS_TYPOGRAPHY_STYLE_PROPS = new Set([
   "font-size",
   "font-size-adjust",
   "line-height",
-  "text-align",
+  // Keep text-align (justify/center) from legacy CMS HTML.
   "letter-spacing",
   "word-spacing",
 ]);

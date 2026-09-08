@@ -1265,13 +1265,12 @@ html.dark #main-content :where(.border-slate-200, .border-emerald-100) {
   font-family: var(--font-noto-sans), system-ui, sans-serif;
   font-size: var(--type-body);
   line-height: var(--type-body-line);
-  text-align: start;
+  text-align: justify;
 }
 
-/* Beat Word/legacy inline Times + justify without changing stored HTML. */
+/* Beat Word/legacy inline Times; preserve CMS text-align (justify/center). */
 .cms-html :where(:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6)) {
   font-family: var(--font-noto-sans), system-ui, sans-serif !important;
-  text-align: start !important;
 }
 
 .cms-html > *:first-child {

@@ -563,7 +563,7 @@ export function PublicConfigurablePage({
                     rounded="lg"
                     className="mx-auto sm:mx-0"
                   />
-                  <div className="min-w-0 flex-1 text-center sm:text-left">
+                  <div className="min-w-0 flex-1 text-center sm:text-justify">
                     <p
                       className={`${typeSubsectionTitleClass} ${lang === "hi" ? "font-hindi" : ""}`}
                     >
@@ -587,7 +587,7 @@ export function PublicConfigurablePage({
                     );
                     })}
                     {showHeadOfficerContacts && (
-                      <dl className="mt-4 space-y-3 border-t border-slate-100 pt-4 text-left">
+                      <dl className="mt-4 space-y-3 border-t border-slate-100 pt-4 text-justify">
                         {officerContactLines(office.contactLines).map((line) => (
                           <div key={line.labelEn}>
                             <dt
@@ -614,7 +614,7 @@ export function PublicConfigurablePage({
                 <h2 className={typeSubsectionTitleClass}>
                   {t("Telephone", "टेलीफोन")}
                 </h2>
-                <dl className="mt-4 space-y-4">
+                <dl className="mt-4 space-y-4 text-justify">
                   {officerContactLines(office.contactLines).map((line) => (
                     <div
                       key={line.labelEn}
