@@ -30,8 +30,8 @@ describe("admin-nav-access", () => {
     expect(canAccessAdminPath(access, "/admin/users")).toBe(false);
   });
 
-  // Faculty-only may hit dashboard and self profile; CMS pages stay closed.
-  it("limits faculty-only users to dashboard and own profile", () => {
+  // Faculty-only may hit dashboard, profile, and change password; CMS pages stay closed.
+  it("limits faculty-only users to dashboard, own profile, and change password", () => {
     const session = mockAdminSession({
       roles: [],
       primaryRole: null,
@@ -45,7 +45,21 @@ describe("admin-nav-access", () => {
     expect(access.isFacultyOnly).toBe(true);
     expect(canAccessAdminPath(access, "/admin")).toBe(true);
     expect(canAccessAdminPath(access, "/admin/register/faculty/me")).toBe(true);
+    expect(canAccessAdminPath(access, "/admin/register/faculty/change-password")).toBe(true);
+    expect(canAccessAdminPath(access, "/admin/account/change-password")).toBe(false);
     expect(canAccessAdminPath(access, "/admin/pages")).toBe(false);
+  });
+
+  it("allows CMS account change-password for settings-capable roles only", () => {
+    const superAccess = getAdminNavAccess(mockAdminSession({ role: "super_admin" }));
+    expect(canAccessAdminPath(superAccess, "/admin/settings/change-password")).toBe(true);
+    expect(canAccessAdminPath(superAccess, "/admin/account/change-password")).toBe(true);
+
+    const uniAccess = getAdminNavAccess(mockAdminSession({ role: "university_admin" }));
+    expect(canAccessAdminPath(uniAccess, "/admin/settings/change-password")).toBe(true);
+
+    const editorAccess = getAdminNavAccess(mockAdminSession({ role: "editor" }));
+    expect(canAccessAdminPath(editorAccess, "/admin/settings/change-password")).toBe(false);
   });
 
   // Editor with pages-only allow-list can open pages but not tenders.

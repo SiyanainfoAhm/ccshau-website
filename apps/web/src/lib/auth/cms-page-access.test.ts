@@ -247,6 +247,7 @@ describe("CMS scope smoke — admin nav paths", () => {
     expect(canAccessAdminPath(access, `/admin/pages/${DEPT_PAGE}`)).toBe(true);
     expect(canAccessAdminPath(access, "/admin/pages/new")).toBe(false);
     expect(canAccessAdminPath(access, "/admin/register/faculty/me")).toBe(true);
+    expect(canAccessAdminPath(access, "/admin/register/faculty/change-password")).toBe(true);
     expect(canAccessAdminPath(access, "/admin/register")).toBe(false);
     expect(canAccessAdminPath(access, "/admin/news")).toBe(false);
   });

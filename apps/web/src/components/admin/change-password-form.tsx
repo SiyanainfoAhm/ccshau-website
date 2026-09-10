@@ -1,6 +1,49 @@
 "use client";
 
+import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
+
+function PasswordField({
+  label,
+  name,
+  autoComplete,
+  value,
+  onChange,
+}: {
+  label: string;
+  name: string;
+  autoComplete: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const [visible, setVisible] = useState(false);
+
+  return (
+    <label className="block text-sm">
+      <span className="font-medium text-slate-700">{label}</span>
+      <div className="relative mt-1">
+        <input
+          type={visible ? "text" : "password"}
+          name={name}
+          autoComplete={autoComplete}
+          required
+          minLength={8}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-full rounded-lg border border-slate-300 py-2 pl-3 pr-10"
+        />
+        <button
+          type="button"
+          onClick={() => setVisible((v) => !v)}
+          className="absolute inset-y-0 right-0 flex items-center px-3 text-slate-500 hover:text-slate-800"
+          aria-label={visible ? `Hide ${label.toLowerCase()}` : `Show ${label.toLowerCase()}`}
+        >
+          {visible ? <EyeOff className="h-4 w-4" aria-hidden /> : <Eye className="h-4 w-4" aria-hidden />}
+        </button>
+      </div>
+    </label>
+  );
+}
 
 export function ChangePasswordForm() {
   const [currentPassword, setCurrentPassword] = useState("");
@@ -14,6 +57,16 @@ export function ChangePasswordForm() {
     e.preventDefault();
     setError(null);
     setSuccess(null);
+
+    if (newPassword !== confirmPassword) {
+      setError("New password and confirm password do not match.");
+      return;
+    }
+    if (newPassword === currentPassword) {
+      setError("New password must be different from the old password.");
+      return;
+    }
+
     setLoading(true);
     try {
       const res = await fetch("/api/auth/change-password", {
@@ -38,54 +91,36 @@ export function ChangePasswordForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-      <div className="mb-4">
-        <h2 className="text-lg font-semibold text-slate-900">Change password</h2>
-        <p className="mt-1 text-xs text-slate-500">
-          Use this to replace the default password. The new password must be at least 8 characters.
-        </p>
-      </div>
-
+    <form
+      id="change-password"
+      onSubmit={handleSubmit}
+      className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
+    >
       {error && <p className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
       {success && <p className="mb-3 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">{success}</p>}
 
       <div className="grid gap-4 md:max-w-md">
-        <label className="block text-sm">
-          <span className="font-medium text-slate-700">Current password</span>
-          <input
-            type="password"
-            autoComplete="current-password"
-            required
-            minLength={8}
-            value={currentPassword}
-            onChange={(e) => setCurrentPassword(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-          />
-        </label>
-        <label className="block text-sm">
-          <span className="font-medium text-slate-700">New password</span>
-          <input
-            type="password"
-            autoComplete="new-password"
-            required
-            minLength={8}
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-          />
-        </label>
-        <label className="block text-sm">
-          <span className="font-medium text-slate-700">Confirm new password</span>
-          <input
-            type="password"
-            autoComplete="new-password"
-            required
-            minLength={8}
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-          />
-        </label>
+        <PasswordField
+          label="Old password"
+          name="oldPassword"
+          autoComplete="current-password"
+          value={currentPassword}
+          onChange={setCurrentPassword}
+        />
+        <PasswordField
+          label="New password"
+          name="newPassword"
+          autoComplete="new-password"
+          value={newPassword}
+          onChange={setNewPassword}
+        />
+        <PasswordField
+          label="Confirm password"
+          name="confirmPassword"
+          autoComplete="new-password"
+          value={confirmPassword}
+          onChange={setConfirmPassword}
+        />
         <div>
           <button
             type="submit"
