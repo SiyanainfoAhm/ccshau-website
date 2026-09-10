@@ -20,6 +20,7 @@ import {
   Menu,
   MessageSquare,
   Newspaper,
+  KeyRound,
   ScrollText,
   Settings,
   ShoppingBag,
@@ -77,26 +78,28 @@ const departmentHodCoreNavItems: AdminNavItem[] = [
   { href: "/admin/pages", label: "My department", icon: FileText },
 ];
 
-const facultyOnlyNavItems: AdminNavItem[] = [
+const facultyProfileNavItems: AdminNavItem[] = [
   { href: "/admin/register/faculty/me", label: "My profile", icon: UserRound },
+  { href: "/admin/register/faculty/change-password", label: "Change password", icon: KeyRound },
 ];
 
 export function getSidebarNavItems(access: AdminNavAccess): AdminNavItem[] {
-  if (access.isFacultyOnly) return facultyOnlyNavItems;
+  if (access.isFacultyOnly) return facultyProfileNavItems;
   if (access.isDepartmentHodOnly) {
     return access.hasFacultyPerson
-      ? [facultyOnlyNavItems[0], ...departmentHodCoreNavItems]
+      ? [...facultyProfileNavItems, ...departmentHodCoreNavItems]
       : departmentHodCoreNavItems;
   }
   if (access.isCollegeOnly) {
     return access.hasFacultyPerson
-      ? [facultyOnlyNavItems[0], ...collegeOnlyNavItems]
+      ? [...facultyProfileNavItems, ...collegeOnlyNavItems]
       : collegeOnlyNavItems;
   }
 
   const visibleBase = baseNavItems.filter((item) => canSeeAdminNavHref(access, item.href));
+  // Faculty-linked staff keep faculty Change password; other CMS roles use Settings only.
   const withProfile = access.hasFacultyPerson
-    ? [facultyOnlyNavItems[0], ...visibleBase]
+    ? [...facultyProfileNavItems, ...visibleBase]
     : visibleBase;
 
   if (!access.isSuperAdmin) return withProfile;

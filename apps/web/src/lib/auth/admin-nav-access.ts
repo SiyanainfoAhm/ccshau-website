@@ -110,26 +110,40 @@ function canReadOnlyAccessPath(access: AdminNavAccess, pathname: string): boolea
   return false;
 }
 
-function isCollegeOnlyPathAllowed(pathname: string): boolean {
-  if (pathname === "/admin") return true;
-  if (pathname.startsWith("/admin/register")) return true;
-  return pathname.startsWith("/admin/pages");
+function isFacultySelfServicePath(pathname: string): boolean {
+  return (
+    pathname === "/admin/register/faculty/me" ||
+    pathname === "/admin/register/faculty/change-password"
+  );
 }
 
-/** Faculty: dashboard (redirects to profile) and own My profile page only. */
+function isCmsAccountChangePasswordPath(pathname: string): boolean {
+  return (
+    pathname === "/admin/account/change-password" ||
+    pathname === "/admin/settings/change-password"
+  );
+}
+
+/** Faculty: dashboard (redirects to profile), My profile, and Change password only. */
 function isFacultyOnlyPathAllowed(pathname: string): boolean {
   if (pathname === "/admin") return true;
-  if (pathname === "/admin/register/faculty/me") return true;
+  if (isFacultySelfServicePath(pathname)) return true;
   return false;
 }
 
-/** Department HOD: dashboard, own department page, and own faculty profile only. */
+/** Department HOD: dashboard, own department page, and own faculty self-service pages. */
 function isDepartmentHodOnlyPathAllowed(pathname: string): boolean {
   if (pathname === "/admin") return true;
   if (pathname === "/admin/pages") return true;
   if (pathname.startsWith("/admin/pages/") && pathname !== "/admin/pages/new") return true;
-  if (pathname === "/admin/register/faculty/me") return true;
+  if (isFacultySelfServicePath(pathname)) return true;
   return false;
+}
+
+function isCollegeOnlyPathAllowed(pathname: string): boolean {
+  if (pathname === "/admin") return true;
+  if (pathname.startsWith("/admin/register")) return true;
+  return pathname.startsWith("/admin/pages");
 }
 
 function matchesPrefix(pathname: string, prefix: string): boolean {
@@ -151,7 +165,12 @@ export function canAccessAdminPath(access: AdminNavAccess, pathname: string): bo
 
   if (access.isSuperAdmin) return true;
 
-  if (access.hasFacultyPerson && pathname === "/admin/register/faculty/me") {
+  // CMS account password URL redirects to Settings; only settings-capable roles.
+  if (isCmsAccountChangePasswordPath(pathname)) {
+    return access.isUniversityAdmin || access.isDeptAdmin;
+  }
+
+  if (access.hasFacultyPerson && isFacultySelfServicePath(pathname)) {
     return true;
   }
 

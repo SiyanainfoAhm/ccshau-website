@@ -94,7 +94,7 @@ export function FacultyPersonEditor({
               </h2>
               <p className="mt-1 text-xs text-slate-500">
                 {ownProfileOnly
-                  ? "You can change only your own name, photo, contact details, specialization, and Other Activities. Use Change password below to update your login password."
+                  ? "You can change only your own name, photo, contact details, specialization, and Other Activities. Use Change password in the sidebar to update your login password."
                   : "Name, photo, contact, qualification, and Other Activities apply everywhere this person is assigned."}
               </p>
             </div>
