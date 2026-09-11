@@ -57,6 +57,7 @@ export const Tables = {
   menuItems: ccshauTable("menu_items"),
   news: ccshauTable("news"),
   circulars: ccshauTable("circulars"),
+  circularCategories: ccshauTable("circular_categories"),
   tenders: ccshauTable("tenders"),
   tenderCorrigenda: ccshauTable("tender_corrigenda"),
   downloads: ccshauTable("downloads"),

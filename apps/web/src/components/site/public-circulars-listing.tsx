@@ -3,14 +3,17 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Download, ScrollText, Search } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { SiteFooter } from "@/components/design/shared/site-footer";
 import { SiteHeader } from "@/components/design/shared/site-header";
 import { useLanguage } from "@/components/design/shared/language-context";
 import { PublicPagination } from "@/components/site/public-pagination";
 import type { PaginatedResult } from "@/lib/data/pagination";
-import type { PublicCircularItem } from "@/lib/data/public-types";
+import type {
+  PublicCircularCategory,
+  PublicCircularItem,
+} from "@/lib/data/public-types";
 import { SELECTED_LAYOUT } from "@/lib/design/selected-layout";
 import {
   publicCardClass,
@@ -21,23 +24,84 @@ import {
 
 export function PublicCircularsListing({
   data,
+  offices,
   initialQuery,
+  activeOfficeSlug,
+  activeBranchSlug,
 }: {
   data: PaginatedResult<PublicCircularItem>;
+  offices: PublicCircularCategory[];
   initialQuery: string;
+  activeOfficeSlug: string | null;
+  activeBranchSlug: string | null;
 }) {
   const { t } = useLanguage();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState(initialQuery);
 
+  const activeOffice = useMemo(() => {
+    if (!offices.length) return null;
+    return (
+      offices.find((o) => o.slug === activeOfficeSlug) ??
+      offices[0] ??
+      null
+    );
+  }, [offices, activeOfficeSlug]);
+
+  const branches = activeOffice?.children ?? [];
+  const activeBranch = useMemo(() => {
+    if (!branches.length) return null;
+    return (
+      branches.find((b) => b.slug === activeBranchSlug) ??
+      branches[0] ??
+      null
+    );
+  }, [branches, activeBranchSlug]);
+
+  function pushParams(next: {
+    office?: string | null;
+    branch?: string | null;
+    q?: string | null;
+    clearPage?: boolean;
+  }) {
+    const params = new URLSearchParams(searchParams.toString());
+    if (next.office !== undefined) {
+      if (next.office) params.set("office", next.office);
+      else params.delete("office");
+    }
+    if (next.branch !== undefined) {
+      if (next.branch) params.set("branch", next.branch);
+      else params.delete("branch");
+    }
+    if (next.q !== undefined) {
+      if (next.q?.trim()) params.set("q", next.q.trim());
+      else params.delete("q");
+    }
+    if (next.clearPage) params.delete("page");
+    router.push(`/circulars?${params.toString()}`, { scroll: false });
+  }
+
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
-    const params = new URLSearchParams(searchParams.toString());
-    if (query.trim()) params.set("q", query.trim());
-    else params.delete("q");
-    params.delete("page");
-    router.push(`/circulars?${params.toString()}`);
+    pushParams({ q: query, clearPage: true });
+  }
+
+  function selectOffice(office: PublicCircularCategory) {
+    const firstBranch = office.children[0]?.slug ?? null;
+    pushParams({
+      office: office.slug,
+      branch: firstBranch,
+      clearPage: true,
+    });
+  }
+
+  function selectBranch(branch: PublicCircularCategory) {
+    pushParams({
+      office: activeOffice?.slug ?? null,
+      branch: branch.slug,
+      clearPage: true,
+    });
   }
 
   return (
@@ -53,15 +117,78 @@ export function PublicCircularsListing({
               <ArrowLeft className="h-4 w-4" /> Back to home
             </Link>
             <h1 className={typeHeroTitleClass}>
-              {t("Circulars & Orders", "परिपत्र और आदेश")}
+              {t("Circular Section", "परिपत्र अनुभाग")}
             </h1>
             <p className="mt-2 text-emerald-100">
-              {t("Official university circulars and administrative orders", "आधिकारिक विश्वविद्यालय परिपत्र")}
+              {t(
+                "Official university circulars and administrative orders",
+                "आधिकारिक विश्वविद्यालय परिपत्र",
+              )}
             </p>
           </div>
         </div>
 
         <div className="mx-auto max-w-7xl px-4 py-10">
+          {offices.length > 0 && (
+            <div className="mb-6 overflow-x-auto">
+              <div
+                role="tablist"
+                aria-label={t("Circular offices", "परिपत्र कार्यालय")}
+                className="flex min-w-max gap-1 border-b border-emerald-200"
+              >
+                {offices.map((office) => {
+                  const selected = activeOffice?.id === office.id;
+                  return (
+                    <button
+                      key={office.id}
+                      type="button"
+                      role="tab"
+                      aria-selected={selected}
+                      onClick={() => selectOffice(office)}
+                      className={`whitespace-nowrap px-4 py-2.5 text-sm font-semibold uppercase tracking-wide transition ${
+                        selected
+                          ? "border-b-2 border-emerald-800 text-emerald-900"
+                          : "text-slate-600 hover:text-emerald-800"
+                      }`}
+                    >
+                      {t(office.nameEn, office.nameHi ?? office.nameEn)}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {branches.length > 0 && (
+            <div className="mb-6 overflow-x-auto">
+              <div
+                role="tablist"
+                aria-label={t("Circular branches", "परिपत्र शाखाएँ")}
+                className="flex min-w-max gap-1 rounded-xl bg-emerald-50/80 p-1"
+              >
+                {branches.map((branch) => {
+                  const selected = activeBranch?.id === branch.id;
+                  return (
+                    <button
+                      key={branch.id}
+                      type="button"
+                      role="tab"
+                      aria-selected={selected}
+                      onClick={() => selectBranch(branch)}
+                      className={`whitespace-nowrap rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-wide transition sm:text-sm ${
+                        selected
+                          ? "bg-white text-emerald-900 shadow-sm"
+                          : "text-slate-600 hover:text-emerald-800"
+                      }`}
+                    >
+                      {t(branch.nameEn, branch.nameHi ?? branch.nameEn)}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           <form onSubmit={handleSearch} className="mb-6 flex gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -69,7 +196,10 @@ export function PublicCircularsListing({
                 type="search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder={t("Search by title or circular number…", "शीर्षक या परिपत्र संख्या से खोजें…")}
+                placeholder={t(
+                  "Search by title or circular number…",
+                  "शीर्षक या परिपत्र संख्या से खोजें…",
+                )}
                 className={publicSearchInputClass}
               />
             </div>
@@ -87,20 +217,19 @@ export function PublicCircularsListing({
                 <tr>
                   <th className="px-5 py-4 font-semibold">{t("Title", "शीर्षक")}</th>
                   <th className="hidden px-5 py-4 font-semibold md:table-cell">
-                    {t("Number", "संख्या")}
+                    {t("Published", "प्रकाशित")}
                   </th>
-                  <th className="hidden px-5 py-4 font-semibold lg:table-cell">
-                    {t("Department", "विभाग")}
-                  </th>
-                  <th className="px-5 py-4 font-semibold">{t("Published", "प्रकाशित")}</th>
                   <th className="px-5 py-4 font-semibold">{t("Download", "डाउनलोड")}</th>
                 </tr>
               </thead>
               <tbody>
                 {data.items.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-5 py-10 text-center text-slate-500">
-                      {t("No circulars published yet.", "अभी कोई परिपत्र प्रकाशित नहीं है।")}
+                    <td colSpan={3} className="px-5 py-10 text-center text-slate-500">
+                      {t(
+                        "No circulars published in this section yet.",
+                        "इस अनुभाग में अभी कोई परिपत्र प्रकाशित नहीं है।",
+                      )}
                     </td>
                   </tr>
                 ) : (
@@ -115,12 +244,6 @@ export function PublicCircularsListing({
                         </div>
                       </td>
                       <td className="hidden px-5 py-4 text-slate-600 md:table-cell">
-                        {item.circularNumber ?? "—"}
-                      </td>
-                      <td className="hidden px-5 py-4 text-slate-600 lg:table-cell">
-                        {item.departmentName ?? "—"}
-                      </td>
-                      <td className="px-5 py-4 text-slate-600">
                         {item.publishedAt
                           ? new Date(item.publishedAt).toLocaleDateString("en-IN")
                           : "—"}

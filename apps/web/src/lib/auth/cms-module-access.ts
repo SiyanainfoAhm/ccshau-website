@@ -16,6 +16,7 @@ export const ADMIN_HREF_CMS_MODULE: Record<string, CmsModule> = {
   "/admin/pages": "pages",
   "/admin/news": "news",
   "/admin/circulars": "circulars",
+  "/admin/rti": "downloads",
   "/admin/tenders": "tenders",
   "/admin/downloads": "downloads",
   "/admin/media": "media",

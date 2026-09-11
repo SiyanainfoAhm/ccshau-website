@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { listDepartments } from "@/actions/pages";
 import { PageForm } from "@/components/admin/page-form";
 import { canPublishContent } from "@/lib/auth/cms-roles";
@@ -19,7 +21,10 @@ export default async function NewPagePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-bold text-slate-900">New page</h1>
+        <Link href="/admin/pages" className="text-sm text-emerald-700 hover:underline">
+          ← All pages
+        </Link>
+        <h1 className="mt-2 font-display text-2xl font-bold text-slate-900">New page</h1>
         <p className="text-sm text-slate-500">Create a bilingual CMS page or college landing</p>
       </div>
       <PageForm

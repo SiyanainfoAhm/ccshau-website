@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { getCircularById, listDepartments } from "@/actions/circulars";
+import { getCircularById, listCircularCategoriesForAdmin, listDepartments } from "@/actions/circulars";
 import { CircularForm } from "@/components/admin/circular-form";
 import { ContentReviewPanel } from "@/components/admin/content-review-panel";
 import { DeleteCircularButton } from "@/components/admin/delete-circular-button";
@@ -17,9 +17,10 @@ export default async function AdminEditCircularPage({
   const session = await requireAdminSession();
   const canEdit = canManageUniversityContent(session);
   const { id } = await params;
-  const [circular, departments] = await Promise.all([
+  const [circular, departments, categories] = await Promise.all([
     getCircularById(id),
     listDepartments(),
+    listCircularCategoriesForAdmin(),
   ]);
   if (!circular) notFound();
   const showReview = circular.status === "pending_review" && canPublishContent(session);
@@ -42,6 +43,7 @@ export default async function AdminEditCircularPage({
       ) : null}
       <CircularForm
         departments={departments}
+        categories={categories}
         circular={circular}
         canEdit={canEdit}
         canPublish={canPublishContent(session)}

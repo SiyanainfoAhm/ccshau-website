@@ -13,7 +13,7 @@ import {
 import { hasCmsModuleAccess, requireAdminSessionForCmsModule } from "@/lib/auth/cms-module-access-server";
 import { requireAdminSession } from "@/lib/auth/session";
 import { Tables } from "@/lib/database/names";
-import type { Circular, ContentStatus } from "@/lib/database/types";
+import type { Circular, CircularCategory, ContentStatus } from "@/lib/database/types";
 import { removeStorageObjects, uploadCircularFile } from "@/lib/storage/upload";
 import { fail, ok, type ActionResult } from "@/lib/types/action-result";
 import { circularFormSchema } from "@/lib/validations/circulars";
@@ -29,6 +29,7 @@ function parseForm(formData: FormData) {
     titleEn: formData.get("titleEn"),
     titleHi: formData.get("titleHi") || undefined,
     departmentId: formData.get("departmentId") || "",
+    categoryId: formData.get("categoryId") || "",
     status: formData.get("status"),
     removeFile: formData.get("removeFile") === "on",
   });
@@ -43,14 +44,19 @@ function toRow(
   input: ReturnType<typeof circularFormSchema.parse>,
   userId: string,
   departmentId: string | null,
+  existingPublishedAt?: string | null,
 ) {
   return {
     circular_number: input.circularNumber || null,
     title_en: input.titleEn,
     title_hi: input.titleHi || null,
     department_id: departmentId,
+    category_id: input.categoryId || null,
     status: input.status as ContentStatus,
-    published_at: input.status === "published" ? new Date().toISOString() : null,
+    published_at:
+      input.status === "published"
+        ? existingPublishedAt ?? new Date().toISOString()
+        : null,
     updated_by: userId,
   };
 }
@@ -76,6 +82,31 @@ const CIRCULARS_LIST_SORTS = [
   "published_at",
   "created_at",
 ] as const;
+
+export async function listCircularCategoriesForAdmin(): Promise<
+  (CircularCategory & { parent_name_en?: string | null })[]
+> {
+  const session = await requireAdminSession();
+  if (!(await hasCmsModuleAccess(session, "circulars"))) {
+    return [];
+  }
+  const admin = createAdminClient();
+  if (!admin) return [];
+
+  const { data } = await admin
+    .from(Tables.circularCategories)
+    .select("*")
+    .eq("is_active", true)
+    .order("sort_order", { ascending: true })
+    .order("name_en", { ascending: true });
+
+  const rows = (data as CircularCategory[]) ?? [];
+  const byId = new Map(rows.map((r) => [r.id, r]));
+  return rows.map((row) => ({
+    ...row,
+    parent_name_en: row.parent_id ? byId.get(row.parent_id)?.name_en ?? null : null,
+  }));
+}
 
 export async function listCircularsForAdmin(
   options: import("@/lib/data/admin-list").AdminListOptions = {},
@@ -243,6 +274,7 @@ export async function updateCircularAction(id: string, formData: FormData): Prom
           parsed.data,
           session.userId,
           resolveScopedDepartmentId(session, parsed.data.departmentId),
+          existing.published_at,
         ),
         file_path: filePath,
         file_name: fileName,

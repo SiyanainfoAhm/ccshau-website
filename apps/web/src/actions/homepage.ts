@@ -765,6 +765,7 @@ export async function updateHomepageCtaAction(formData: FormData): Promise<Actio
       subtitle_hi: input.subtitleHi || null,
       button_en: input.buttonEn,
       button_hi: input.buttonHi || null,
+      href: input.linkHref,
       link_href: input.linkHref,
       is_active: input.isActive ?? true,
     });

@@ -48,6 +48,7 @@ const baseNavItems: AdminNavItem[] = [
   { href: "/admin/pages", label: "Pages", icon: FileText },
   { href: "/admin/news", label: "News & Notices", icon: Newspaper },
   { href: "/admin/circulars", label: "Circulars", icon: ScrollText },
+  { href: "/admin/rti", label: "RTI", icon: FileText },
   { href: "/admin/tenders", label: "Tenders", icon: ShoppingBag },
   { href: "/admin/downloads", label: "Downloads", icon: Download },
   { href: "/admin/feedback", label: "Feedback", icon: MessageSquare },
