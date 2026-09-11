@@ -42,9 +42,12 @@ export default async function EditPagePage({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl font-bold text-slate-900">
+          <Link href="/admin/pages" className="text-sm text-emerald-700 hover:underline">
+            ← All pages
+          </Link>
+          <h1 className="mt-2 font-display text-2xl font-bold text-slate-900">
             {canEdit ? "Edit page" : "View page"}
           </h1>
           <p className="text-sm text-slate-500">/{page.slug}</p>

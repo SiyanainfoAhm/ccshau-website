@@ -106,7 +106,7 @@ export function SiteFooter({
             </h3>
             <ul className="space-y-2.5 text-sm">
               {[
-                { label: "RTI", href: "#" },
+                { label: "RTI", href: SELECTED_LAYOUT.routes.rti },
                 { label: "NIRF", href: "#" },
                 { label: t("Circulars", "परिपत्र"), href: SELECTED_LAYOUT.routes.circulars },
                 { label: t("Tenders", "निविदाएं"), href: SELECTED_LAYOUT.routes.tenders },
@@ -211,7 +211,7 @@ export function SiteFooter({
           </h3>
           <ul className="space-y-2 text-sm">
             <li>
-              <Link href="#" className="hover:underline">
+              <Link href="/rti" className="hover:underline">
                 RTI
               </Link>
             </li>

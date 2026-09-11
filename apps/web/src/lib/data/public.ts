@@ -5,6 +5,7 @@ import type {
   AttachmentPath,
   Banner,
   Circular,
+  CircularCategory,
   Download,
   MediaAlbum,
   MediaItem,
@@ -25,6 +26,7 @@ import type {
   PublicCollegePage,
   PublicCollegeSection,
   PublicCollegeSubsection,
+  PublicCircularCategory,
   PublicCircularItem,
   PublicDownloadItem,
   PublicGalleryImage,
@@ -169,7 +171,7 @@ const BANNER_PUBLIC_SELECT =
 const NEWS_LIST_PUBLIC_SELECT =
   "id, slug, title_en, title_hi, category, notice_type, published_at, expires_at, is_featured, is_pinned, attachment_paths";
 const CIRCULAR_PUBLIC_SELECT =
-  "id, circular_number, title_en, title_hi, published_at, department_id, file_name, file_path";
+  "id, circular_number, title_en, title_hi, published_at, department_id, category_id, file_name, file_path";
 const TENDER_LIST_PUBLIC_SELECT =
   "id, slug, tender_number, title_en, title_hi, description_en, description_hi, category, status, closing_date, published_at, department_id, document_paths";
 const DOWNLOAD_PUBLIC_SELECT =
@@ -1306,21 +1308,113 @@ async function loadDepartmentNames(admin: ReturnType<typeof createAdminClient>, 
   return deptMap;
 }
 
-export async function getPublishedCirculars(options?: {
-  query?: string;
-}): Promise<PublicCircularItem[]> {
+export async function getPublicCircularCategoryTree(): Promise<PublicCircularCategory[]> {
   const admin = createAdminClient();
   if (!admin) return [];
 
   const { data } = await admin
+    .from(Tables.circularCategories)
+    .select("id, name_en, name_hi, slug, parent_id, sort_order")
+    .eq("is_active", true)
+    .order("sort_order", { ascending: true })
+    .order("name_en", { ascending: true });
+
+  const rows = (data as Pick<
+    CircularCategory,
+    "id" | "name_en" | "name_hi" | "slug" | "parent_id" | "sort_order"
+  >[]) ?? [];
+
+  const byParent = new Map<string | null, typeof rows>();
+  for (const row of rows) {
+    const key = row.parent_id;
+    const list = byParent.get(key) ?? [];
+    list.push(row);
+    byParent.set(key, list);
+  }
+
+  function mapNode(
+    row: (typeof rows)[number],
+  ): PublicCircularCategory {
+    const children = (byParent.get(row.id) ?? []).map(mapNode);
+    return {
+      id: row.id,
+      slug: row.slug,
+      nameEn: row.name_en,
+      nameHi: row.name_hi,
+      children,
+    };
+  }
+
+  return (byParent.get(null) ?? []).map(mapNode);
+}
+
+export async function getPublishedCirculars(options?: {
+  query?: string;
+  categoryId?: string;
+  includeDescendants?: boolean;
+}): Promise<PublicCircularItem[]> {
+  const admin = createAdminClient();
+  if (!admin) return [];
+
+  let categoryIds: string[] | null = null;
+  if (options?.categoryId) {
+    if (options.includeDescendants) {
+      const { data: cats } = await admin
+        .from(Tables.circularCategories)
+        .select("id, parent_id")
+        .eq("is_active", true);
+      const all = (cats as Pick<CircularCategory, "id" | "parent_id">[]) ?? [];
+      const childrenByParent = new Map<string, string[]>();
+      for (const c of all) {
+        if (!c.parent_id) continue;
+        const list = childrenByParent.get(c.parent_id) ?? [];
+        list.push(c.id);
+        childrenByParent.set(c.parent_id, list);
+      }
+      const collected = new Set<string>([options.categoryId]);
+      const stack = [options.categoryId];
+      while (stack.length) {
+        const current = stack.pop()!;
+        for (const child of childrenByParent.get(current) ?? []) {
+          if (!collected.has(child)) {
+            collected.add(child);
+            stack.push(child);
+          }
+        }
+      }
+      categoryIds = [...collected];
+    } else {
+      categoryIds = [options.categoryId];
+    }
+  }
+
+  let query = admin
     .from(Tables.circulars)
     .select(CIRCULAR_PUBLIC_SELECT)
     .eq("status", "published")
     .order("published_at", { ascending: false });
 
+  if (categoryIds) {
+    query = query.in("category_id", categoryIds);
+  }
+
+  const { data } = await query;
+
   const circulars = (data as Circular[]) ?? [];
   const deptIds = [...new Set(circulars.map((c) => c.department_id).filter(Boolean))] as string[];
+  const catIds = [...new Set(circulars.map((c) => c.category_id).filter(Boolean))] as string[];
   const deptMap = await loadDepartmentNames(admin, deptIds);
+
+  const catMap = new Map<string, string>();
+  if (catIds.length) {
+    const { data: cats } = await admin
+      .from(Tables.circularCategories)
+      .select("id, name_en")
+      .in("id", catIds);
+    for (const cat of cats ?? []) {
+      catMap.set(cat.id, cat.name_en);
+    }
+  }
 
   const q = options?.query?.trim().toLowerCase();
   const filtered = q
@@ -1339,9 +1433,29 @@ export async function getPublishedCirculars(options?: {
     titleHi: item.title_hi,
     publishedAt: item.published_at,
     departmentName: item.department_id ? deptMap.get(item.department_id) ?? null : null,
+    categoryId: item.category_id,
+    categoryName: item.category_id ? catMap.get(item.category_id) ?? null : null,
     fileName: item.file_name,
     fileUrl: item.file_path ? getStoredFileUrl(item.file_path) : null,
   }));
+}
+
+export async function getPublishedCircularsPage(options: {
+  query?: string;
+  page?: number;
+  pageSize?: number;
+  categoryId?: string;
+  includeDescendants?: boolean;
+}): Promise<PaginatedResult<PublicCircularItem>> {
+  const all = await getPublishedCirculars({
+    query: options.query,
+    categoryId: options.categoryId,
+    includeDescendants: options.includeDescendants,
+  });
+  const page = options.page ?? 1;
+  const pageSize = options.pageSize ?? DEFAULT_PAGE_SIZE;
+  const { from, to } = paginationRange(page, pageSize);
+  return buildPaginatedResult(all.slice(from, to + 1), all.length, page, pageSize);
 }
 
 function mapDownloadToPublicItem(
@@ -1420,6 +1534,46 @@ export async function getPublishedDownloads(options?: {
     pageSize: options?.limit ?? 500,
   });
   return page.items;
+}
+
+/** RTI listing ordered by legacy serial (stored in version). */
+export async function getPublishedRtiDocumentsPage(options: {
+  page?: number;
+  pageSize?: number;
+}): Promise<PaginatedResult<PublicDownloadItem>> {
+  const admin = createAdminClient();
+  const page = options.page ?? 1;
+  const pageSize = options.pageSize ?? DEFAULT_PAGE_SIZE;
+  if (!admin) {
+    return buildPaginatedResult([], 0, page, pageSize);
+  }
+
+  const now = new Date().toISOString();
+  const { data } = await admin
+    .from(Tables.downloads)
+    .select(DOWNLOAD_PUBLIC_SELECT)
+    .eq("status", "published")
+    .eq("is_public", true)
+    .eq("category", "rti")
+    .or(`expires_at.is.null,expires_at.gt.${now}`);
+
+  const downloads = (data as Download[]) ?? [];
+  downloads.sort((a, b) => {
+    const av = Number.parseInt(a.version ?? "", 10);
+    const bv = Number.parseInt(b.version ?? "", 10);
+    const aNum = Number.isFinite(av) ? av : Number.MAX_SAFE_INTEGER;
+    const bNum = Number.isFinite(bv) ? bv : Number.MAX_SAFE_INTEGER;
+    if (aNum !== bNum) return aNum - bNum;
+    return a.title_en.localeCompare(b.title_en);
+  });
+
+  const deptIds = [
+    ...new Set(downloads.map((d) => d.department_id).filter(Boolean)),
+  ] as string[];
+  const deptMap = await loadDepartmentNames(admin, deptIds);
+  const items = downloads.map((d) => mapDownloadToPublicItem(d, deptMap));
+  const { from, to } = paginationRange(page, pageSize);
+  return buildPaginatedResult(items.slice(from, to + 1), items.length, page, pageSize);
 }
 
 export async function getPublishedDownloadsPage(options: {
@@ -1573,19 +1727,6 @@ export async function getMediaAlbumBySlug(slug: string): Promise<PublicMediaAlbu
       captionHi: item.caption_hi,
     })),
   };
-}
-
-export async function getPublishedCircularsPage(options: {
-  page?: number;
-  pageSize?: number;
-  query?: string;
-}): Promise<PaginatedResult<PublicCircularItem>> {
-  const all = await getPublishedCirculars({ query: options.query });
-  const page = options.page ?? 1;
-  const pageSize = options.pageSize ?? DEFAULT_PAGE_SIZE;
-  const start = (page - 1) * pageSize;
-  const items = all.slice(start, start + pageSize);
-  return buildPaginatedResult(items, all.length, page, pageSize);
 }
 
 export async function getPublishedMediaAlbumsPage(options: {

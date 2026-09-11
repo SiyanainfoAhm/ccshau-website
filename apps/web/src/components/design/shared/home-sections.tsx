@@ -1300,7 +1300,7 @@ export function FarmersPortalSection({
   const farmersLink =
     cta?.href ??
     chrome?.quickLinks.find((link) => /farmer/i.test(link.labelEn))?.href ??
-    "/pages/about";
+    "/farmers-portal";
   const titleEn = cta?.titleEn ?? "Farmers' Portal";
   const titleHi = cta?.titleHi ?? "किसान पोर्टल";
   const subtitleEn =

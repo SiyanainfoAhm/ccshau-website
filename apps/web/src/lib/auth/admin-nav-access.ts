@@ -86,6 +86,7 @@ const READ_ONLY_LIST_PATHS = [
   "/admin/pages",
   "/admin/news",
   "/admin/circulars",
+  "/admin/rti",
   "/admin/tenders",
   "/admin/downloads",
   "/admin/feedback",

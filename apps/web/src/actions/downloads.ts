@@ -159,6 +159,39 @@ export async function listDownloadsForAdmin(
   return runPaginatedQuery<Download>(query, opts);
 }
 
+export async function listRtiDownloadsForAdmin(
+  options: import("@/lib/data/admin-list").AdminListOptions = {},
+): Promise<PaginatedResult<Download>> {
+  const opts = mergeAdminListOptions(options, {
+    sortBy: "version",
+    sortOrder: "asc",
+    allowedSorts: DOWNLOADS_LIST_SORTS,
+  });
+
+  const session = await requireAdminSession();
+  if (!(await hasCmsModuleAccess(session, "downloads"))) {
+    return emptyPaginatedResult(opts);
+  }
+  const admin = createAdminClient();
+  if (!admin) return emptyPaginatedResult(opts);
+
+  let query = admin
+    .from(Tables.downloads)
+    .select("id, title_en, category, version, file_path, is_public, status", { count: "exact" })
+    .eq("category", "rti");
+
+  if (!isUniversityWideCmsSession(session) && session.departmentId) {
+    query = query.eq("department_id", session.departmentId);
+  }
+
+  if (opts.search) {
+    const term = quotePostgrestValue(`%${escapeIlikeTerm(opts.search)}%`);
+    query = query.or(`title_en.ilike.${term},version.ilike.${term}`);
+  }
+
+  return runPaginatedQuery<Download>(query, opts);
+}
+
 export async function getDownloadById(id: string): Promise<Download | null> {
   const session = await requireAdminSession();
   if (!(await hasCmsModuleAccess(session, "downloads"))) {

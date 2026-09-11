@@ -310,6 +310,19 @@ export interface Banner {
   updated_at: string;
 }
 
+export interface CircularCategory {
+  id: string;
+  legacy_id: number | null;
+  name_en: string;
+  name_hi: string | null;
+  slug: string;
+  parent_id: string | null;
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Circular {
   id: string;
   circular_number: string | null;
@@ -319,6 +332,8 @@ export interface Circular {
   file_name: string | null;
   file_size: number | null;
   department_id: string | null;
+  category_id: string | null;
+  legacy_notification_id: number | null;
   status: ContentStatus;
   published_at: string | null;
   archived_at: string | null;

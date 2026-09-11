@@ -66,7 +66,7 @@ CROSS JOIN (
     ('NIRF', 'एनआईआरएफ', 'https://www.nirfindia.org', 5, true),
     ('RTI', 'आरटीआई', '/contact', 6, false),
     ('Digital Downloads', 'डिजिटल डाउनलोड', '/downloads', 7, false),
-    ('Farmers'' Portal', 'किसान पोर्टल', '/pages/about', 8, false)
+    ('Farmers'' Portal', 'किसान पोर्टल', '/farmers-portal', 8, false)
 ) AS v(label_en, label_hi, href, sort_order, open_in_new_tab)
 WHERE m.location = 'quick_links'
   AND NOT EXISTS (

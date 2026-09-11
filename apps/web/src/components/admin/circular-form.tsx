@@ -15,13 +15,21 @@ interface Department {
   name_en: string;
 }
 
+interface CategoryOption {
+  id: string;
+  name_en: string;
+  parent_name_en?: string | null;
+}
+
 export function CircularForm({
   departments,
+  categories,
   circular,
   canEdit = true,
   canPublish = true,
 }: {
   departments: Department[];
+  categories: CategoryOption[];
   circular?: Circular;
   canEdit?: boolean;
   canPublish?: boolean;
@@ -98,6 +106,26 @@ export function CircularForm({
           disabled={!canEdit}
           className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 font-hindi disabled:bg-slate-50"
         />
+      </label>
+
+      <label className="block text-sm">
+        <span className="font-medium text-slate-700">Circular section</span>
+        <select
+          name="categoryId"
+          defaultValue={circular?.category_id ?? ""}
+          disabled={!canEdit}
+          className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 disabled:bg-slate-50"
+        >
+          <option value="">Unassigned</option>
+          {categories.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.parent_name_en ? `${c.parent_name_en} › ${c.name_en}` : c.name_en}
+            </option>
+          ))}
+        </select>
+        <p className="mt-1 text-xs text-slate-500">
+          Office / branch tab shown on the public Circular Section page.
+        </p>
       </label>
 
       <label className="block text-sm">

@@ -1,13 +1,16 @@
 import Link from "next/link";
 
-import { listDepartments } from "@/actions/circulars";
+import { listCircularCategoriesForAdmin, listDepartments } from "@/actions/circulars";
 import { CircularForm } from "@/components/admin/circular-form";
 import { CONTENT_EDIT_ROLES, canPublishContent } from "@/lib/auth/cms-roles";
 import { requireAdminWithRolesOrRedirect } from "@/lib/auth/session";
 
 export default async function AdminNewCircularPage() {
   const session = await requireAdminWithRolesOrRedirect([...CONTENT_EDIT_ROLES]);
-  const departments = await listDepartments();
+  const [departments, categories] = await Promise.all([
+    listDepartments(),
+    listCircularCategoriesForAdmin(),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -17,7 +20,11 @@ export default async function AdminNewCircularPage() {
         </Link>
         <h1 className="mt-2 font-display text-2xl font-bold text-slate-900">New circular</h1>
       </div>
-      <CircularForm departments={departments} canPublish={canPublishContent(session)} />
+      <CircularForm
+        departments={departments}
+        categories={categories}
+        canPublish={canPublishContent(session)}
+      />
     </div>
   );
 }

@@ -259,6 +259,14 @@ export interface PublicSiteChrome {
   socialLinks: PublicSocialLink[];
 }
 
+export interface PublicCircularCategory {
+  id: string;
+  slug: string;
+  nameEn: string;
+  nameHi: string | null;
+  children: PublicCircularCategory[];
+}
+
 export interface PublicCircularItem {
   id: string;
   circularNumber: string | null;
@@ -266,6 +274,8 @@ export interface PublicCircularItem {
   titleHi: string | null;
   publishedAt: string | null;
   departmentName: string | null;
+  categoryId: string | null;
+  categoryName: string | null;
   fileName: string | null;
   fileUrl: string | null;
 }

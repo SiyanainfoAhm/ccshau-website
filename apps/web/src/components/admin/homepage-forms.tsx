@@ -419,7 +419,7 @@ export function HomepageCtaForm({ cta }: { cta?: HomepageCta | null }) {
       </div>
       <label className="block text-sm">
         <span className="font-medium text-slate-700">Link URL</span>
-        <input name="linkHref" required defaultValue={cta?.link_href ?? "/pages/about"} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" />
+        <input name="linkHref" required defaultValue={cta?.link_href ?? "/farmers-portal"} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" />
       </label>
       <label className="flex items-center gap-2 text-sm text-slate-700">
         <input name="isActive" type="checkbox" defaultChecked={cta?.is_active ?? true} />

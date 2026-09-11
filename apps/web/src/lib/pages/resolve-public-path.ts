@@ -102,6 +102,10 @@ export function resolvePublicPagePath(
     return getPublicPagePath(slug, "college");
   }
 
+  // Dedicated app routes (listing/portal UIs), not generic CMS shells.
+  if (slug === "rti") return "/rti";
+  if (slug === "farmers-portal") return "/farmers-portal";
+
   return getPublicPagePath(slug, pageType);
 }
 

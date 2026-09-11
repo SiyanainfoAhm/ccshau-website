@@ -19,6 +19,8 @@ export const SELECTED_LAYOUT = {
     media: "/media",
     search: "/search",
     contact: "/contact",
+    rti: "/rti",
+    farmersPortal: "/farmers-portal",
     pages: "/pages",
   },
 } as const;
