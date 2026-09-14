@@ -10,6 +10,9 @@ import { SELECTED_LAYOUT } from "@/lib/design/selected-layout";
 import type { PublicQuickLink } from "@/lib/data/public-types";
 import { quickLinks, university } from "@/lib/mock/site-content";
 
+/** Keep the footer compact; full list lives on /quick-links. */
+const FOOTER_QUICK_LINKS_LIMIT = 10;
+
 export function SiteFooter({
   variant = "future",
   quickLinks: quickLinksProp,
@@ -20,11 +23,13 @@ export function SiteFooter({
   const { t } = useLanguage();
   const chrome = usePublicSiteChrome();
   // Prefer CMS Quick Links menu (all active items). Footer menu is a separate column source.
-  const footerLinks: PublicQuickLink[] =
+  const allQuickLinks: PublicQuickLink[] =
     quickLinksProp ??
     chrome?.quickLinks ??
     chrome?.footerLinks ??
     quickLinks.map((label) => ({ labelEn: label, labelHi: null, href: "#" }));
+  const footerLinks = allQuickLinks.slice(0, FOOTER_QUICK_LINKS_LIMIT);
+  const hasMoreQuickLinks = allQuickLinks.length > FOOTER_QUICK_LINKS_LIMIT;
   const socialLinks = chrome?.socialLinks ?? [];
   const isHeritage = variant === "heritage";
   const isMinistry = variant === "ministry";
@@ -74,6 +79,16 @@ export function SiteFooter({
                 );
               })}
             </ul>
+            <p className="mt-4">
+              <Link
+                href={SELECTED_LAYOUT.routes.quickLinks}
+                className="inline-flex items-center text-sm font-semibold text-amber-300 transition hover:text-amber-200 hover:underline"
+              >
+                {hasMoreQuickLinks
+                  ? t("View all quick links", "सभी त्वरित लिंक देखें")
+                  : t("All quick links", "सभी त्वरित लिंक")}
+              </Link>
+            </p>
           </div>
 
           <div>
@@ -171,14 +186,34 @@ export function SiteFooter({
             {t("Quick Links", "त्वरित लिंक")}
           </h3>
           <ul className="grid grid-cols-2 gap-2 text-sm">
-            {quickLinks.slice(0, 8).map((link) => (
-              <li key={link}>
-                <Link href="#" className="opacity-85 transition hover:opacity-100 hover:underline">
-                  {link}
-                </Link>
-              </li>
-            ))}
+            {footerLinks.map((link, index) => {
+              const isExternal =
+                link.openInNewTab === true || /^https?:\/\//i.test(link.href);
+              return (
+                <li key={`${link.href}-${link.labelEn}-${index}`}>
+                  <Link
+                    href={link.href}
+                    {...(isExternal
+                      ? { target: "_blank", rel: "noopener noreferrer" }
+                      : {})}
+                    className="opacity-85 transition hover:opacity-100 hover:underline"
+                  >
+                    {t(link.labelEn, link.labelHi ?? link.labelEn)}
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
+          <p className="mt-3">
+            <Link
+              href={SELECTED_LAYOUT.routes.quickLinks}
+              className={`text-sm font-semibold hover:underline ${isHeritage ? "text-[#9e4a5a]" : "text-[#0c3b6e]"}`}
+            >
+              {hasMoreQuickLinks
+                ? t("View all quick links", "सभी त्वरित लिंक देखें")
+                : t("All quick links", "सभी त्वरित लिंक")}
+            </Link>
+          </p>
         </div>
 
         <div>
