@@ -120,15 +120,17 @@ export function PublicTenderDetail({ tender }: { tender: PublicTenderItem }) {
           />
         ) : null}
 
-        {tender.documents.length > 0 && (
+        {tender.documents.some((doc) => doc.url) && (
           <div className="mt-10 space-y-3">
             <h2 className={typeSectionTitleClass}>
               {t("Documents", "दस्तावेज़")}
             </h2>
-            {tender.documents.map((doc) => (
+            {tender.documents
+              .filter((doc) => doc.url)
+              .map((doc) => (
               <a
                 key={doc.path}
-                href={doc.url ?? "#"}
+                href={doc.url!}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={`flex items-center gap-2 ${publicListItemClass} px-4 py-3 text-sm font-semibold text-emerald-800 dark:text-emerald-200`}

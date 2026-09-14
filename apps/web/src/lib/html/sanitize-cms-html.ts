@@ -162,7 +162,9 @@ function circularPdfApiPath(fileName: string): string {
   return `/api/legacy/circular-pdf/${encodeURIComponent(fileName)}`;
 }
 
-/** Map known migrated hau.ac.in URLs to this site's public paths / Azure blob. */
+/** Map leftover hau.ac.in URLs in old CMS HTML to Azure / site paths.
+ * Canonical content must already store Azure blob URLs — this is only a safety net
+ * for unmigrated HTML. Downloads must never depend on hau.ac.in being online. */
 function rewriteLegacyHauHref(href: string): string {
   const trimmed = href.trim();
   try {
@@ -189,6 +191,12 @@ function rewriteLegacyHauHref(href: string): string {
     );
     if (circularPdfMatch?.[1]) {
       return circularPdfApiPath(decodeURIComponent(circularPdfMatch[1]));
+    }
+
+    // Tubewell / other APKs hosted under hau.ac.in/apk → Azure farmers-portal/apk
+    const apkMatch = path.match(/^\/apk\/([^/]+\.apk)$/i);
+    if (apkMatch?.[1]) {
+      return `https://ccshau.blob.core.windows.net/ccshaucontainer/farmers-portal/apk/${decodeURIComponent(apkMatch[1])}`;
     }
 
     // Migrated media: hau storage → Azure legacy-storage container

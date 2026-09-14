@@ -57,10 +57,8 @@ describe("storage urls", () => {
       "https://ccshau.blob.core.windows.net/ccshau-public/news/a.pdf",
     );
 
-    // Phase-4 placeholders are not Azure containers — map tenders/news to HAU.
-    expect(getStoredFileUrl("legacy-pending/tenders/5595/1784791334.pdf")).toBe(
-      "https://hau.ac.in/public/notification-documents/5595/1784791334.pdf",
-    );
+    // Phase-4 placeholders are not Azure blobs — no HAU/legacy public URL.
+    expect(getStoredFileUrl("legacy-pending/tenders/5595/1784791334.pdf")).toBeNull();
     expect(getStoredFileUrl("legacy-pending/cms/1174/1550820777.pdf")).toBeNull();
 
     expect(resolvePublicMediaUrl(null)).toBeNull();

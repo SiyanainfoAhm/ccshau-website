@@ -35,15 +35,11 @@ export async function GET(
     .maybeSingle();
 
   if (!data?.file_path) {
-    // Fall back to live HAU storage so links keep working until re-imported.
-    return NextResponse.redirect(
-      `https://hau.ac.in/storage/app/uploads/circular-pdf/${encodeURIComponent(fileName)}`,
-      302,
-    );
+    return NextResponse.json({ error: "Circular PDF not found in Azure" }, { status: 404 });
   }
 
   const url = getStoredFileUrl(data.file_path);
-  if (!url) {
+  if (!url || url.includes("hau.ac.in")) {
     return NextResponse.json({ error: "File unavailable" }, { status: 404 });
   }
 

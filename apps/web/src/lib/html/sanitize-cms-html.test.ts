@@ -82,6 +82,17 @@ describe("sanitizeCmsHtml", () => {
     );
   });
 
+  // Farmers Portal Tubewell APK must download from Azure, not hau.ac.in.
+  it("rewrites hau apk links to Azure farmers-portal/apk", () => {
+    const html =
+      '<a href="https://hau.ac.in/apk/TubewellDischargeSWE.apk">Download</a>';
+    const out = sanitizeCmsHtml(html);
+    expect(out).toContain(
+      'href="https://ccshau.blob.core.windows.net/ccshaucontainer/farmers-portal/apk/TubewellDischargeSWE.apk"',
+    );
+    expect(out).not.toContain("hau.ac.in/apk");
+  });
+
   // Iframes without title get a default title attribute.
   it("adds a default title on iframe without title", () => {
     const out = sanitizeCmsHtml(
