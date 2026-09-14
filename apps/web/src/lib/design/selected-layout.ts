@@ -21,6 +21,7 @@ export const SELECTED_LAYOUT = {
     contact: "/contact",
     rti: "/rti",
     farmersPortal: "/farmers-portal",
+    quickLinks: "/quick-links",
     pages: "/pages",
   },
 } as const;
