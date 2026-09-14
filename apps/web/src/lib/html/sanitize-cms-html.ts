@@ -157,15 +157,39 @@ const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
   },
 };
 
+/** Circular PDFs live under circulars/{id}/, not legacy-storage/circular-pdf/. */
+function circularPdfApiPath(fileName: string): string {
+  return `/api/legacy/circular-pdf/${encodeURIComponent(fileName)}`;
+}
+
 /** Map known migrated hau.ac.in URLs to this site's public paths / Azure blob. */
 function rewriteLegacyHauHref(href: string): string {
   const trimmed = href.trim();
   try {
     const url = new URL(trimmed, "https://hau.ac.in");
     const host = url.hostname.replace(/^www\./, "");
+    const path = url.pathname.replace(/\/$/, "") || "/";
+
+    // Broken prior rewrite: Azure legacy-storage/circular-pdf → lookup API
+    if (host === "ccshau.blob.core.windows.net") {
+      const brokenCircular = path.match(
+        /^\/ccshaucontainer\/legacy-storage\/circular-pdf\/([^/]+\.pdf)$/i,
+      );
+      if (brokenCircular?.[1]) {
+        return circularPdfApiPath(decodeURIComponent(brokenCircular[1]));
+      }
+      return trimmed;
+    }
+
     if (host !== "hau.ac.in") return trimmed;
 
-    const path = url.pathname.replace(/\/$/, "") || "/";
+    // Circular PDFs were imported to circulars/{uuid}/filename — resolve via API
+    const circularPdfMatch = path.match(
+      /^\/storage\/app\/uploads\/circular-pdf\/([^/]+\.pdf)$/i,
+    );
+    if (circularPdfMatch?.[1]) {
+      return circularPdfApiPath(decodeURIComponent(circularPdfMatch[1]));
+    }
 
     // Migrated media: hau storage → Azure legacy-storage container
     const uploadMatch = path.match(/^\/storage\/app\/uploads\/(.+)$/);

@@ -61,6 +61,27 @@ describe("sanitizeCmsHtml", () => {
     expect(out).not.toContain("<script");
   });
 
+  // HAU circular-pdf links resolve via lookup API (not missing legacy-storage).
+  it("rewrites hau circular-pdf links to the legacy circular api", () => {
+    const html =
+      '<a href="https://hau.ac.in/storage/app/uploads/circular-pdf/3M2Fsw06va07uAXOu0NtpJRi8fjdjo3H6Pcayau4.pdf">PDF</a>';
+    const out = sanitizeCmsHtml(html);
+    expect(out).toContain(
+      'href="/api/legacy/circular-pdf/3M2Fsw06va07uAXOu0NtpJRi8fjdjo3H6Pcayau4.pdf"',
+    );
+    expect(out).not.toContain("legacy-storage/circular-pdf");
+  });
+
+  // Prior broken Azure circular-pdf rewrites are corrected to the lookup API.
+  it("rewrites broken azure legacy-storage circular-pdf links to the api", () => {
+    const html =
+      '<a href="https://ccshau.blob.core.windows.net/ccshaucontainer/legacy-storage/circular-pdf/kOGMdXTKUohcjTp9n852yAtc7e2O0a9uFZ4lxvBd.pdf">PDF</a>';
+    const out = sanitizeCmsHtml(html);
+    expect(out).toContain(
+      'href="/api/legacy/circular-pdf/kOGMdXTKUohcjTp9n852yAtc7e2O0a9uFZ4lxvBd.pdf"',
+    );
+  });
+
   // Iframes without title get a default title attribute.
   it("adds a default title on iframe without title", () => {
     const out = sanitizeCmsHtml(
