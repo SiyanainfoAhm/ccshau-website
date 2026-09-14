@@ -48,32 +48,16 @@ export function getPublicFileUrl(container: string, path: string): string | null
 }
 
 /**
- * Phase-4 placeholders were stored as `legacy-pending/{kind}/{legacyId}/{file}`
- * before Azure upload. Those are not real Azure containers — map known kinds
- * back to the live HAU public document URL until Phase 4 completes.
+ * Phase-4 placeholders (`legacy-pending/...`) are not Azure blobs yet.
+ * Do not rewrite them to hau.ac.in — public downloads must use Azure only.
+ * Upload the real file and replace the path with `ccshaucontainer/...`.
  */
-function resolveLegacyPendingUrl(storedPath: string): string | null {
-  const parts = storedPath.split("/");
-  if (parts[0] !== "legacy-pending" || parts.length < 4) return null;
-  const kind = parts[1];
-  const legacyId = parts[2];
-  const fileName = parts.slice(3).join("/");
-  if (!legacyId || !fileName) return null;
-  if (kind === "tenders" || kind === "news") {
-    return `https://hau.ac.in/public/notification-documents/${encodeURIComponent(legacyId)}/${fileName
-      .split("/")
-      .map((s) => encodeURIComponent(s))
-      .join("/")}`;
-  }
-  return null;
-}
-
 export function getStoredFileUrl(storedPath: string): string | null {
   if (storedPath.startsWith("https://") || storedPath.startsWith("http://")) {
     return storedPath;
   }
   if (storedPath.startsWith("legacy-pending/")) {
-    return resolveLegacyPendingUrl(storedPath);
+    return null;
   }
   const slash = storedPath.indexOf("/");
   if (slash === -1) return null;
