@@ -1,6 +1,10 @@
 /**
- * Homepage dignitaries and colleges sourced from https://hau.ac.in/ (June 2026).
+ * Homepage dignitaries / colleges / flagships fallbacks.
+ * Media is served from Azure Blob (legacy-images/homepage/*) — no hau.ac.in dependency.
  */
+
+const AZURE_HOMEPAGE =
+  "https://ccshau.blob.core.windows.net/ccshaucontainer/legacy-images/homepage";
 
 export interface LegacyDignitary {
   nameEn: string;
@@ -128,28 +132,28 @@ export const legacyDignitaries: LegacyDignitary[] = [
     nameHi: "द्रौपदी मुर्मू",
     roleEn: "Hon'ble President of India",
     roleHi: "भारत की माननीय राष्ट्रपति",
-    imageUrl: "https://hau.ac.in/public/images/speakers/5/1662633138.jpg",
+    imageUrl: `${AZURE_HOMEPAGE}/dignitaries/droupadi-murmu.jpg`,
   },
   {
     nameEn: "Narendra Modi",
     nameHi: "नरेंद्र मोदी",
     roleEn: "Hon'ble Prime Minister of India",
     roleHi: "भारत के माननीय प्रधानमंत्री",
-    imageUrl: "https://hau.ac.in/public/images/speakers/4/1662633149.jpg",
+    imageUrl: `${AZURE_HOMEPAGE}/dignitaries/narendra-modi.jpg`,
   },
   {
     nameEn: "Prof. Ashim Kumar Ghosh",
     nameHi: "प्रो. अशिम कुमार घोष",
     roleEn: "Hon'ble Governor of Haryana",
     roleHi: "हरियाणा के माननीय राज्यपाल",
-    imageUrl: "https://hau.ac.in/public/images/speakers/3/1767765134.jpg",
+    imageUrl: `${AZURE_HOMEPAGE}/dignitaries/ashim-kumar-ghosh.jpg`,
   },
   {
     nameEn: "Nayab Singh Saini",
     nameHi: "नायब सिंह सैनी",
     roleEn: "Hon'ble Chief Minister of Haryana",
     roleHi: "हरियाणा के माननीय मुख्यमंत्री",
-    imageUrl: "https://hau.ac.in/public/images/speakers/2/1722239329.jpeg",
+    imageUrl: `${AZURE_HOMEPAGE}/dignitaries/nayab-singh-saini.jpeg`,
   },
 ];
 
@@ -159,21 +163,21 @@ export const legacyColleges: LegacyCollege[] = [
     slug: "college-of-agriculture-hisar",
     nameEn: "College of Agriculture, Hisar",
     nameHi: "कृषि महाविद्यालय, हिसार",
-    logoUrl: "https://hau.ac.in/public/images/college/logo/2/1540803791.jpg",
+    logoUrl: `${AZURE_HOMEPAGE}/colleges/college-of-agriculture-hisar.jpg`,
     color: "from-rose-400 to-rose-500",
   },
   {
     slug: "college-of-agriculture-kaul",
     nameEn: "College of Agriculture, Kaul",
     nameHi: "कृषि महाविद्यालय, कौल",
-    logoUrl: "https://hau.ac.in/public/images/college/logo/6/1540803865.jpg",
+    logoUrl: `${AZURE_HOMEPAGE}/colleges/college-of-agriculture-kaul.jpg`,
     color: "from-amber-400 to-orange-400",
   },
   {
     slug: "college-of-agriculture-bawal",
     nameEn: "College of Agriculture, Bawal",
     nameHi: "कृषि महाविद्यालय, बावल",
-    logoUrl: "https://hau.ac.in/public/images/college/logo/7/1552737173.jpg",
+    logoUrl: `${AZURE_HOMEPAGE}/colleges/college-of-agriculture-bawal.jpg`,
     color: "from-sky-400 to-blue-400",
   },
   {
@@ -184,7 +188,7 @@ export const legacyColleges: LegacyCollege[] = [
     ],
     nameEn: "I.C. College of Community Science",
     nameHi: "आई.सी. समुदाय विज्ञान महाविद्यालय",
-    logoUrl: "https://hau.ac.in/public/images/college/logo/9/1741857160.jpg",
+    logoUrl: `${AZURE_HOMEPAGE}/colleges/ic-college-of-community-science.jpg`,
     color: "from-pink-400 to-rose-400",
   },
   {
@@ -195,7 +199,7 @@ export const legacyColleges: LegacyCollege[] = [
     ],
     nameEn: "College of Basic Sciences & Humanities",
     nameHi: "मूल विज्ञान और मानविकी महाविद्यालय",
-    logoUrl: "https://hau.ac.in/public/images/college/logo/10/1540803999.jpg",
+    logoUrl: `${AZURE_HOMEPAGE}/colleges/college-of-basic-sciences-humanities.jpg`,
     color: "from-teal-400 to-cyan-400",
   },
   {
@@ -203,7 +207,7 @@ export const legacyColleges: LegacyCollege[] = [
     slugAliases: ["college-agricultural-engineering-technology"],
     nameEn: "College of Agricultural Engineering and Technology",
     nameHi: "कृषि अभियांत्रिकी और प्रौद्योगिकी महाविद्यालय",
-    logoUrl: "https://hau.ac.in/public/images/college/logo/11/1538048892.png",
+    logoUrl: `${AZURE_HOMEPAGE}/colleges/college-of-agricultural-engineering-and-technology.png`,
     color: "from-indigo-400 to-blue-500",
   },
   {
@@ -211,7 +215,7 @@ export const legacyColleges: LegacyCollege[] = [
     slugAliases: ["college-fisheries-science"],
     nameEn: "College of Fisheries Science",
     nameHi: "मत्स्य विज्ञान महाविद्यालय",
-    logoUrl: "https://hau.ac.in/public/images/college/logo/65/1716002752.png",
+    logoUrl: `${AZURE_HOMEPAGE}/colleges/college-of-fisheries-science.png`,
     color: "from-cyan-400 to-teal-500",
   },
   {
@@ -219,7 +223,9 @@ export const legacyColleges: LegacyCollege[] = [
     slugAliases: ["college-biotechnology"],
     nameEn: "College of Biotechnology",
     nameHi: "जैव प्रौद्योगिकी महाविद्यालय",
-    logoUrl: "https://hau.ac.in/public/images/college/logo/67/1782193277.jpg",
+    // Local dump lacked logo/67; use migrated CMS Azure asset.
+    logoUrl:
+      "https://ccshau.blob.core.windows.net/ccshaucontainer/pages/hero/5258b71b-fcf9-4346-8165-f804c1c592a7/logo/biotech.webp",
     color: "from-fuchsia-400 to-pink-500",
   },
 ];
@@ -233,7 +239,7 @@ export interface LegacyFlagship {
   imageUrl: string;
 }
 
-/** Flagship initiatives carousel — https://hau.ac.in/ */
+/** Flagship initiatives carousel — Azure legacy-images/homepage/flagships */
 export const legacyFlagships: LegacyFlagship[] = [
   {
     slug: "agribusiness-incubation-centre",
@@ -243,7 +249,7 @@ export const legacyFlagships: LegacyFlagship[] = [
       "Agriculture is the primary sector of our economy and majority of the population is directly or indirectly dependent on it.",
     descHi:
       "कृषि हमारी अर्थव्यवस्था का प्राथमिक क्षेत्र है और अधिकांश जनसंख्या प्रत्यक्ष या अप्रत्यक्ष रूप से इस पर निर्भर है।",
-    imageUrl: "https://hau.ac.in/public/images/college/banner/68/1689051816.JPG",
+    imageUrl: `${AZURE_HOMEPAGE}/flagships/agribusiness-incubation-centre.JPG`,
   },
   {
     slug: "centre-for-bio-nanotechnology",
@@ -253,7 +259,7 @@ export const legacyFlagships: LegacyFlagship[] = [
       "Centre for Bio-Nanotechnology was established at Chaudhary Charan Singh Haryana Agricultural University to advance research at the intersection of biology and nanotechnology.",
     descHi:
       "जैव-नैनो प्रौद्योगिकी केंद्र चौधरी चरण सिंह हरियाणा कृषि विश्वविद्यालय में जीव विज्ञान और नैनो प्रौद्योगिकी के संगम पर अनुसंधान के लिए स्थापित किया गया।",
-    imageUrl: "https://hau.ac.in/public/images/college/banner/66/1581499566.jpg",
+    imageUrl: `${AZURE_HOMEPAGE}/flagships/centre-for-bio-nanotechnology.jpg`,
   },
   {
     slug: "rkvy-raftaar-agribusiness-incubator-under-rkvy-raftaar-scheme",
@@ -263,7 +269,7 @@ export const legacyFlagships: LegacyFlagship[] = [
       "Agriculture is the primary sector of our economy and majority of the population is directly or indirectly dependent on it.",
     descHi:
       "कृषि हमारी अर्थव्यवस्था का प्राथमिक क्षेत्र है और अधिकांश जनसंख्या प्रत्यक्ष या अप्रत्यक्ष रूप से इस पर निर्भर है।",
-    imageUrl: "https://hau.ac.in/public/images/college/banner/64/1555063867.JPG",
+    imageUrl: `${AZURE_HOMEPAGE}/flagships/rkvy-raftaar.JPG`,
   },
   {
     slug: "institutional-development-plan-idp",
@@ -273,7 +279,7 @@ export const legacyFlagships: LegacyFlagship[] = [
       "Since its founding in 1970, Chaudhary Charan Singh Haryana Agricultural University (popularly known as HAU) has pursued excellence in teaching, research and extension.",
     descHi:
       "1970 में स्थापना के बाद से चौधरी चरण सिंह हरियाणा कृषि विश्वविद्यालय (एचएयू) शिक्षा, अनुसंधान और विस्तार में उत्कृष्टता के लिए कार्यरत है।",
-    imageUrl: "https://hau.ac.in/public/images/college/banner/44/1624419644.jpg",
+    imageUrl: `${AZURE_HOMEPAGE}/flagships/institutional-development-plan.jpg`,
   },
   {
     slug: "skill-council-of-india",
@@ -283,6 +289,6 @@ export const legacyFlagships: LegacyFlagship[] = [
       "Extension education is one of the three major functions of CCS Haryana Agricultural University, Hisar. The Skill Council of India initiative strengthens vocational training and outreach.",
     descHi:
       "विस्तार शिक्षा सीसीएस हरियाणा कृषि विश्वविद्यालय, हिसार के तीन प्रमुख कार्यों में से एक है। स्किल काउंसिल ऑफ इंडिया पहल व्यावसायिक प्रशिक्षण को मजबूत करती है।",
-    imageUrl: "https://hau.ac.in/public/images/college/banner/43/1731475495.png",
+    imageUrl: `${AZURE_HOMEPAGE}/flagships/skill-council-of-india.png`,
   },
 ];
