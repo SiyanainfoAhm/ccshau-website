@@ -15,6 +15,7 @@ export type FarmersPortalItem = {
   pdfStoredPath?: string;
   /** Inline HTML shown in the main panel */
   htmlEn?: string;
+  htmlHi?: string;
   /** Internal path or absolute external URL */
   href?: string;
   openInNewTab?: boolean;
@@ -24,48 +25,58 @@ export const FARMERS_PORTAL_ITEMS: FarmersPortalItem[] = [
   {
     id: "success-women-entrepreneur",
     labelEn: "Success Story- Women Entrepreneur",
+    labelHi: "सफलता कथा — महिला उद्यमी",
     kind: "pdf",
     pdfStoredPath: "ccshaucontainer/farmers-portal/5/Opt4uGmweLw4Txi2zDzVY5m0Yrem2b8AtkYZ3UFa.pdf",
   },
   {
     id: "success-horticulture-vegetable",
     labelEn: "Success Story- Horticulture & Vegetable",
+    labelHi: "सफलता कथा — बागवानी एवं सब्जी",
     kind: "pdf",
     pdfStoredPath: "ccshaucontainer/farmers-portal/6/2QdIgM33EUkSxFmKb0EybbWEAOjYhT2w5JCdPHIJ.pdf",
   },
   {
     id: "success-mushroom-production",
     labelEn: "Success Story- Mushroom Production",
+    labelHi: "सफलता कथा — मशरूम उत्पादन",
     kind: "pdf",
     pdfStoredPath: "ccshaucontainer/farmers-portal/7/ilk23msYA1YiS2P9EtHW8e0cimBjcOrtBJi26pfw.pdf",
   },
   {
     id: "success-paddy-residue",
     labelEn: "Success Story- Paddy Residue Management",
+    labelHi: "सफलता कथा — धान अवशेष प्रबंधन",
     kind: "pdf",
     pdfStoredPath: "ccshaucontainer/farmers-portal/8/zuAP6CH2gy4iKpeQGE0SgpKhZ2n6zdgz0tfqmYn9.pdf",
   },
   {
     id: "success-strawberry",
     labelEn: "Success Story- Strawberry Production",
+    labelHi: "सफलता कथा — स्ट्रॉबेरी उत्पादन",
     kind: "pdf",
     pdfStoredPath: "ccshaucontainer/farmers-portal/9/1WwANO4JojZ9yle80sbbSC1qFDIDfLtmm9eb9PAr.pdf",
   },
   {
     id: "soil-water-testing-facility",
     labelEn: "Soil-water Testing facility",
+    labelHi: "मृदा-जल परीक्षण सुविधा",
     kind: "html",
     htmlEn: `<p><strong><span style='font-size:21px;font-family:"Calibri","sans-serif";'>Address:</span></strong></p><p><span style='font-size:18px;font-family:"Segoe UI","sans-serif";color:black;'>Department of Soil Science</span></p><p><span style='font-size:15px;font-family:"Segoe UI","sans-serif";color:black;'>College of Agriculture, CCS Haryana Agril. University,</span></p><p><span style='font-size:15px;font-family:"Segoe UI","sans-serif";color:black;'>Hisar - 125004, India</span></p><p><span style='font-size:18px;font-family:"Segoe UI","sans-serif";color:black;'>Phone No : 9416234925</span></p><p style=""><span style='font-size:18px;font-family:"Segoe UI","sans-serif";color:black;'>Alternate No : 91-1662-255278</span></p><p style=""><span style='font-size:18px;font-family:"Segoe UI","sans-serif";color:black;'>Email Id : soils@hau.ernet.in</span></p><p style=""><br></p><p style=""><span style="font-size: 18px;">Regional Soil Testing Laboratories are providing following services to the farmers:</span></p><table style="width: 100%;"><tbody><tr><td style="width: 5%;"><div data-empty="true" style="text-align: justify;"><br></div></td><td style="width: 80%;"><br><ul><li style="text-align: justify;"><span style="font-size: 14px;">Analysis of soil and water samples brought by the farmers and other agencies.</span></li><li style="text-align: justify;"><span style="font-size: 14px;">Interpretation of soil and water test results and making proper recommendations of fertilizers and /under ground tube well water for irrigation to different crops.</span></li><li style="text-align: justify;"><span style="font-size: 14px;">Promoting the balanced use of fertilizers including micro-nutrients on soil test basis.</span></li><li style="text-align: justify;"><span style="font-size: 14px;">Rendering farm advisory service to farmers and other agencies.</span></li><li style="text-align: justify;"><span style="font-size: 14px;">Providing free postal services to the farmers and other agencies for sending the soil and water testing reports.</span></li><li style="text-align: justify;"><span style="font-size: 14px;">Soil Health Week cum Soil and Water Testing Campaign: Department of Soil Science and Directorate of Extension Education jointly organize the Soil Testing Campaign cum Soil Health Week in different villages of Haryana every year.</span></li></ul><div data-empty="true" style="text-align: justify;"><br></div><br></td></tr></tbody></table>`,
+    htmlHi: `<p><strong><span style="font-size:21px;">पता:</span></strong></p><p><span style="font-size:18px;">मृदा विज्ञान विभाग</span></p><p><span style="font-size:15px;">कृषि महाविद्यालय, सीसीएस हरियाणा कृषि विश्वविद्यालय,</span></p><p><span style="font-size:15px;">हिसार - 125004, भारत</span></p><p><span style="font-size:18px;">फोन नं. : 9416234925</span></p><p><span style="font-size:18px;">वैकल्पिक नं. : 91-1662-255278</span></p><p><span style="font-size:18px;">ईमेल : soils@hau.ernet.in</span></p><p><br></p><p><span style="font-size: 18px;">क्षेत्रीय मृदा परीक्षण प्रयोगशालाएँ किसानों को निम्नलिखित सेवाएँ प्रदान करती हैं:</span></p><ul><li style="text-align: justify;"><span style="font-size: 14px;">किसानों एवं अन्य एजेंसियों द्वारा लाए गए मृदा एवं जल नमूनों का विश्लेषण।</span></li><li style="text-align: justify;"><span style="font-size: 14px;">मृदा एवं जल परीक्षण परिणामों की व्याख्या तथा विभिन्न फसलों के लिए उर्वरकों एवं सिंचाई हेतु भूमिगत नलकूप जल संबंधी उचित सिफारिशें।</span></li><li style="text-align: justify;"><span style="font-size: 14px;">मृदा परीक्षण के आधार पर सूक्ष्म पोषक तत्वों सहित उर्वरकों के संतुलित उपयोग को बढ़ावा देना।</span></li><li style="text-align: justify;"><span style="font-size: 14px;">किसानों एवं अन्य एजेंसियों को कृषि सलाहकार सेवाएँ प्रदान करना।</span></li><li style="text-align: justify;"><span style="font-size: 14px;">मृदा एवं जल परीक्षण रिपोर्ट भेजने हेतु किसानों एवं अन्य एजेंसियों को निःशुल्क डाक सेवाएँ।</span></li><li style="text-align: justify;"><span style="font-size: 14px;">मृदा स्वास्थ्य सप्ताह सह मृदा एवं जल परीक्षण अभियान: मृदा विज्ञान विभाग एवं विस्तार शिक्षा निदेशालय हर वर्ष हरियाणा के विभिन्न गाँवों में संयुक्त रूप से मृदा परीक्षण अभियान सह मृदा स्वास्थ्य सप्ताह आयोजित करते हैं।</span></li></ul>`,
   },
   {
     id: "farm-machinery-testing-centre",
     labelEn: "Farm Machinery Testing Centre",
+    labelHi: "कृषि मशीनरी परीक्षण केंद्र",
     kind: "html",
     htmlEn: `<table cellpadding="0" cellspacing="0"><tbody><tr><td><img src="https://hau.ac.in/storage/app/uploads/Y2eOdunYGEZyHUMB4CgBWNGtb8thRxibDwAl6Dna.jpeg" style="width: 150px !important; height:160px !important;" class="fr-fic fr-dib">&nbsp;<br></td><td style="text-align: left;"><div style="text-align: center;"><strong>FARM MACHINERY TESTING CENTRE</strong></div><div style="text-align: center;"><strong>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (An ISO 9001:2015 certified centre) &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;</strong></div>&nbsp;<br></td><td>&nbsp;&nbsp;<img src="https://hau.ac.in/storage/app/uploads/jExotVpD1Xiuq4VZmHQQ8xxflnU8YSFgHy6yc0Ir.jpeg" style="width: 150px !important; height:160px !important;" class="fr-fic fr-dib">&nbsp;<br></td></tr></tbody></table><p>&nbsp;</p><p style="text-align: justify;"><strong>(The College of Agricultural Engineering and Technology, CCSHAU, Hisar is a approved Testing Centre by Department of Agriculture &amp; Cooperation, Ministry of Agriculture, GOI vide letter No.8-1/2004-My (I&amp;P) dated September 14, 2010 and subsequent letters)</strong></p><p>&nbsp;</p><table border="0" cellpadding="0" cellspacing="0"><tbody><tr><td>&nbsp;<img src="https://hau.ac.in/storage/app/uploads/lC6hqDVb1tIgEZbrtxR4ZsMg1yTrWXOyT8ZFhI7e.jpeg" style="width: 180px !important; height: 200px !important;" class="fr-fic fr-dib">&nbsp; &nbsp;<br></td><td><strong>Er. MUKESH JAIN</strong><br><strong>PRINCIPAL INVESTIGATOR</strong><br>&nbsp;<br>Mailing Address:<br>DEPARTMENT OF FARM MACHINERY AND POWER ENGINEERING<br>COLLEGE OF AGRICULTURAL ENGINEERING AND TECHNOLOGY<br>CCS HARYANA AGRICULTURAL UNIVERSITY, HISAR-125004 &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<br>&nbsp;<br><strong>Office: 01662-255447</strong><br><strong>e-mail: hau.machinerytesting@gmail.com</strong><br></td></tr></tbody></table><p><br></p><ol><li><a class="fr-file" href="https://hau.ac.in/storage/app/uploads/BiNKjtQyhzvqzzs8NhxcIhpXGR3hLarY22bUl3CB.pdf">About the Testing centre.pdf</a></li><li><a class="fr-file" href="https://hau.ac.in/storage/app/uploads/0ijwYZsJx9TBbDm7MLpKTb4AHYQ4hEpfsx8wNGZs.pdf">Application for testing of agricultural machinery_English.pdf</a></li><li><a class="fr-file" href="https://hau.ac.in/storage/app/uploads/TAfj2XWCtifkxtbHzV1DtONyBkXa6zewdIoBvrUd.pdf">Citizen Charter.pdf</a></li><li><a class="fr-file" href="https://hau.ac.in/storage/app/uploads/8H4nEFgHM3Siqg73XswJhBxpWVlqheXpD2cdS85H.pdf">How to avail testing facilities.pdf</a></li><li><a href="/pages/technical-specifications" target="_blank">Technical Specifications Sheets</a></li><li><a class="fr-file" href="https://hau.ac.in/storage/app/uploads/r51K3m3FJgUDOp6XstgwKbyvhjxqSmw6e8eAk884.pdf">List of test reports released.pdf</a></li><li><a class="fr-file" href="https://hau.ac.in/storage/app/uploads/wyCoWyp9eWitdvB0LInAxezMW4pa21X2gF22925U.pdf">Seniority list of Applicants.pdf</a></li><li><a class="fr-file" href="https://hau.ac.in/storage/app/uploads/d4vzr6tibtn5EjKtxd5MriH9vVEeJDiwLRIq5L48.pdf">Testing Fees 2018-19.pdf</a></li><li><a class="fr-file" href="https://hau.ac.in/storage/app/uploads/WiFNf18darAxloDie5JYAhiSjQX6cZZ5z0rcDLbR.pdf">Testing Guidelines.pdf</a></li><li><a class="fr-file" href="https://hau.ac.in/storage/app/uploads/uxssDUAGchoKwfgrD7smLUsdRoDKSN44RVRe0E8B.pdf">Testing Statistics.pdf</a></li></ol>`,
+    htmlHi: `<table cellpadding="0" cellspacing="0"><tbody><tr><td><img src="https://hau.ac.in/storage/app/uploads/Y2eOdunYGEZyHUMB4CgBWNGtb8thRxibDwAl6Dna.jpeg" style="width: 150px !important; height:160px !important;" class="fr-fic fr-dib">&nbsp;<br></td><td style="text-align: left;"><div style="text-align: center;"><strong>कृषि मशीनरी परीक्षण केंद्र</strong></div><div style="text-align: center;"><strong>(आईएसओ 9001:2015 प्रमाणित केंद्र)</strong></div>&nbsp;<br></td><td>&nbsp;&nbsp;<img src="https://hau.ac.in/storage/app/uploads/jExotVpD1Xiuq4VZmHQQ8xxflnU8YSFgHy6yc0Ir.jpeg" style="width: 150px !important; height:160px !important;" class="fr-fic fr-dib">&nbsp;<br></td></tr></tbody></table><p>&nbsp;</p><p style="text-align: justify;"><strong>(कृषि अभियंत्रण एवं प्रौद्योगिकी महाविद्यालय, सीसीएसएचएयू, हिसार को कृषि एवं सहयोग विभाग, कृषि मंत्रालय, भारत सरकार के पत्र संख्या 8-1/2004-My (I&amp;P) दिनांक 14 सितंबर, 2010 एवं अनुवर्ती पत्रों के अंतर्गत अनुमोदित परीक्षण केंद्र घोषित किया गया है।)</strong></p><p>&nbsp;</p><table border="0" cellpadding="0" cellspacing="0"><tbody><tr><td>&nbsp;<img src="https://hau.ac.in/storage/app/uploads/lC6hqDVb1tIgEZbrtxR4ZsMg1yTrWXOyT8ZFhI7e.jpeg" style="width: 180px !important; height: 200px !important;" class="fr-fic fr-dib">&nbsp; &nbsp;<br></td><td><strong>इंजी. मुकेश जैन</strong><br><strong>प्रधान अन्वेषक</strong><br>&nbsp;<br>डाक पता:<br>फार्म मशीनरी एवं पावर इंजीनियरिंग विभाग<br>कृषि अभियंत्रण एवं प्रौद्योगिकी महाविद्यालय<br>सीसीएस हरियाणा कृषि विश्वविद्यालय, हिसार-125004<br>&nbsp;<br><strong>कार्यालय: 01662-255447</strong><br><strong>ईमेल: hau.machinerytesting@gmail.com</strong><br></td></tr></tbody></table><p><br></p><ol><li><a class="fr-file" href="https://hau.ac.in/storage/app/uploads/BiNKjtQyhzvqzzs8NhxcIhpXGR3hLarY22bUl3CB.pdf">परीक्षण केंद्र के बारे में</a></li><li><a class="fr-file" href="https://hau.ac.in/storage/app/uploads/0ijwYZsJx9TBbDm7MLpKTb4AHYQ4hEpfsx8wNGZs.pdf">कृषि मशीनरी परीक्षण हेतु आवेदन (अंग्रेज़ी)</a></li><li><a class="fr-file" href="https://hau.ac.in/storage/app/uploads/TAfj2XWCtifkxtbHzV1DtONyBkXa6zewdIoBvrUd.pdf">नागरिक चार्टर</a></li><li><a class="fr-file" href="https://hau.ac.in/storage/app/uploads/8H4nEFgHM3Siqg73XswJhBxpWVlqheXpD2cdS85H.pdf">परीक्षण सुविधाएँ कैसे प्राप्त करें</a></li><li><a href="/pages/technical-specifications" target="_blank">तकनीकी विनिर्देश पत्रक</a></li><li><a class="fr-file" href="https://hau.ac.in/storage/app/uploads/r51K3m3FJgUDOp6XstgwKbyvhjxqSmw6e8eAk884.pdf">जारी परीक्षण रिपोर्टों की सूची</a></li><li><a class="fr-file" href="https://hau.ac.in/storage/app/uploads/wyCoWyp9eWitdvB0LInAxezMW4pa21X2gF22925U.pdf">आवेदकों की वरिष्ठता सूची</a></li><li><a class="fr-file" href="https://hau.ac.in/storage/app/uploads/d4vzr6tibtn5EjKtxd5MriH9vVEeJDiwLRIq5L48.pdf">परीक्षण शुल्क 2018-19</a></li><li><a class="fr-file" href="https://hau.ac.in/storage/app/uploads/WiFNf18darAxloDie5JYAhiSjQX6cZZ5z0rcDLbR.pdf">परीक्षण दिशानिर्देश</a></li><li><a class="fr-file" href="https://hau.ac.in/storage/app/uploads/uxssDUAGchoKwfgrD7smLUsdRoDKSN44RVRe0E8B.pdf">परीक्षण आँकड़े</a></li></ol>`,
   },
   {
     id: "e-mausam",
     labelEn: "e-Mausam",
+    labelHi: "ई-मौसम",
     kind: "external",
     href: "http://www.emausamhau.gov.in/",
     openInNewTab: true,
@@ -73,18 +84,22 @@ export const FARMERS_PORTAL_ITEMS: FarmersPortalItem[] = [
   {
     id: "kisan-seva-kendra",
     labelEn: "Kisan Seva Kendra",
+    labelHi: "किसान सेवा केंद्र",
     kind: "html",
     htmlEn: `<p style="text-align: justify;"><strong>Objectives</strong></p><ul><li style="text-align: justify;">To provide a single window delivery system for the products and species available from an institution to the farmers and other interested groups as a process of innovativeness in Technology Dissemination at the institute level.</li><li style="text-align: justify;">To facilitate direct access to the farmers to the institutional resources available in terms of technology, advice, technology products etc., for reducing technology dissemination losses.</li><li style="text-align: justify;">To provide feedback from the users to the institute</li></ul><p style="text-align: justify;"><strong>&nbsp;Achievements</strong></p><p style="text-align: justify;">Sale of seeds, non-seed items, planting materials, university publications and all other products of the university are sold to the farmers and other interested persons through a Single Window delivery system. &nbsp;Farm Advisory Services are provided to the farmers and other growers through:</p><p style="text-align: justify;">a) Personal contacts to the visiting farmers<br>b) Toll Free telephone helpline<br>c) Publication materials and<br>d) Lecturers delivered during various trainings and visiting groups at the centre.</p><p style="text-align: justify;"><br></p><p style="text-align: justify;"><strong><span style="font-size: 18px;">Toll Free Number (Kisan Helpline): 1-800-1803001</span></strong></p>`,
+    htmlHi: `<p style="text-align: justify;"><strong>उद्देश्य</strong></p><ul><li style="text-align: justify;">संस्थान स्तर पर प्रौद्योगिकी प्रसार में नवाचार के रूप में किसानों एवं अन्य इच्छुक समूहों को संस्था से उपलब्ध उत्पादों एवं प्रजातियों हेतु एकल खिड़की वितरण प्रणाली प्रदान करना।</li><li style="text-align: justify;">प्रौद्योगिकी प्रसार की हानि कम करने हेतु किसानों को प्रौद्योगिकी, सलाह, प्रौद्योगिकी उत्पाद आदि संस्थागत संसाधनों तक सीधी पहुँच सुलभ कराना।</li><li style="text-align: justify;">उपयोगकर्ताओं से संस्थान को प्रतिपुष्टि प्रदान करना।</li></ul><p style="text-align: justify;"><strong>उपलब्धियाँ</strong></p><p style="text-align: justify;">बीज, गैर-बीज वस्तुएँ, रोपण सामग्री, विश्वविद्यालय प्रकाशन एवं विश्वविद्यालय के अन्य सभी उत्पाद किसानों एवं अन्य इच्छुक व्यक्तियों को एकल खिड़की वितरण प्रणाली के माध्यम से बेचे जाते हैं। किसानों एवं अन्य उत्पादकों को कृषि सलाहकार सेवाएँ निम्नलिखित माध्यमों से प्रदान की जाती हैं:</p><p style="text-align: justify;">क) आने वाले किसानों से व्यक्तिगत संपर्क<br>ख) टोल-फ्री टेलीफोन हेल्पलाइन<br>ग) प्रकाशन सामग्री, तथा<br>घ) केंद्र पर विभिन्न प्रशिक्षणों एवं भ्रमण समूहों के दौरान दिए गए व्याख्यान।</p><p style="text-align: justify;"><br></p><p style="text-align: justify;"><strong><span style="font-size: 18px;">टोल-फ्री नंबर (किसान हेल्पलाइन): 1-800-1803001</span></strong></p>`,
   },
   {
     id: "seeds-other-products",
     labelEn: "Seeds & Other Products Avalability",
+    labelHi: "बीज एवं अन्य उत्पादों की उपलब्धता",
     kind: "pdf",
     pdfStoredPath: "ccshaucontainer/farmers-portal/15/gZFf5v2AEiwKujdeXvdpmcjPR4WecIGJ5o9A5trn.pdf",
   },
   {
     id: "farmers-advisory",
     labelEn: "Farmer's Advisory",
+    labelHi: "किसान सलाहकार",
     kind: "page",
     href: "/pages/advisory",
     openInNewTab: true,
@@ -92,6 +107,7 @@ export const FARMERS_PORTAL_ITEMS: FarmersPortalItem[] = [
   {
     id: "haryana-kheti",
     labelEn: "Haryana Kheti",
+    labelHi: "हरियाणा खेती",
     kind: "page",
     href: "/pages/haryanakheti",
     openInNewTab: true,
@@ -99,12 +115,15 @@ export const FARMERS_PORTAL_ITEMS: FarmersPortalItem[] = [
   {
     id: "discharge-tubewell-app",
     labelEn: "Discharge tubewell App",
+    labelHi: "नलकूप डिस्चार्ज ऐप",
     kind: "html",
     htmlEn: `<p><a class="fr-file" href="https://hau.ac.in/apk/TubewellDischargeSWE.apk"><strong><span style="font-size: 18px;">Click here to download Tubewell Discharge App</span></strong></a></p>`,
+    htmlHi: `<p><a class="fr-file" href="https://hau.ac.in/apk/TubewellDischargeSWE.apk"><strong><span style="font-size: 18px;">नलकूप डिस्चार्ज ऐप डाउनलोड करने के लिए यहाँ क्लिक करें</span></strong></a></p>`,
   },
   {
     id: "bee-keeping",
     labelEn: "Bee Keeping",
+    labelHi: "मधुमक्खी पालन",
     kind: "page",
     href: "/pages/l",
     openInNewTab: true,

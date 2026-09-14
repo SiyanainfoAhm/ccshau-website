@@ -160,6 +160,7 @@ export type FarmersPortalItem = {
   pdfStoredPath?: string;
   /** Inline HTML shown in the main panel */
   htmlEn?: string;
+  htmlHi?: string;
   /** Internal path or absolute external URL */
   href?: string;
   openInNewTab?: boolean;
@@ -169,48 +170,56 @@ export const FARMERS_PORTAL_ITEMS: FarmersPortalItem[] = [
   {
     id: "success-women-entrepreneur",
     labelEn: "Success Story- Women Entrepreneur",
+    labelHi: "सफलता कथा — महिला उद्यमी",
     kind: "pdf",
     pdfStoredPath: ${JSON.stringify(pdfPaths[5] || "")},
   },
   {
     id: "success-horticulture-vegetable",
     labelEn: "Success Story- Horticulture & Vegetable",
+    labelHi: "सफलता कथा — बागवानी एवं सब्जी",
     kind: "pdf",
     pdfStoredPath: ${JSON.stringify(pdfPaths[6] || "")},
   },
   {
     id: "success-mushroom-production",
     labelEn: "Success Story- Mushroom Production",
+    labelHi: "सफलता कथा — मशरूम उत्पादन",
     kind: "pdf",
     pdfStoredPath: ${JSON.stringify(pdfPaths[7] || "")},
   },
   {
     id: "success-paddy-residue",
     labelEn: "Success Story- Paddy Residue Management",
+    labelHi: "सफलता कथा — धान अवशेष प्रबंधन",
     kind: "pdf",
     pdfStoredPath: ${JSON.stringify(pdfPaths[8] || "")},
   },
   {
     id: "success-strawberry",
     labelEn: "Success Story- Strawberry Production",
+    labelHi: "सफलता कथा — स्ट्रॉबेरी उत्पादन",
     kind: "pdf",
     pdfStoredPath: ${JSON.stringify(pdfPaths[9] || "")},
   },
   {
     id: "soil-water-testing-facility",
     labelEn: "Soil-water Testing facility",
+    labelHi: "मृदा-जल परीक्षण सुविधा",
     kind: "html",
     htmlEn: \`${esc(htmlBySlug["soil-water-testing-facility"] || "")}\`,
   },
   {
     id: "farm-machinery-testing-centre",
     labelEn: "Farm Machinery Testing Centre",
+    labelHi: "कृषि मशीनरी परीक्षण केंद्र",
     kind: "html",
     htmlEn: \`${esc(htmlBySlug["farm-machinery-testing-centre"] || "")}\`,
   },
   {
     id: "e-mausam",
     labelEn: "e-Mausam",
+    labelHi: "ई-मौसम",
     kind: "external",
     href: "http://www.emausamhau.gov.in/",
     openInNewTab: true,
@@ -218,18 +227,21 @@ export const FARMERS_PORTAL_ITEMS: FarmersPortalItem[] = [
   {
     id: "kisan-seva-kendra",
     labelEn: "Kisan Seva Kendra",
+    labelHi: "किसान सेवा केंद्र",
     kind: "html",
     htmlEn: \`${esc(htmlBySlug["kisan-seva-kendra"] || "")}\`,
   },
   {
     id: "seeds-other-products",
     labelEn: "Seeds & Other Products Avalability",
+    labelHi: "बीज एवं अन्य उत्पादों की उपलब्धता",
     kind: "pdf",
     pdfStoredPath: ${JSON.stringify(pdfPaths[15] || "")},
   },
   {
     id: "farmers-advisory",
     labelEn: "Farmer's Advisory",
+    labelHi: "किसान सलाहकार",
     kind: "page",
     href: "/pages/advisory",
     openInNewTab: true,
@@ -237,6 +249,7 @@ export const FARMERS_PORTAL_ITEMS: FarmersPortalItem[] = [
   {
     id: "haryana-kheti",
     labelEn: "Haryana Kheti",
+    labelHi: "हरियाणा खेती",
     kind: "page",
     href: "/pages/haryanakheti",
     openInNewTab: true,
@@ -244,12 +257,14 @@ export const FARMERS_PORTAL_ITEMS: FarmersPortalItem[] = [
   {
     id: "discharge-tubewell-app",
     labelEn: "Discharge tubewell App",
+    labelHi: "नलकूप डिस्चार्ज ऐप",
     kind: "html",
     htmlEn: \`${esc(htmlBySlug["discharge-tubewell-app"] || "")}\`,
   },
   {
     id: "bee-keeping",
     labelEn: "Bee Keeping",
+    labelHi: "मधुमक्खी पालन",
     kind: "page",
     href: "/pages/l",
     openInNewTab: true,
