@@ -34,14 +34,26 @@ function resolveItemUrl(item: FarmersPortalItem): string | null {
   return null;
 }
 
+function itemLabel(item: FarmersPortalItem, t: (en: string, hi: string) => string) {
+  return t(item.labelEn, item.labelHi ?? item.labelEn);
+}
+
 export function PublicFarmersPortal() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [activeId, setActiveId] = useState<string | null>(null);
 
   const active = useMemo(
     () => FARMERS_PORTAL_ITEMS.find((item) => item.id === activeId) ?? null,
     [activeId],
   );
+
+  const activeLabel = active ? itemLabel(active, t) : "";
+  const activeHtml =
+    active?.kind === "html"
+      ? lang === "hi" && active.htmlHi
+        ? active.htmlHi
+        : active.htmlEn
+      : null;
 
   const activePdfUrl =
     active?.kind === "pdf" && active.pdfStoredPath
@@ -81,16 +93,16 @@ export function PublicFarmersPortal() {
               ) : active.kind === "pdf" && activePdfUrl ? (
                 <div className="space-y-4">
                   <h2 className="font-display text-xl font-bold text-emerald-900">
-                    {active.labelEn}
+                    {activeLabel}
                   </h2>
-                  <PublicPdfViewer src={activePdfUrl} title={active.labelEn} />
+                  <PublicPdfViewer src={activePdfUrl} title={activeLabel} />
                 </div>
-              ) : active.kind === "html" && active.htmlEn ? (
+              ) : active.kind === "html" && activeHtml ? (
                 <div className="space-y-4">
                   <h2 className="font-display text-xl font-bold text-emerald-900">
-                    {active.labelEn}
+                    {activeLabel}
                   </h2>
-                  <CmsHtmlContent html={active.htmlEn} className={publicProseClass} />
+                  <CmsHtmlContent html={activeHtml} className={publicProseClass} />
                 </div>
               ) : (
                 <p className="text-slate-600">
@@ -109,6 +121,7 @@ export function PublicFarmersPortal() {
                 {FARMERS_PORTAL_ITEMS.map((item) => {
                   const isActive = activeId === item.id;
                   const url = resolveItemUrl(item);
+                  const label = itemLabel(item, t);
                   const baseClass = `flex w-full items-start gap-2 px-4 py-2.5 text-left text-sm font-medium transition hover:bg-emerald-50 hover:text-emerald-900 ${
                     isActive ? "bg-emerald-50 text-emerald-900" : "text-slate-700"
                   }`;
@@ -123,7 +136,7 @@ export function PublicFarmersPortal() {
                           rel={item.openInNewTab ? "noopener noreferrer" : undefined}
                           className={baseClass}
                         >
-                          <span className="flex-1">{item.labelEn}</span>
+                          <span className="flex-1">{label}</span>
                           {item.openInNewTab ? (
                             <ExternalLink className="mt-0.5 h-3.5 w-3.5 shrink-0 opacity-60" />
                           ) : null}
@@ -142,7 +155,7 @@ export function PublicFarmersPortal() {
                         {item.kind === "pdf" ? (
                           <FileText className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600" />
                         ) : null}
-                        <span className="flex-1">{item.labelEn}</span>
+                        <span className="flex-1">{label}</span>
                       </button>
                     </li>
                   );
