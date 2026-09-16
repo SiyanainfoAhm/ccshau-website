@@ -233,8 +233,8 @@ describe("CMS scope smoke — admin nav paths", () => {
     expect(canAccessAdminPath(access, "/admin/users")).toBe(false);
   });
 
-  // HOD-only: list/edit assigned page and self faculty; no new page or news.
-  it("limits HOD-only users to pages list/edit and own faculty profile", () => {
+  // HOD-only: list/edit assigned page and its faculty; no new page or news.
+  it("limits HOD-only users to their department page and faculty", () => {
     const access = getAdminNavAccess(
       mockAdminSession({
         roles: [],
@@ -248,6 +248,13 @@ describe("CMS scope smoke — admin nav paths", () => {
     expect(canAccessAdminPath(access, "/admin/pages/new")).toBe(false);
     expect(canAccessAdminPath(access, "/admin/register/faculty/me")).toBe(true);
     expect(canAccessAdminPath(access, "/admin/register/faculty/change-password")).toBe(true);
+    expect(canAccessAdminPath(access, "/admin/register/faculty")).toBe(true);
+    expect(
+      canAccessAdminPath(access, "/admin/register/college-1/faculty"),
+    ).toBe(true);
+    expect(
+      canAccessAdminPath(access, "/admin/register/faculty/person/person-1"),
+    ).toBe(true);
     expect(canAccessAdminPath(access, "/admin/register")).toBe(false);
     expect(canAccessAdminPath(access, "/admin/news")).toBe(false);
   });

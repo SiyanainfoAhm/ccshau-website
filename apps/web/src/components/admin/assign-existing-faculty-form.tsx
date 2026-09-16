@@ -44,14 +44,19 @@ export function AssignExistingFacultyForm({
   function handleSearch() {
     setError(null);
     startTransition(async () => {
-      const rows = await searchFacultyPeopleAction(query);
-      setHits(rows.map((row) => ({
-        id: row.id,
-        name_en: row.name_en,
-        email: row.email,
-        departments: row.departments,
-      })));
-      if (rows.length === 0) setError("No matching faculty people. Add a new person instead.");
+      try {
+        const rows = await searchFacultyPeopleAction(query);
+        setHits(rows.map((row) => ({
+          id: row.id,
+          name_en: row.name_en,
+          email: row.email,
+          departments: row.departments,
+        })));
+        if (rows.length === 0) setError("No matching faculty people. Add a new person instead.");
+      } catch {
+        setHits([]);
+        setError("Faculty search failed. Please try again.");
+      }
     });
   }
 
@@ -132,6 +137,7 @@ export function AssignExistingFacultyForm({
         <select
           name="departmentPageId"
           required
+          defaultValue={departments.length === 1 ? departments[0].id : ""}
           className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
         >
           <option value="">Select department</option>
