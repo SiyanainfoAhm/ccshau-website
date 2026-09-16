@@ -613,14 +613,34 @@ export async function searchFacultyPeople(
   const q = query.trim().replace(/[%*,()]/g, "");
   if (q.length < 2) return [];
 
-  const { data: people } = await admin
-    .from(Tables.facultyPeople)
-    .select("*")
-    .eq("is_active", true)
-    .or(`name_en.ilike.%${q}%,email.ilike.%${q}%`)
-    .order("name_en")
-    .limit(20);
-  const rows = (people ?? []) as FacultyPerson[];
+  // Keep user input out of PostgREST's raw `.or()` expression syntax. Using
+  // typed filters also lets names and email addresses contain punctuation.
+  const [nameResult, emailResult] = await Promise.all([
+    admin
+      .from(Tables.facultyPeople)
+      .select("*")
+      .eq("is_active", true)
+      .ilike("name_en", `%${q}%`)
+      .order("name_en")
+      .limit(20),
+    admin
+      .from(Tables.facultyPeople)
+      .select("*")
+      .eq("is_active", true)
+      .ilike("email", `%${q}%`)
+      .order("name_en")
+      .limit(20),
+  ]);
+  if (nameResult.error) throw nameResult.error;
+  if (emailResult.error) throw emailResult.error;
+
+  const peopleById = new Map<string, FacultyPerson>();
+  for (const person of [...(nameResult.data ?? []), ...(emailResult.data ?? [])] as FacultyPerson[]) {
+    peopleById.set(person.id, person);
+  }
+  const rows = [...peopleById.values()]
+    .sort((a, b) => a.name_en.localeCompare(b.name_en))
+    .slice(0, 20);
   if (!rows.length) return [];
 
   const { data: assignments } = await admin

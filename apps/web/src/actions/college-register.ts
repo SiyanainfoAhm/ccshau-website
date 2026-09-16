@@ -5,7 +5,11 @@ import { redirect } from "next/navigation";
 
 import { writeAuditLog } from "@/lib/auth/audit";
 import { canDeletePages, canEditPages, isSuperAdminSession } from "@/lib/auth/college-scope";
-import { canEditOwnFacultyPerson, isOwnFacultyProfileOnlyUser } from "@/lib/auth/faculty-scope";
+import {
+  canEditOwnFacultyPerson,
+  isFacultyOnlyUser,
+  isOwnFacultyProfileOnlyUser,
+} from "@/lib/auth/faculty-scope";
 import { requireAdminSession, requireAdminWithRoles } from "@/lib/auth/session";
 import { Tables } from "@/lib/database/names";
 import {
@@ -298,7 +302,7 @@ export async function registerFacultyAction(
 ): Promise<ActionResult<{ id: string; detailPath: string | null }>> {
   try {
     const session = await requireRegisterSession();
-    if (isOwnFacultyProfileOnlyUser(session)) {
+    if (isFacultyOnlyUser(session)) {
       return fail("You can only update your own profile.");
     }
     if (!canEditPages(session)) {
@@ -651,7 +655,7 @@ export async function getFacultyForEdit(assignmentId: string) {
 export async function getFacultyPersonForEdit(personId: string) {
   const session = await requireAdminSession();
   const isOwn = canEditOwnFacultyPerson(session, personId);
-  if (isOwnFacultyProfileOnlyUser(session) && !isOwn) return null;
+  if (isFacultyOnlyUser(session) && !isOwn) return null;
   if (!isOwn && !canAccessFacultyRegister(session)) return null;
 
   if (isOwn) {
@@ -676,7 +680,7 @@ export async function updateFacultyPersonAction(
     const session = await requireAdminSession();
     const isOwn = canEditOwnFacultyPerson(session, personId);
     if (!isOwn) {
-      if (isOwnFacultyProfileOnlyUser(session)) {
+      if (isFacultyOnlyUser(session)) {
         return fail("You can only update your own profile.");
       }
       if (!canAccessFacultyRegister(session) || !canEditPages(session)) {
@@ -755,7 +759,7 @@ export async function updateFacultyAssignmentAction(
 ): Promise<ActionResult> {
   try {
     const session = await requireRegisterSession();
-    if (isOwnFacultyProfileOnlyUser(session)) {
+    if (isFacultyOnlyUser(session)) {
       return fail("You can only update your own profile.");
     }
     if (!canEditPages(session)) return fail("You do not have permission to edit assignments.");
@@ -901,7 +905,7 @@ export async function updateFacultyAction(
 export async function deleteFacultyAction(assignmentId: string): Promise<ActionResult> {
   try {
     const session = await requireRegisterSession();
-    if (isOwnFacultyProfileOnlyUser(session)) {
+    if (isFacultyOnlyUser(session)) {
       return fail("You can only update your own profile.");
     }
     if (!canDeletePages(session) && !session.departmentPageAssignment) {
@@ -948,7 +952,7 @@ export async function deleteFacultyAction(assignmentId: string): Promise<ActionR
 
 export async function searchFacultyPeopleAction(query: string) {
   const session = await requireRegisterSession();
-  if (isOwnFacultyProfileOnlyUser(session) || !canEditPages(session)) return [];
+  if (isFacultyOnlyUser(session) || !canEditPages(session)) return [];
   const admin = createAdminClient();
   if (!admin) return [];
   return searchFacultyPeople(admin, query);
@@ -959,7 +963,7 @@ export async function assignExistingFacultyAction(
 ): Promise<ActionResult<{ id: string; detailPath: string | null }>> {
   try {
     const session = await requireRegisterSession();
-    if (isOwnFacultyProfileOnlyUser(session)) {
+    if (isFacultyOnlyUser(session)) {
       return fail("You can only update your own profile.");
     }
     if (!canEditPages(session)) {

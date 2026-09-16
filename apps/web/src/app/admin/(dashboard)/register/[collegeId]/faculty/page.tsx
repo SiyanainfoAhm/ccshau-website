@@ -1,4 +1,4 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 
 import {
   getCollegeForRegisterHub,
@@ -8,7 +8,6 @@ import {
 } from "@/actions/college-register";
 import { FacultyRegisterPage } from "@/components/admin/faculty-register-page";
 import { canDeletePages, canEditPages } from "@/lib/auth/college-scope";
-import { isDepartmentHodOnlyUser } from "@/lib/auth/department-hod-scope";
 
 export default async function CollegeFacultyRegisterPage({
   params,
@@ -16,9 +15,6 @@ export default async function CollegeFacultyRegisterPage({
   params: Promise<{ collegeId: string }>;
 }) {
   const session = await requireCollegeRegisterAdminOrRedirect();
-  if (isDepartmentHodOnlyUser(session)) {
-    redirect(session.facultyPerson ? "/admin/register/faculty/me" : "/admin");
-  }
   const canEdit = canEditPages(session);
   const canDelete = canDeletePages(session);
   const { collegeId } = await params;

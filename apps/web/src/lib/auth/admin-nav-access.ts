@@ -132,12 +132,15 @@ function isFacultyOnlyPathAllowed(pathname: string): boolean {
   return false;
 }
 
-/** Department HOD: dashboard, own department page, and own faculty self-service pages. */
+/** Department HOD: dashboard, assigned department page/faculty, and self-service pages. */
 function isDepartmentHodOnlyPathAllowed(pathname: string): boolean {
   if (pathname === "/admin") return true;
   if (pathname === "/admin/pages") return true;
   if (pathname.startsWith("/admin/pages/") && pathname !== "/admin/pages/new") return true;
   if (isFacultySelfServicePath(pathname)) return true;
+  if (pathname === "/admin/register/faculty") return true;
+  if (pathname.startsWith("/admin/register/faculty/person/")) return true;
+  if (/^\/admin\/register\/[^/]+\/faculty$/.test(pathname)) return true;
   return false;
 }
 

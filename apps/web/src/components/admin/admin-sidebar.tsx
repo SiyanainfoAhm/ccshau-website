@@ -77,6 +77,7 @@ const collegeOnlyNavItems: AdminNavItem[] = [
 const departmentHodCoreNavItems: AdminNavItem[] = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/admin/pages", label: "My department", icon: FileText },
+  { href: "/admin/register/faculty", label: "Department faculty", icon: Users },
 ];
 
 const facultyProfileNavItems: AdminNavItem[] = [
