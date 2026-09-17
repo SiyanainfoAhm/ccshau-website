@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { createMediaAlbumAction, updateMediaAlbumAction } from "@/actions/media";
+import { translateFieldsEnToHiAction } from "@/actions/translate";
 import { AdminFileUploadField } from "@/components/admin/admin-file-upload-field";
 import type { MediaAlbum } from "@/lib/database/types";
 import { contentStatusOptions } from "@/lib/auth/content-status-options";
@@ -32,7 +33,9 @@ export function MediaAlbumForm({
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [titleEn, setTitleEn] = useState(album?.title_en ?? "");
+  const [titleHi, setTitleHi] = useState(album?.title_hi ?? "");
   const [slug, setSlug] = useState(album?.slug ?? "");
+  const [isTranslating, setIsTranslating] = useState(false);
 
   const hasCover = Boolean(album?.cover_image_path);
   const coverUrl = hasCover ? getStoredFileUrl(album!.cover_image_path!) : null;
@@ -40,6 +43,27 @@ export function MediaAlbumForm({
 
   function handleTitleBlur() {
     if (!album && titleEn && !slug) setSlug(slugify(titleEn));
+  }
+
+  async function handleAutoTranslate() {
+    setError(null);
+    setIsTranslating(true);
+    try {
+      const result = await translateFieldsEnToHiAction([{ key: "titleHi", text: titleEn }]);
+      if (!result.success) {
+        setError(result.error);
+        return;
+      }
+      if (result.data.translations.titleHi) {
+        setTitleHi(result.data.translations.titleHi);
+      } else {
+        setError(result.data.warnings.join(" ") || "Nothing was translated. Enter an English title first.");
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Translation failed.");
+    } finally {
+      setIsTranslating(false);
+    }
   }
 
   function handleSubmit(formData: FormData) {
@@ -68,6 +92,18 @@ export function MediaAlbumForm({
   return (
     <form action={handleSubmit} className="max-w-2xl space-y-5">
       {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+      {canEdit && (
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={handleAutoTranslate}
+            disabled={isPending || isTranslating}
+            className="rounded-lg border border-emerald-700 px-3 py-1.5 text-sm font-medium text-emerald-800 hover:bg-emerald-50 disabled:opacity-60"
+          >
+            {isTranslating ? "Translating…" : "Auto-translate to Hindi"}
+          </button>
+        </div>
+      )}
 
       <label className="block text-sm">
         <span className="font-medium text-slate-700">Title (English)</span>
@@ -85,7 +121,8 @@ export function MediaAlbumForm({
         <span className="font-medium text-slate-700">Title (Hindi)</span>
         <input
           name="titleHi"
-          defaultValue={album?.title_hi ?? ""}
+          value={titleHi}
+          onChange={(e) => setTitleHi(e.target.value)}
           className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 font-hindi"
         />
       </label>

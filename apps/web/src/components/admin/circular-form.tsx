@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { createCircularAction, updateCircularAction } from "@/actions/circulars";
+import { translateFieldsEnToHiAction } from "@/actions/translate";
 import { AdminFileUploadField } from "@/components/admin/admin-file-upload-field";
 import type { Circular } from "@/lib/database/types";
 import { contentStatusOptions } from "@/lib/auth/content-status-options";
@@ -37,10 +38,34 @@ export function CircularForm({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [titleEn, setTitleEn] = useState(circular?.title_en ?? "");
+  const [titleHi, setTitleHi] = useState(circular?.title_hi ?? "");
+  const [isTranslating, setIsTranslating] = useState(false);
 
   const hasFile = Boolean(circular?.file_path);
   const fileUrl = hasFile ? getStoredFileUrl(circular!.file_path!) : null;
   const showUpload = canEdit;
+
+  async function handleAutoTranslate() {
+    setError(null);
+    setIsTranslating(true);
+    try {
+      const result = await translateFieldsEnToHiAction([{ key: "titleHi", text: titleEn }]);
+      if (!result.success) {
+        setError(result.error);
+        return;
+      }
+      if (result.data.translations.titleHi) {
+        setTitleHi(result.data.translations.titleHi);
+      } else {
+        setError(result.data.warnings.join(" ") || "Nothing was translated. Enter an English title first.");
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Translation failed.");
+    } finally {
+      setIsTranslating(false);
+    }
+  }
 
   function handleSubmit(formData: FormData) {
     setError(null);
@@ -76,6 +101,18 @@ export function CircularForm({
           View-only access — you cannot edit or save this circular.
         </p>
       )}
+      {canEdit && (
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={handleAutoTranslate}
+            disabled={isPending || isTranslating}
+            className="rounded-lg border border-emerald-700 px-3 py-1.5 text-sm font-medium text-emerald-800 hover:bg-emerald-50 disabled:opacity-60"
+          >
+            {isTranslating ? "Translating…" : "Auto-translate to Hindi"}
+          </button>
+        </div>
+      )}
 
       <label className="block text-sm">
         <span className="font-medium text-slate-700">Circular number</span>
@@ -92,7 +129,8 @@ export function CircularForm({
         <input
           name="titleEn"
           required={canEdit}
-          defaultValue={circular?.title_en ?? ""}
+          value={titleEn}
+          onChange={(e) => setTitleEn(e.target.value)}
           disabled={!canEdit}
           className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 disabled:bg-slate-50"
         />
@@ -102,7 +140,8 @@ export function CircularForm({
         <span className="font-medium text-slate-700">Title (Hindi)</span>
         <input
           name="titleHi"
-          defaultValue={circular?.title_hi ?? ""}
+          value={titleHi}
+          onChange={(e) => setTitleHi(e.target.value)}
           disabled={!canEdit}
           className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 font-hindi disabled:bg-slate-50"
         />

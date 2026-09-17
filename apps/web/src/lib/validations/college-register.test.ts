@@ -41,9 +41,21 @@ describe("college-register schemas", () => {
         memberType: "faculty",
         nameEn: "Dr Test",
         designationEn: "Professor",
+        email: "dr.test@ccshau.test",
+        sendLoginInvitation: true,
         staffSlug: "dr-test",
       }).success,
     ).toBe(true);
+
+    expect(
+      registerFacultySchema.safeParse({
+        departmentPageId: UUID,
+        memberType: "faculty",
+        nameEn: "Dr Without Email",
+        designationEn: "Professor",
+        staffSlug: "dr-without-email",
+      }).success,
+    ).toBe(false);
 
     expect(
       assignExistingFacultySchema.safeParse({

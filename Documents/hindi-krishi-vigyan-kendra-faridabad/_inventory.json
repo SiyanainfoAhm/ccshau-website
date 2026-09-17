@@ -1,0 +1,93 @@
+{
+  "college": "KRISHI VIGYAN KENDRA, FARIDABAD",
+  "pages": [
+    {
+      "slug": "annual-progress-report",
+      "title_en": "Annual Progress Report",
+      "title_hi": null,
+      "content_len": 177,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "awards-and-honors",
+      "title_en": "Awards and Honors",
+      "title_hi": null,
+      "content_len": 4617,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "extension-activities-7",
+      "title_en": "Extension Activities",
+      "title_hi": null,
+      "content_len": 175,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "faridabad-department",
+      "title_en": "Departments",
+      "title_hi": "विभाग",
+      "content_len": 57,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "home-3",
+      "title_en": "Home",
+      "title_hi": null,
+      "content_len": 2148,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "infrastructure-10",
+      "title_en": "Infrastructure",
+      "title_hi": null,
+      "content_len": 11244,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "krishi-vigyan-kendra-faridabad",
+      "title_en": "KRISHI VIGYAN KENDRA, FARIDABAD",
+      "title_hi": "कृषि विज्ञान केंद्र, फरीदाबाद",
+      "content_len": 2035,
+      "has_content_hi": true,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "kvk-faridabad-gallery",
+      "title_en": "Gallery",
+      "title_hi": "गैलरी",
+      "content_len": 0,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "mandate-and-thrust-areas",
+      "title_en": "Mandate and Thrust Areas",
+      "title_hi": null,
+      "content_len": 2904,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "other-details-4",
+      "title_en": "Other details",
+      "title_hi": null,
+      "content_len": 168,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "production-income-3",
+      "title_en": "Production & Income",
+      "title_hi": null,
+      "content_len": 178,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    }
+  ]
+}

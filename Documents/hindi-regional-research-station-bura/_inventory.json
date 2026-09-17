@@ -1,0 +1,29 @@
+{
+  "college": "Nutri-Cereals Research Station, Gokalpura",
+  "pages": [
+    {
+      "slug": "bura-department",
+      "title_en": "Departments",
+      "title_hi": "विभाग",
+      "content_len": 67,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "home-40",
+      "title_en": "Home",
+      "title_hi": null,
+      "content_len": 2896,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "regional-research-station-bura",
+      "title_en": "Nutri-Cereals Research Station, Gokalpura",
+      "title_hi": "न्यूट्री - सीरियल रिसर्च स्टेशन, गोकलपुरा",
+      "content_len": 2997,
+      "has_content_hi": true,
+      "likely_pdf_placeholder": false
+    }
+  ]
+}

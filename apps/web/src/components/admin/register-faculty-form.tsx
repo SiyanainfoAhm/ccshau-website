@@ -374,9 +374,32 @@ export function RegisterFacultyForm({
             </label>
             <label className="block text-sm">
               <span className="font-medium text-slate-700">Email</span>
-              <input name="email" type="email" defaultValue={faculty?.email ?? ""} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" />
+              <input
+                name="email"
+                type="email"
+                required={!isEdit}
+                defaultValue={faculty?.email ?? ""}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+              />
             </label>
           </div>
+          {!isEdit ? (
+            <label className="flex items-start gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm">
+              <input
+                type="checkbox"
+                name="sendLoginInvitation"
+                value="true"
+                defaultChecked
+                className="mt-1"
+              />
+              <span>
+                <span className="font-medium text-emerald-950">Send faculty login invitation</span>
+                <span className="mt-1 block text-emerald-800">
+                  An existing login with this email will be linked. Otherwise, the faculty member will receive an email to set a password and access My Profile.
+                </span>
+              </span>
+            </label>
+          ) : null}
           <label className="block text-sm">
             <span className="font-medium text-slate-700">Experience</span>
             <input

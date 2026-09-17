@@ -1,0 +1,61 @@
+{
+  "college": "Horticulture Research Farm, Buria",
+  "pages": [
+    {
+      "slug": "achievements-39",
+      "title_en": "Achievements",
+      "title_hi": null,
+      "content_len": 634,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "activities-4",
+      "title_en": "Activities",
+      "title_hi": null,
+      "content_len": 1300,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "hfb-department",
+      "title_en": "Departments",
+      "title_hi": "विभाग",
+      "content_len": 59,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "home-42",
+      "title_en": "Home",
+      "title_hi": null,
+      "content_len": 565,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "horticulture-research-farm-buria",
+      "title_en": "Horticulture Research Farm, Buria",
+      "title_hi": "बागवानी अनुसंधान फार्म, बुरिया",
+      "content_len": 636,
+      "has_content_hi": true,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "mandate-and-thurst-areas-12",
+      "title_en": "Mandate and Thurst Areas",
+      "title_hi": null,
+      "content_len": 691,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "on-going-research-projects-1",
+      "title_en": "On going research Projects",
+      "title_hi": null,
+      "content_len": 9235,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    }
+  ]
+}

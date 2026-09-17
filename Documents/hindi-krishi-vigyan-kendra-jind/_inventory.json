@@ -1,0 +1,85 @@
+{
+  "college": "KRISHI VIGYAN KENDRA, JIND",
+  "pages": [
+    {
+      "slug": "achievements-1",
+      "title_en": "Achievements",
+      "title_hi": null,
+      "content_len": 167,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "awards-honors-12",
+      "title_en": "Awards & Honors",
+      "title_hi": null,
+      "content_len": 174,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "home-8",
+      "title_en": "Home",
+      "title_hi": null,
+      "content_len": 4902,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "infrastructure-laboratories-etc-6",
+      "title_en": "Infrastructure (laboratories etc.)",
+      "title_hi": null,
+      "content_len": 189,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "jind-department",
+      "title_en": "Departments",
+      "title_hi": "विभाग",
+      "content_len": 52,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "krishi-vigyan-kendra-jind",
+      "title_en": "KRISHI VIGYAN KENDRA, JIND",
+      "title_hi": "कृषि विज्ञान केंद्र, जिंद",
+      "content_len": 3935,
+      "has_content_hi": true,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "kvk-jind-gallery",
+      "title_en": "Gallery",
+      "title_hi": "गैलरी",
+      "content_len": 0,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "mandate-and-thurst-areas-2",
+      "title_en": "Mandate and Thurst Areas",
+      "title_hi": null,
+      "content_len": 179,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "retiree-of-the-department-8",
+      "title_en": "Retiree of the Department",
+      "title_hi": null,
+      "content_len": 180,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "teaching-research-achievements-14",
+      "title_en": "Teaching & Research Achievements",
+      "title_hi": null,
+      "content_len": 191,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    }
+  ]
+}

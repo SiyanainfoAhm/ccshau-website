@@ -1,0 +1,49 @@
+{
+  "college": "College of Agriculture, Hisar",
+  "college_slug": "college-of-agriculture-hisar",
+  "department_filter": "hisar-vegetable-science",
+  "exported_at": "2026-09-02T06:13:36.589Z",
+  "staff_count": 4,
+  "staff": [
+    {
+      "id": "4df4850e-409b-4059-afb3-9afd2924b04f",
+      "staff_slug": "legacy-user-846",
+      "department_slug": "hisar-vegetable-science",
+      "department_title": "Vegetable Science",
+      "name_en": "Sanjay Kumar",
+      "gaps": {
+        "qualification_hi": "Doctorate of Philosophy"
+      }
+    },
+    {
+      "id": "805776a7-5be6-48f9-aacd-779170b4546b",
+      "staff_slug": "legacy-user-1004",
+      "department_slug": "hisar-vegetable-science",
+      "department_title": "Vegetable Science",
+      "name_en": "Dr. Jagmohan Singh",
+      "gaps": {
+        "qualification_hi": "PhD (Plant Pathology)"
+      }
+    },
+    {
+      "id": "8b4a7bcd-4966-43b5-99a1-0ddd0bcbb2dc",
+      "staff_slug": "legacy-user-248",
+      "department_slug": "hisar-vegetable-science",
+      "department_title": "Vegetable Science",
+      "name_en": "Dr. A. K. Bhatia",
+      "gaps": {
+        "detail_content_hi": "<table><tbody><tr><td><u><strong>Award</strong></u></td></tr><tr><td><br></td><td>K.S.Baswana, R.K.Lakra, <strong>A.K.Bhatia</strong>, R.D.Bhutani and S.C. Khurana <strong>(2009)</strong>\r\n<strong>Out of twenty four centers across the country, the Department of Vegetable Science, Hisar received&nbsp;</strong><strong>Best AICRP (Potato) Centre Award at the Group Meeting of AICRP on&nbsp;</strong><strong>Potato at Dharwar (Karnataka).</strong><br></td></tr></tbody></table>"
+      }
+    },
+    {
+      "id": "02ecb5d3-7d67-4f0f-8968-4128dd94270f",
+      "staff_slug": "legacy-user-247",
+      "department_slug": "hisar-vegetable-science",
+      "department_title": "Vegetable Science",
+      "name_en": "Dr. V. K. Batra",
+      "gaps": {
+        "detail_content_hi": "<table><tbody><tr><td><u><strong>Varieties Developed etc.</strong></u></td></tr><tr><td><br></td><td><strong>VARIETY RELEASED (HG-17)</strong>&nbsp;<br></td></tr><tr><td><u><strong>Research Papers</strong></u></td></tr><tr><td><br></td><td><ol><li>Sakha,B.M., <strong>Bhatia,A.K</strong>., Batra,V.K., Chaudhary,V.K. Batra,P and Khurana,S.C.(2004) In vitro microtuberization in potato (Solanum tuberosum L) cultivars. <em>Indian J. Experimental Biology</em>.<strong>42</strong> .1245-1247.</li><li>Mohapatra, P.P. , <strong>Batra, V. K.</strong> , Kajla, Subhash and Poonia, A. K. (2015). Effect of different growth regulators on <em>in vitro</em> micro-tuberization of <em>Solanum tuberosum</em>. <em>Journal of Applied and Natural Sciences</em>\r\n<strong>8&nbsp;</strong>(2)<strong>:</strong> 535-540 &nbsp;</li><li><strong>Batra, V.K</strong>., Lal, Makhan., Kamboj, O.P., &nbsp;Arora, S. K., and Mange, Ram . (2006) Effect of foliar application of micronutrients on the quality and shelf life of tomato .Haryana .J.Hortic.Sci. 35(1&amp;2) :140-14</li><li>Panghal ,V.P.S. Bhatia, A.K. <a href=\"Batra.V.K.and\">Batra.V.K.and</a> Duhan,D.S. (2016) Phenological development and production potential of parthenocarpic cucumber hybrids under polyhouse environment. Indian .J.Hort.73(4) 604-606</li><li>Batra.V.K.,Dhankhar,S.K.,<strong>&nbsp;Bhatia,A.K</strong>.,Singh,Virendra, Arora S.K. And V.P.(2006) Response of brinjal to foliar feeding of water soluble fertilizers. Haryana .J.Hortic.Sci. 35:31</li></ol></td></tr><tr><td><u><strong>Varieties Developed etc.</strong></u></td></tr></tbody></table>"
+      }
+    }
+  ]
+}

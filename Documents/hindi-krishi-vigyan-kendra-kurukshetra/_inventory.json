@@ -1,0 +1,125 @@
+{
+  "college": "Krishi Vigyan Kendra, Kurukshetra",
+  "pages": [
+    {
+      "slug": "achievements-8",
+      "title_en": "Achievements",
+      "title_hi": null,
+      "content_len": 167,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "activities-6",
+      "title_en": "Activities",
+      "title_hi": null,
+      "content_len": 165,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "awards-and-honors-5",
+      "title_en": "Awards and Honors",
+      "title_hi": null,
+      "content_len": 172,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "contact-us-7",
+      "title_en": "Contact Us",
+      "title_hi": null,
+      "content_len": 586,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "home-10",
+      "title_en": "Home",
+      "title_hi": null,
+      "content_len": 7428,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "infrastructure-12",
+      "title_en": "Infrastructure",
+      "title_hi": null,
+      "content_len": 169,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "infrastructure-laboratories-etc-11",
+      "title_en": "Infrastructure (laboratories etc.)",
+      "title_hi": null,
+      "content_len": 189,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "krishi-vigyan-kendra-kurukshetra",
+      "title_en": "Krishi Vigyan Kendra, Kurukshetra",
+      "title_hi": "कृषि विज्ञान केंद्र, कुरुक्षेत्र",
+      "content_len": 6705,
+      "has_content_hi": true,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "kurukshetra-department",
+      "title_en": "Departments",
+      "title_hi": "विभाग",
+      "content_len": 59,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "kvk-kurukshetra-gallery",
+      "title_en": "Gallery",
+      "title_hi": "गैलरी",
+      "content_len": 0,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "mandate-and-thurs-areas-1",
+      "title_en": "Mandate and Thurs Areas",
+      "title_hi": null,
+      "content_len": 178,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "ongoing-projects-4",
+      "title_en": "Ongoing Projects",
+      "title_hi": null,
+      "content_len": 171,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "production-income-10",
+      "title_en": "Production & Income",
+      "title_hi": null,
+      "content_len": 178,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "publication-7",
+      "title_en": "Publication",
+      "title_hi": null,
+      "content_len": 166,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "spio",
+      "title_en": "SPIO",
+      "title_hi": null,
+      "content_len": 159,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    }
+  ]
+}

@@ -1,0 +1,410 @@
+{
+  "exported_at": "2026-09-02T10:59:38.272Z",
+  "staff": [
+    {
+      "id": "231684e6-341b-42de-9829-1c4c7e2ac300",
+      "staff_slug": "legacy-user-672",
+      "name_en": "Dr. Naresh Kaushik",
+      "en_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-672-en.html",
+      "hi_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-672-hi.html",
+      "en_len": 38524,
+      "hi_ratio_before": 0.13626509755342212,
+      "mixed_before": true,
+      "short_fields": {
+        "designation_en": "Principal",
+        "specialization_en": "Agroforestry and Nursery Technology",
+        "qualification_en": "PhD"
+      }
+    },
+    {
+      "id": "4c242523-d09f-4864-84bc-6e79cf50d1c5",
+      "staff_slug": "legacy-user-711",
+      "name_en": "Dr. Sunita Sheoran",
+      "en_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-711-en.html",
+      "hi_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-711-hi.html",
+      "en_len": 120064,
+      "hi_ratio_before": 0.0879466140423764,
+      "mixed_before": true,
+      "short_fields": {
+        "designation_en": "Assistant Professor",
+        "specialization_en": "Soil Fertility & Chemistry",
+        "qualification_en": "Ph.D."
+      }
+    },
+    {
+      "id": "ae3aea65-66e2-4bbe-a845-e88c79de251c",
+      "staff_slug": "legacy-user-1067",
+      "name_en": "Dr. Babita Rani",
+      "en_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1067-en.html",
+      "hi_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1067-hi.html",
+      "en_len": 29865,
+      "hi_ratio_before": 0.1250910604641482,
+      "mixed_before": true,
+      "short_fields": {
+        "designation_en": "Assistant Professor",
+        "specialization_en": "Biochemistry",
+        "qualification_en": "Ph. D."
+      }
+    },
+    {
+      "id": "1168f35b-0368-4e7b-9f89-b162f63cf7a3",
+      "staff_slug": "legacy-user-1093",
+      "name_en": "Dr. Sharanjeet Dhawan",
+      "en_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1093-en.html",
+      "hi_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1093-hi.html",
+      "en_len": 33814,
+      "hi_ratio_before": 0.16386300375166404,
+      "mixed_before": true,
+      "short_fields": {
+        "designation_en": "Assistant Professor",
+        "specialization_en": "Differential Equations, Numerical Analysis",
+        "qualification_en": "Ph.D."
+      }
+    },
+    {
+      "id": "85275654-e99c-4c7f-a828-bcf664226ac6",
+      "staff_slug": "legacy-user-1076",
+      "name_en": "Dr. Preeti Rani",
+      "en_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1076-en.html",
+      "hi_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1076-hi.html",
+      "en_len": 22050,
+      "hi_ratio_before": 0.14953409258985356,
+      "mixed_before": true,
+      "short_fields": {
+        "designation_en": "Assistant Professor",
+        "specialization_en": "Botany",
+        "qualification_en": "Ph. D."
+      }
+    },
+    {
+      "id": "fc5adad9-ae90-4894-b698-aa540a34f92d",
+      "staff_slug": "legacy-user-1094",
+      "name_en": "Dr. Kajal",
+      "en_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1094-en.html",
+      "hi_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1094-hi.html",
+      "en_len": 17454,
+      "hi_ratio_before": 0.1131710016602103,
+      "mixed_before": true,
+      "short_fields": {
+        "designation_en": "Assistant Professor",
+        "specialization_en": "Forestry",
+        "qualification_en": "Ph.D."
+      }
+    },
+    {
+      "id": "e7bbdac0-af8c-4353-95b2-2f2839daa318",
+      "staff_slug": "legacy-user-1096",
+      "name_en": "Dr. Sandeep Yadav",
+      "en_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1096-en.html",
+      "hi_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1096-hi.html",
+      "en_len": 50010,
+      "hi_ratio_before": 0.1665699361578642,
+      "mixed_before": true,
+      "short_fields": {
+        "designation_en": "Assistant Professor",
+        "specialization_en": "Photonics, Material Science, Thin film , Vacuum Science",
+        "qualification_en": "Ph.D."
+      }
+    },
+    {
+      "id": "ba5c9440-b0f8-4a7d-9278-123ec65a11ca",
+      "staff_slug": "legacy-user-1097",
+      "name_en": "Dr. Rahul Kumar",
+      "en_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1097-en.html",
+      "hi_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1097-hi.html",
+      "en_len": 25268,
+      "hi_ratio_before": 0.10481392966882895,
+      "mixed_before": true,
+      "short_fields": {
+        "designation_en": "Assistant Professor",
+        "specialization_en": "Vermi-Fish technology, Vermi-technology",
+        "qualification_en": "Ph.D."
+      }
+    },
+    {
+      "id": "f4e40ee5-4a60-4207-abc0-e598922809ba",
+      "staff_slug": "legacy-user-1098",
+      "name_en": "Dr. Charan Singh",
+      "en_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1098-en.html",
+      "hi_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1098-hi.html",
+      "en_len": 70301,
+      "hi_ratio_before": 0.12890654848322763,
+      "mixed_before": true,
+      "short_fields": {
+        "designation_en": "Assistant Professor",
+        "specialization_en": "Processing and Food Engineering",
+        "qualification_en": "Ph.D."
+      }
+    },
+    {
+      "id": "3db96404-6436-4472-b485-24115c4cdf40",
+      "staff_slug": "legacy-user-1099",
+      "name_en": "Dr. Charan Singh Sekhon",
+      "en_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1099-en.html",
+      "hi_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1099-hi.html",
+      "en_len": 64224,
+      "hi_ratio_before": 0.22963155163466528,
+      "mixed_before": true,
+      "short_fields": {
+        "designation_en": "Assistant Professor",
+        "specialization_en": "Physical Education",
+        "qualification_en": "Ph.D."
+      }
+    },
+    {
+      "id": "ceaa2bd5-ffe4-4dca-b9bb-e43888b4266b",
+      "staff_slug": "legacy-user-1100",
+      "name_en": "Dr. Abhishek",
+      "en_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1100-en.html",
+      "hi_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1100-hi.html",
+      "en_len": 30033,
+      "hi_ratio_before": 0.11389601305665656,
+      "mixed_before": true,
+      "short_fields": {
+        "designation_en": "Assistant Professor",
+        "specialization_en": "Computer Science & Engineering",
+        "qualification_en": "B.Tech.(IT), M.E.(CSE) & Ph.D.(CSE)"
+      }
+    },
+    {
+      "id": "56173c24-9d3f-4f2d-a85c-b115f8745193",
+      "staff_slug": "legacy-user-1101",
+      "name_en": "Dr. Tanvi",
+      "en_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1101-en.html",
+      "hi_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1101-hi.html",
+      "en_len": 28425,
+      "hi_ratio_before": 0.14671043242471815,
+      "mixed_before": true,
+      "short_fields": {
+        "designation_en": "Assistant Professor",
+        "specialization_en": "Microbiology",
+        "qualification_en": "Ph.D."
+      }
+    },
+    {
+      "id": "ead21109-0b62-4627-9a0b-a9ce058e8e5b",
+      "staff_slug": "legacy-user-1102",
+      "name_en": "Dr. Parveen Kumar Nimbrayan",
+      "en_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1102-en.html",
+      "hi_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1102-hi.html",
+      "en_len": 95142,
+      "hi_ratio_before": 0.14179822327844735,
+      "mixed_before": true,
+      "short_fields": {
+        "designation_en": "Assistant Professor (Agricultural Economics)",
+        "specialization_en": "Agricultural Marketing and Production Economics",
+        "qualification_en": "Ph.D."
+      }
+    },
+    {
+      "id": "bd2e20d3-5d88-4a34-9a66-fc33486419c6",
+      "staff_slug": "legacy-user-1095",
+      "name_en": "Dr. Nisha Bagotia",
+      "en_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1095-en.html",
+      "hi_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1095-hi.html",
+      "en_len": 60697,
+      "hi_ratio_before": 0.10837470603605957,
+      "mixed_before": true,
+      "short_fields": {
+        "designation_en": "Assistant Professor",
+        "specialization_en": "Chemistry, Material science",
+        "qualification_en": "Ph.D. (IIT Delhi)"
+      }
+    },
+    {
+      "id": "11398cf0-6094-4adf-8ff9-9e7003d6944f",
+      "staff_slug": "legacy-user-1103",
+      "name_en": "Dr. Anil Kumar Siroha",
+      "en_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1103-en.html",
+      "hi_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1103-hi.html",
+      "en_len": 56690,
+      "hi_ratio_before": 0.06303549571603427,
+      "mixed_before": true,
+      "short_fields": {
+        "designation_en": "Assistant Professor",
+        "specialization_en": "Food Science and Technology",
+        "qualification_en": "PhD"
+      }
+    },
+    {
+      "id": "9c4d32ec-6047-474a-9847-f7f83fb01655",
+      "staff_slug": "legacy-user-855",
+      "name_en": "Dr. Rakesh Kumar",
+      "en_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-855-en.html",
+      "hi_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-855-hi.html",
+      "en_len": 21381,
+      "hi_ratio_before": 0.19951013137385884,
+      "mixed_before": true,
+      "short_fields": {
+        "designation_en": "Assistant Professor",
+        "specialization_en": "Soil Fertility & Chemistry, Micronutrients",
+        "qualification_en": "Ph. D."
+      }
+    },
+    {
+      "id": "3b88709d-ef22-4eb2-b373-21fc747dca34",
+      "staff_slug": "legacy-user-1104",
+      "name_en": "Dr. Pooja",
+      "en_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1104-en.html",
+      "hi_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1104-hi.html",
+      "en_len": 23573,
+      "hi_ratio_before": 0.1192776809757643,
+      "mixed_before": true,
+      "short_fields": {
+        "designation_en": "Assistant Professor",
+        "specialization_en": "Horticulture",
+        "qualification_en": "Ph.D."
+      }
+    },
+    {
+      "id": "d42831f6-c634-43fc-8232-9114bac6c319",
+      "staff_slug": "legacy-user-1105",
+      "name_en": "Dr Radhey Shyam",
+      "en_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1105-en.html",
+      "hi_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1105-hi.html",
+      "en_len": 20033,
+      "hi_ratio_before": 0.2579263067694944,
+      "mixed_before": true,
+      "short_fields": {
+        "designation_en": "Assistant Professor",
+        "specialization_en": "Sociology",
+        "qualification_en": "M.Phil,NET,Ph.D."
+      }
+    },
+    {
+      "id": "899122c6-4715-4d71-bf04-402603ec796f",
+      "staff_slug": "legacy-user-1106",
+      "name_en": "Dr. Bharat Taindu Jain",
+      "en_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1106-en.html",
+      "hi_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1106-hi.html",
+      "en_len": 31059,
+      "hi_ratio_before": 0.15446127946127947,
+      "mixed_before": true,
+      "short_fields": {
+        "designation_en": "Assistant Professor",
+        "specialization_en": "Genetics and Plant Breeding",
+        "qualification_en": "Ph.D."
+      }
+    },
+    {
+      "id": "7d57e6bc-c616-4bdb-9b26-9dc3e1886ffe",
+      "staff_slug": "legacy-user-1107",
+      "name_en": "Dr. Sonam Kamboj",
+      "en_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1107-en.html",
+      "hi_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1107-hi.html",
+      "en_len": 14224,
+      "hi_ratio_before": 0.15466039400176418,
+      "mixed_before": true,
+      "short_fields": {
+        "designation_en": "Assistant Professor",
+        "specialization_en": null,
+        "qualification_en": "Ph.D."
+      }
+    },
+    {
+      "id": "b5bde2f2-49ea-4123-a562-4d092cf5fec0",
+      "staff_slug": "legacy-user-1108",
+      "name_en": "Dr. Yogesh Kumar",
+      "en_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1108-en.html",
+      "hi_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1108-hi.html",
+      "en_len": 59615,
+      "hi_ratio_before": 0.07112328767123288,
+      "mixed_before": true,
+      "short_fields": {
+        "designation_en": "Assistant Professor",
+        "specialization_en": "Agricultural Meteorology",
+        "qualification_en": "Ph.D."
+      }
+    },
+    {
+      "id": "aa3c23f7-700d-4e0d-bd61-3a2323a5ba19",
+      "staff_slug": "legacy-user-1109",
+      "name_en": "Dr. Mohinder Singh",
+      "en_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1109-en.html",
+      "hi_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1109-hi.html",
+      "en_len": 44254,
+      "hi_ratio_before": 0.15459249676584735,
+      "mixed_before": true,
+      "short_fields": {
+        "designation_en": "Assistant Professor",
+        "specialization_en": "Agronomy",
+        "qualification_en": "Ph.D."
+      }
+    },
+    {
+      "id": "8ab1cf0c-40b7-43ce-a253-25f43991a706",
+      "staff_slug": "legacy-user-1110",
+      "name_en": "Dr. Alisha Mittal",
+      "en_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1110-en.html",
+      "hi_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1110-hi.html",
+      "en_len": 28898,
+      "hi_ratio_before": 0.19266917293233082,
+      "mixed_before": true,
+      "short_fields": {
+        "designation_en": "Assistant Professor (Statistics)",
+        "specialization_en": "Time Series and Samping Techniques",
+        "qualification_en": "Ph.D. (Statistics)"
+      }
+    },
+    {
+      "id": "65325764-0cef-493c-ab78-5b59f8a34aa6",
+      "staff_slug": "legacy-user-1111",
+      "name_en": "Dr. Anil Kumar Malik",
+      "en_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1111-en.html",
+      "hi_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1111-hi.html",
+      "en_len": 42309,
+      "hi_ratio_before": 0.16379435191889935,
+      "mixed_before": true,
+      "short_fields": {
+        "designation_en": "Assistant Professor",
+        "specialization_en": "Agricultural Extension Education",
+        "qualification_en": "Ph.D."
+      }
+    },
+    {
+      "id": "9302ae79-addc-4a7a-aff0-a00094378392",
+      "staff_slug": "legacy-user-1089",
+      "name_en": "Dr. Roomi Devi",
+      "en_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1089-en.html",
+      "hi_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1089-hi.html",
+      "en_len": 35665,
+      "hi_ratio_before": 0.11375409662755048,
+      "mixed_before": true,
+      "short_fields": {
+        "designation_en": "Assistant Professor",
+        "specialization_en": "Economic Entomology",
+        "qualification_en": "Ph.D."
+      }
+    },
+    {
+      "id": "5402ac6e-ab09-430c-a6cb-9dce292e63c7",
+      "staff_slug": "legacy-user-1112",
+      "name_en": "Dr. Harish M. S",
+      "en_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1112-en.html",
+      "hi_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1112-hi.html",
+      "en_len": 41912,
+      "hi_ratio_before": 0.14804163242947138,
+      "mixed_before": true,
+      "short_fields": {
+        "designation_en": "Assistant Professor",
+        "specialization_en": "Seed Science and Technology",
+        "qualification_en": "Ph.D."
+      }
+    },
+    {
+      "id": "a678b588-8723-4d98-9563-944631143f78",
+      "staff_slug": "legacy-user-1114",
+      "name_en": "Dr. Sujata",
+      "en_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1114-en.html",
+      "hi_file": "Documents/hindi-faculty/bawal-profiles/legacy-user-1114-hi.html",
+      "en_len": 28153,
+      "hi_ratio_before": 0.13953795379537953,
+      "mixed_before": true,
+      "short_fields": {
+        "designation_en": "Assistant Professor",
+        "specialization_en": "Economic Nematology",
+        "qualification_en": "Ph.D."
+      }
+    }
+  ]
+}

@@ -1,0 +1,117 @@
+{
+  "college": "RICE RESEARCH STATION, KAUL",
+  "pages": [
+    {
+      "slug": "achievements-4",
+      "title_en": "Achievements",
+      "title_hi": null,
+      "content_len": 167,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "activities-11",
+      "title_en": "Activities",
+      "title_hi": null,
+      "content_len": 165,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "awards-and-honors-12",
+      "title_en": "Awards and Honors",
+      "title_hi": null,
+      "content_len": 172,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "home-23",
+      "title_en": "Home",
+      "title_hi": null,
+      "content_len": 4746,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "infrastructure-8",
+      "title_en": "Infrastructure",
+      "title_hi": null,
+      "content_len": 169,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "major-rice-varieties",
+      "title_en": "Major Rice Varieties",
+      "title_hi": "चावल की प्रमुख किस्में",
+      "content_len": 175,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "mandate-and-thrust-areas-2",
+      "title_en": "Mandate and Thrust Areas",
+      "title_hi": "जनादेश और जोर देने वाले क्षेत्र",
+      "content_len": 179,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "mandate-and-thurst-areas-5",
+      "title_en": "Mandate and thurst Areast",
+      "title_hi": null,
+      "content_len": 4853,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "mandate-and-thurst-areast",
+      "title_en": "Mandate and thurst Areast",
+      "title_hi": null,
+      "content_len": 180,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "ongoing-research-projects-20",
+      "title_en": "Ongoing Research  Projects",
+      "title_hi": null,
+      "content_len": 181,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "publication-10",
+      "title_en": "Publication",
+      "title_hi": null,
+      "content_len": 166,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "rice-research-station-kaul",
+      "title_en": "RICE RESEARCH STATION, KAUL",
+      "title_hi": "राइस रिसर्च स्टेशन, कौल",
+      "content_len": 5035,
+      "has_content_hi": true,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "rice-research-station-kaul-gallery",
+      "title_en": "Gallery",
+      "title_hi": "गैलरी",
+      "content_len": 0,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "rk-department",
+      "title_en": "Departments",
+      "title_hi": "विभाग",
+      "content_len": 53,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    }
+  ]
+}

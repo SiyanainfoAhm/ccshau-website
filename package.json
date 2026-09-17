@@ -18,6 +18,9 @@
     "apply:phase2": "npm run apply:phase2 --prefix scripts/legacy-import",
     "apply:phase3-priority": "npm run apply:phase3-priority --prefix scripts/legacy-import",
     "apply:phase3-full": "npm run apply:phase3-full --prefix scripts/legacy-import",
+    "backup:database": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/ops/backup-full-database.ps1",
+    "restore:database": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/ops/restore-full-database.ps1",
+    "verify:database-backup": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/ops/verify-full-database.ps1",
     "backup:pre-import": "node scripts/ops/backup-pre-import.mjs",
     "audit:hindi-gaps": "node scripts/ops/audit-hindi-gaps.mjs",
     "audit:hindi-gaps:published": "node scripts/ops/audit-hindi-gaps.mjs --published-only",
@@ -36,5 +39,8 @@
   },
   "dependencies": {
     "next": "16.2.9"
+  },
+  "devDependencies": {
+    "supabase": "2.117.0"
   }
 }
