@@ -1,0 +1,93 @@
+{
+  "college": "KRISHI VIGYAN KENDRA, FATEHABAD",
+  "pages": [
+    {
+      "slug": "awards-and-honors-18",
+      "title_en": "Awards and Honors",
+      "title_hi": null,
+      "content_len": 745,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "extension-activities",
+      "title_en": "Extension Activities",
+      "title_hi": null,
+      "content_len": 175,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "fatehabad-department",
+      "title_en": "Departments",
+      "title_hi": "विभाग",
+      "content_len": 57,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "home-32",
+      "title_en": "Home",
+      "title_hi": null,
+      "content_len": 3962,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "information-under-rti-act-2005-rule-4-i",
+      "title_en": "Information under RTI Act 2005 Rule 4 (I",
+      "title_hi": null,
+      "content_len": 195,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "infrastructure-16",
+      "title_en": "Infrastructure",
+      "title_hi": null,
+      "content_len": 169,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "krishi-vigyan-kendra-fatehabad",
+      "title_en": "KRISHI VIGYAN KENDRA, FATEHABAD",
+      "title_hi": "कृषि विज्ञान केंद्र, फतेहाबाद",
+      "content_len": 3058,
+      "has_content_hi": true,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "kvk-fatehabad-gallery",
+      "title_en": "Gallery",
+      "title_hi": "गैलरी",
+      "content_len": 0,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "mandate-and-thurs-areas-6",
+      "title_en": "Mandate and Thurst Areas",
+      "title_hi": null,
+      "content_len": 179,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "other-details",
+      "title_en": "Other details",
+      "title_hi": null,
+      "content_len": 168,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "production-income",
+      "title_en": "Production & Income",
+      "title_hi": null,
+      "content_len": 178,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    }
+  ]
+}

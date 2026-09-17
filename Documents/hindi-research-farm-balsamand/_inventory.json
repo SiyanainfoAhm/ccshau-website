@@ -1,0 +1,53 @@
+{
+  "college": "RESEARCH FARM, BALSAMAND",
+  "pages": [
+    {
+      "slug": "fb-department",
+      "title_en": "Departments",
+      "title_hi": "विभाग",
+      "content_len": 50,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "home-41",
+      "title_en": "Home",
+      "title_hi": null,
+      "content_len": 803,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "infrastructure-laboratories-etc-29",
+      "title_en": "Infrastructure (laboratories etc.)",
+      "title_hi": null,
+      "content_len": 120,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "mandate-7",
+      "title_en": "Mandate",
+      "title_hi": null,
+      "content_len": 754,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "non-teaching-staff",
+      "title_en": "Non-Teaching Staff",
+      "title_hi": null,
+      "content_len": 617,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "research-farm-balsamand",
+      "title_en": "RESEARCH FARM, BALSAMAND",
+      "title_hi": "रिसर्च फार्म, बालसमंद",
+      "content_len": 874,
+      "has_content_hi": true,
+      "likely_pdf_placeholder": false
+    }
+  ]
+}

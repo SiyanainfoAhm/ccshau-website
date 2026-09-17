@@ -44,5 +44,9 @@ coverage/
 # Local / off-site backup outputs (never commit dumps or media copies)
 backups/
 
+# Generated legacy-import caches and local analysis artifacts
+scripts/legacy-import/reports/
+scripts/ops/_*
+
 .vercel
 .env*

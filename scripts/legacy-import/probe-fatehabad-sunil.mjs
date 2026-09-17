@@ -1,0 +1,61 @@
+import mysql from "mysql2/promise";
+import { existsSync, readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const ROOT = join(__dirname, "../..");
+
+function loadEnvFile(path) {
+  if (!existsSync(path)) return;
+  for (const line of readFileSync(path, "utf8").split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const eq = trimmed.indexOf("=");
+    if (eq === -1) continue;
+    const key = trimmed.slice(0, eq).trim();
+    let value = trimmed.slice(eq + 1).trim();
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1);
+    }
+    if (!process.env[key]) process.env[key] = value;
+  }
+}
+
+loadEnvFile(join(ROOT, "apps/web/.env.local"));
+loadEnvFile(join(ROOT, ".env.local"));
+
+const live = await (await fetch("https://hau.ac.in/college/faculty/29/teaching_staff")).json();
+console.log(
+  "LIVE",
+  live.map((u) => ({
+    id: u.id ?? u.user_id,
+    name: `${u.first_name || ""} ${u.last_name || ""}`.trim(),
+    designation: u.designation,
+    specialization: u.specialization,
+    status: u.status,
+    college_id: u.college_id,
+  })),
+);
+
+const conn = await mysql.createConnection({
+  host: process.env.LEGACY_MYSQL_HOST || "127.0.0.1",
+  port: Number(process.env.LEGACY_MYSQL_PORT || 3306),
+  user: process.env.LEGACY_MYSQL_USER || "Admin",
+  password: process.env.LEGACY_MYSQL_PASSWORD || "Admin@123",
+  database: process.env.LEGACY_MYSQL_DATABASE || "hau_db",
+});
+
+const [mysqlRows] = await conn.query(
+  `SELECT id, first_name, last_name, designation, specialization, status, college_id, email
+   FROM users
+   WHERE FIND_IN_SET('29', REPLACE(college_id, ' ', ''))
+      OR (first_name LIKE '%Sunil%' AND last_name LIKE '%Kumar%')
+      OR first_name LIKE '%Sunil Kumar%'
+   ORDER BY view_order, id`,
+);
+console.log("MYSQL", mysqlRows);
+await conn.end();

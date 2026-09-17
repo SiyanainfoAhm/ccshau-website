@@ -37,6 +37,7 @@ import {
 } from "@/lib/validations/college-register";
 import { removeStorageObjects, uploadFacultyImage } from "@/lib/storage/upload";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getSiteUrl } from "@/lib/supabase/env";
 import { readStoredLayoutConfig } from "@/lib/pages/layout-config";
 import {
   assignPersonToDepartment,
@@ -87,6 +88,159 @@ async function resolveFacultyImagePath(
   }
 
   return ok(null);
+}
+
+type FacultyLoginProvisionStatus = "invited" | "linked";
+
+async function findAuthUserIdByEmail(
+  admin: SupabaseClient,
+  email: string,
+): Promise<string | null> {
+  for (let page = 1; page <= 20; page += 1) {
+    const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 1000 });
+    if (error) throw new Error(error.message);
+    const match = data.users.find(
+      (user) => String(user.email ?? "").trim().toLowerCase() === email,
+    );
+    if (match) return match.id;
+    if (data.users.length < 1000) return null;
+  }
+  throw new Error("Could not safely search all existing login accounts.");
+}
+
+async function provisionFacultyLogin(
+  admin: SupabaseClient,
+  input: {
+    personId: string;
+    departmentPageId: string;
+    memberType: "hod" | "faculty";
+    nameEn: string;
+    email: string;
+  },
+): Promise<FacultyLoginProvisionStatus> {
+  let userId: string | null = null;
+  let createdAuthUser = false;
+  let createdProfile = false;
+  let createdHodAssignment = false;
+
+  try {
+    const { data: profiles, error: profileLookupError } = await admin
+      .from(Tables.profiles)
+      .select("id, is_active")
+      .ilike("email", input.email)
+      .limit(2);
+    if (profileLookupError) throw new Error(profileLookupError.message);
+    if ((profiles?.length ?? 0) > 1) {
+      throw new Error("Multiple login profiles use this email. Ask a super admin to resolve them.");
+    }
+    if (profiles?.[0]?.is_active === false) {
+      throw new Error("The existing login for this email is inactive.");
+    }
+
+    userId = profiles?.[0]?.id ?? await findAuthUserIdByEmail(admin, input.email);
+    let status: FacultyLoginProvisionStatus = "linked";
+
+    if (!userId) {
+      const { data: inviteData, error: inviteError } = await admin.auth.admin.inviteUserByEmail(
+        input.email,
+        {
+          redirectTo: `${getSiteUrl()}/admin/reset-password`,
+          data: { display_name: input.nameEn },
+        },
+      );
+      if (inviteError || !inviteData.user) {
+        throw new Error(inviteError?.message ?? "Failed to send faculty login invitation.");
+      }
+      userId = inviteData.user.id;
+      createdAuthUser = true;
+      status = "invited";
+    }
+
+    const { data: linkedPerson, error: linkedPersonError } = await admin
+      .from(Tables.facultyPeople)
+      .select("id, name_en")
+      .eq("user_id", userId)
+      .neq("id", input.personId)
+      .maybeSingle();
+    if (linkedPersonError) throw new Error(linkedPersonError.message);
+    if (linkedPerson) {
+      throw new Error(`This login is already linked to ${linkedPerson.name_en as string}.`);
+    }
+
+    if (!profiles?.[0]) {
+      const { error: profileError } = await admin.from(Tables.profiles).insert({
+        id: userId,
+        display_name: input.nameEn,
+        email: input.email,
+        department_id: null,
+        is_active: true,
+      });
+      if (profileError) throw new Error(profileError.message);
+      createdProfile = true;
+    }
+
+    if (input.memberType === "hod") {
+      const { data: existingHodAccess, error: hodLookupError } = await admin
+        .from(Tables.userDepartmentPages)
+        .select("department_page_id")
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (hodLookupError) throw new Error(hodLookupError.message);
+      if (
+        existingHodAccess &&
+        existingHodAccess.department_page_id !== input.departmentPageId
+      ) {
+        throw new Error("This login is already assigned as HOD of another department.");
+      }
+      if (!existingHodAccess) {
+        const { error: hodError } = await admin.from(Tables.userDepartmentPages).insert({
+          user_id: userId,
+          department_page_id: input.departmentPageId,
+          role: "dept_hod",
+        });
+        if (hodError) throw new Error(hodError.message);
+        createdHodAssignment = true;
+      }
+    }
+
+    const { data: linkedFaculty, error: linkError } = await admin
+      .from(Tables.facultyPeople)
+      .update({ user_id: userId })
+      .eq("id", input.personId)
+      .select("id")
+      .single();
+    if (linkError || !linkedFaculty) {
+      throw new Error(linkError?.message ?? "Failed to link the faculty login.");
+    }
+
+    return status;
+  } catch (error) {
+    if (createdHodAssignment && userId) {
+      await admin.from(Tables.userDepartmentPages).delete().eq("user_id", userId);
+    }
+    if (createdAuthUser && userId) {
+      await admin.auth.admin.deleteUser(userId);
+    } else if (createdProfile && userId) {
+      await admin.from(Tables.profiles).delete().eq("id", userId);
+    }
+    throw error;
+  }
+}
+
+async function rollbackNewFaculty(
+  admin: SupabaseClient,
+  created: { personId: string; assignmentId: string },
+  storedImagePath?: string | null,
+) {
+  try {
+    if (storedImagePath && isStoredFacultyImagePath(storedImagePath)) {
+      await removeStorageObjects(admin, [storedImagePath]);
+    }
+  } catch {
+    // Continue database rollback even if storage cleanup fails.
+  }
+  await admin.from(Tables.facultyAssignments).delete().eq("id", created.assignmentId);
+  await admin.from(Tables.facultyPeople).delete().eq("id", created.personId);
 }
 
 export async function getCollegesForRegisterForm() {
@@ -299,7 +453,11 @@ export async function registerDepartmentAction(
 
 export async function registerFacultyAction(
   formData: FormData,
-): Promise<ActionResult<{ id: string; detailPath: string | null }>> {
+): Promise<ActionResult<{
+  id: string;
+  detailPath: string | null;
+  loginStatus: FacultyLoginProvisionStatus | "not_requested";
+}>> {
   try {
     const session = await requireRegisterSession();
     if (isFacultyOnlyUser(session)) {
@@ -319,7 +477,8 @@ export async function registerFacultyAction(
       specializationHi: formData.get("specializationHi") || undefined,
       imagePath: formData.get("imagePath") || undefined,
       mobile: formData.get("mobile") || undefined,
-      email: formData.get("email") || undefined,
+      email: formData.get("email"),
+      sendLoginInvitation: formData.get("sendLoginInvitation") === "true",
       experienceEn: formData.get("experienceEn") || undefined,
       experienceHi: formData.get("experienceHi") || undefined,
       qualificationEn: formData.get("qualificationEn") || undefined,
@@ -352,18 +511,17 @@ export async function registerFacultyAction(
 
     if (existingSlug) return fail("A faculty profile with this URL slug already exists in this department.");
 
-    const email = (input.email || "").trim().toLowerCase();
-    if (email) {
-      const { data: existingPeople } = await admin
-        .from(Tables.facultyPeople)
-        .select("id, name_en")
-        .ilike("email", email)
-        .limit(2);
-      if (existingPeople?.length) {
-        return fail(
-          `This email already belongs to ${existingPeople[0].name_en}. Use Add existing to assign that person to this department.`,
-        );
-      }
+    const email = input.email.trim().toLowerCase();
+    const { data: existingPeople, error: existingPeopleError } = await admin
+      .from(Tables.facultyPeople)
+      .select("id, name_en")
+      .ilike("email", email)
+      .limit(2);
+    if (existingPeopleError) return fail(existingPeopleError.message);
+    if (existingPeople?.length) {
+      return fail(
+        `This email already belongs to ${existingPeople[0].name_en}. Use Add existing to assign that person to this department.`,
+      );
     }
 
     if (input.memberType === "hod") {
@@ -388,7 +546,7 @@ export async function registerFacultyAction(
         nameEn: input.nameEn,
         nameHi: input.nameHi,
         imagePath: input.imagePath || null,
-        email: email || null,
+        email,
         mobile: input.mobile,
         qualificationEn: input.qualificationEn,
         qualificationHi: input.qualificationHi,
@@ -417,14 +575,40 @@ export async function registerFacultyAction(
       input.imagePath,
       input.imagePath || null,
     );
-    if (!imageResult.success) return imageResult;
+    if (!imageResult.success) {
+      await rollbackNewFaculty(admin, created);
+      return imageResult;
+    }
 
     if (imageResult.data && imageResult.data !== (input.imagePath || null)) {
       const { error: imageError } = await admin
         .from(Tables.facultyPeople)
         .update({ image_path: imageResult.data })
         .eq("id", created.personId);
-      if (imageError) return fail(imageError.message);
+      if (imageError) {
+        await rollbackNewFaculty(admin, created, imageResult.data);
+        return fail(imageError.message);
+      }
+    }
+
+    let loginStatus: FacultyLoginProvisionStatus | "not_requested" = "not_requested";
+    if (input.sendLoginInvitation) {
+      try {
+        loginStatus = await provisionFacultyLogin(admin, {
+          personId: created.personId,
+          departmentPageId: input.departmentPageId,
+          memberType: input.memberType,
+          nameEn: input.nameEn,
+          email,
+        });
+      } catch (loginError) {
+        await rollbackNewFaculty(admin, created, imageResult.data);
+        return fail(
+          loginError instanceof Error
+            ? loginError.message
+            : "Faculty login provisioning failed.",
+        );
+      }
     }
 
     await writeAuditLog({
@@ -436,6 +620,7 @@ export async function registerFacultyAction(
         assignmentId: created.assignmentId,
         memberType: input.memberType,
         departmentPageId: input.departmentPageId,
+        loginStatus,
       },
     });
 
@@ -446,7 +631,7 @@ export async function registerFacultyAction(
       revalidatePath(detailPath);
     }
 
-    return ok({ id: created.personId, detailPath });
+    return ok({ id: created.personId, detailPath, loginStatus });
   } catch (e) {
     return fail(e instanceof Error ? e.message : "Failed to register faculty.");
   }

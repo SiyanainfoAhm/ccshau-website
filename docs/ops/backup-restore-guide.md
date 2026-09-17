@@ -160,15 +160,148 @@ Output: `backups/pre-import/<timestamp>/` (gitignored)
 4. Delete the temp project after the drill.
 5. Record date, backup chosen, duration, and result in the AMC/ops log.
 
-### C. Logical dump restore (CLI)
+### C. Full logical backup and restore scripts (Windows)
 
-```bash
-supabase login
-supabase link --project-ref fvveqziyusjgqejowkfp
-supabase db dump -f backups/db/ccshau-$(date +%Y%m%d).sql
-# Restore into a *staging* database only:
-# psql "$STAGING_DATABASE_URL" -f backups/db/ccshau-YYYYMMDD.sql
+Use these scripts when the application database must be portable to another
+Supabase project or its data must be rolled back in the current project:
+
+- `scripts/ops/backup-full-database.ps1`
+- `scripts/ops/restore-full-database.ps1`
+- `scripts/ops/verify-full-database.ps1`
+
+The backup follows Supabase's supported split format:
+
+| Artifact | Contents |
+|----------|----------|
+| `roles.sql` | Postgres roles and grants |
+| `schema.sql` | Tables, views, functions/procedures, triggers, indexes, constraints, enums and RLS |
+| `data.sql` | Application/Auth rows; all `storage.*` table data is excluded |
+| `history_schema.sql` / `history_data.sql` | Supabase CLI migration history |
+| `manifest.json` | Source, tools, object inventory, row counts, sizes and SHA-256 checksums |
+
+#### Prerequisites
+
+1. Node.js 20+ and repository dependencies (`npm install`).
+2. Docker Desktop or Podman running for Supabase CLI database dumps.
+3. The pinned Supabase CLI (`npx supabase --version`).
+4. PostgreSQL 15+ command-line tools for restore (`psql --version`).
+   On Windows, install PostgreSQL and add, for example,
+   `C:\Program Files\PostgreSQL\17\bin` to `PATH`.
+5. A percent-encoded direct or Session Pooler database connection string from
+   Supabase Dashboard → **Connect**. Never commit connection strings.
+
+#### Create a backup
+
+```powershell
+cd C:\Jatin\Projects\CCSHAU_Project
+
+$env:SOURCE_DATABASE_URL = "postgresql://postgres.PROJECT_REF:PERCENT_ENCODED_PASSWORD@POOLER_HOST:5432/postgres"
+$env:SUPABASE_PROJECT_REF = "PROJECT_REF"
+
+npm run backup:database
 ```
+
+Output is written to:
+
+```text
+backups/database/PROJECT_REF-YYYYMMDDTHHMMSSZ/
+```
+
+Validate files and checksums without connecting to a database:
+
+```powershell
+$backup = (Get-Content .\backups\database\LATEST.txt -Raw).Trim()
+npm run verify:database-backup -- -BackupDirectory $backup
+```
+
+Treat every backup directory as a production secret. It may contain personal
+data, Auth users and password hashes. Vault data is excluded by the Supabase
+CLI. Database URLs are passed to the CLI as process arguments, so run the
+scripts only on a trusted administrator machine.
+
+#### Restore to a new Supabase project
+
+Create an empty Supabase project first and enable the extensions used by the
+source project. Then run:
+
+```powershell
+$backup = (Get-Content .\backups\database\LATEST.txt -Raw).Trim()
+$env:TARGET_DATABASE_URL = "postgresql://postgres.NEW_PROJECT_REF:PERCENT_ENCODED_PASSWORD@POOLER_HOST:5432/postgres"
+
+npm run restore:database -- `
+  -BackupDirectory $backup `
+  -TargetProjectRef "NEW_PROJECT_REF" `
+  -Mode NewProject `
+  -Confirmation "RESTORE:NEW_PROJECT_REF"
+```
+
+The restore runs roles → schema → data → migration history in one transaction
+with `ON_ERROR_STOP=1`. If any SQL statement fails, PostgreSQL rolls back the
+transaction.
+
+#### Restore data in the current project
+
+Supabase does not support safely dropping and rebuilding all managed schemas
+in-place with a generic SQL script. `ReplaceData` therefore verifies that the
+existing schema contains the backup's expected objects, then replaces rows in
+every table emitted by `data.sql`. It does not drop or replace schema objects
+or roles. It creates a target safety backup under `backups/pre-restore/`
+before executing destructive SQL.
+
+```powershell
+$backup = "C:\secure-backups\PROJECT_REF-YYYYMMDDTHHMMSSZ"
+$env:TARGET_DATABASE_URL = "postgresql://postgres.PROJECT_REF:PERCENT_ENCODED_PASSWORD@POOLER_HOST:5432/postgres"
+
+npm run restore:database -- `
+  -BackupDirectory $backup `
+  -TargetProjectRef "PROJECT_REF" `
+  -Mode ReplaceData `
+  -Confirmation "REPLACE-DATA:PROJECT_REF"
+```
+
+Do not use `-SkipSafetyBackup` in production. First test the same backup with
+`NewProject` mode and complete the restore drill checklist. For a complete
+same-project schema rollback, use Supabase Dashboard managed Backups/PITR
+rather than deleting the platform's `auth` or `storage` schemas.
+
+#### Verify a restored database
+
+Restore runs verification automatically. It can also be run separately:
+
+```powershell
+npm run verify:database-backup -- `
+  -BackupDirectory $backup `
+  -DatabaseUrl $env:TARGET_DATABASE_URL `
+  -ProjectRef "PROJECT_REF"
+```
+
+Verification checks:
+
+- Every artifact size and SHA-256 hash.
+- Expected tables, views, functions/procedures, triggers, policies and indexes exist.
+- Exact row counts for all `public.ccshau_*` application tables.
+
+Auth/session table counts are not required to remain exact after users begin
+signing in.
+
+#### Important limitations
+
+- **Storage is excluded.** Neither Storage object files nor `storage.*`
+  metadata rows are included. Use `backup-storage.mjs --download` for files
+  and recreate bucket configuration separately.
+- Auth users and password hashes can be migrated, but users must sign in again
+  when the destination project has a different JWT secret.
+- Vault/pgsodium data and managed schema definitions (`auth`, `storage`,
+  `vault`, extension schemas, etc.) are excluded from `schema.sql`. A new
+  Supabase project supplies the platform schemas; configure Vault secrets
+  again. Custom changes made directly inside managed schemas require a
+  separate reviewed schema diff.
+- Custom login roles require passwords to be reset after migration.
+- Edge Functions, project API settings, Auth provider settings, SMTP, Realtime
+  publication settings and secrets are platform configuration, not database
+  rows; configure them separately.
+- A newly provisioned project is the required first restore target. Never use
+  production as the first test.
 
 ---
 

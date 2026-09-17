@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { createDownloadAction, updateDownloadAction } from "@/actions/downloads";
+import { translateFieldsEnToHiAction } from "@/actions/translate";
 import { AdminFileUploadField } from "@/components/admin/admin-file-upload-field";
 import type { Download } from "@/lib/database/types";
 import { contentStatusOptions } from "@/lib/auth/content-status-options";
@@ -29,12 +30,36 @@ export function DownloadForm({
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [isPublic, setIsPublic] = useState(download?.is_public ?? true);
+  const [titleEn, setTitleEn] = useState(download?.title_en ?? "");
+  const [titleHi, setTitleHi] = useState(download?.title_hi ?? "");
+  const [isTranslating, setIsTranslating] = useState(false);
 
   const hasFile = Boolean(download?.file_path && download.file_path !== "pending");
   const fileUrl = hasFile ? getStoredFileUrl(download!.file_path!) : null;
   const expiresValue = download?.expires_at
     ? new Date(download.expires_at).toISOString().slice(0, 16)
     : "";
+
+  async function handleAutoTranslate() {
+    setError(null);
+    setIsTranslating(true);
+    try {
+      const result = await translateFieldsEnToHiAction([{ key: "titleHi", text: titleEn }]);
+      if (!result.success) {
+        setError(result.error);
+        return;
+      }
+      if (result.data.translations.titleHi) {
+        setTitleHi(result.data.translations.titleHi);
+      } else {
+        setError(result.data.warnings.join(" ") || "Nothing was translated. Enter an English title first.");
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Translation failed.");
+    } finally {
+      setIsTranslating(false);
+    }
+  }
 
   function handleSubmit(formData: FormData) {
     setError(null);
@@ -63,13 +88,24 @@ export function DownloadForm({
   return (
     <form action={handleSubmit} className="max-w-2xl space-y-5">
       {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={handleAutoTranslate}
+          disabled={isPending || isTranslating}
+          className="rounded-lg border border-emerald-700 px-3 py-1.5 text-sm font-medium text-emerald-800 hover:bg-emerald-50 disabled:opacity-60"
+        >
+          {isTranslating ? "Translating…" : "Auto-translate to Hindi"}
+        </button>
+      </div>
 
       <label className="block text-sm">
         <span className="font-medium text-slate-700">Title (English)</span>
         <input
           name="titleEn"
           required
-          defaultValue={download?.title_en ?? ""}
+          value={titleEn}
+          onChange={(e) => setTitleEn(e.target.value)}
           className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
         />
       </label>
@@ -78,7 +114,8 @@ export function DownloadForm({
         <span className="font-medium text-slate-700">Title (Hindi)</span>
         <input
           name="titleHi"
-          defaultValue={download?.title_hi ?? ""}
+          value={titleHi}
+          onChange={(e) => setTitleHi(e.target.value)}
           className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 font-hindi"
         />
       </label>

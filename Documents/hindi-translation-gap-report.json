@@ -1,0 +1,1784 @@
+{
+  "generatedAt": "2026-09-01T04:00:12.433Z",
+  "publishedOnly": false,
+  "supabaseUrl": "https://fvveqziyusjgqejowkfp.supabase.co",
+  "tableCount": 23,
+  "totals": {
+    "withEnglish": 13572,
+    "missingHindi": 11466,
+    "corruptHindi": 0,
+    "noDevanagari": 227,
+    "complete": 1879,
+    "gaps": 11693
+  },
+  "byCategory": {
+    "Departments": {
+      "tables": 1,
+      "withEnglish": 11,
+      "gaps": 0,
+      "complete": 11
+    },
+    "Pages": {
+      "tables": 1,
+      "withEnglish": 5349,
+      "gaps": 5070,
+      "complete": 279
+    },
+    "Menus": {
+      "tables": 2,
+      "withEnglish": 92,
+      "gaps": 5,
+      "complete": 87
+    },
+    "News": {
+      "tables": 1,
+      "withEnglish": 352,
+      "gaps": 308,
+      "complete": 44
+    },
+    "Circulars": {
+      "tables": 1,
+      "withEnglish": 4,
+      "gaps": 2,
+      "complete": 2
+    },
+    "Tenders": {
+      "tables": 1,
+      "withEnglish": 94,
+      "gaps": 68,
+      "complete": 26
+    },
+    "Downloads": {
+      "tables": 1,
+      "withEnglish": 81,
+      "gaps": 79,
+      "complete": 2
+    },
+    "Media": {
+      "tables": 2,
+      "withEnglish": 61,
+      "gaps": 61,
+      "complete": 0
+    },
+    "Related links": {
+      "tables": 1,
+      "withEnglish": 8,
+      "gaps": 1,
+      "complete": 7
+    },
+    "Homepage": {
+      "tables": 2,
+      "withEnglish": 28,
+      "gaps": 14,
+      "complete": 14
+    },
+    "Office portal": {
+      "tables": 5,
+      "withEnglish": 4316,
+      "gaps": 2914,
+      "complete": 1402
+    },
+    "Faculty / staff": {
+      "tables": 2,
+      "withEnglish": 3176,
+      "gaps": 3171,
+      "complete": 5
+    }
+  },
+  "codeGaps": [
+    {
+      "file": "apps/web/src/components/site/public-tenders-listing.tsx",
+      "issue": "Tender listing shows titleEn only (line ~177); should use t(titleEn, titleHi ?? titleEn)",
+      "severity": "high"
+    },
+    {
+      "file": "apps/web/src/components/site/public-tenders-listing.tsx",
+      "issue": "Department filter shows nameEn only (line ~112)",
+      "severity": "medium"
+    },
+    {
+      "file": "apps/web/src/components/site/public-downloads-listing.tsx",
+      "issue": "Department filter shows nameEn only (line ~104)",
+      "severity": "medium"
+    },
+    {
+      "file": "apps/web/src/components/site/public-media-album-grid.tsx",
+      "issue": "Album grid captions and lightbox use titleEn only (lines ~137, ~213)",
+      "severity": "medium"
+    },
+    {
+      "file": "apps/web/src/components/site/faculty-profile-dialog.tsx",
+      "issue": "Publication list uses titleEn only (line ~94)",
+      "severity": "low"
+    },
+    {
+      "file": "apps/web/src/components/site/public-contact-page.tsx",
+      "issue": "University name uses nameEn only (line ~103)",
+      "severity": "low"
+    },
+    {
+      "file": "ccshau_banners table",
+      "issue": "No title_hi column — hero carousel cannot show Hindi title from DB",
+      "severity": "high"
+    },
+    {
+      "file": "ccshau_tender_corrigenda table",
+      "issue": "English-only schema (no _hi columns)",
+      "severity": "low"
+    },
+    {
+      "file": "apps/web/src/lib/i18n/language-storage.ts",
+      "issue": "SSR defaults to English; cookie not read server-side for initial render",
+      "severity": "low"
+    }
+  ],
+  "results": [
+    {
+      "table": "ccshau_departments",
+      "category": "Departments",
+      "rowCount": 11,
+      "publishedFilter": null,
+      "fields": {
+        "name_en→name_hi": {
+          "enField": "name_en",
+          "hiField": "name_hi",
+          "withEnglish": 11,
+          "missingHindi": 0,
+          "corruptHindi": 0,
+          "noDevanagari": 0,
+          "complete": 11,
+          "samples": {
+            "missing": [],
+            "corrupt": [],
+            "no_devanagari": []
+          }
+        }
+      }
+    },
+    {
+      "table": "ccshau_pages",
+      "category": "Pages",
+      "rowCount": 1793,
+      "publishedFilter": null,
+      "fields": {
+        "title_en→title_hi": {
+          "enField": "title_en",
+          "hiField": "title_hi",
+          "withEnglish": 1793,
+          "missingHindi": 1586,
+          "corruptHindi": 0,
+          "noDevanagari": 0,
+          "complete": 207,
+          "samples": {
+            "missing": [
+              {
+                "id": "b48e7f4c-6e23-4331-93ea-2dbf297f7c03",
+                "label": "id=b48e7f4c-6e23-4331-93ea-2dbf297f7c03 slug=regional-research-stations page_type=college status=published layout_template=college_home",
+                "enPreview": "Regional Research stations",
+                "hiPreview": null
+              },
+              {
+                "id": "502e684b-0149-440a-b696-2a8a78037eaf",
+                "label": "id=502e684b-0149-440a-b696-2a8a78037eaf slug=horticulture-research-farm-buria page_type=college status=published layout_template=office_portal",
+                "enPreview": "Horticulture Research Farm, Buria",
+                "hiPreview": null
+              },
+              {
+                "id": "c26fb37f-d449-4123-ac06-887aaad553e2",
+                "label": "id=c26fb37f-d449-4123-ac06-887aaad553e2 slug=directorate-of-research page_type=college status=published layout_template=college_home",
+                "enPreview": "Directorate of Research",
+                "hiPreview": null
+              },
+              {
+                "id": "b616277f-c96f-4d33-a24c-69d3e237b259",
+                "label": "id=b616277f-c96f-4d33-a24c-69d3e237b259 slug=thrust-area-14 page_type=standard status=published layout_template=standard",
+                "enPreview": "Thrust Area",
+                "hiPreview": null
+              },
+              {
+                "id": "3566451d-ec3f-470f-b81b-6b8461dcb99a",
+                "label": "id=3566451d-ec3f-470f-b81b-6b8461dcb99a slug=research-farm-balsamand page_type=college status=published layout_template=office_portal",
+                "enPreview": "RESEARCH FARM, BALSAMAND",
+                "hiPreview": null
+              }
+            ],
+            "corrupt": [],
+            "no_devanagari": []
+          }
+        },
+        "content_en→content_hi": {
+          "enField": "content_en",
+          "hiField": "content_hi",
+          "withEnglish": 1727,
+          "missingHindi": 1695,
+          "corruptHindi": 0,
+          "noDevanagari": 1,
+          "complete": 31,
+          "samples": {
+            "missing": [
+              {
+                "id": "656e0885-dd44-436f-808e-37082ac4f190",
+                "label": "id=656e0885-dd44-436f-808e-37082ac4f190 slug=bawal-department-49 page_type=standard status=published layout_template=standard",
+                "enPreview": "<p>Departments under REGIONAL RESEARCH STATION, BAWAL.</p>",
+                "hiPreview": null
+              },
+              {
+                "id": "b48e7f4c-6e23-4331-93ea-2dbf297f7c03",
+                "label": "id=b48e7f4c-6e23-4331-93ea-2dbf297f7c03 slug=regional-research-stations page_type=college status=published layout_template=college_home",
+                "enPreview": "\n<p>CCS HAU operates regional research stations and farms across Haryana to address location-specific research needs. Se",
+                "hiPreview": null
+              },
+              {
+                "id": "a244c513-e3a6-4037-9753-a6417f5e1b07",
+                "label": "id=a244c513-e3a6-4037-9753-a6417f5e1b07 slug=karnal-department-47 page_type=standard status=published layout_template=standard",
+                "enPreview": "<p>Departments under REGIONAL RESEARCH STATION KARNAL.</p>",
+                "hiPreview": null
+              },
+              {
+                "id": "c257316a-dc04-46c5-a3e8-ee8d342416db",
+                "label": "id=c257316a-dc04-46c5-a3e8-ee8d342416db slug=retiree-of-the-department page_type=standard status=published layout_template=standard",
+                "enPreview": "<p><strong>Retiree of the Department</strong></p>\n<p>Legacy document <code>1735803025.pdf</code> — pending Phase 4 uploa",
+                "hiPreview": null
+              },
+              {
+                "id": "502e684b-0149-440a-b696-2a8a78037eaf",
+                "label": "id=502e684b-0149-440a-b696-2a8a78037eaf slug=horticulture-research-farm-buria page_type=college status=published layout_template=office_portal",
+                "enPreview": "<table style=\"width:100%\"><tbody><tr><td style=\"width:30%\"><img src=\"https://hau.ac.in/storage/app/uploads/kQrGIOWIMDNC3",
+                "hiPreview": null
+              }
+            ],
+            "corrupt": [],
+            "no_devanagari": [
+              {
+                "id": "8df0586e-2730-4c18-8a7d-877d02f3df8e",
+                "label": "id=8df0586e-2730-4c18-8a7d-877d02f3df8e slug=pg-proforma page_type=standard status=published layout_template=standard",
+                "enPreview": "<p><strong>PG Proforma</strong></p>\n<table class=\"w-full border-collapse text-sm\">\n<tbody>\n<tr>\n<td class=\"align-top pr-",
+                "hiPreview": "<p><strong>PG Proforma</strong></p>\n<table class=\"w-full border-collapse text-sm\">\n<tbody>\n<tr>\n<td class=\"align-top pr-"
+              }
+            ]
+          }
+        },
+        "excerpt_en→excerpt_hi": {
+          "enField": "excerpt_en",
+          "hiField": "excerpt_hi",
+          "withEnglish": 1788,
+          "missingHindi": 1751,
+          "corruptHindi": 0,
+          "noDevanagari": 0,
+          "complete": 37,
+          "samples": {
+            "missing": [
+              {
+                "id": "656e0885-dd44-436f-808e-37082ac4f190",
+                "label": "id=656e0885-dd44-436f-808e-37082ac4f190 slug=bawal-department-49 page_type=standard status=published layout_template=standard",
+                "enPreview": "Academic departments at REGIONAL RESEARCH STATION, BAWAL.",
+                "hiPreview": null
+              },
+              {
+                "id": "b48e7f4c-6e23-4331-93ea-2dbf297f7c03",
+                "label": "id=b48e7f4c-6e23-4331-93ea-2dbf297f7c03 slug=regional-research-stations page_type=college status=published layout_template=college_home",
+                "enPreview": "Regional Research stations — CCS HAU.",
+                "hiPreview": null
+              },
+              {
+                "id": "a244c513-e3a6-4037-9753-a6417f5e1b07",
+                "label": "id=a244c513-e3a6-4037-9753-a6417f5e1b07 slug=karnal-department-47 page_type=standard status=published layout_template=standard",
+                "enPreview": "Academic departments at REGIONAL RESEARCH STATION KARNAL.",
+                "hiPreview": null
+              },
+              {
+                "id": "c257316a-dc04-46c5-a3e8-ee8d342416db",
+                "label": "id=c257316a-dc04-46c5-a3e8-ee8d342416db slug=retiree-of-the-department page_type=standard status=published layout_template=standard",
+                "enPreview": "Retiree of the Department — CCS HAU.",
+                "hiPreview": null
+              },
+              {
+                "id": "502e684b-0149-440a-b696-2a8a78037eaf",
+                "label": "id=502e684b-0149-440a-b696-2a8a78037eaf slug=horticulture-research-farm-buria page_type=college status=published layout_template=office_portal",
+                "enPreview": "Horticulture Research Farm, Buria — CCS HAU.",
+                "hiPreview": null
+              }
+            ],
+            "corrupt": [],
+            "no_devanagari": []
+          }
+        },
+        "head_name_en→head_name_hi": {
+          "enField": "head_name_en",
+          "hiField": "head_name_hi",
+          "withEnglish": 21,
+          "missingHindi": 19,
+          "corruptHindi": 0,
+          "noDevanagari": 0,
+          "complete": 2,
+          "samples": {
+            "missing": [
+              {
+                "id": "63798b58-0b9a-4243-bfc7-6e5f15d5e23f",
+                "label": "id=63798b58-0b9a-4243-bfc7-6e5f15d5e23f slug=directorate-of-students-welfare page_type=college status=published layout_template=college_home",
+                "enPreview": "Dr. M.L.Khichar",
+                "hiPreview": null
+              },
+              {
+                "id": "c26fb37f-d449-4123-ac06-887aaad553e2",
+                "label": "id=c26fb37f-d449-4123-ac06-887aaad553e2 slug=directorate-of-research page_type=college status=published layout_template=college_home",
+                "enPreview": "Dr. Rajbir Garg",
+                "hiPreview": null
+              },
+              {
+                "id": "f5b48a4b-debd-4b29-847b-3649aed2811b",
+                "label": "id=f5b48a4b-debd-4b29-847b-3649aed2811b slug=college-of-agriculture-kaul page_type=college status=published layout_template=college_home",
+                "enPreview": "Dr. Mehar Chand",
+                "hiPreview": null
+              },
+              {
+                "id": "15b4a256-bda9-4908-8fe5-1af6076163ec",
+                "label": "id=15b4a256-bda9-4908-8fe5-1af6076163ec slug=eo-cum-se page_type=college status=published layout_template=office_portal",
+                "enPreview": "Dr.Ajay Kumar Vashisht",
+                "hiPreview": null
+              },
+              {
+                "id": "04d51a49-a72c-4eb0-819d-bdd9d605bd69",
+                "label": "id=04d51a49-a72c-4eb0-819d-bdd9d605bd69 slug=human-resource-management page_type=standard status=published layout_template=office_portal",
+                "enPreview": "Dr. Naresh Kaushik",
+                "hiPreview": null
+              }
+            ],
+            "corrupt": [],
+            "no_devanagari": []
+          }
+        },
+        "head_role_en→head_role_hi": {
+          "enField": "head_role_en",
+          "hiField": "head_role_hi",
+          "withEnglish": 20,
+          "missingHindi": 18,
+          "corruptHindi": 0,
+          "noDevanagari": 0,
+          "complete": 2,
+          "samples": {
+            "missing": [
+              {
+                "id": "63798b58-0b9a-4243-bfc7-6e5f15d5e23f",
+                "label": "id=63798b58-0b9a-4243-bfc7-6e5f15d5e23f slug=directorate-of-students-welfare page_type=college status=published layout_template=college_home",
+                "enPreview": "Director",
+                "hiPreview": null
+              },
+              {
+                "id": "c26fb37f-d449-4123-ac06-887aaad553e2",
+                "label": "id=c26fb37f-d449-4123-ac06-887aaad553e2 slug=directorate-of-research page_type=college status=published layout_template=college_home",
+                "enPreview": "Director",
+                "hiPreview": null
+              },
+              {
+                "id": "f5b48a4b-debd-4b29-847b-3649aed2811b",
+                "label": "id=f5b48a4b-debd-4b29-847b-3649aed2811b slug=college-of-agriculture-kaul page_type=college status=published layout_template=college_home",
+                "enPreview": "Principal",
+                "hiPreview": null
+              },
+              {
+                "id": "15b4a256-bda9-4908-8fe5-1af6076163ec",
+                "label": "id=15b4a256-bda9-4908-8fe5-1af6076163ec slug=eo-cum-se page_type=college status=published layout_template=office_portal",
+                "enPreview": "Estate Officer-cum-Chief Engineer",
+                "hiPreview": null
+              },
+              {
+                "id": "04d51a49-a72c-4eb0-819d-bdd9d605bd69",
+                "label": "id=04d51a49-a72c-4eb0-819d-bdd9d605bd69 slug=human-resource-management page_type=standard status=published layout_template=office_portal",
+                "enPreview": "Director",
+                "hiPreview": null
+              }
+            ],
+            "corrupt": [],
+            "no_devanagari": []
+          }
+        }
+      }
+    },
+    {
+      "table": "ccshau_menu_items",
+      "category": "Menus",
+      "rowCount": 88,
+      "publishedFilter": null,
+      "fields": {
+        "label_en→label_hi": {
+          "enField": "label_en",
+          "hiField": "label_hi",
+          "withEnglish": 88,
+          "missingHindi": 0,
+          "corruptHindi": 0,
+          "noDevanagari": 5,
+          "complete": 83,
+          "samples": {
+            "missing": [],
+            "corrupt": [],
+            "no_devanagari": [
+              {
+                "id": "4f19339c-58f3-4dd5-95b7-a2e87faa8667",
+                "label": "id=4f19339c-58f3-4dd5-95b7-a2e87faa8667 menu_id=c96220e1-452b-4c58-9b59-ebc2a7dad2e5 href=https://hau.ac.in/page/ariia",
+                "enPreview": "ARIIA",
+                "hiPreview": "ARIIA"
+              },
+              {
+                "id": "cf1e9d89-2486-496c-b6f3-ccdc9be24718",
+                "label": "id=cf1e9d89-2486-496c-b6f3-ccdc9be24718 menu_id=c96220e1-452b-4c58-9b59-ebc2a7dad2e5 href=https://hau.ac.in/page/online-statistical-analysis-tools-opstat",
+                "enPreview": "OPSTAT",
+                "hiPreview": "OPSTAT"
+              },
+              {
+                "id": "36e004dc-846e-4955-8196-2cf8a60e2c68",
+                "label": "id=36e004dc-846e-4955-8196-2cf8a60e2c68 menu_id=c96220e1-452b-4c58-9b59-ebc2a7dad2e5 href=https://agmoocs.in/",
+                "enPreview": "agMOOCs",
+                "hiPreview": "agMOOCs"
+              },
+              {
+                "id": "07977d6f-bc83-4a4a-af67-5981fb9a169d",
+                "label": "id=07977d6f-bc83-4a4a-af67-5981fb9a169d menu_id=c96220e1-452b-4c58-9b59-ebc2a7dad2e5 href=https://hau.ac.in/college/agribusiness-incubation-centre",
+                "enPreview": "ABIC",
+                "hiPreview": "ABIC"
+              },
+              {
+                "id": "8a7921eb-4e32-418b-84f4-9d74e29be2ff",
+                "label": "id=8a7921eb-4e32-418b-84f4-9d74e29be2ff menu_id=c96220e1-452b-4c58-9b59-ebc2a7dad2e5 href=https://hau.ac.in/page/hauta",
+                "enPreview": "HAUTA",
+                "hiPreview": "HAUTA"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "table": "ccshau_menus",
+      "category": "Menus",
+      "rowCount": 4,
+      "publishedFilter": null,
+      "fields": {
+        "name_en→name_hi": {
+          "enField": "name_en",
+          "hiField": "name_hi",
+          "withEnglish": 4,
+          "missingHindi": 0,
+          "corruptHindi": 0,
+          "noDevanagari": 0,
+          "complete": 4,
+          "samples": {
+            "missing": [],
+            "corrupt": [],
+            "no_devanagari": []
+          }
+        }
+      }
+    },
+    {
+      "table": "ccshau_news",
+      "category": "News",
+      "rowCount": 305,
+      "publishedFilter": null,
+      "fields": {
+        "title_en→title_hi": {
+          "enField": "title_en",
+          "hiField": "title_hi",
+          "withEnglish": 305,
+          "missingHindi": 276,
+          "corruptHindi": 0,
+          "noDevanagari": 3,
+          "complete": 26,
+          "samples": {
+            "missing": [
+              {
+                "id": "ebdde88d-c041-44c0-8288-d837f58ad266",
+                "label": "id=ebdde88d-c041-44c0-8288-d837f58ad266 slug=constitute-the-following-college-purchase-committee-4273 status=published",
+                "enPreview": "Constitute the following College Purchase Committee",
+                "hiPreview": null
+              },
+              {
+                "id": "d0cbc728-3b8d-4cb7-84dd-8e3412bce28f",
+                "label": "id=d0cbc728-3b8d-4cb7-84dd-8e3412bce28f slug=accreditation-team-in-cobsh-2023-4258 status=published",
+                "enPreview": "Accreditation Team in COBS&H -2023",
+                "hiPreview": null
+              },
+              {
+                "id": "468bef91-8eb9-42a5-b315-6f38552e009c",
+                "label": "id=468bef91-8eb9-42a5-b315-6f38552e009c slug=independence-day-celebration-campus-school-4435 status=published",
+                "enPreview": "Independence Day Celebration  Campus School",
+                "hiPreview": null
+              },
+              {
+                "id": "dc7514c3-8b2b-4464-9339-8dec5910ba69",
+                "label": "id=dc7514c3-8b2b-4464-9339-8dec5910ba69 slug=online-admission-portal-2025-26-4390 status=published",
+                "enPreview": "Online Admission Portal (2025-26)",
+                "hiPreview": null
+              },
+              {
+                "id": "99b2739b-9f56-43ca-a4b0-3487d5e7718e",
+                "label": "id=99b2739b-9f56-43ca-a4b0-3487d5e7718e slug=mou-signing-ceremony-between-ccshu-and-warsaw-university-warsaw-poland-4257 status=published",
+                "enPreview": "MoU Signing Ceremony between CCSHU and Warsaw University, Warsaw, Poland",
+                "hiPreview": null
+              }
+            ],
+            "corrupt": [],
+            "no_devanagari": [
+              {
+                "id": "53b0c743-82c5-4b92-bbfa-96c80550f22b",
+                "label": "id=53b0c743-82c5-4b92-bbfa-96c80550f22b slug=admission-notice-2027 status=published",
+                "enPreview": "Admission notice 2027 COBSH",
+                "hiPreview": "Admission notice 2027 "
+              },
+              {
+                "id": "1c859f23-820b-49d7-811a-9a736eb091e6",
+                "label": "id=1c859f23-820b-49d7-811a-9a736eb091e6 slug=engineering-admission status=published",
+                "enPreview": "Engineering Admission",
+                "hiPreview": "Engineering Admission"
+              },
+              {
+                "id": "efe56afa-ed21-4712-91c5-f27430515be8",
+                "label": "id=efe56afa-ed21-4712-91c5-f27430515be8 slug=advertisement-no-22026 status=draft",
+                "enPreview": "Advertisement No. 2/2027",
+                "hiPreview": "Advertisement No. 2/2027"
+              }
+            ]
+          }
+        },
+        "body_en→body_hi": {
+          "enField": "body_en",
+          "hiField": "body_hi",
+          "withEnglish": 47,
+          "missingHindi": 27,
+          "corruptHindi": 0,
+          "noDevanagari": 2,
+          "complete": 18,
+          "samples": {
+            "missing": [
+              {
+                "id": "468bef91-8eb9-42a5-b315-6f38552e009c",
+                "label": "id=468bef91-8eb9-42a5-b315-6f38552e009c slug=independence-day-celebration-campus-school-4435 status=published",
+                "enPreview": "<p>Legacy link: <a href=\"https://hau.ac.in/page/independence-day\">https://hau.ac.in/page/independence-day</a></p>",
+                "hiPreview": null
+              },
+              {
+                "id": "dc7514c3-8b2b-4464-9339-8dec5910ba69",
+                "label": "id=dc7514c3-8b2b-4464-9339-8dec5910ba69 slug=online-admission-portal-2025-26-4390 status=published",
+                "enPreview": "<p>Legacy link: <a href=\"https://admissions.hau.ac.in/\">https://admissions.hau.ac.in/</a></p>",
+                "hiPreview": null
+              },
+              {
+                "id": "15b509e8-04c9-46aa-8d97-bb3b085513b8",
+                "label": "id=15b509e8-04c9-46aa-8d97-bb3b085513b8 slug=news-10-july status=published",
+                "enPreview": "news 10 July",
+                "hiPreview": null
+              },
+              {
+                "id": "edff0506-878e-4eb4-ae26-fa25fd95695b",
+                "label": "id=edff0506-878e-4eb4-ae26-fa25fd95695b slug=prime-minister-internship-scheme-pmis-5542 status=published",
+                "enPreview": "<p>Legacy link: <a href=\"https://pminternship.mca.gov.in/login/\">https://pminternship.mca.gov.in/login/</a></p>",
+                "hiPreview": null
+              },
+              {
+                "id": "a5dd9fa0-7685-4672-8818-494b12dcac60",
+                "label": "id=a5dd9fa0-7685-4672-8818-494b12dcac60 slug=online-admission-2026-27-5522 status=published",
+                "enPreview": "<p>Legacy link: <a href=\"https://admissions.hau.ac.in/\">https://admissions.hau.ac.in/</a></p>",
+                "hiPreview": null
+              }
+            ],
+            "corrupt": [],
+            "no_devanagari": [
+              {
+                "id": "b4471b25-2fe9-44ee-b866-ecd6575f32b3",
+                "label": "id=b4471b25-2fe9-44ee-b866-ecd6575f32b3 slug=prime-minister-internship-scheme-pmis status=published",
+                "enPreview": "<a target=\"_blank\" href=\"https://pminternship.mca.gov.in/login/\">Prime Minister Internship Scheme (PMIS)</a>",
+                "hiPreview": "<a target=\"_blank\" href=\"https://pminternship.mca.gov.in/login/\">Prime Minister Internship Scheme (PMIS)</a>"
+              },
+              {
+                "id": "1c859f23-820b-49d7-811a-9a736eb091e6",
+                "label": "id=1c859f23-820b-49d7-811a-9a736eb091e6 slug=engineering-admission status=published",
+                "enPreview": "Admission open from 1st August 2026 to 20th August 2026",
+                "hiPreview": "Admission open from 1st August 2026 to 20th August 2026"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "table": "ccshau_circulars",
+      "category": "Circulars",
+      "rowCount": 4,
+      "publishedFilter": null,
+      "fields": {
+        "title_en→title_hi": {
+          "enField": "title_en",
+          "hiField": "title_hi",
+          "withEnglish": 4,
+          "missingHindi": 1,
+          "corruptHindi": 0,
+          "noDevanagari": 1,
+          "complete": 2,
+          "samples": {
+            "missing": [
+              {
+                "id": "5ed97a49-a9f2-42aa-9b23-ff90c043fd79",
+                "label": "id=5ed97a49-a9f2-42aa-9b23-ff90c043fd79 circular_number=CIR/REG/2026/102 status=published",
+                "enPreview": "Circular 102",
+                "hiPreview": null
+              }
+            ],
+            "corrupt": [],
+            "no_devanagari": [
+              {
+                "id": "9f569330-4de9-4d5b-abe1-3034eb635003",
+                "label": "id=9f569330-4de9-4d5b-abe1-3034eb635003 circular_number=Comptroller  status=published",
+                "enPreview": "Comptroller ",
+                "hiPreview": "comptroller test "
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "table": "ccshau_tenders",
+      "category": "Tenders",
+      "rowCount": 80,
+      "publishedFilter": null,
+      "fields": {
+        "title_en→title_hi": {
+          "enField": "title_en",
+          "hiField": "title_hi",
+          "withEnglish": 80,
+          "missingHindi": 64,
+          "corruptHindi": 0,
+          "noDevanagari": 3,
+          "complete": 13,
+          "samples": {
+            "missing": [
+              {
+                "id": "03e4161e-894f-489b-9c81-440f1b23c4a8",
+                "label": "id=03e4161e-894f-489b-9c81-440f1b23c4a8 slug=auction-notice-rrs-karnal-5616 status=open",
+                "enPreview": "Auction Notice RRS Karnal",
+                "hiPreview": null
+              },
+              {
+                "id": "2006e2de-5ca8-48dd-994e-324a7e816da7",
+                "label": "id=2006e2de-5ca8-48dd-994e-324a7e816da7 slug=tender-notice-estate-office-c-i-5617 status=open",
+                "enPreview": "Tender Notice Estate office C-I",
+                "hiPreview": null
+              },
+              {
+                "id": "01d5730c-7d98-45ee-b65b-589dd05f7d1f",
+                "label": "id=01d5730c-7d98-45ee-b65b-589dd05f7d1f slug=sealed-quotations-are-invited-for-display-material-infrastructure-tentage-for-ag-5598 status=open",
+                "enPreview": "Sealed quotations are invited for Display material/ Infrastructure/ Tentage for AgroIndustrial Exhibition at Krishi Mela",
+                "hiPreview": null
+              },
+              {
+                "id": "02b58ae0-c12a-4e24-bb3d-eb9e1d9f4dbb",
+                "label": "id=02b58ae0-c12a-4e24-bb3d-eb9e1d9f4dbb slug=auction-notice-kvk-mandkola-5593 status=open",
+                "enPreview": "Auction Notice KVK Mandkola",
+                "hiPreview": null
+              },
+              {
+                "id": "2d428498-d467-40d5-b228-bc6ddcca8271",
+                "label": "id=2d428498-d467-40d5-b228-bc6ddcca8271 slug=auction-notice-kvk-krushetra-5574 status=open",
+                "enPreview": "Auction Notice KVK Krushetra",
+                "hiPreview": null
+              }
+            ],
+            "corrupt": [],
+            "no_devanagari": [
+              {
+                "id": "5b93228f-1d1f-4940-b1f7-841e6ab515f9",
+                "label": "id=5b93228f-1d1f-4940-b1f7-841e6ab515f9 slug=website-design-and-development status=draft",
+                "enPreview": "Website Design and Development",
+                "hiPreview": "Website Design and Development"
+              },
+              {
+                "id": "61c954c2-fbba-459e-8561-d23a219b26b0",
+                "label": "id=61c954c2-fbba-459e-8561-d23a219b26b0 slug=tender-test-1 status=open",
+                "enPreview": "Tender test 1",
+                "hiPreview": "Tender test 1"
+              },
+              {
+                "id": "bbb264ef-b2d4-48ce-b916-7dcfa8602ae2",
+                "label": "id=bbb264ef-b2d4-48ce-b916-7dcfa8602ae2 slug=auction-notice-cocs status=open",
+                "enPreview": "Auction notice COCS",
+                "hiPreview": "Auction notice COCS"
+              }
+            ]
+          }
+        },
+        "description_en→description_hi": {
+          "enField": "description_en",
+          "hiField": "description_hi",
+          "withEnglish": 13,
+          "missingHindi": 0,
+          "corruptHindi": 0,
+          "noDevanagari": 0,
+          "complete": 13,
+          "samples": {
+            "missing": [],
+            "corrupt": [],
+            "no_devanagari": []
+          }
+        },
+        "cancellation_notice_en→cancellation_notice_hi": {
+          "enField": "cancellation_notice_en",
+          "hiField": "cancellation_notice_hi",
+          "withEnglish": 1,
+          "missingHindi": 1,
+          "corruptHindi": 0,
+          "noDevanagari": 0,
+          "complete": 0,
+          "samples": {
+            "missing": [
+              {
+                "id": "5b93228f-1d1f-4940-b1f7-841e6ab515f9",
+                "label": "id=5b93228f-1d1f-4940-b1f7-841e6ab515f9 slug=website-design-and-development status=draft",
+                "enPreview": "test",
+                "hiPreview": null
+              }
+            ],
+            "corrupt": [],
+            "no_devanagari": []
+          }
+        }
+      }
+    },
+    {
+      "table": "ccshau_downloads",
+      "category": "Downloads",
+      "rowCount": 81,
+      "publishedFilter": null,
+      "fields": {
+        "title_en→title_hi": {
+          "enField": "title_en",
+          "hiField": "title_hi",
+          "withEnglish": 81,
+          "missingHindi": 79,
+          "corruptHindi": 0,
+          "noDevanagari": 0,
+          "complete": 2,
+          "samples": {
+            "missing": [
+              {
+                "id": "7847980b-3195-4232-8feb-1a6f14b50cc2",
+                "label": "id=7847980b-3195-4232-8feb-1a6f14b50cc2 category=legacy-import status=published",
+                "enPreview": "Agromet Data Request Form",
+                "hiPreview": null
+              },
+              {
+                "id": "d894b351-8a63-450d-b574-6f5e2fae5bbc",
+                "label": "id=d894b351-8a63-450d-b574-6f5e2fae5bbc category=legacy-import status=published",
+                "enPreview": "Application for outside jobs/Assignments/Fellowships etc.",
+                "hiPreview": null
+              },
+              {
+                "id": "33e20dc8-5c0f-41dd-bc2e-c639f4b67d96",
+                "label": "id=33e20dc8-5c0f-41dd-bc2e-c639f4b67d96 category=legacy-import status=published",
+                "enPreview": "Proforma for issue of NOC for passport",
+                "hiPreview": null
+              },
+              {
+                "id": "4d271cd6-e581-4dde-ac18-ff87d65cf875",
+                "label": "id=4d271cd6-e581-4dde-ac18-ff87d65cf875 category=legacy-import status=published",
+                "enPreview": "PG Grade Performa",
+                "hiPreview": null
+              },
+              {
+                "id": "376a79e3-4e88-44a5-afcf-8425a578e330",
+                "label": "id=376a79e3-4e88-44a5-afcf-8425a578e330 category=legacy-import status=published",
+                "enPreview": "Second half demand of funds in respect of AICRPs Scheme",
+                "hiPreview": null
+              }
+            ],
+            "corrupt": [],
+            "no_devanagari": []
+          }
+        }
+      }
+    },
+    {
+      "table": "ccshau_media_albums",
+      "category": "Media",
+      "rowCount": 5,
+      "publishedFilter": null,
+      "fields": {
+        "title_en→title_hi": {
+          "enField": "title_en",
+          "hiField": "title_hi",
+          "withEnglish": 5,
+          "missingHindi": 5,
+          "corruptHindi": 0,
+          "noDevanagari": 0,
+          "complete": 0,
+          "samples": {
+            "missing": [
+              {
+                "id": "be6408cd-ec25-45e9-a087-f024d8cacc5f",
+                "label": "id=be6408cd-ec25-45e9-a087-f024d8cacc5f slug=legacy-gallery-2 status=published",
+                "enPreview": "Video Gallery",
+                "hiPreview": null
+              },
+              {
+                "id": "1d7c92c2-aa4a-4190-9190-f1da2cab8a1e",
+                "label": "id=1d7c92c2-aa4a-4190-9190-f1da2cab8a1e slug=legacy-gallery-129 status=published",
+                "enPreview": "HAR GHAR TIRANGA",
+                "hiPreview": null
+              },
+              {
+                "id": "db5438e1-177b-431a-9876-203ec0d0e80b",
+                "label": "id=db5438e1-177b-431a-9876-203ec0d0e80b slug=legacy-gallery-130 status=published",
+                "enPreview": "Kisan Mela",
+                "hiPreview": null
+              },
+              {
+                "id": "f2f59ed8-4f90-4021-8901-f2ee3e69106c",
+                "label": "id=f2f59ed8-4f90-4021-8901-f2ee3e69106c slug=legacy-gallery-139 status=published",
+                "enPreview": "New Education Policy",
+                "hiPreview": null
+              },
+              {
+                "id": "48e075fc-229d-4c53-ba45-e80dc23e939f",
+                "label": "id=48e075fc-229d-4c53-ba45-e80dc23e939f slug=legacy-gallery-140 status=published",
+                "enPreview": "Governor Visit",
+                "hiPreview": null
+              }
+            ],
+            "corrupt": [],
+            "no_devanagari": []
+          }
+        }
+      }
+    },
+    {
+      "table": "ccshau_media_items",
+      "category": "Media",
+      "rowCount": 28,
+      "publishedFilter": null,
+      "fields": {
+        "title_en→title_hi": {
+          "enField": "title_en",
+          "hiField": "title_hi",
+          "withEnglish": 28,
+          "missingHindi": 28,
+          "corruptHindi": 0,
+          "noDevanagari": 0,
+          "complete": 0,
+          "samples": {
+            "missing": [
+              {
+                "id": "71933662-530c-4b0d-8469-9a7d1e9ee458",
+                "label": "id=71933662-530c-4b0d-8469-9a7d1e9ee458 album_id=1d7c92c2-aa4a-4190-9190-f1da2cab8a1e",
+                "enPreview": "Gallery",
+                "hiPreview": null
+              },
+              {
+                "id": "73f2da52-1b56-4f5d-a1ad-26eb8f084fdb",
+                "label": "id=73f2da52-1b56-4f5d-a1ad-26eb8f084fdb album_id=1d7c92c2-aa4a-4190-9190-f1da2cab8a1e",
+                "enPreview": "gallery",
+                "hiPreview": null
+              },
+              {
+                "id": "939afe29-7218-47bd-9d57-b014f954308e",
+                "label": "id=939afe29-7218-47bd-9d57-b014f954308e album_id=db5438e1-177b-431a-9876-203ec0d0e80b",
+                "enPreview": "Gallery",
+                "hiPreview": null
+              },
+              {
+                "id": "ddbd6bb1-bc62-4023-8407-c43a57e95d16",
+                "label": "id=ddbd6bb1-bc62-4023-8407-c43a57e95d16 album_id=db5438e1-177b-431a-9876-203ec0d0e80b",
+                "enPreview": "Gallery",
+                "hiPreview": null
+              },
+              {
+                "id": "dd88776d-0ffd-48c1-8498-7cfbc074834e",
+                "label": "id=dd88776d-0ffd-48c1-8498-7cfbc074834e album_id=1d7c92c2-aa4a-4190-9190-f1da2cab8a1e",
+                "enPreview": "Gallery",
+                "hiPreview": null
+              }
+            ],
+            "corrupt": [],
+            "no_devanagari": []
+          }
+        },
+        "caption_en→caption_hi": {
+          "enField": "caption_en",
+          "hiField": "caption_hi",
+          "withEnglish": 28,
+          "missingHindi": 28,
+          "corruptHindi": 0,
+          "noDevanagari": 0,
+          "complete": 0,
+          "samples": {
+            "missing": [
+              {
+                "id": "71933662-530c-4b0d-8469-9a7d1e9ee458",
+                "label": "id=71933662-530c-4b0d-8469-9a7d1e9ee458 album_id=1d7c92c2-aa4a-4190-9190-f1da2cab8a1e",
+                "enPreview": "Photo",
+                "hiPreview": null
+              },
+              {
+                "id": "73f2da52-1b56-4f5d-a1ad-26eb8f084fdb",
+                "label": "id=73f2da52-1b56-4f5d-a1ad-26eb8f084fdb album_id=1d7c92c2-aa4a-4190-9190-f1da2cab8a1e",
+                "enPreview": "Photo",
+                "hiPreview": null
+              },
+              {
+                "id": "939afe29-7218-47bd-9d57-b014f954308e",
+                "label": "id=939afe29-7218-47bd-9d57-b014f954308e album_id=db5438e1-177b-431a-9876-203ec0d0e80b",
+                "enPreview": "Photo",
+                "hiPreview": null
+              },
+              {
+                "id": "ddbd6bb1-bc62-4023-8407-c43a57e95d16",
+                "label": "id=ddbd6bb1-bc62-4023-8407-c43a57e95d16 album_id=db5438e1-177b-431a-9876-203ec0d0e80b",
+                "enPreview": "Photo",
+                "hiPreview": null
+              },
+              {
+                "id": "dd88776d-0ffd-48c1-8498-7cfbc074834e",
+                "label": "id=dd88776d-0ffd-48c1-8498-7cfbc074834e album_id=1d7c92c2-aa4a-4190-9190-f1da2cab8a1e",
+                "enPreview": "Photo",
+                "hiPreview": null
+              }
+            ],
+            "corrupt": [],
+            "no_devanagari": []
+          }
+        }
+      }
+    },
+    {
+      "table": "ccshau_related_links",
+      "category": "Related links",
+      "rowCount": 8,
+      "publishedFilter": null,
+      "fields": {
+        "title_en→title_hi": {
+          "enField": "title_en",
+          "hiField": "title_hi",
+          "withEnglish": 8,
+          "missingHindi": 0,
+          "corruptHindi": 0,
+          "noDevanagari": 1,
+          "complete": 7,
+          "samples": {
+            "missing": [],
+            "corrupt": [],
+            "no_devanagari": [
+              {
+                "id": "3806e2ce-81f1-4e59-94f5-0a4a23a2d3bc",
+                "label": "id=3806e2ce-81f1-4e59-94f5-0a4a23a2d3bc url=https://agmoocs.in/",
+                "enPreview": "agMOOCs",
+                "hiPreview": "agMOOCs"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "table": "ccshau_homepage_quotes",
+      "category": "Homepage",
+      "rowCount": 3,
+      "publishedFilter": null,
+      "fields": {
+        "author_en→author_hi": {
+          "enField": "author_en",
+          "hiField": "author_hi",
+          "withEnglish": 3,
+          "missingHindi": 0,
+          "corruptHindi": 0,
+          "noDevanagari": 0,
+          "complete": 3,
+          "samples": {
+            "missing": [],
+            "corrupt": [],
+            "no_devanagari": []
+          }
+        },
+        "quote_en→quote_hi": {
+          "enField": "quote_en",
+          "hiField": "quote_hi",
+          "withEnglish": 3,
+          "missingHindi": 0,
+          "corruptHindi": 0,
+          "noDevanagari": 0,
+          "complete": 3,
+          "samples": {
+            "missing": [],
+            "corrupt": [],
+            "no_devanagari": []
+          }
+        }
+      }
+    },
+    {
+      "table": "ccshau_homepage_dignitaries",
+      "category": "Homepage",
+      "error": "ccshau_homepage_dignitaries: column ccshau_homepage_dignitaries.role_en does not exist",
+      "rowCount": 0,
+      "fields": {}
+    },
+    {
+      "table": "ccshau_homepage_initiatives",
+      "category": "Homepage",
+      "rowCount": 11,
+      "publishedFilter": null,
+      "fields": {
+        "title_en→title_hi": {
+          "enField": "title_en",
+          "hiField": "title_hi",
+          "withEnglish": 11,
+          "missingHindi": 7,
+          "corruptHindi": 0,
+          "noDevanagari": 0,
+          "complete": 4,
+          "samples": {
+            "missing": [
+              {
+                "id": "9d7d27a3-eccf-4f26-bf6e-970ed947c709",
+                "label": "id=9d7d27a3-eccf-4f26-bf6e-970ed947c709 is_active=true",
+                "enPreview": "Skill Council of India",
+                "hiPreview": null
+              },
+              {
+                "id": "1e2c7a8d-9993-423d-9fc9-a1c682d8b656",
+                "label": "id=1e2c7a8d-9993-423d-9fc9-a1c682d8b656 is_active=true",
+                "enPreview": "Flagship 3",
+                "hiPreview": null
+              },
+              {
+                "id": "2c85b09f-32f5-4e78-b4c0-bb5624d48231",
+                "label": "id=2c85b09f-32f5-4e78-b4c0-bb5624d48231 is_active=true",
+                "enPreview": "AGRIBUSINESS INCUBATION CENTRE (ABIC)",
+                "hiPreview": null
+              },
+              {
+                "id": "cd7c28a6-0c5e-4fa0-8f2c-0303f0d47798",
+                "label": "id=cd7c28a6-0c5e-4fa0-8f2c-0303f0d47798 is_active=true",
+                "enPreview": "Organic farming",
+                "hiPreview": null
+              },
+              {
+                "id": "3a969bc4-f326-4d66-88e0-6eaeac045a80",
+                "label": "id=3a969bc4-f326-4d66-88e0-6eaeac045a80 is_active=true",
+                "enPreview": "Experiential Learning Process",
+                "hiPreview": null
+              }
+            ],
+            "corrupt": [],
+            "no_devanagari": []
+          }
+        },
+        "description_en→description_hi": {
+          "enField": "description_en",
+          "hiField": "description_hi",
+          "withEnglish": 11,
+          "missingHindi": 7,
+          "corruptHindi": 0,
+          "noDevanagari": 0,
+          "complete": 4,
+          "samples": {
+            "missing": [
+              {
+                "id": "9d7d27a3-eccf-4f26-bf6e-970ed947c709",
+                "label": "id=9d7d27a3-eccf-4f26-bf6e-970ed947c709 is_active=true",
+                "enPreview": "<p>Extension education is one of the three major functions of the CCS Haryana Agricultural University, Hisar. The respon",
+                "hiPreview": null
+              },
+              {
+                "id": "1e2c7a8d-9993-423d-9fc9-a1c682d8b656",
+                "label": "id=1e2c7a8d-9993-423d-9fc9-a1c682d8b656 is_active=true",
+                "enPreview": "<p>There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some for",
+                "hiPreview": null
+              },
+              {
+                "id": "2c85b09f-32f5-4e78-b4c0-bb5624d48231",
+                "label": "id=2c85b09f-32f5-4e78-b4c0-bb5624d48231 is_active=true",
+                "enPreview": "<p>The agriculture and allied sector continues to be pivotal to the sustainable growth and development of the Indian eco",
+                "hiPreview": null
+              },
+              {
+                "id": "cd7c28a6-0c5e-4fa0-8f2c-0303f0d47798",
+                "label": "id=cd7c28a6-0c5e-4fa0-8f2c-0303f0d47798 is_active=true",
+                "enPreview": "<p>Consistent and indiscriminate use of inorganic fertilizers and pesticides has caused serious damage to the soil, ecol",
+                "hiPreview": null
+              },
+              {
+                "id": "3a969bc4-f326-4d66-88e0-6eaeac045a80",
+                "label": "id=3a969bc4-f326-4d66-88e0-6eaeac045a80 is_active=true",
+                "enPreview": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard ",
+                "hiPreview": null
+              }
+            ],
+            "corrupt": [],
+            "no_devanagari": []
+          }
+        }
+      }
+    },
+    {
+      "table": "ccshau_homepage_cta",
+      "category": "Homepage",
+      "error": "ccshau_homepage_cta: column ccshau_homepage_cta.title_en does not exist",
+      "rowCount": 0,
+      "fields": {}
+    },
+    {
+      "table": "ccshau_page_contact_lines",
+      "category": "Office portal",
+      "rowCount": 212,
+      "publishedFilter": null,
+      "fields": {
+        "label_en→label_hi": {
+          "enField": "label_en",
+          "hiField": "label_hi",
+          "withEnglish": 212,
+          "missingHindi": 0,
+          "corruptHindi": 0,
+          "noDevanagari": 0,
+          "complete": 212,
+          "samples": {
+            "missing": [],
+            "corrupt": [],
+            "no_devanagari": []
+          }
+        },
+        "value_en→value_hi": {
+          "enField": "value_en",
+          "hiField": "value_hi",
+          "withEnglish": 212,
+          "missingHindi": 0,
+          "corruptHindi": 0,
+          "noDevanagari": 207,
+          "complete": 5,
+          "samples": {
+            "missing": [],
+            "corrupt": [],
+            "no_devanagari": [
+              {
+                "id": "6b7bf78f-6c07-4904-bc89-92c9a796bace",
+                "label": "id=6b7bf78f-6c07-4904-bc89-92c9a796bace page_id=f46dfec8-5907-4b09-8acf-12b5238a3bb9",
+                "enPreview": "dcoaeg@hau.ac.in",
+                "hiPreview": "dcoaeg@hau.ac.in"
+              },
+              {
+                "id": "e7157ce0-50d8-41f2-903c-fab4b1f3ec8f",
+                "label": "id=e7157ce0-50d8-41f2-903c-fab4b1f3ec8f page_id=5258b71b-fcf9-4346-8165-f804c1c592a7",
+                "enPreview": "College of Biotechnology, CCS Haryana Agricultural University, Hisar-125004, Haryana (India).",
+                "hiPreview": "College of Biotechnology, CCS Haryana Agricultural University, Hisar-125004, Haryana (India)."
+              },
+              {
+                "id": "367c9692-f090-46a2-a6e1-61f85c8f8deb",
+                "label": "id=367c9692-f090-46a2-a6e1-61f85c8f8deb page_id=5258b71b-fcf9-4346-8165-f804c1c592a7",
+                "enPreview": "Office : 0166255407",
+                "hiPreview": "Office : 0166255407"
+              },
+              {
+                "id": "375851b5-a615-451d-8b15-39d4cba4f7f1",
+                "label": "id=375851b5-a615-451d-8b15-39d4cba4f7f1 page_id=5258b71b-fcf9-4346-8165-f804c1c592a7",
+                "enPreview": "deanbiotech@hau.ac.in",
+                "hiPreview": "deanbiotech@hau.ac.in"
+              },
+              {
+                "id": "146af3a5-3848-44ac-b561-dafc272e2c37",
+                "label": "id=146af3a5-3848-44ac-b561-dafc272e2c37 page_id=5aaec271-8c9b-4ff2-8217-a6c20866b3e9",
+                "enPreview": "0184-2267857",
+                "hiPreview": "0184-2267857"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "table": "ccshau_page_gallery_items",
+      "category": "Office portal",
+      "rowCount": 1185,
+      "publishedFilter": null,
+      "fields": {
+        "title_en→title_hi": {
+          "enField": "title_en",
+          "hiField": "title_hi",
+          "withEnglish": 1182,
+          "missingHindi": 1180,
+          "corruptHindi": 0,
+          "noDevanagari": 0,
+          "complete": 2,
+          "samples": {
+            "missing": [
+              {
+                "id": "e065985d-a636-4a2d-8d40-579b96f10e9d",
+                "label": "id=e065985d-a636-4a2d-8d40-579b96f10e9d page_id=49386b4a-fbda-4471-996a-7968086bd8e3",
+                "enPreview": "NCC",
+                "hiPreview": null
+              },
+              {
+                "id": "8d7cf8a6-a064-4626-9ff1-a72cafe354d9",
+                "label": "id=8d7cf8a6-a064-4626-9ff1-a72cafe354d9 page_id=49386b4a-fbda-4471-996a-7968086bd8e3",
+                "enPreview": "NCC",
+                "hiPreview": null
+              },
+              {
+                "id": "a20bb615-f05d-4989-b70e-bd3d9df1b425",
+                "label": "id=a20bb615-f05d-4989-b70e-bd3d9df1b425 page_id=49386b4a-fbda-4471-996a-7968086bd8e3",
+                "enPreview": "NCC",
+                "hiPreview": null
+              },
+              {
+                "id": "1ab5be18-df85-45dc-9a0d-c9c8a71f1148",
+                "label": "id=1ab5be18-df85-45dc-9a0d-c9c8a71f1148 page_id=49386b4a-fbda-4471-996a-7968086bd8e3",
+                "enPreview": "Gallery",
+                "hiPreview": null
+              },
+              {
+                "id": "d23de238-9448-4c21-9c71-4c44895910c8",
+                "label": "id=d23de238-9448-4c21-9c71-4c44895910c8 page_id=49386b4a-fbda-4471-996a-7968086bd8e3",
+                "enPreview": "Gallery",
+                "hiPreview": null
+              }
+            ],
+            "corrupt": [],
+            "no_devanagari": []
+          }
+        }
+      }
+    },
+    {
+      "table": "ccshau_page_news_ticker_items",
+      "category": "Office portal",
+      "rowCount": 212,
+      "publishedFilter": null,
+      "fields": {
+        "title_en→title_hi": {
+          "enField": "title_en",
+          "hiField": "title_hi",
+          "withEnglish": 212,
+          "missingHindi": 211,
+          "corruptHindi": 0,
+          "noDevanagari": 0,
+          "complete": 1,
+          "samples": {
+            "missing": [
+              {
+                "id": "5b9fad2c-2d5a-406f-b64d-32911715e074",
+                "label": "id=5b9fad2c-2d5a-406f-b64d-32911715e074 page_id=555239b2-bc8f-468b-82da-4592879e865b",
+                "enPreview": "NCC Girls 2025-26",
+                "hiPreview": null
+              },
+              {
+                "id": "54708ac6-3a97-455a-bbd3-cfe39aaea71d",
+                "label": "id=54708ac6-3a97-455a-bbd3-cfe39aaea71d page_id=555239b2-bc8f-468b-82da-4592879e865b",
+                "enPreview": "TRAININGS CONDUCTED UNDER CENRE OF ADVANCED FACULTY TRAINING PROGRAMME",
+                "hiPreview": null
+              },
+              {
+                "id": "32f9e7a9-a70d-42fe-9ded-afc51d557c53",
+                "label": "id=32f9e7a9-a70d-42fe-9ded-afc51d557c53 page_id=555239b2-bc8f-468b-82da-4592879e865b",
+                "enPreview": "NIRF (COA)-2026",
+                "hiPreview": null
+              },
+              {
+                "id": "737f655b-0f50-4e08-ac40-f7b7cd3abf80",
+                "label": "id=737f655b-0f50-4e08-ac40-f7b7cd3abf80 page_id=555239b2-bc8f-468b-82da-4592879e865b",
+                "enPreview": "Research Papers from College of Agriculture (NAAS Rating>7)",
+                "hiPreview": null
+              },
+              {
+                "id": "0fe33c88-0703-40d6-98df-e341340d0804",
+                "label": "id=0fe33c88-0703-40d6-98df-e341340d0804 page_id=555239b2-bc8f-468b-82da-4592879e865b",
+                "enPreview": "Nomination of Nodal Officer for Anti Ragging Committee",
+                "hiPreview": null
+              }
+            ],
+            "corrupt": [],
+            "no_devanagari": []
+          }
+        }
+      }
+    },
+    {
+      "table": "ccshau_page_student_corner_items",
+      "category": "Office portal",
+      "rowCount": 25,
+      "publishedFilter": null,
+      "fields": {
+        "title_en→title_hi": {
+          "enField": "title_en",
+          "hiField": "title_hi",
+          "withEnglish": 25,
+          "missingHindi": 25,
+          "corruptHindi": 0,
+          "noDevanagari": 0,
+          "complete": 0,
+          "samples": {
+            "missing": [
+              {
+                "id": "0f34e20b-f140-4f23-a7e6-919d2e0c065a",
+                "label": "id=0f34e20b-f140-4f23-a7e6-919d2e0c065a page_id=555239b2-bc8f-468b-82da-4592879e865b",
+                "enPreview": "Feedback Form for UG Students",
+                "hiPreview": null
+              },
+              {
+                "id": "fa6edcaf-fc4d-40b6-93f8-79f693063354",
+                "label": "id=fa6edcaf-fc4d-40b6-93f8-79f693063354 page_id=555239b2-bc8f-468b-82da-4592879e865b",
+                "enPreview": "Under Graduate Course Catalogue -2025",
+                "hiPreview": null
+              },
+              {
+                "id": "9abc43cf-e14a-4768-85f4-f0ca96cec0e8",
+                "label": "id=9abc43cf-e14a-4768-85f4-f0ca96cec0e8 page_id=f5b48a4b-debd-4b29-847b-3649aed2811b",
+                "enPreview": "Students in take 2025-26",
+                "hiPreview": null
+              },
+              {
+                "id": "07031562-e743-43b8-bf8c-ba6e4721a976",
+                "label": "id=07031562-e743-43b8-bf8c-ba6e4721a976 page_id=f5b48a4b-debd-4b29-847b-3649aed2811b",
+                "enPreview": "Student on Roll (2018-19 to 2022-23)",
+                "hiPreview": null
+              },
+              {
+                "id": "bc37dba7-2eeb-439c-b9d1-d56c554d58a4",
+                "label": "id=bc37dba7-2eeb-439c-b9d1-d56c554d58a4 page_id=f5b48a4b-debd-4b29-847b-3649aed2811b",
+                "enPreview": "Time table (2nd Semester 2023 -24) - Revised - I",
+                "hiPreview": null
+              }
+            ],
+            "corrupt": [],
+            "no_devanagari": []
+          }
+        }
+      }
+    },
+    {
+      "table": "ccshau_page_sidebar_items",
+      "category": "Office portal",
+      "rowCount": 1622,
+      "publishedFilter": null,
+      "fields": {
+        "label_en→label_hi": {
+          "enField": "label_en",
+          "hiField": "label_hi",
+          "withEnglish": 1622,
+          "missingHindi": 445,
+          "corruptHindi": 0,
+          "noDevanagari": 4,
+          "complete": 1173,
+          "samples": {
+            "missing": [
+              {
+                "id": "ede3cd26-8b26-4684-9edc-b66a2fe6ab97",
+                "label": "id=ede3cd26-8b26-4684-9edc-b66a2fe6ab97 page_id=6d775969-a631-41fb-a78f-3c2618327bd0",
+                "enPreview": "List of Patent/IPRs Filed",
+                "hiPreview": null
+              },
+              {
+                "id": "85ebac56-5fb5-4b7e-a802-73931d1abfd6",
+                "label": "id=85ebac56-5fb5-4b7e-a802-73931d1abfd6 page_id=e902d154-5d77-4feb-8bc3-926ac04237f9",
+                "enPreview": "Event",
+                "hiPreview": null
+              },
+              {
+                "id": "b86283f1-b0cb-4089-9cd1-519296cdc900",
+                "label": "id=b86283f1-b0cb-4089-9cd1-519296cdc900 page_id=116100d3-8028-4272-8718-feca946e67b3",
+                "enPreview": "Status of Revolving Fund",
+                "hiPreview": null
+              },
+              {
+                "id": "c4b60c0d-4b5f-4e24-a787-e86a8fc9cfd5",
+                "label": "id=c4b60c0d-4b5f-4e24-a787-e86a8fc9cfd5 page_id=8fdb1d2e-9978-4135-b82e-5fec175fe3c3",
+                "enPreview": "Publications",
+                "hiPreview": null
+              },
+              {
+                "id": "796ba3bf-bf2c-4190-8904-c7bb0b9ce5c2",
+                "label": "id=796ba3bf-bf2c-4190-8904-c7bb0b9ce5c2 page_id=e9692fc8-0000-4105-a622-8bdadb54bf8e",
+                "enPreview": "Alumni of the Department",
+                "hiPreview": null
+              }
+            ],
+            "corrupt": [],
+            "no_devanagari": [
+              {
+                "id": "2c51da3f-489a-48da-9798-954ea49aa7eb",
+                "label": "id=2c51da3f-489a-48da-9798-954ea49aa7eb page_id=47e309dd-e6d4-4857-a1fc-1ff45c665fb6",
+                "enPreview": "FInal seniorty lists of HAU & LUVAS Employees 2026",
+                "hiPreview": "FInal seniorty lists of HAU & LUVAS Employees 2026"
+              },
+              {
+                "id": "395ade43-93e8-44c9-9154-36c01540998b",
+                "label": "id=395ade43-93e8-44c9-9154-36c01540998b page_id=47e309dd-e6d4-4857-a1fc-1ff45c665fb6",
+                "enPreview": "Amendment in House Allotment Rules",
+                "hiPreview": "Amendment in House Allotment Rules"
+              },
+              {
+                "id": "dd793c29-ae41-4df7-840c-ec8a79e229b3",
+                "label": "id=dd793c29-ae41-4df7-840c-ec8a79e229b3 page_id=47e309dd-e6d4-4857-a1fc-1ff45c665fb6",
+                "enPreview": "Landscape Unit Pay Bill for Month of 12/2015 paid in 01/2016",
+                "hiPreview": "Landscape Unit Pay Bill for Month of 12/2015 paid in 01/2016"
+              },
+              {
+                "id": "205cc785-1af9-45a8-a760-9e9df53fad32",
+                "label": "id=205cc785-1af9-45a8-a760-9e9df53fad32 page_id=47e309dd-e6d4-4857-a1fc-1ff45c665fb6",
+                "enPreview": "Application Form for the Allotment of House in CCSHAU, Hisar",
+                "hiPreview": "Application Form for the Allotment of House in CCSHAU, Hisar"
+              }
+            ]
+          }
+        },
+        "content_en→content_hi": {
+          "enField": "content_en",
+          "hiField": "content_hi",
+          "withEnglish": 851,
+          "missingHindi": 842,
+          "corruptHindi": 0,
+          "noDevanagari": 0,
+          "complete": 9,
+          "samples": {
+            "missing": [
+              {
+                "id": "30713d7a-a49d-4a51-9e4a-c5523d3686a1",
+                "label": "id=30713d7a-a49d-4a51-9e4a-c5523d3686a1 page_id=f5fadf19-0d05-4f2f-8c64-3c495afde3df",
+                "enPreview": "<a href=\"https://ccshau.blob.core.windows.net/ccshaucontainer/pages-pdf/1687837122.pdf\" rel=\"noopener noreferrer\" target",
+                "hiPreview": null
+              },
+              {
+                "id": "ede3cd26-8b26-4684-9edc-b66a2fe6ab97",
+                "label": "id=ede3cd26-8b26-4684-9edc-b66a2fe6ab97 page_id=6d775969-a631-41fb-a78f-3c2618327bd0",
+                "enPreview": "<a href=\"https://ccshau.blob.core.windows.net/ccshaucontainer/pages-pdf/1715666527.pdf\" rel=\"noopener noreferrer\" target",
+                "hiPreview": null
+              },
+              {
+                "id": "442c8198-99b2-4ede-ac1f-e69944800b70",
+                "label": "id=442c8198-99b2-4ede-ac1f-e69944800b70 page_id=2cbbf7d7-c54c-4cd7-8ca7-9e131bd77cd1",
+                "enPreview": "<p><a href=\"https://hau.ac.in/college/nehru-library\" rel=\"noopener noreferrer\" target=\"_blank\"><span style=\"font-size:18",
+                "hiPreview": null
+              },
+              {
+                "id": "85ebac56-5fb5-4b7e-a802-73931d1abfd6",
+                "label": "id=85ebac56-5fb5-4b7e-a802-73931d1abfd6 page_id=e902d154-5d77-4feb-8bc3-926ac04237f9",
+                "enPreview": "<a href=\"https://www.hau.ac.in/public/pages-pdf/1778140315.pdf\" rel=\"noopener noreferrer\" target=\"_blank\"><span style=\"f",
+                "hiPreview": null
+              },
+              {
+                "id": "37f9d7bf-a68c-4e25-af99-623119ee83c2",
+                "label": "id=37f9d7bf-a68c-4e25-af99-623119ee83c2 page_id=5d364b79-2c02-4c42-b708-8cf78cf092b8",
+                "enPreview": "<div class=\"office-profile\">\r\n  <img src=\"https://ccshau.blob.core.windows.net/ccshaucontainer/legacy-storage/biWvSGnaWc",
+                "hiPreview": null
+              }
+            ],
+            "corrupt": [],
+            "no_devanagari": []
+          }
+        }
+      }
+    },
+    {
+      "table": "ccshau_page_staff",
+      "category": "Faculty / staff",
+      "error": "ccshau_page_staff: relation \"public.ccshau_page_staff\" does not exist",
+      "rowCount": 0,
+      "fields": {}
+    },
+    {
+      "table": "ccshau_faculty_people",
+      "category": "Faculty / staff",
+      "rowCount": 660,
+      "publishedFilter": null,
+      "fields": {
+        "name_en→name_hi": {
+          "enField": "name_en",
+          "hiField": "name_hi",
+          "withEnglish": 660,
+          "missingHindi": 658,
+          "corruptHindi": 0,
+          "noDevanagari": 0,
+          "complete": 2,
+          "samples": {
+            "missing": [
+              {
+                "id": "39b8bfd3-0d0e-43be-934b-dc74748bf35d",
+                "label": "id=39b8bfd3-0d0e-43be-934b-dc74748bf35d global_slug=legacy-user-251",
+                "enPreview": "Dr. S. K. Tehlan",
+                "hiPreview": null
+              },
+              {
+                "id": "d56ebb64-1e27-4ec7-af06-8fbad4789aae",
+                "label": "id=d56ebb64-1e27-4ec7-af06-8fbad4789aae global_slug=legacy-user-1161",
+                "enPreview": "Dr. Padmanabha A",
+                "hiPreview": null
+              },
+              {
+                "id": "7f595dbe-9aa0-4930-b6e9-dca23e80b7cc",
+                "label": "id=7f595dbe-9aa0-4930-b6e9-dca23e80b7cc global_slug=legacy-user-389",
+                "enPreview": "Dr. Sandeep Arya",
+                "hiPreview": null
+              },
+              {
+                "id": "6665f242-9013-43c4-89c4-23f3a283a048",
+                "label": "id=6665f242-9013-43c4-89c4-23f3a283a048 global_slug=legacy-user-488",
+                "enPreview": "Subhash Chander",
+                "hiPreview": null
+              },
+              {
+                "id": "49b5352a-78a8-46f4-9f10-9cfc3a72de43",
+                "label": "id=49b5352a-78a8-46f4-9f10-9cfc3a72de43 global_slug=legacy-user-338",
+                "enPreview": "Dr. Prakash Banakar",
+                "hiPreview": null
+              }
+            ],
+            "corrupt": [],
+            "no_devanagari": []
+          }
+        },
+        "qualification_en→qualification_hi": {
+          "enField": "qualification_en",
+          "hiField": "qualification_hi",
+          "withEnglish": 576,
+          "missingHindi": 576,
+          "corruptHindi": 0,
+          "noDevanagari": 0,
+          "complete": 0,
+          "samples": {
+            "missing": [
+              {
+                "id": "39b8bfd3-0d0e-43be-934b-dc74748bf35d",
+                "label": "id=39b8bfd3-0d0e-43be-934b-dc74748bf35d global_slug=legacy-user-251",
+                "enPreview": "Ph.D",
+                "hiPreview": null
+              },
+              {
+                "id": "d56ebb64-1e27-4ec7-af06-8fbad4789aae",
+                "label": "id=d56ebb64-1e27-4ec7-af06-8fbad4789aae global_slug=legacy-user-1161",
+                "enPreview": "Ph.D",
+                "hiPreview": null
+              },
+              {
+                "id": "7f595dbe-9aa0-4930-b6e9-dca23e80b7cc",
+                "label": "id=7f595dbe-9aa0-4930-b6e9-dca23e80b7cc global_slug=legacy-user-389",
+                "enPreview": "Ph.D",
+                "hiPreview": null
+              },
+              {
+                "id": "6665f242-9013-43c4-89c4-23f3a283a048",
+                "label": "id=6665f242-9013-43c4-89c4-23f3a283a048 global_slug=legacy-user-488",
+                "enPreview": "Ph. D.",
+                "hiPreview": null
+              },
+              {
+                "id": "49b5352a-78a8-46f4-9f10-9cfc3a72de43",
+                "label": "id=49b5352a-78a8-46f4-9f10-9cfc3a72de43 global_slug=legacy-user-338",
+                "enPreview": "Ph.D.",
+                "hiPreview": null
+              }
+            ],
+            "corrupt": [],
+            "no_devanagari": []
+          }
+        },
+        "experience_en→experience_hi": {
+          "enField": "experience_en",
+          "hiField": "experience_hi",
+          "withEnglish": 0,
+          "missingHindi": 0,
+          "corruptHindi": 0,
+          "noDevanagari": 0,
+          "complete": 0,
+          "samples": {
+            "missing": [],
+            "corrupt": [],
+            "no_devanagari": []
+          }
+        },
+        "specialization_en→specialization_hi": {
+          "enField": "specialization_en",
+          "hiField": "specialization_hi",
+          "withEnglish": 579,
+          "missingHindi": 578,
+          "corruptHindi": 0,
+          "noDevanagari": 0,
+          "complete": 1,
+          "samples": {
+            "missing": [
+              {
+                "id": "39b8bfd3-0d0e-43be-934b-dc74748bf35d",
+                "label": "id=39b8bfd3-0d0e-43be-934b-dc74748bf35d global_slug=legacy-user-251",
+                "enPreview": "Vegetable Breeding",
+                "hiPreview": null
+              },
+              {
+                "id": "d56ebb64-1e27-4ec7-af06-8fbad4789aae",
+                "label": "id=d56ebb64-1e27-4ec7-af06-8fbad4789aae global_slug=legacy-user-1161",
+                "enPreview": "Aquatic Environment Management",
+                "hiPreview": null
+              },
+              {
+                "id": "7f595dbe-9aa0-4930-b6e9-dca23e80b7cc",
+                "label": "id=7f595dbe-9aa0-4930-b6e9-dca23e80b7cc global_slug=legacy-user-389",
+                "enPreview": "Agroforestry",
+                "hiPreview": null
+              },
+              {
+                "id": "6665f242-9013-43c4-89c4-23f3a283a048",
+                "label": "id=6665f242-9013-43c4-89c4-23f3a283a048 global_slug=legacy-user-488",
+                "enPreview": "Plant Breeding & Biotechnology",
+                "hiPreview": null
+              },
+              {
+                "id": "49b5352a-78a8-46f4-9f10-9cfc3a72de43",
+                "label": "id=49b5352a-78a8-46f4-9f10-9cfc3a72de43 global_slug=legacy-user-338",
+                "enPreview": "Molecular Nematology & Nematode and Host Plant interaction",
+                "hiPreview": null
+              }
+            ],
+            "corrupt": [],
+            "no_devanagari": []
+          }
+        },
+        "detail_content_en→detail_content_hi": {
+          "enField": "detail_content_en",
+          "hiField": "detail_content_hi",
+          "withEnglish": 491,
+          "missingHindi": 490,
+          "corruptHindi": 0,
+          "noDevanagari": 0,
+          "complete": 1,
+          "samples": {
+            "missing": [
+              {
+                "id": "39b8bfd3-0d0e-43be-934b-dc74748bf35d",
+                "label": "id=39b8bfd3-0d0e-43be-934b-dc74748bf35d global_slug=legacy-user-251",
+                "enPreview": "<table><tbody><tr><td><u><strong>Research Papers</strong></u></td></tr><tr><td><br></td><td><ol><li><strong>Kumar, S.</s",
+                "hiPreview": null
+              },
+              {
+                "id": "d56ebb64-1e27-4ec7-af06-8fbad4789aae",
+                "label": "id=d56ebb64-1e27-4ec7-af06-8fbad4789aae global_slug=legacy-user-1161",
+                "enPreview": "<p style=\"text-align:center;\"><strong><span style='font-size:16px;font-family:\"Times New Roman\",\"serif\";'>Dr.Padmanabha ",
+                "hiPreview": null
+              },
+              {
+                "id": "7f595dbe-9aa0-4930-b6e9-dca23e80b7cc",
+                "label": "id=7f595dbe-9aa0-4930-b6e9-dca23e80b7cc global_slug=legacy-user-389",
+                "enPreview": "<table style=\"width: 100%;\"><tbody><tr><td colspan=\"9\" style=\"vertical-align: top; text-align: center;\" width=\"100%\"><st",
+                "hiPreview": null
+              },
+              {
+                "id": "6665f242-9013-43c4-89c4-23f3a283a048",
+                "label": "id=6665f242-9013-43c4-89c4-23f3a283a048 global_slug=legacy-user-488",
+                "enPreview": "<table style=\"width: 100%;\"><tbody><tr><td colspan=\"14\" style=\"vertical-align: top;text-align: center;\" width=\"100%\"><st",
+                "hiPreview": null
+              },
+              {
+                "id": "49b5352a-78a8-46f4-9f10-9cfc3a72de43",
+                "label": "id=49b5352a-78a8-46f4-9f10-9cfc3a72de43 global_slug=legacy-user-338",
+                "enPreview": "<table style=\"width: 100%;\"><tbody><tr><td colspan=\"14\" style=\"vertical-align: top;text-align: center;\" width=\"100%\"><st",
+                "hiPreview": null
+              }
+            ],
+            "corrupt": [],
+            "no_devanagari": []
+          }
+        }
+      }
+    },
+    {
+      "table": "ccshau_faculty_assignments",
+      "category": "Faculty / staff",
+      "rowCount": 753,
+      "publishedFilter": null,
+      "fields": {
+        "designation_en→designation_hi": {
+          "enField": "designation_en",
+          "hiField": "designation_hi",
+          "withEnglish": 753,
+          "missingHindi": 752,
+          "corruptHindi": 0,
+          "noDevanagari": 0,
+          "complete": 1,
+          "samples": {
+            "missing": [
+              {
+                "id": "0a3783e2-670f-45ab-836f-b1d1cc9abb2f",
+                "label": "id=0a3783e2-670f-45ab-836f-b1d1cc9abb2f person_id=900830c4-df0a-4b63-bb4d-1f5243c30b27 page_id=de1ebc96-38a1-443e-b4c4-045135a1add8",
+                "enPreview": "Professor",
+                "hiPreview": null
+              },
+              {
+                "id": "655a1a6b-bf4b-47d1-8a24-c491133cf6ab",
+                "label": "id=655a1a6b-bf4b-47d1-8a24-c491133cf6ab person_id=5abcbd45-524d-46d8-b01d-9ca35ce56c26 page_id=2e2f7f9b-44b7-43bb-84ed-41c3470fd701",
+                "enPreview": "Professor",
+                "hiPreview": null
+              },
+              {
+                "id": "4bf5d769-a1e8-4c45-8216-8fcf5bb254f1",
+                "label": "id=4bf5d769-a1e8-4c45-8216-8fcf5bb254f1 person_id=49b5352a-78a8-46f4-9f10-9cfc3a72de43 page_id=57840010-e5f8-48c9-84fc-f2880b69d56b",
+                "enPreview": "Assistant Professor (Stage II)",
+                "hiPreview": null
+              },
+              {
+                "id": "16b3d792-9223-4da7-be55-aa89166ad480",
+                "label": "id=16b3d792-9223-4da7-be55-aa89166ad480 person_id=5f6073b7-f64e-4a73-b297-842e42a0e179 page_id=7e8c978c-b51a-466f-b322-bc7106cc9479",
+                "enPreview": "Asstt. Economic Botanist",
+                "hiPreview": null
+              },
+              {
+                "id": "d272b593-7f54-447a-8435-8d143459761d",
+                "label": "id=d272b593-7f54-447a-8435-8d143459761d person_id=6665f242-9013-43c4-89c4-23f3a283a048 page_id=310e1b02-0595-4182-ae4f-b5677d9ef4de",
+                "enPreview": "Junior Breeder",
+                "hiPreview": null
+              }
+            ],
+            "corrupt": [],
+            "no_devanagari": []
+          }
+        },
+        "specialization_en→specialization_hi": {
+          "enField": "specialization_en",
+          "hiField": "specialization_hi",
+          "withEnglish": 117,
+          "missingHindi": 117,
+          "corruptHindi": 0,
+          "noDevanagari": 0,
+          "complete": 0,
+          "samples": {
+            "missing": [
+              {
+                "id": "f10a6f41-de4f-4102-bfa1-08faa5aa02a9",
+                "label": "id=f10a6f41-de4f-4102-bfa1-08faa5aa02a9 person_id=25312b20-62fc-43c8-9636-de8dd209de79 page_id=6d775969-a631-41fb-a78f-3c2618327bd0",
+                "enPreview": "Plant Breeding",
+                "hiPreview": null
+              },
+              {
+                "id": "7f96efef-d79c-4899-9186-1d23034b4748",
+                "label": "id=7f96efef-d79c-4899-9186-1d23034b4748 person_id=60b972d8-2018-4f95-9c40-614573337afa page_id=8bb7b80b-5f5d-409c-ae4e-0aaf6490e00c",
+                "enPreview": "Agronomy",
+                "hiPreview": null
+              },
+              {
+                "id": "f1203348-94b3-4d2c-b080-bb9921d8ea53",
+                "label": "id=f1203348-94b3-4d2c-b080-bb9921d8ea53 person_id=9adaa5c9-1dba-4cef-bc46-ccde9109d306 page_id=8bb7b80b-5f5d-409c-ae4e-0aaf6490e00c",
+                "enPreview": "Plant Pathology",
+                "hiPreview": null
+              },
+              {
+                "id": "e53f0bfe-2ade-4be4-99d0-46e1f2bd89f9",
+                "label": "id=e53f0bfe-2ade-4be4-99d0-46e1f2bd89f9 person_id=101e3883-ed8d-41cc-a7c4-e234da38091d page_id=246ec376-09d2-495e-9bc2-86998cb0a3da",
+                "enPreview": "Agronomy, Resource conservation technologies",
+                "hiPreview": null
+              },
+              {
+                "id": "60f3cf13-c1d5-431a-ba66-98991ed39c9d",
+                "label": "id=60f3cf13-c1d5-431a-ba66-98991ed39c9d person_id=fd91ae7f-2600-459a-b133-ddeaaa4a4653 page_id=e1d034ce-8b48-437a-8b80-048af2dc872b",
+                "enPreview": "Soil Science",
+                "hiPreview": null
+              }
+            ],
+            "corrupt": [],
+            "no_devanagari": []
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>CCSHAU — Development, UAT, Production & Rollback Plan</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --navy: #0b3d2e;
+      --green: #1f7a4c;
+      --accent: #c4a35a;
+      --text: #1a2332;
+      --muted: #5a6577;
+      --line: #d7dee8;
+      --bg: #f6f8f6;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Calibri, Arial, sans-serif;
+      color: var(--text);
+      font-size: 11.5pt;
+      line-height: 1.55;
+      background: white;
+    }
+    .page { max-width: 920px; margin: 0 auto; padding: 28px 36px 48px; }
+    .cover {
+      background: linear-gradient(155deg, #0b3d2e 0%, #145c40 55%, #1a6b4a 100%);
+      color: white;
+      border-radius: 8px;
+      padding: 40px 34px;
+      margin-bottom: 28px;
+    }
+    .cover .eyebrow { color: #e6d39a; text-transform: uppercase; letter-spacing: .08em; font-size: 11px; font-weight: 700; margin-bottom: 12px; }
+    .cover h1 { margin: 0 0 12px; font-size: 26px; line-height: 1.25; }
+    .cover p { margin: 0 0 6px; color: #d7ebe0; }
+    .cover .meta {
+      margin-top: 24px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,.22);
+      display: grid; grid-template-columns: 1fr 1fr; gap: 6px 20px; font-size: 12px; color: #cfe3d8;
+    }
+    h2 { color: var(--navy); border-bottom: 2px solid var(--accent); padding-bottom: 6px; margin-top: 34px; font-size: 17px; page-break-after: avoid; }
+    h3 { color: var(--navy); margin-top: 20px; font-size: 13.5px; page-break-after: avoid; }
+    .toc { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 16px 20px; }
+    .toc ol { margin: 8px 0 0; padding-left: 22px; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 16px; font-size: 10.5pt; page-break-inside: avoid; }
+    th, td { border: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: top; }
+    th { background: var(--navy); color: white; }
+    tr:nth-child(even) td { background: #f9fbf9; }
+    code, .mono { font-family: Consolas, "Courier New", monospace; font-size: 10pt; background: #eef4ef; padding: 1px 5px; border-radius: 3px; }
+    pre { background: #102018; color: #e8f2ea; padding: 14px 16px; border-radius: 8px; font-size: 10pt; overflow-x: auto; page-break-inside: avoid; }
+    pre code { background: transparent; color: inherit; padding: 0; }
+    .mermaid { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 14px 8px; margin: 12px 0 18px; text-align: center; page-break-inside: avoid; }
+    .callout { border-left: 4px solid var(--green); background: var(--bg); padding: 11px 13px; margin: 12px 0; border-radius: 0 6px 6px 0; }
+    .callout.warn { border-left-color: #c48a1a; background: #fff8e8; }
+    .callout.danger { border-left-color: #b42318; background: #fff1f0; }
+    .callout.ok { border-left-color: #0f7b4c; background: #edf8f2; }
+    .step { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; margin: 10px 0; page-break-inside: avoid; }
+    .step .num { display: inline-block; min-width: 26px; height: 26px; line-height: 26px; text-align: center; border-radius: 50%; background: var(--accent); color: #1a2332; font-weight: 700; margin-right: 8px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .card { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; background: var(--bg); page-break-inside: avoid; }
+    .card h4 { margin: 0 0 8px; color: var(--navy); }
+    .footer-note { margin-top: 36px; padding-top: 12px; border-top: 1px solid var(--line); font-size: 10pt; color: var(--muted); }
+    ul.checklist li { margin: 3px 0; }
+    @media print {
+      .page { padding: 0; max-width: none; }
+      .cover { break-after: page; }
+      h2 { break-before: page; }
+      h2.first { break-before: auto; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+  <section class="cover">
+    <div class="eyebrow">CCS Haryana Agricultural University — Website Project</div>
+    <h1>Development · UAT · Production Plan</h1>
+    <p>Merge strategy, secure code practices, versioning, and rollback</p>
+    <p>Scope: <strong>Frontend</strong> + <strong>API</strong> + <strong>Database</strong></p>
+    <div class="meta">
+      <div><strong>Project:</strong> CCSHAU_Project / ccshau-website</div>
+      <div><strong>Repo:</strong> github.com/SiyanainfoAhm/ccshau-website</div>
+      <div><strong>Stack:</strong> Next.js (apps/web) · Supabase Postgres · Vercel</div>
+      <div><strong>Document:</strong> v1.0 · 8 September 2026</div>
+      <div><strong>Environments:</strong> Development · UAT · Production</div>
+    </div>
+  </section>
+
+  <section class="toc">
+    <strong>Table of Contents</strong>
+    <ol>
+      <li>Current state (review findings)</li>
+      <li>Target environment model</li>
+      <li>Architecture diagrams</li>
+      <li>Git merge &amp; versioning plan</li>
+      <li>Frontend plan (Next.js / Vercel)</li>
+      <li>API plan (Server Actions + Route Handlers)</li>
+      <li>Database plan (Supabase migrations)</li>
+      <li>Secure code practices</li>
+      <li>Promotion pipeline (step-by-step)</li>
+      <li>Rollback plan (Frontend / API / Database)</li>
+      <li>Release checklist</li>
+      <li>Phased implementation roadmap</li>
+    </ol>
+  </section>
+
+  <h2 class="first">1. Current state (review findings)</h2>
+  <table>
+    <thead><tr><th>Area</th><th>What exists today</th><th>Gap</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>Frontend</strong></td>
+        <td>Next.js 16 monorepo at <code>apps/web</code>; Vercel Production on <code>main</code>; PR previews</td>
+        <td>No dedicated UAT branch/domain mapping</td>
+      </tr>
+      <tr>
+        <td><strong>API</strong></td>
+        <td>Server Actions + thin routes (<code>/api/auth</code>, cron, downloads, health)</td>
+        <td>Same codebase deploys with frontend; no env-isolated API secrets matrix documented for 3 envs</td>
+      </tr>
+      <tr>
+        <td><strong>Database</strong></td>
+        <td><code>supabase/migrations/</code> (~60+ files); manual <code>supabase db push</code>; Pro backups</td>
+        <td>Single shared cloud project historically; Dev/UAT not fully isolated</td>
+      </tr>
+      <tr>
+        <td><strong>CI</strong></td>
+        <td>GitHub Actions lint/test/build on <code>main</code> and <code>develop</code></td>
+        <td><code>develop</code> / <code>uat</code> branches not fully established as promotion path</td>
+      </tr>
+      <tr>
+        <td><strong>Rollback</strong></td>
+        <td>Vercel previous deploy + DB daily backups</td>
+        <td>Need explicit version-linked rollback SOP for FE + API + DB together</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout ok">
+    <strong>Goal:</strong> Every Production release is a tagged version (<code>vX.Y.Z</code>) that includes the same Frontend + API code commit and matching Database migration set — with a documented rollback path if anything fails.
+  </div>
+
+  <h2>2. Target environment model</h2>
+  <table>
+    <thead>
+      <tr><th>Environment</th><th>Git branch</th><th>Frontend host</th><th>API (same Next app)</th><th>Database</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Development</strong></td>
+        <td><code>develop</code> / <code>feature/*</code></td>
+        <td>Local + Vercel Preview/Dev URL</td>
+        <td>Server Actions / routes on Dev deploy</td>
+        <td>Supabase <strong>Dev</strong> project</td>
+      </tr>
+      <tr>
+        <td><strong>UAT</strong></td>
+        <td><code>uat</code></td>
+        <td>Vercel UAT domain (e.g. <code>uat....</code>)</td>
+        <td>Same app on UAT deploy</td>
+        <td>Supabase <strong>UAT</strong> project</td>
+      </tr>
+      <tr>
+        <td><strong>Production</strong></td>
+        <td><code>main</code> + tag <code>vX.Y.Z</code></td>
+        <td>Vercel Production (live domain)</td>
+        <td>Same app on Production</td>
+        <td>Supabase <strong>Production</strong> project</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn">
+    <strong>Isolation rule:</strong> Do not point Dev/UAT frontends at the Production Supabase project. Separate projects (or at minimum separate schemas + keys) prevent accidental CMS/data damage.
+  </div>
+
+  <h2>3. Architecture diagrams</h2>
+
+  <h3>3.1 Frontend + API + Database per environment</h3>
+  <div class="mermaid">
+flowchart LR
+  subgraph FE[Frontend]
+    N[Next.js apps/web]
+  end
+  subgraph API[API layer]
+    SA[Server Actions]
+    RH[Route Handlers<br/>auth / cron / downloads]
+  end
+  subgraph DB[Database]
+    PG[(Supabase Postgres<br/>ccshau_* tables)]
+    MIG[migrations SQL in Git]
+  end
+  N --> SA
+  N --> RH
+  SA --> PG
+  RH --> PG
+  MIG -.->|db push per env| PG
+  </div>
+
+  <h3>3.2 Three environments (isolated)</h3>
+  <div class="mermaid">
+flowchart TB
+  subgraph DEV[Development]
+    D1[Branch: develop / feature]
+    D2[Vercel Preview/Dev]
+    D3[(Supabase Dev)]
+    D1 --> D2 --> D3
+  end
+  subgraph UAT[UAT]
+    U1[Branch: uat]
+    U2[Vercel UAT]
+    U3[(Supabase UAT)]
+    U1 --> U2 --> U3
+  end
+  subgraph PROD[Production]
+    P1[Branch: main + tag]
+    P2[Vercel Production]
+    P3[(Supabase Production)]
+    P1 --> P2 --> P3
+  end
+  DEV -->|PR + smoke| UAT
+  UAT -->|PR + sign-off| PROD
+  </div>
+
+  <h3>3.3 Merge flow</h3>
+  <div class="mermaid">
+gitGraph
+  commit id: "v1.0.0 baseline"
+  branch develop
+  checkout develop
+  commit id: "dev work"
+  branch feature-cms
+  checkout feature-cms
+  commit id: "CMS fix"
+  checkout develop
+  merge feature-cms
+  branch uat
+  checkout uat
+  commit id: "UAT candidate"
+  checkout main
+  merge uat tag: "v1.1.0"
+  </div>
+
+  <h3>3.4 Rollback overview</h3>
+  <div class="mermaid">
+flowchart TB
+  ISSUE[Issue found in Production] --> DEC{Issue type?}
+  DEC -->|Frontend / API only| VR[Redeploy previous Vercel deployment<br/>or git revert + tag patch]
+  DEC -->|Bad migration / data| DBRback[Restore Supabase backup<br/>or reverse migration]
+  DEC -->|Both| BOTH[1. Redeploy previous FE/API tag<br/>2. Restore DB to matching version]
+  VR --> VERIFY[Smoke test admin + public site]
+  DBRback --> VERIFY
+  BOTH --> VERIFY
+  </div>
+
+  <h2>4. Git merge &amp; versioning plan</h2>
+
+  <h3>4.1 Branch strategy</h3>
+  <pre><code>feature/*  →  develop  →  uat  →  main (Production)
+                                    ↓
+                              tag vMAJOR.MINOR.PATCH</code></pre>
+
+  <table>
+    <thead><tr><th>Branch</th><th>Purpose</th><th>Who merges</th><th>Deploy</th></tr></thead>
+    <tbody>
+      <tr><td><code>feature/*</code></td><td>Single change / ticket</td><td>Developer via PR → develop</td><td>Optional preview</td></tr>
+      <tr><td><code>develop</code></td><td>Integration / Development</td><td>Team</td><td>Dev environment</td></tr>
+      <tr><td><code>uat</code></td><td>Frozen UAT candidate</td><td>Lead via PR from develop</td><td>UAT environment</td></tr>
+      <tr><td><code>main</code></td><td>Production only</td><td>Lead via PR from uat</td><td>Production + tag</td></tr>
+    </tbody>
+  </table>
+
+  <h3>4.2 Merge rules (secure process)</h3>
+  <ul>
+    <li>No direct push to <code>uat</code> or <code>main</code> — Pull Requests only</li>
+    <li>Require CI green (lint + test + build) before merge</li>
+    <li>Require at least 1 code review on PRs into <code>uat</code> / <code>main</code></li>
+    <li>Block force-push on <code>uat</code> and <code>main</code></li>
+    <li>Keep repository <strong>private</strong>; least-privilege collaborator roles</li>
+    <li>Never commit secrets; enable GitHub secret scanning / push protection</li>
+  </ul>
+
+  <h3>4.3 Semantic versioning</h3>
+  <table>
+    <thead><tr><th>Version part</th><th>When to bump</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td><strong>MAJOR</strong></td><td>Breaking schema/API/frontend contract</td><td><code>v2.0.0</code></td></tr>
+      <tr><td><strong>MINOR</strong></td><td>New feature (CMS module, page type)</td><td><code>v1.4.0</code></td></tr>
+      <tr><td><strong>PATCH</strong></td><td>Bugfix / security patch / hotfix</td><td><code>v1.4.1</code></td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <strong>Version package:</strong> Tag <code>vX.Y.Z</code> = Frontend commit + API (same commit) + list of migration filenames applied for that release (recorded in release notes).
+  </div>
+
+  <h3>4.4 Hotfix merge path</h3>
+  <pre><code>main → hotfix/xxx → PR into main → tag vX.Y.Z+1 (patch)
+                  ↘ merge hotfix back into uat and develop</code></pre>
+
+  <h2>5. Frontend plan (Next.js / Vercel)</h2>
+  <div class="step"><span class="num">1</span> <strong>Root directory:</strong> always deploy from monorepo with Vercel Root = <code>apps/web</code>.</div>
+  <div class="step"><span class="num">2</span> <strong>Branch mapping:</strong> <code>develop</code>→Dev, <code>uat</code>→UAT, <code>main</code>→Production.</div>
+  <div class="step"><span class="num">3</span> <strong>Env vars per environment</strong> (Vercel Development / Preview / Production):</div>
+  <table>
+    <thead><tr><th>Variable</th><th>Frontend?</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td><code>NEXT_PUBLIC_SUPABASE_URL</code></td><td>Yes</td><td>Different per env</td></tr>
+      <tr><td><code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code></td><td>Yes</td><td>Different per env</td></tr>
+      <tr><td><code>NEXT_PUBLIC_SITE_URL</code></td><td>Yes</td><td>Env domain</td></tr>
+      <tr><td><code>NEXT_PUBLIC_AZURE_STORAGE_*</code></td><td>Yes</td><td>Prefer separate containers per env if possible</td></tr>
+      <tr><td><code>NEXT_PUBLIC_DEV_PREFILL_LOGIN</code></td><td>Yes</td><td><strong>false</strong> on UAT/Production</td></tr>
+    </tbody>
+  </table>
+  <div class="step"><span class="num">4</span> <strong>Rollback (Frontend):</strong> Vercel → Deployments → previous successful Production deploy → <em>Promote / Redeploy</em>. Or revert git commit on <code>main</code> and push a patch tag.</div>
+
+  <h2>6. API plan (Server Actions + Route Handlers)</h2>
+  <p>In this project, API ships <strong>with</strong> the Next.js app (no separate Edge Functions folder).</p>
+  <table>
+    <thead><tr><th>API surface</th><th>Path</th><th>Secure practice</th></tr></thead>
+    <tbody>
+      <tr><td>Server Actions</td><td><code>apps/web/src/actions/</code></td><td>Validate auth/RBAC server-side; never trust client role claims alone</td></tr>
+      <tr><td>Auth routes</td><td><code>src/app/api/auth/*</code></td><td>HttpOnly cookies / session via Supabase SSR</td></tr>
+      <tr><td>Cron</td><td><code>src/app/api/cron/*</code></td><td>Protect with <code>CRON_SECRET</code>; Production only schedules</td></tr>
+      <tr><td>Downloads</td><td><code>src/app/api/downloads/[id]/file</code></td><td>Authorize before streaming</td></tr>
+      <tr><td>Health</td><td><code>src/app/api/health</code></td><td>No secrets in response</td></tr>
+    </tbody>
+  </table>
+  <h3>API secrets (server-only, per env)</h3>
+  <ul>
+    <li><code>SUPABASE_SERVICE_ROLE_KEY</code> — never expose to browser</li>
+    <li><code>AZURE_STORAGE_CONNECTION_STRING</code></li>
+    <li><code>CRON_SECRET</code></li>
+    <li><code>POWER_AUTOMATE_*</code>, <code>CAPTCHA_SECRET_KEY</code> (when enabled)</li>
+  </ul>
+  <div class="step"><span class="num">R</span> <strong>Rollback (API):</strong> same as Frontend (redeploy previous Vercel deployment / previous git tag). API and Frontend share one deployment unit.</div>
+
+  <h2>7. Database plan (Supabase)</h2>
+  <h3>7.1 Source of truth</h3>
+  <pre><code>supabase/migrations/*.sql   ← versioned in Git
+Apply order: Dev → UAT → Production (same files)</code></pre>
+
+  <h3>7.2 Rules</h3>
+  <ul>
+    <li>New change = <strong>new</strong> migration file (never edit applied migrations)</li>
+    <li>Naming: timestamp + description (existing convention)</li>
+    <li>Record which migrations are part of release <code>vX.Y.Z</code> in release notes</li>
+    <li>Prefer additive/backward-compatible migrations when possible (easier rollback)</li>
+  </ul>
+
+  <h3>7.3 Apply steps (per environment)</h3>
+  <pre><code># Link the target project, then push migrations
+npx supabase link --project-ref &lt;ENV_PROJECT_REF&gt;
+npx supabase db push</code></pre>
+
+  <h3>7.4 Data safety</h3>
+  <ul>
+    <li>Dev/UAT use test/CMS sandbox content — not Production citizen/university live content copies unless anonymized</li>
+    <li>Production: keep Supabase Pro daily backups enabled (already documented)</li>
+    <li>Before risky Production migration: take a manual backup / note restore point time</li>
+  </ul>
+
+  <h2>8. Secure code practices</h2>
+  <div class="grid-2">
+    <div class="card">
+      <h4>Repository &amp; process</h4>
+      <ul>
+        <li>Private GitHub repo</li>
+        <li>Branch protection on <code>uat</code> / <code>main</code></li>
+        <li>PR + review + CI required</li>
+        <li>Secret scanning / push protection</li>
+        <li>Least-privilege collaborator access</li>
+        <li>No force-push to protected branches</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Code &amp; secrets</h4>
+      <ul>
+        <li>Never commit <code>.env.local</code> / real keys</li>
+        <li>Only <code>.env.example</code> placeholders in Git</li>
+        <li>Service role key server-only</li>
+        <li>RLS on Supabase tables</li>
+        <li>Validate inputs in Server Actions</li>
+        <li>Disable Dev login prefill on UAT/Prod</li>
+      </ul>
+    </div>
+  </div>
+  <h2>9. Promotion pipeline (step-by-step)</h2>
+  <div class="mermaid">
+sequenceDiagram
+  participant Dev as Developer
+  participant GH as GitHub
+  participant D as Dev Env
+  participant U as UAT Env
+  participant P as Production
+  Dev->>GH: PR feature → develop
+  GH->>D: Deploy FE+API / apply DB migrations
+  Dev->>GH: PR develop → uat
+  GH->>U: Deploy UAT + DB push
+  Note over U: QA sign-off
+  Dev->>GH: PR uat → main + tag vX.Y.Z
+  GH->>P: Deploy Production FE+API
+  Note over P: db push then smoke test
+  </div>
+
+  <ol>
+    <li>Create <code>feature/…</code> from <code>develop</code>; implement Frontend/API; add migration if needed.</li>
+    <li>PR → <code>develop</code>; CI must pass; merge; deploy Dev; <code>db push</code> to Dev Supabase.</li>
+    <li>Smoke test Dev (public pages + admin actions).</li>
+    <li>PR <code>develop</code> → <code>uat</code>; merge; deploy UAT; <code>db push</code> to UAT.</li>
+    <li>QA executes checklist; business/university UAT sign-off.</li>
+    <li>PR <code>uat</code> → <code>main</code>; merge; create tag <code>vX.Y.Z</code>.</li>
+    <li>Deploy Vercel Production (auto from <code>main</code>).</li>
+    <li>Apply Production migrations (<code>db push</code>) <strong>after</strong> confirming release notes / backup point.</li>
+    <li>Production smoke test; mark release complete.</li>
+  </ol>
+
+  <div class="callout warn">
+    <strong>Order tip:</strong> For additive DB changes, deploy FE/API first then migrate. For breaking schema changes, migrate in a compatible two-step release (expand → deploy code → contract), or take a maintenance window with clear rollback.
+  </div>
+
+  <h2>10. Rollback plan (if issue found)</h2>
+
+  <h3>10.1 Decide what failed</h3>
+  <table>
+    <thead><tr><th>Symptom</th><th>Likely layer</th><th>First action</th></tr></thead>
+    <tbody>
+      <tr><td>UI/admin broken, DB data OK</td><td>Frontend / API</td><td>Redeploy previous Vercel Production deployment</td></tr>
+      <tr><td>API errors / 500s after deploy</td><td>API / env vars</td><td>Check logs + redeploy previous tag</td></tr>
+      <tr><td>Data corruption / failed migration</td><td>Database</td><td>Restore backup or run reverse migration</td></tr>
+      <tr><td>Everything broken after release</td><td>All</td><td>Rollback FE/API to previous tag <strong>and</strong> restore DB to pre-release backup</td></tr>
+    </tbody>
+  </table>
+
+  <h3>10.2 Frontend + API rollback (fastest)</h3>
+  <div class="step">
+    <ol>
+      <li>Open Vercel → Project → Deployments.</li>
+      <li>Find last known-good Production deployment (or tag <code>vX.Y.(Z-1)</code>).</li>
+      <li>Promote/Redeploy that deployment to Production.</li>
+      <li>Verify <code>/api/health</code>, homepage, admin login, one CMS write.</li>
+    </ol>
+  </div>
+  <p>Git alternative:</p>
+  <pre><code>git checkout main
+git revert &lt;bad-commit&gt;   # or reset only if not shared / with approval
+git push
+# tag patch: vX.Y.Z+1-rollback</code></pre>
+
+  <h3>10.3 Database rollback</h3>
+  <div class="grid-2">
+    <div class="card">
+      <h4>Preferred: reverse migration</h4>
+      <p>If change is reversible, add a new migration that undoes it (drop column added, restore constraint, etc.). Apply via <code>db push</code>. Keeps history clean.</p>
+    </div>
+    <div class="card">
+      <h4>Emergency: restore backup</h4>
+      <p>Supabase Dashboard → Database → Backups → restore to point before release. Follow <code>docs/ops/backup-restore-guide.md</code>. Expect downtime; coordinate.</p>
+    </div>
+  </div>
+
+  <div class="callout danger">
+    <strong>Critical:</strong> After a DB restore, Frontend/API must run a version compatible with that schema. Always roll FE/API back to the tag that matches the restored DB version.
+  </div>
+
+  <h3>10.4 Version matching matrix (keep this in release notes)</h3>
+  <table>
+    <thead><tr><th>Release tag</th><th>Git commit</th><th>Migrations included</th><th>Vercel deploy</th><th>Rollback target</th></tr></thead>
+    <tbody>
+      <tr><td><code>v1.2.0</code></td><td><code>abc1234</code></td><td><code>2026….sql</code> …</td><td>Prod URL / deploy id</td><td><code>v1.1.3</code></td></tr>
+      <tr><td><code>v1.2.1</code></td><td>…</td><td>…</td><td>…</td><td><code>v1.2.0</code></td></tr>
+    </tbody>
+  </table>
+
+  <h2>11. Release checklist</h2>
+  <h3>Before UAT</h3>
+  <ul class="checklist">
+    <li>□ PR reviewed; CI green</li>
+    <li>□ Migrations listed</li>
+    <li>□ UAT env vars verified</li>
+    <li>□ Dev smoke test passed</li>
+  </ul>
+  <h3>Before Production</h3>
+  <ul class="checklist">
+    <li>□ UAT signed off</li>
+    <li>□ Production backup / restore point noted</li>
+    <li>□ Release notes include tag + migrations + rollback target</li>
+    <li>□ <code>NEXT_PUBLIC_DEV_PREFILL_LOGIN=false</code> on Prod</li>
+    <li>□ Cron secrets present if cron used</li>
+  </ul>
+  <h3>After Production</h3>
+  <ul class="checklist">
+    <li>□ Health endpoint OK</li>
+    <li>□ Public homepage + one college page OK</li>
+    <li>□ Admin login + one content update OK</li>
+    <li>□ Upload / Azure URL OK (if touched)</li>
+    <li>□ Tag <code>vX.Y.Z</code> pushed to GitHub</li>
+  </ul>
+  <h3>If rollback needed</h3>
+  <ul class="checklist">
+    <li>□ Identify layer (FE/API vs DB vs both)</li>
+    <li>□ Redeploy previous Vercel deployment / tag</li>
+    <li>□ Reverse migration or restore DB if required</li>
+    <li>□ Re-test checklist</li>
+    <li>□ Post-incident note: cause + fix version</li>
+  </ul>
+
+  <h2>12. Phased implementation roadmap</h2>
+  <table>
+    <thead><tr><th>Phase</th><th>Actions</th><th>Outcome</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>Phase 1</strong></td>
+        <td>Create <code>develop</code> + <code>uat</code> from <code>main</code>; protect <code>main</code>/<code>uat</code>; document release notes template</td>
+        <td>Merge path exists</td>
+      </tr>
+      <tr>
+        <td><strong>Phase 2</strong></td>
+        <td>Create Dev + UAT Supabase projects; copy schema via migrations; wire Vercel env vars per branch</td>
+        <td>Isolated FE/API/DB</td>
+      </tr>
+      <tr>
+        <td><strong>Phase 3</strong></td>
+        <td>Enforce PR-only promotion; map Vercel Dev/UAT/Prod; start tagging Production releases</td>
+        <td>Versioned releases</td>
+      </tr>
+      <tr>
+        <td><strong>Phase 4</strong></td>
+        <td>Practice one rollback drill on UAT (redeploy + reverse migration)</td>
+        <td>Proven rollback</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout ok">
+    <strong>One-line summary:</strong>
+    Promote Frontend + API + Database together through <code>develop → uat → main</code>, tag every Production release, keep secrets out of Git, and always retain a previous deploy + DB restore point for rollback.
+  </div>
+
+  <div class="footer-note">
+    CCSHAU Website — Environment, Merge, Security &amp; Rollback Plan v1.0<br />
+    Repo: https://github.com/SiyanainfoAhm/ccshau-website<br />
+    Related: <code>Documents/ci-cd-step-by-step-guide.md</code>, <code>docs/ops/backup-restore-guide.md</code>, <code>supabase/migrations/</code>, <code>apps/web</code>
+  </div>
+</div>
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'base',
+    securityLevel: 'loose',
+    themeVariables: {
+      primaryColor: '#c4a35a',
+      primaryTextColor: '#0b3d2e',
+      primaryBorderColor: '#0b3d2e',
+      lineColor: '#4a5d73',
+      secondaryColor: '#e7f2eb',
+      tertiaryColor: '#f6f8f6',
+      fontFamily: 'Segoe UI, Arial, sans-serif'
+    }
+  });
+</script>
+</body>
+</html>

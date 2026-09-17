@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { createTenderAction, updateTenderAction } from "@/actions/tenders";
+import { translateFieldsEnToHiAction } from "@/actions/translate";
 import { AdminFileUploadField } from "@/components/admin/admin-file-upload-field";
 import { AttachmentList, useAttachmentRemovals } from "@/components/admin/attachment-list";
 import type { Tender } from "@/lib/database/types";
@@ -32,14 +33,49 @@ export function TenderForm({
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [titleEn, setTitleEn] = useState(tender?.title_en ?? "");
+  const [titleHi, setTitleHi] = useState(tender?.title_hi ?? "");
+  const [descriptionEn, setDescriptionEn] = useState(tender?.description_en ?? "");
+  const [descriptionHi, setDescriptionHi] = useState(tender?.description_hi ?? "");
+  const [cancellationNoticeEn, setCancellationNoticeEn] = useState(tender?.cancellation_notice_en ?? "");
+  const [cancellationNoticeHi, setCancellationNoticeHi] = useState(tender?.cancellation_notice_hi ?? "");
   const [slug, setSlug] = useState(tender?.slug ?? "");
   const [status, setStatus] = useState(tender?.status ?? "draft");
   const [removeCancellationDoc, setRemoveCancellationDoc] = useState(false);
+  const [isTranslating, setIsTranslating] = useState(false);
   const { removed, remove, removedJson } = useAttachmentRemovals(tender?.document_paths ?? []);
 
   function handleTitleBlur() {
     if (!tender && titleEn && !slug) {
       setSlug(slugify(titleEn));
+    }
+  }
+
+  async function handleAutoTranslate() {
+    setError(null);
+    setIsTranslating(true);
+    try {
+      const result = await translateFieldsEnToHiAction([
+        { key: "titleHi", text: titleEn },
+        { key: "descriptionHi", text: descriptionEn },
+        { key: "cancellationNoticeHi", text: cancellationNoticeEn },
+      ]);
+      if (!result.success) {
+        setError(result.error);
+        return;
+      }
+      const translated = result.data.translations;
+      if (translated.titleHi) setTitleHi(translated.titleHi);
+      if (translated.descriptionHi) setDescriptionHi(translated.descriptionHi);
+      if (translated.cancellationNoticeHi) setCancellationNoticeHi(translated.cancellationNoticeHi);
+      if (result.data.warnings.length > 0) {
+        setError(result.data.warnings.join(" "));
+      } else if (Object.keys(translated).length === 0) {
+        setError("Nothing was translated. Enter English text first.");
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Translation failed.");
+    } finally {
+      setIsTranslating(false);
     }
   }
 
@@ -84,7 +120,17 @@ export function TenderForm({
       )}
 
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="mb-4 text-lg font-semibold text-slate-900">Tender details</h2>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold text-slate-900">Tender details</h2>
+          <button
+            type="button"
+            onClick={handleAutoTranslate}
+            disabled={isPending || isTranslating}
+            className="rounded-lg border border-emerald-700 px-3 py-1.5 text-sm font-medium text-emerald-800 hover:bg-emerald-50 disabled:opacity-60"
+          >
+            {isTranslating ? "Translating…" : "Auto-translate to Hindi"}
+          </button>
+        </div>
         <div className="grid gap-4 md:grid-cols-2">
           <div>
             <label className="mb-1 block text-sm font-medium text-slate-700">Tender number</label>
@@ -124,7 +170,8 @@ export function TenderForm({
             <label className="mb-1 block text-sm font-medium text-slate-700">Title (Hindi)</label>
             <input
               name="titleHi"
-              defaultValue={tender?.title_hi ?? ""}
+              value={titleHi}
+              onChange={(e) => setTitleHi(e.target.value)}
               className="w-full rounded-lg border border-slate-300 px-3 py-2 font-hindi"
             />
           </div>
@@ -144,7 +191,8 @@ export function TenderForm({
             <textarea
               name="descriptionEn"
               rows={6}
-              defaultValue={tender?.description_en ?? ""}
+              value={descriptionEn}
+              onChange={(e) => setDescriptionEn(e.target.value)}
               className="w-full rounded-lg border border-slate-300 px-3 py-2"
             />
           </div>
@@ -153,7 +201,8 @@ export function TenderForm({
             <textarea
               name="descriptionHi"
               rows={6}
-              defaultValue={tender?.description_hi ?? ""}
+              value={descriptionHi}
+              onChange={(e) => setDescriptionHi(e.target.value)}
               className="w-full rounded-lg border border-slate-300 px-3 py-2 font-hindi"
             />
           </div>
@@ -249,7 +298,8 @@ export function TenderForm({
               <textarea
                 name="cancellationNoticeEn"
                 rows={4}
-                defaultValue={tender?.cancellation_notice_en ?? ""}
+                value={cancellationNoticeEn}
+                onChange={(e) => setCancellationNoticeEn(e.target.value)}
                 placeholder="Official cancellation notice text…"
                 className="w-full rounded-lg border border-slate-300 px-3 py-2"
               />
@@ -259,7 +309,8 @@ export function TenderForm({
               <textarea
                 name="cancellationNoticeHi"
                 rows={4}
-                defaultValue={tender?.cancellation_notice_hi ?? ""}
+                value={cancellationNoticeHi}
+                onChange={(e) => setCancellationNoticeHi(e.target.value)}
                 className="w-full rounded-lg border border-slate-300 px-3 py-2 font-hindi"
               />
             </div>

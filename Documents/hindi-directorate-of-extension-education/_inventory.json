@@ -1,0 +1,605 @@
+{
+  "college": "Directorate of Extension Education",
+  "pages": [
+    {
+      "slug": "a-p-r2017-18",
+      "title_en": "APR 2017-18",
+      "title_hi": null,
+      "content_len": 165,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "a-t-i-c",
+      "title_en": "ATIC",
+      "title_hi": null,
+      "content_len": 707,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "about-e-e-i-1",
+      "title_en": "About EEI",
+      "title_hi": null,
+      "content_len": 1714,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "achievements",
+      "title_en": "Achievements",
+      "title_hi": null,
+      "content_len": 505,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "achievements-33",
+      "title_en": "Achievements",
+      "title_hi": null,
+      "content_len": 167,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "aims-and-objectives",
+      "title_en": "Aims and objectives",
+      "title_hi": null,
+      "content_len": 1224,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "awards-honours-1",
+      "title_en": "Awards & Honours",
+      "title_hi": null,
+      "content_len": 217,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "awards-to-kvks-and-farmers",
+      "title_en": "Awards to KVKs and Farmers",
+      "title_hi": null,
+      "content_len": 181,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "c-d-a-p",
+      "title_en": "CDAP",
+      "title_hi": null,
+      "content_len": 2286,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "community-radio-station",
+      "title_en": "Community Radio Station",
+      "title_hi": null,
+      "content_len": 177,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "community-radio-station-1",
+      "title_en": "Community Radio Station",
+      "title_hi": null,
+      "content_len": 177,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "community-radio-station-2",
+      "title_en": "Community Radio Station",
+      "title_hi": null,
+      "content_len": 178,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "contact-us",
+      "title_en": "Contact us",
+      "title_hi": null,
+      "content_len": 409,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "cow-centric-ifs-model",
+      "title_en": "Cow Centric IFS Model",
+      "title_hi": null,
+      "content_len": 176,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "dee-agricultural-technology-information-centre",
+      "title_en": "Agricultural Technology Information Centre",
+      "title_hi": "कृषि प्रौद्योगिकी सूचना केंद्र",
+      "content_len": 1342,
+      "has_content_hi": true,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "dee-department",
+      "title_en": "Extension services",
+      "title_hi": "विभाग",
+      "content_len": 60,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "dee-directorate",
+      "title_en": "Directorate",
+      "title_hi": "निदेशालय",
+      "content_len": 3474,
+      "has_content_hi": true,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "dee-extension-education-institute-nilokheri",
+      "title_en": "Extension Education Institute, Nilokheri",
+      "title_hi": "विस्तार शिक्षा Institute, Nilokheri",
+      "content_len": 1732,
+      "has_content_hi": true,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "dee-farm-information-communication-services",
+      "title_en": "Farm Information & Communication Services",
+      "title_hi": "Farm Information एवं Communication Services",
+      "content_len": 1073,
+      "has_content_hi": true,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "dee-gallery",
+      "title_en": "Gallery",
+      "title_hi": "गैलरी",
+      "content_len": 0,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "dee-krishi-vigyan-kendras",
+      "title_en": "Krishi Vigyan Kendras",
+      "title_hi": "कृषि विज्ञान केंद्र",
+      "content_len": 103,
+      "has_content_hi": true,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "dee-publication-unit",
+      "title_en": "Publication Unit",
+      "title_hi": "प्रकाशन इकाई",
+      "content_len": 2861,
+      "has_content_hi": true,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "dee-saina-nehwal-institute-of-agricultural-technology-training-education",
+      "title_en": "Saina Nehwal Institute of Agricultural Technology, Training & Education",
+      "title_hi": "Saina Nehwal Institute of Agricultural Technology, प्रशिक्षण एवं Education",
+      "content_len": 1771,
+      "has_content_hi": true,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "directorate-of-extension-education",
+      "title_en": "Directorate of Extension Education",
+      "title_hi": null,
+      "content_len": 1786,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "dr-mangal-sein-agricultural-sciences-museum",
+      "title_en": "Dr. Mangal Sein Agricultural Sciences Museum",
+      "title_hi": null,
+      "content_len": 199,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "extension-activities-14",
+      "title_en": "Extension Activities",
+      "title_hi": null,
+      "content_len": 1319,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "extension-activities-2",
+      "title_en": "Extension activities",
+      "title_hi": null,
+      "content_len": 314,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "extension-activities-3",
+      "title_en": "Extension Activities",
+      "title_hi": null,
+      "content_len": 1508,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "facilities",
+      "title_en": "Facilities",
+      "title_hi": null,
+      "content_len": 1549,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "farm-advisory-service",
+      "title_en": "Farm advisory service",
+      "title_hi": null,
+      "content_len": 2768,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "farm-information-and-communication-service",
+      "title_en": "Farm information and communication service",
+      "title_hi": null,
+      "content_len": 462,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "farm-training-services",
+      "title_en": "Farm training services",
+      "title_hi": null,
+      "content_len": 317,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "farmers-first-scheme",
+      "title_en": "Farmers First Scheme",
+      "title_hi": null,
+      "content_len": 2390,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "fics",
+      "title_en": "Farm Information & Communication Services",
+      "title_hi": null,
+      "content_len": 698,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "infrastructure-27",
+      "title_en": "Infrastructure",
+      "title_hi": null,
+      "content_len": 365,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "infrastructure-29",
+      "title_en": "Infrastructure",
+      "title_hi": null,
+      "content_len": 382,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "infrastructure-30",
+      "title_en": "Infrastructure",
+      "title_hi": null,
+      "content_len": 169,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "infrastructure-laboratories-etc-12",
+      "title_en": "Infrastructure (laboratories etc.)",
+      "title_hi": null,
+      "content_len": 2970,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "k-v-k-s-contact-no",
+      "title_en": "KVK's Contact No",
+      "title_hi": null,
+      "content_len": 2980,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "krishi-melas-rabi-kharif",
+      "title_en": "Krishi melas (Rabi & Kharif)",
+      "title_hi": null,
+      "content_len": 187,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "list-of-s-p-i-o",
+      "title_en": "List of SPIO/ASPIO at KVK",
+      "title_hi": null,
+      "content_len": 126,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "machines-available",
+      "title_en": "Machines Available",
+      "title_hi": null,
+      "content_len": 5870,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "mandate-and-thurst-area-2",
+      "title_en": "Mandate and Thurst  Area",
+      "title_hi": null,
+      "content_len": 2111,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "mandate-of-the-directorate-of-extension-education",
+      "title_en": "Mandate of the Directorate of Extension Education",
+      "title_hi": null,
+      "content_len": 1099,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "mobile-diagnostic-cum-exhibition-van",
+      "title_en": "Mobile Diagnostic cum Exhibition Van",
+      "title_hi": null,
+      "content_len": 191,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "mous-between-ccshau-hisar-and-asci-cirb",
+      "title_en": "MoUs between CCSHAU, Hisar and ASCI & CIRB",
+      "title_hi": null,
+      "content_len": 2723,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "natural-farming-through-kvks",
+      "title_en": "Natural farming through KVKs",
+      "title_hi": null,
+      "content_len": 183,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "nomination-form",
+      "title_en": "Nomination Form",
+      "title_hi": null,
+      "content_len": 169,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "obectives",
+      "title_en": "Obectives",
+      "title_hi": null,
+      "content_len": 1476,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "objectives-5",
+      "title_en": "Objectives",
+      "title_hi": null,
+      "content_len": 501,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "objectives-6",
+      "title_en": "Objectives",
+      "title_hi": null,
+      "content_len": 1034,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "objectives-and-works",
+      "title_en": "Objectives and Works",
+      "title_hi": null,
+      "content_len": 2869,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "other-activities",
+      "title_en": "Other activities",
+      "title_hi": null,
+      "content_len": 2301,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "other-details-1",
+      "title_en": "Other details",
+      "title_hi": null,
+      "content_len": 1345,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "other-details-11",
+      "title_en": "Other details",
+      "title_hi": null,
+      "content_len": 168,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "other-details-9",
+      "title_en": "Other details",
+      "title_hi": null,
+      "content_len": 386,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "physical-facilites",
+      "title_en": "Physical facilites",
+      "title_hi": null,
+      "content_len": 608,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "physical-facilities",
+      "title_en": "Physical Facilities",
+      "title_hi": null,
+      "content_len": 2022,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "production-income-1",
+      "title_en": "Production & Income",
+      "title_hi": null,
+      "content_len": 704,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "production-income-11",
+      "title_en": "Production & Income",
+      "title_hi": null,
+      "content_len": 220,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "progressive-farmers",
+      "title_en": "Progressive farmers",
+      "title_hi": null,
+      "content_len": 506,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "publication-unit",
+      "title_en": "Publication unit",
+      "title_hi": null,
+      "content_len": 1490,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "publication-wing",
+      "title_en": "Publication Unit",
+      "title_hi": null,
+      "content_len": 552,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "publications",
+      "title_en": "Publications",
+      "title_hi": null,
+      "content_len": 1336,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "scientific-advisory-committee-meeting",
+      "title_en": "Scientific Advisory Committee Meeting",
+      "title_hi": null,
+      "content_len": 1274,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "seeds-other-products",
+      "title_en": "Seeds & other products",
+      "title_hi": null,
+      "content_len": 180,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "sniatte",
+      "title_en": "SNIATTE",
+      "title_hi": null,
+      "content_len": 789,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "teaching-research-achievements-1",
+      "title_en": "Teaching & Research Achievements",
+      "title_hi": null,
+      "content_len": 191,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "thrust-area-for-trainings",
+      "title_en": "Thrust Area for Trainings",
+      "title_hi": null,
+      "content_len": 1627,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "thurst-area-29",
+      "title_en": "Thurst Area",
+      "title_hi": null,
+      "content_len": 166,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "thurst-area-8",
+      "title_en": "Thurst Area",
+      "title_hi": null,
+      "content_len": 1016,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "training-workshops-for-the-year2018-19",
+      "title_en": "Annual Training Calendar 2018-19",
+      "title_hi": null,
+      "content_len": 186,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "trainings",
+      "title_en": "Trainings",
+      "title_hi": null,
+      "content_len": 657,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "trainings-1",
+      "title_en": "Trainings",
+      "title_hi": null,
+      "content_len": 22288,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "trainings-2",
+      "title_en": "Trainings",
+      "title_hi": null,
+      "content_len": 22032,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    }
+  ]
+}

@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Standard Development · UAT · Production Operations Plan</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --navy: #12263a;
+      --blue: #1f6feb;
+      --accent: #3d9cf0;
+      --text: #1a2332;
+      --muted: #5a6577;
+      --line: #d5dde8;
+      --bg: #f5f8fc;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Segoe UI", Calibri, Arial, sans-serif; color: var(--text); font-size: 11.5pt; line-height: 1.55; }
+    .page { max-width: 920px; margin: 0 auto; padding: 28px 36px 48px; }
+    .cover {
+      background: linear-gradient(150deg, #12263a 0%, #1a3a5c 50%, #24507a 100%);
+      color: #fff; border-radius: 8px; padding: 40px 34px; margin-bottom: 28px;
+    }
+    .cover .eyebrow { color: #9ec9ff; text-transform: uppercase; letter-spacing: .08em; font-size: 11px; font-weight: 700; margin-bottom: 12px; }
+    .cover h1 { margin: 0 0 12px; font-size: 26px; line-height: 1.25; }
+    .cover p { margin: 0 0 6px; color: #d5e4f5; }
+    .cover .meta {
+      margin-top: 24px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,.22);
+      display: grid; grid-template-columns: 1fr 1fr; gap: 6px 20px; font-size: 12px; color: #c8daf0;
+    }
+    h2 { color: var(--navy); border-bottom: 2px solid var(--accent); padding-bottom: 6px; margin-top: 34px; font-size: 17px; page-break-after: avoid; }
+    h3 { color: var(--navy); margin-top: 18px; font-size: 13.5px; page-break-after: avoid; }
+    .toc { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 16px 20px; }
+    .toc ol { margin: 8px 0 0; padding-left: 22px; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 16px; font-size: 10.5pt; page-break-inside: avoid; }
+    th, td { border: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: top; }
+    th { background: var(--navy); color: #fff; }
+    tr:nth-child(even) td { background: #f8fafc; }
+    code { font-family: Consolas, "Courier New", monospace; font-size: 10pt; background: #eaf0f7; padding: 1px 5px; border-radius: 3px; }
+    pre { background: #101925; color: #e6edf5; padding: 14px 16px; border-radius: 8px; font-size: 10pt; overflow-x: auto; page-break-inside: avoid; }
+    pre code { background: transparent; color: inherit; padding: 0; }
+    .mermaid { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 14px 8px; margin: 12px 0 18px; text-align: center; page-break-inside: avoid; }
+    .callout { border-left: 4px solid var(--blue); background: var(--bg); padding: 11px 13px; margin: 12px 0; border-radius: 0 6px 6px 0; }
+    .callout.warn { border-left-color: #c48a1a; background: #fff8e8; }
+    .callout.danger { border-left-color: #b42318; background: #fff1f0; }
+    .callout.ok { border-left-color: #0f7b4c; background: #edf8f2; }
+    .step { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; margin: 10px 0; page-break-inside: avoid; }
+    .step .num { display: inline-block; min-width: 26px; height: 26px; line-height: 26px; text-align: center; border-radius: 50%; background: var(--accent); color: #fff; font-weight: 700; margin-right: 8px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+    .card { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; background: var(--bg); page-break-inside: avoid; }
+    .card h4 { margin: 0 0 8px; color: var(--navy); }
+    .footer-note { margin-top: 36px; padding-top: 12px; border-top: 1px solid var(--line); font-size: 10pt; color: var(--muted); }
+    ul.checklist li { margin: 3px 0; }
+    @media print {
+      .page { padding: 0; max-width: none; }
+      .cover { break-after: page; }
+      h2 { break-before: page; }
+      h2.first { break-before: auto; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+  <section class="cover">
+    <div class="eyebrow">Siyana Info Solutions — Standard Operating Plan</div>
+    <h1>Development · UAT · Production</h1>
+    <p>Common plan for <strong>all projects</strong> — merge, deployment, maintain, rollback &amp; versioning</p>
+    <p>Scope: <strong>Frontend</strong> · <strong>API</strong> · <strong>Database</strong></p>
+    <div class="meta">
+      <div><strong>Applies to:</strong> All web projects (e.g. CCSHAU, Siyana Website, future apps)</div>
+      <div><strong>Document version:</strong> 2.0 · 8 September 2026</div>
+      <div><strong>Environments:</strong> Development · UAT · Production</div>
+      <div><strong>Layers:</strong> Frontend + API + Database</div>
+    </div>
+  </section>
+
+  <section class="toc">
+    <strong>Table of Contents</strong>
+    <ol>
+      <li>Purpose &amp; golden rules</li>
+      <li>Environment model (all projects)</li>
+      <li>Architecture diagrams</li>
+      <li>Versioning standard</li>
+      <li>Common merge steps</li>
+      <li>Common deployment steps</li>
+      <li>Common maintain steps</li>
+      <li>Common rollback steps</li>
+      <li>Frontend / API / Database checklist</li>
+      <li>Release &amp; incident checklists</li>
+      <li>How to apply this to any project</li>
+    </ol>
+  </section>
+
+  <h2 class="first">1. Purpose &amp; golden rules</h2>
+  <p>
+    This document is the <strong>standard operating plan</strong> for every Siyana Info Solutions web project.
+    Use the same Development → UAT → Production flow, the same merge rules, and the same rollback approach
+    so teams can maintain code safely and consistently.
+  </p>
+  <div class="callout ok">
+    <strong>Golden rule:</strong>
+    Code in Git. Secrets outside Git (hosting + DB portals). One release tag = Frontend + API + Database migrations together. Always keep a rollback target.
+  </div>
+  <div class="grid-3">
+    <div class="card"><h4>Do</h4><ul><li>Use 3 environments</li><li>Promote via Pull Request</li><li>Tag Production releases</li><li>Record rollback target</li></ul></div>
+    <div class="card"><h4>Don’t</h4><ul><li>Commit secrets</li><li>Push direct to Production</li><li>Share Production DB with Dev</li><li>Edit old migrations</li></ul></div>
+    <div class="card"><h4>Scope</h4><ul><li>Frontend app</li><li>API / server routes</li><li>Database schema &amp; data safety</li><li>Not auth-policy extras</li></ul></div>
+  </div>
+
+  <h2>2. Environment model (all projects)</h2>
+  <table>
+    <thead>
+      <tr><th>Environment</th><th>Git branch</th><th>Frontend</th><th>API</th><th>Database</th><th>Who uses</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Development</strong></td>
+        <td><code>develop</code> / <code>feature/*</code></td>
+        <td>Local + Dev/Preview host</td>
+        <td>Same app / services as Dev</td>
+        <td>Dev DB project</td>
+        <td>Developers</td>
+      </tr>
+      <tr>
+        <td><strong>UAT</strong></td>
+        <td><code>uat</code></td>
+        <td>UAT URL / domain</td>
+        <td>UAT deploy</td>
+        <td>UAT DB project</td>
+        <td>QA + stakeholders</td>
+      </tr>
+      <tr>
+        <td><strong>Production</strong></td>
+        <td><code>main</code> + tag <code>vX.Y.Z</code></td>
+        <td>Live domain</td>
+        <td>Live deploy</td>
+        <td>Production DB</td>
+        <td>End users</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="callout warn">
+    Never point Development or UAT frontends at the Production database. Each environment must have its own DB project (or clearly separated instance) and its own secret set.
+  </div>
+
+  <h2>3. Architecture diagrams</h2>
+
+  <h3>3.1 Standard stack layers</h3>
+  <div class="mermaid">
+flowchart LR
+  FE[Frontend<br/>Web UI] --> API[API Layer<br/>Server Actions / Routes / Functions]
+  API --> DB[(Database<br/>Postgres / Supabase)]
+  MIG[Git migrations] -.->|apply per env| DB
+  CFG[Env secrets] -.-> FE
+  CFG -.-> API
+  </div>
+
+  <h3>3.2 Three isolated environments</h3>
+  <div class="mermaid">
+flowchart TB
+  subgraph DEV[Development]
+    D1[feature / develop]
+    D2[Dev Frontend + API]
+    D3[(Dev Database)]
+    D1 --> D2 --> D3
+  end
+  subgraph UAT[UAT]
+    U1[uat branch]
+    U2[UAT Frontend + API]
+    U3[(UAT Database)]
+    U1 --> U2 --> U3
+  end
+  subgraph PROD[Production]
+    P1[main + version tag]
+    P2[Live Frontend + API]
+    P3[(Production Database)]
+    P1 --> P2 --> P3
+  end
+  DEV -->|Merge PR + smoke test| UAT
+  UAT -->|Merge PR + sign-off| PROD
+  </div>
+
+  <h3>3.3 Common merge flow</h3>
+  <div class="mermaid">
+gitGraph
+  commit id: "v1.0.0"
+  branch develop
+  checkout develop
+  commit id: "integrate"
+  branch feature-x
+  checkout feature-x
+  commit id: "change"
+  checkout develop
+  merge feature-x
+  branch uat
+  checkout uat
+  commit id: "UAT build"
+  checkout main
+  merge uat tag: "v1.1.0"
+  </div>
+
+  <h3>3.4 Common deployment pipeline</h3>
+  <div class="mermaid">
+sequenceDiagram
+  participant Dev as Developer
+  participant GH as GitHub
+  participant D as Development
+  participant U as UAT
+  participant P as Production
+  Dev->>GH: PR feature to develop
+  GH->>D: Deploy FE+API / apply DB
+  Dev->>GH: PR develop to uat
+  GH->>U: Deploy UAT FE+API / apply DB
+  Note over U: QA + sign-off
+  Dev->>GH: PR uat to main + tag
+  GH->>P: Deploy Production FE+API
+  Note over P: Apply DB then smoke test
+  </div>
+
+  <h3>3.5 Rollback decision flow</h3>
+  <div class="mermaid">
+flowchart TB
+  A[Issue after release] --> B{What broke?}
+  B -->|Frontend / API only| C[Redeploy previous version tag]
+  B -->|Database only| D[Reverse migration or restore backup]
+  B -->|Both| E[Rollback FE+API tag AND restore matching DB]
+  C --> F[Smoke test]
+  D --> F
+  E --> F
+  F --> G[Record incident + patch version]
+  </div>
+
+  <h3>3.6 Maintain cycle</h3>
+  <div class="mermaid">
+flowchart LR
+  A[Monitor] --> B[Fix on feature branch]
+  B --> C[Merge develop]
+  C --> D[UAT verify]
+  D --> E[Production tag]
+  E --> A
+  E --> F[Keep previous tag ready]
+  F -->|if issue| G[Rollback]
+  G --> A
+  </div>
+
+  <h2>4. Versioning standard</h2>
+  <pre><code>vMAJOR.MINOR.PATCH
+
+MAJOR  = breaking Frontend / API / Database contract
+MINOR  = new feature
+PATCH  = bug fix / hotfix / rollback patch</code></pre>
+  <table>
+    <thead><tr><th>Release artifact</th><th>Must include</th></tr></thead>
+    <tbody>
+      <tr><td>Git tag <code>vX.Y.Z</code></td><td>Exact commit for Frontend + API</td></tr>
+      <tr><td>Release notes</td><td>List of DB migrations in this version</td></tr>
+      <tr><td>Rollback target</td><td>Previous tag e.g. <code>vX.Y.Z-1</code></td></tr>
+      <tr><td>Deploy record</td><td>Hosting deployment id / time</td></tr>
+    </tbody>
+  </table>
+  <div class="callout">
+    <strong>Version package:</strong> Frontend code + API code (same commit) + migration list + rollback tag. Never release only one layer without noting the others.
+  </div>
+
+  <h2>5. Common merge steps</h2>
+  <div class="step"><span class="num">1</span> Create <code>feature/ticket-name</code> from <code>develop</code>.</div>
+  <div class="step"><span class="num">2</span> Implement Frontend and/or API changes; add a <strong>new</strong> DB migration file if schema changes.</div>
+  <div class="step"><span class="num">3</span> Open Pull Request → <code>develop</code>. Wait for CI (lint/test/build) to pass. Get review if required by project.</div>
+  <div class="step"><span class="num">4</span> Merge to <code>develop</code>. Deploy Development. Apply Dev migrations.</div>
+  <div class="step"><span class="num">5</span> When ready for QA: Pull Request <code>develop</code> → <code>uat</code>. Merge. Deploy UAT. Apply UAT migrations.</div>
+  <div class="step"><span class="num">6</span> After UAT sign-off: Pull Request <code>uat</code> → <code>main</code>. Merge. Create tag <code>vX.Y.Z</code>.</div>
+  <div class="step"><span class="num">7</span> Hotfix only: branch from <code>main</code> → fix → PR to <code>main</code> (patch tag) → also merge back to <code>uat</code> and <code>develop</code>.</div>
+
+  <h3>Branch protection (all projects)</h3>
+  <ul>
+    <li>No direct commits to <code>uat</code> or <code>main</code></li>
+    <li>Require Pull Request</li>
+    <li>Require green CI before merge</li>
+    <li>Block force-push on protected branches</li>
+    <li>Keep repository private; least-privilege access</li>
+    <li>Never store secrets in Git; use <code>.env.example</code> placeholders only</li>
+  </ul>
+
+  <h2>6. Common deployment steps</h2>
+  <h3>6.1 Development</h3>
+  <ol>
+    <li>Merge to <code>develop</code></li>
+    <li>Auto/manual deploy Frontend + API to Dev host</li>
+    <li>Run DB migrations on Dev database</li>
+    <li>Smoke test critical screens + one write API</li>
+  </ol>
+  <h3>6.2 UAT</h3>
+  <ol>
+    <li>Merge <code>develop</code> → <code>uat</code></li>
+    <li>Deploy Frontend + API to UAT host</li>
+    <li>Apply same migrations to UAT database</li>
+    <li>QA executes test plan; collect sign-off</li>
+  </ol>
+  <h3>6.3 Production</h3>
+  <ol>
+    <li>Merge <code>uat</code> → <code>main</code></li>
+    <li>Create and push tag <code>vX.Y.Z</code></li>
+    <li>Note previous production tag as rollback target</li>
+    <li>Confirm Production secrets are set</li>
+    <li>Deploy Frontend + API to Production</li>
+    <li>Apply Production DB migrations (after backup / restore point noted)</li>
+    <li>Run Production smoke checklist</li>
+  </ol>
+  <div class="callout warn">
+    <strong>Deploy order tip:</strong> Prefer backward-compatible DB changes. Expand schema → deploy code → later contract. For breaking changes, use a short maintenance window and a clear rollback plan.
+  </div>
+
+  <h2>7. Common maintain steps</h2>
+  <div class="grid-2">
+    <div class="card">
+      <h4>Weekly / ongoing</h4>
+      <ul>
+        <li>Monitor errors / failed deploys</li>
+        <li>Keep <code>develop</code> healthy</li>
+        <li>Do not let UAT drift far from Production</li>
+        <li>Apply security dependency patches via normal PR flow</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Every release</h4>
+      <ul>
+        <li>Update release notes + migration list</li>
+        <li>Confirm backup exists before Prod DB change</li>
+        <li>Verify env vars still correct after host changes</li>
+        <li>Retire unused feature branches</li>
+      </ul>
+    </div>
+  </div>
+  <h3>Maintain code quality</h3>
+  <ul>
+    <li>Small PRs; one purpose per feature branch</li>
+    <li>API input validation on server side</li>
+    <li>Database RLS / least privileges</li>
+    <li>No service-role / admin keys in Frontend</li>
+    <li>Log errors without dumping secrets or full PII where avoidable</li>
+  </ul>
+
+  <h2>8. Common rollback steps</h2>
+  <table>
+    <thead><tr><th>If this fails</th><th>Rollback action</th><th>Then</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>Frontend / API</strong> only</td>
+        <td>Redeploy previous hosting deployment <strong>or</strong> redeploy previous git tag</td>
+        <td>Smoke test UI + API health</td>
+      </tr>
+      <tr>
+        <td><strong>Database</strong> only</td>
+        <td>Add reverse migration <strong>or</strong> restore DB backup to pre-release point</td>
+        <td>Confirm schema matches running app version</td>
+      </tr>
+      <tr>
+        <td><strong>Both</strong></td>
+        <td>Rollback Frontend+API to previous tag <strong>and</strong> restore DB to matching version</td>
+        <td>Full smoke test; publish patch notes</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Step-by-step rollback</h3>
+  <div class="step"><span class="num">1</span> Stop further Production merges.</div>
+  <div class="step"><span class="num">2</span> Identify failing layer (Frontend / API / Database / both).</div>
+  <div class="step"><span class="num">3</span> Rollback Frontend+API to last good tag (hosting UI or git revert + patch tag).</div>
+  <div class="step"><span class="num">4</span> If DB changed: reverse migration if safe; otherwise restore backup.</div>
+  <div class="step"><span class="num">5</span> Ensure app version and DB schema match.</div>
+  <div class="step"><span class="num">6</span> Smoke test Production.</div>
+  <div class="step"><span class="num">7</span> Open hotfix on <code>main</code>; merge back to <code>uat</code> and <code>develop</code>.</div>
+
+  <div class="callout danger">
+    After any DB restore, the running Frontend/API must be the version that matches that schema. Rolling only one side can leave Production broken.
+  </div>
+
+  <h2>9. Frontend / API / Database checklist</h2>
+  <table>
+    <thead><tr><th>Layer</th><th>Merge</th><th>Deploy</th><th>Maintain</th><th>Rollback</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>Frontend</strong></td>
+        <td>PR includes UI changes; CI build passes</td>
+        <td>Host build with correct <code>NEXT_PUBLIC_*</code> / public env per environment</td>
+        <td>Fix via feature PR; keep preview for review</td>
+        <td>Previous hosting deploy / previous tag</td>
+      </tr>
+      <tr>
+        <td><strong>API</strong></td>
+        <td>PR includes server routes/actions; auth checks intact</td>
+        <td>Server secrets set per env (service key, cron, webhooks)</td>
+        <td>Monitor 5xx; patch via PR</td>
+        <td>Same deploy unit as Frontend (redeploy previous tag)</td>
+      </tr>
+      <tr>
+        <td><strong>Database</strong></td>
+        <td>New migration file in Git; never rewrite applied files</td>
+        <td>Apply Dev → UAT → Prod with same files</td>
+        <td>Backups on; review grants/RLS</td>
+        <td>Reverse migration or restore backup + match app tag</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>10. Release &amp; incident checklists</h2>
+  <h3>Before UAT</h3>
+  <ul class="checklist">
+    <li>□ PR reviewed / CI green</li>
+    <li>□ Migrations listed</li>
+    <li>□ Dev smoke passed</li>
+    <li>□ UAT secrets verified</li>
+  </ul>
+  <h3>Before Production</h3>
+  <ul class="checklist">
+    <li>□ UAT signed off</li>
+    <li>□ Rollback target tag written in release notes</li>
+    <li>□ Production backup / restore point noted</li>
+    <li>□ Production env vars confirmed</li>
+    <li>□ Tag <code>vX.Y.Z</code> created</li>
+  </ul>
+  <h3>After Production</h3>
+  <ul class="checklist">
+    <li>□ Health / home page OK</li>
+    <li>□ One critical write path OK (form / admin / API)</li>
+    <li>□ DB migration applied cleanly</li>
+    <li>□ Release notes published</li>
+  </ul>
+  <h3>If rollback</h3>
+  <ul class="checklist">
+    <li>□ Layer identified</li>
+    <li>□ FE/API restored to previous tag if needed</li>
+    <li>□ DB reversed or restored if needed</li>
+    <li>□ Versions matched</li>
+    <li>□ Smoke passed</li>
+    <li>□ Hotfix merged back to uat + develop</li>
+  </ul>
+
+  <h2>11. How to apply this to any project</h2>
+  <table>
+    <thead><tr><th>Step</th><th>Action once per project</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Create branches <code>develop</code>, <code>uat</code>, <code>main</code></td></tr>
+      <tr><td>2</td><td>Protect <code>uat</code> and <code>main</code> (PR + CI)</td></tr>
+      <tr><td>3</td><td>Create 3 DB projects (Dev / UAT / Production)</td></tr>
+      <tr><td>4</td><td>Configure 3 hosting environments with separate secrets</td></tr>
+      <tr><td>5</td><td>Map branches to deploys</td></tr>
+      <tr><td>6</td><td>Start tagging Production as <code>vX.Y.Z</code></td></tr>
+      <tr><td>7</td><td>Practice one rollback drill on UAT</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Project mapping examples</h3>
+  <table>
+    <thead><tr><th>Project</th><th>Frontend</th><th>API</th><th>Database</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>CCSHAU Website</strong></td>
+        <td>Next.js <code>apps/web</code> on Vercel</td>
+        <td>Server Actions + <code>/api/*</code></td>
+        <td>Supabase migrations <code>supabase/migrations</code></td>
+      </tr>
+      <tr>
+        <td><strong>Siyana Website</strong></td>
+        <td>Next.js static export on Vercel</td>
+        <td>Supabase Edge Function + webhooks</td>
+        <td>Supabase lead tables + migrations</td>
+      </tr>
+      <tr>
+        <td><strong>Any new project</strong></td>
+        <td>App host (Vercel/other)</td>
+        <td>Server/API layer of that stack</td>
+        <td>Migration-based DB with backups</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout ok">
+    <strong>One-line summary for all projects:</strong>
+    Develop on <code>develop</code>, validate on <code>uat</code>, release from <code>main</code> with version tags, deploy Frontend + API + Database together, and always keep a previous version ready to rollback.
+  </div>
+
+  <div class="footer-note">
+    Siyana Info Solutions — Standard Development / UAT / Production Operations Plan v2.0<br />
+    Use this as the common process for CCSHAU, Siyana Website, and future repositories.<br />
+    Layers covered: Frontend · API · Database · Merge · Deploy · Maintain · Rollback · Versioning
+  </div>
+</div>
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'base',
+    securityLevel: 'loose',
+    themeVariables: {
+      primaryColor: '#3d9cf0',
+      primaryTextColor: '#12263a',
+      primaryBorderColor: '#12263a',
+      lineColor: '#4a5d73',
+      secondaryColor: '#e8f2fc',
+      tertiaryColor: '#f5f8fc',
+      fontFamily: 'Segoe UI, Arial, sans-serif'
+    }
+  });
+</script>
+</body>
+</html>

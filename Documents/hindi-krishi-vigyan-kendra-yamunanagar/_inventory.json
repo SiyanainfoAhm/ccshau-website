@@ -1,0 +1,101 @@
+{
+  "college": "KRISHI VIGYAN KENDRA, YAMUNANAGAR",
+  "pages": [
+    {
+      "slug": "achievements-15",
+      "title_en": "Achievements",
+      "title_hi": null,
+      "content_len": 167,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "activities-9",
+      "title_en": "Activities",
+      "title_hi": null,
+      "content_len": 165,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "awards-and-honors-10",
+      "title_en": "Awards and Honors",
+      "title_hi": null,
+      "content_len": 172,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "home-4",
+      "title_en": "Home",
+      "title_hi": null,
+      "content_len": 2037,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "information-under-rti-act-2005-rule-4-i-1",
+      "title_en": "Information under RTI Act 2005 Rule 4 (I)",
+      "title_hi": null,
+      "content_len": 196,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "infrastructurelaboratories-etc-6",
+      "title_en": "Infrastructure (laboratories etc.)",
+      "title_hi": null,
+      "content_len": 189,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "krishi-vigyan-kendra-yamunanagar",
+      "title_en": "KRISHI VIGYAN KENDRA, YAMUNANAGAR",
+      "title_hi": "कृषि विज्ञान केंद्र, यमुनानगर",
+      "content_len": 1690,
+      "has_content_hi": true,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "kvk-yamunanagar-gallery",
+      "title_en": "Gallery",
+      "title_hi": "गैलरी",
+      "content_len": 0,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    },
+    {
+      "slug": "mandate-and-thurs-areas-3",
+      "title_en": "Mandate and Thurs Areas",
+      "title_hi": null,
+      "content_len": 178,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "ongoing-research-projects-17",
+      "title_en": "Ongoing Research  Projects",
+      "title_hi": null,
+      "content_len": 181,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "publication-5",
+      "title_en": "Publication",
+      "title_hi": null,
+      "content_len": 166,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": true
+    },
+    {
+      "slug": "yamunanagar-department",
+      "title_en": "Departments",
+      "title_hi": "विभाग",
+      "content_len": 59,
+      "has_content_hi": false,
+      "likely_pdf_placeholder": false
+    }
+  ]
+}
