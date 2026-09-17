@@ -92,6 +92,25 @@ export async function uploadNewsAttachments(
   );
 }
 
+/** Upload an admin-supplied image/document and return its public stored path. */
+export async function uploadManualPublicFile(file: File): Promise<ActionResult<string>> {
+  const prepared = await prepareValidatedUpload(file);
+  if (!prepared.ok) return fail(prepared.error);
+
+  const now = new Date();
+  const month = String(now.getUTCMonth() + 1).padStart(2, "0");
+  const fileName = `${crypto.randomUUID()}-${sanitizeFileName(file.name)}`;
+  const path = `manual-uploads/${now.getUTCFullYear()}/${month}/${fileName}`;
+
+  return putBlob(
+    STORAGE_BUCKETS.public,
+    path,
+    prepared.buffer,
+    prepared.contentType,
+    file.name,
+  );
+}
+
 export async function uploadTenderDocuments(
   admin: UnusedAdmin,
   tenderId: string,

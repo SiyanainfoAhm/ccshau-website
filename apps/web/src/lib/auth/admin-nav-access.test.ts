@@ -57,9 +57,11 @@ describe("admin-nav-access", () => {
 
     const uniAccess = getAdminNavAccess(mockAdminSession({ role: "university_admin" }));
     expect(canAccessAdminPath(uniAccess, "/admin/settings/change-password")).toBe(true);
+    expect(canAccessAdminPath(uniAccess, "/admin/settings/azure-upload")).toBe(true);
 
     const editorAccess = getAdminNavAccess(mockAdminSession({ role: "editor" }));
     expect(canAccessAdminPath(editorAccess, "/admin/settings/change-password")).toBe(false);
+    expect(canAccessAdminPath(editorAccess, "/admin/settings/azure-upload")).toBe(false);
   });
 
   // Editor with pages-only allow-list can open pages but not tenders.
