@@ -36,6 +36,17 @@ export default async function AdminSettingsPage() {
           <p className="font-semibold text-slate-900">Change password</p>
           <p className="mt-1 text-sm text-slate-500">Update your admin login password</p>
         </Link>
+        {(isSuperAdmin || isUniversityAdmin || isDeptAdmin) && (
+          <Link
+            href="/admin/settings/azure-upload"
+            className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm hover:border-emerald-300"
+          >
+            <p className="font-semibold text-slate-900">Upload to Azure</p>
+            <p className="mt-1 text-sm text-slate-500">
+              Upload an image or document and copy its public link
+            </p>
+          </Link>
+        )}
         {canManageStructure && (
           <>
             <Link
