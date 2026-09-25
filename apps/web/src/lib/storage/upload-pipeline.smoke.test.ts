@@ -116,15 +116,16 @@ describe("upload pipeline smoke", () => {
     if (!spoofResult.ok) expect(spoofResult.error).toMatch(/does not match|verify/i);
   });
 
-  // Media pipeline accepts MP4 and rejects PDF as media.
-  it("accepts MP4 via media upload pipeline and rejects PDF as media", async () => {
+  // Media pipeline accepts MP4 and PDF.
+  it("accepts MP4 and PDF via media upload pipeline", async () => {
     const video = fileFromBytes("clip.mp4", "video/mp4", MP4);
     const okVideo = await prepareValidatedMediaUpload(video);
     expect(okVideo.ok).toBe(true);
     if (okVideo.ok) expect(okVideo.contentType).toBe("video/mp4");
 
     const pdfAsMedia = fileFromBytes("doc.pdf", "application/pdf", PDF);
-    const bad = await prepareValidatedMediaUpload(pdfAsMedia);
-    expect(bad.ok).toBe(false);
+    const pdfResult = await prepareValidatedMediaUpload(pdfAsMedia);
+    expect(pdfResult.ok).toBe(true);
+    if (pdfResult.ok) expect(pdfResult.contentType).toBe("application/pdf");
   });
 });

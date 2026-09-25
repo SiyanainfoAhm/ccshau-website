@@ -228,6 +228,7 @@ export async function upsertPersonAndAssignment(
     staff_slug: assignment.staffSlug,
     sort_order: assignment.sortOrder,
     is_active: assignment.isActive ?? true,
+    is_deleted: false,
   };
 
   let assignmentId: string;
@@ -401,7 +402,10 @@ export async function deleteFacultyAssignment(
   admin: SupabaseClient,
   assignmentId: string,
 ): Promise<void> {
-  const { error } = await admin.from(Tables.facultyAssignments).delete().eq("id", assignmentId);
+  const { error } = await admin
+    .from(Tables.facultyAssignments)
+    .update({ is_deleted: true, is_active: false })
+    .eq("id", assignmentId);
   if (error) throw new Error(error.message);
 }
 
@@ -472,7 +476,8 @@ export async function listPublicStaffForPage(
     .from(Tables.facultyAssignments)
     .select("*")
     .eq("page_id", pageId)
-    .eq("is_active", true);
+    .eq("is_active", true)
+    .eq("is_deleted", false);
   const rows = (assignments ?? []) as FacultyAssignment[];
   if (!rows.length) return [];
 
@@ -520,6 +525,7 @@ export async function getPublicFacultyFromAssignment(
     .eq("page_id", pageId)
     .eq("staff_slug", facultySlug)
     .eq("is_active", true)
+    .eq("is_deleted", false)
     .maybeSingle();
   if (!assignment) return null;
 
@@ -554,6 +560,7 @@ async function listAlsoAtForPeople(
     .select("person_id, page_id, staff_slug")
     .in("person_id", personIds)
     .eq("is_active", true)
+    .eq("is_deleted", false)
     .neq("page_id", excludePageId);
   if (!others?.length) return result;
   const uniquePersonIds = [...new Set(others.map((row) => row.person_id as string))];
@@ -573,6 +580,7 @@ async function listAlsoAt(
     .select("page_id, staff_slug")
     .eq("person_id", personId)
     .eq("is_active", true)
+    .eq("is_deleted", false)
     .neq("page_id", excludePageId);
   if (!others?.length) return [];
 
@@ -650,7 +658,8 @@ export async function searchFacultyPeople(
       "person_id",
       rows.map((p) => p.id),
     )
-    .eq("is_active", true);
+    .eq("is_active", true)
+    .eq("is_deleted", false);
   const pageIds = [...new Set((assignments ?? []).map((a) => a.page_id as string))];
   const { data: pages } = pageIds.length
     ? await admin.from(Tables.pages).select("id, title_en").in("id", pageIds)

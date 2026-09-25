@@ -198,7 +198,8 @@ export async function listStaffPagesForRegister(
     .from(Tables.facultyAssignments)
     .select("id", { count: "exact", head: true })
     .eq("page_id", collegePageId)
-    .eq("is_active", true);
+    .eq("is_active", true)
+    .eq("is_deleted", false);
   if (!count) return departments;
 
   const { data: college } = await admin
@@ -238,7 +239,8 @@ export async function listAccessibleStaffPageIds(session: AdminSession): Promise
   const { data: assignmentRows } = await admin
     .from(Tables.facultyAssignments)
     .select("page_id")
-    .eq("is_active", true);
+    .eq("is_active", true)
+    .eq("is_deleted", false);
   const pageIds = [...new Set((assignmentRows ?? []).map((row) => row.page_id as string))];
   if (!pageIds.length) return ids;
 
@@ -307,6 +309,7 @@ async function listFacultyForRegisterFromDepartments(
     .select("id, person_id, page_id, designation_en, member_type, staff_slug, is_active, sort_order")
     .in("page_id", deptIds)
     .eq("is_active", true)
+    .eq("is_deleted", false)
     .order("sort_order")
     .order("staff_slug");
 
@@ -329,7 +332,8 @@ async function listFacultyForRegisterFromDepartments(
       .from(Tables.facultyAssignments)
       .select("person_id, page_id")
       .in("person_id", personIds)
-      .eq("is_active", true),
+      .eq("is_active", true)
+      .eq("is_deleted", false),
   ]);
   const personById = new Map(
     ((people ?? []) as Array<{ id: string; name_en: string; email: string | null }>).map((row) => [row.id, row]),

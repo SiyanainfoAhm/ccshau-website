@@ -22,6 +22,7 @@ export const SELECTED_LAYOUT = {
     rti: "/rti",
     farmersPortal: "/farmers-portal",
     quickLinks: "/quick-links",
+    screenReaderAccess: "/screen-reader-access",
     pages: "/pages",
   },
 } as const;

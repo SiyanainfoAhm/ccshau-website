@@ -9,7 +9,7 @@ const DOC_MIME = [
 const VIDEO_MIME = ["video/mp4", "video/webm"] as const;
 
 export const ALLOWED_UPLOAD_MIME = [...IMAGE_MIME, ...DOC_MIME] as const;
-export const ALLOWED_MEDIA_UPLOAD_MIME = [...IMAGE_MIME, ...VIDEO_MIME] as const;
+export const ALLOWED_MEDIA_UPLOAD_MIME = [...IMAGE_MIME, ...VIDEO_MIME, "application/pdf"] as const;
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const MAX_DOC_BYTES = 25 * 1024 * 1024;
@@ -143,13 +143,17 @@ export function validateUploadFile(file: File): string | null {
   return null;
 }
 
-/** Images + album videos (MP4/WebM up to 100 MB). */
+/** Images, PDFs, and album videos (MP4/WebM up to 100 MB). */
 export function validateMediaUploadFile(file: File): string | null {
   if (!ALLOWED_MEDIA_UPLOAD_MIME.includes(file.type as AllowedMediaMime)) {
-    return `File type not allowed: ${file.type || "unknown"}. Use JPEG/PNG/WebP/GIF or MP4/WebM.`;
+    return `File type not allowed: ${file.type || "unknown"}. Use JPEG/PNG/WebP/GIF, PDF, or MP4/WebM.`;
   }
 
-  const max = file.type.startsWith("video/") ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
+  const max = file.type.startsWith("video/")
+    ? MAX_VIDEO_BYTES
+    : file.type === "application/pdf"
+      ? MAX_DOC_BYTES
+      : MAX_IMAGE_BYTES;
   if (file.size > max) {
     return `File too large: ${file.name} (max ${Math.round(max / 1024 / 1024)} MB)`;
   }

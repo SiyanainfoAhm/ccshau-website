@@ -108,10 +108,14 @@ export function enrichHomepageQuotes(quotes: LegacyQuote[]): LegacyQuote[] {
       legacyQuotes[index] ??
       legacyQuotes[0];
 
+    const cmsImage = quote.imageUrl?.trim() ?? "";
+    const imageUrl =
+      cmsImage.startsWith("/") || /^https?:\/\//i.test(cmsImage) ? cmsImage : legacy.imageUrl;
+
     return {
       ...quote,
       authorShortHi: quote.authorShortHi ?? legacy.authorShortHi,
-      imageUrl: quote.imageUrl?.trim() || legacy.imageUrl,
+      imageUrl,
     };
   });
 }

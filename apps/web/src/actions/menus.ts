@@ -141,6 +141,7 @@ async function listPublishedPagesForMenuEditor(
       .from(Tables.pages)
       .select("id, slug, title_en, page_type")
       .eq("status", "published")
+      .eq("is_deleted", false)
       .order("title_en")
       .range(from, from + pageSize - 1);
 

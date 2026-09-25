@@ -14,19 +14,16 @@ import {
 } from "@/lib/banners/hero-display";
 import type { PublicHeroSlide } from "@/lib/data/public-types";
 import { typeBodyLgClass, typeHeroDisplayClass } from "@/lib/design/public-page-classes";
-import { SELECTED_LAYOUT } from "@/lib/design/selected-layout";
 import { heroSlides as mockHeroSlides, university } from "@/lib/mock/site-content";
 
 export function HeroCarousel({
   variant = "future",
   slides: slidesProp,
-  tendersPath = SELECTED_LAYOUT.routes.tenders,
   primaryCtaHref,
   secondaryCtaHref,
 }: {
   variant?: "heritage" | "future" | "ministry";
   slides?: PublicHeroSlide[];
-  tendersPath?: string;
   primaryCtaHref?: string;
   secondaryCtaHref?: string;
 }) {
@@ -242,16 +239,6 @@ export function HeroCarousel({
               {displaySubtitle}
             </p>
           )}
-
-          <div className={`flex flex-wrap gap-4 ${displayTitle || displaySubtitle ? "mt-10" : ""}`}>
-            <Link
-              href={tendersPath}
-              className="group inline-flex items-center gap-2 rounded-2xl gradient-gold px-8 py-4 font-bold text-emerald-950 shadow-xl shadow-amber-500/25 transition hover:scale-105"
-            >
-              {t("View Tenders", "निविदाएं देखें")}
-              <ArrowRight className="h-5 w-5 transition group-hover:translate-x-1" />
-            </Link>
-          </div>
         </div>
 
         <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-2" role="tablist" aria-label={t("Banner slides", "बैनर स्लाइड")}>

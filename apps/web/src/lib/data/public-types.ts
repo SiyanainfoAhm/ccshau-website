@@ -312,7 +312,7 @@ export interface PublicMediaItem {
   id: string;
   titleEn: string | null;
   titleHi: string | null;
-  mediaType: "image" | "video";
+  mediaType: "image" | "video" | "pdf" | "link";
   url: string | null;
   thumbnailUrl: string | null;
   captionEn: string | null;

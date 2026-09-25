@@ -79,14 +79,14 @@ describe("validateUploadFile", () => {
 
 // Suite: validateMediaUploadFile.
 describe("validateMediaUploadFile", () => {
-  // Media validator allows video; rejects PDF as media.
+  // Media validator allows video and PDF.
   it("allows video types within media limits", () => {
     expect(
       validateMediaUploadFile(fakeFile("clip.mp4", "video/mp4", 1024)),
     ).toBeNull();
     expect(
       validateMediaUploadFile(fakeFile("doc.pdf", "application/pdf", 1024)),
-    ).toMatch(/not allowed/i);
+    ).toBeNull();
   });
 });
 

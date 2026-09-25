@@ -415,6 +415,11 @@ export function QuickLinksStrip({
   );
 }
 
+function isRenderableImageSrc(src: string | null | undefined): src is string {
+  if (!src) return false;
+  return src.startsWith("/") || /^https?:\/\//i.test(src);
+}
+
 function quoteImageUnoptimized(src: string): boolean {
   try {
     const hostname = new URL(src).hostname;
@@ -465,14 +470,16 @@ function InspirationQuoteCard({
         <div
           className={`relative overflow-hidden rounded-full ring-[3px] ${variant === "ministry" ? "ring-[#0c3b6e]/25" : theme.portraitRing}`}
         >
-          <Image
-            src={quote.imageUrl}
-            alt={t(quote.authorEn, quote.authorHi)}
-            width={64}
-            height={64}
-            unoptimized={quoteImageUnoptimized(quote.imageUrl)}
-            className="h-14 w-14 object-cover object-top transition duration-500 group-hover:scale-105 sm:h-16 sm:w-16"
-          />
+          {isRenderableImageSrc(quote.imageUrl) ? (
+            <Image
+              src={quote.imageUrl}
+              alt={t(quote.authorEn, quote.authorHi)}
+              width={64}
+              height={64}
+              unoptimized={quoteImageUnoptimized(quote.imageUrl)}
+              className="h-14 w-14 object-cover object-top transition duration-500 group-hover:scale-105 sm:h-16 sm:w-16"
+            />
+          ) : null}
         </div>
       </div>
 
@@ -691,35 +698,37 @@ export function DignitariesStrip({
         <HomepageScrollCarousel
           ariaLabel={t("Dignitaries", "गणमान्य व्यक्ति")}
           variant={variant}
-          scrollStep={240}
+          scrollStep={260}
         >
           {items.map((person) => (
             <figure
               key={person.nameEn}
-              className={`flex w-[200px] shrink-0 snap-start flex-col items-center text-center ${
+              className={`mx-2 flex w-[232px] shrink-0 snap-start flex-col items-center text-center ${
                 variant === "future"
-                  ? "rounded-2xl border border-emerald-100 bg-white/90 px-4 py-6 shadow-sm dark:border-emerald-900/50 dark:bg-emerald-950/40"
+                  ? "rounded-2xl border border-emerald-100 bg-white/90 px-3 pb-4 pt-3 shadow-sm dark:border-emerald-900/50 dark:bg-emerald-950/40"
                   : variant === "ministry"
-                    ? "ministry-card rounded-md px-4 py-6"
-                    : "rounded-2xl bg-white/80 px-4 py-6 shadow-sm"
+                    ? "ministry-card rounded-md px-3 pb-4 pt-3"
+                    : "rounded-2xl bg-white/80 px-3 pb-4 pt-3 shadow-sm"
               }`}
             >
-              <div className={`relative h-24 w-24 overflow-hidden rounded-full ring-4 ${
+              <div className={`relative h-40 w-40 overflow-hidden rounded-full ring-4 ${
                 variant === "heritage"
                   ? "ring-rose-200"
                   : variant === "ministry"
                     ? "ring-[#0c3b6e]/30"
                     : "ring-amber-300/60 dark:ring-amber-500/40"
               }`}>
-                <Image
-                  src={person.imageUrl}
-                  alt={t(`${person.nameEn}, ${person.roleEn}`, `${person.nameHi ?? person.nameEn}, ${person.roleHi ?? person.roleEn}`)}
-                  fill
-                  className="object-cover"
-                  sizes="96px"
-                />
+                {isRenderableImageSrc(person.imageUrl) ? (
+                  <Image
+                    src={person.imageUrl}
+                    alt={t(`${person.nameEn}, ${person.roleEn}`, `${person.nameHi ?? person.nameEn}, ${person.roleHi ?? person.roleEn}`)}
+                    fill
+                    className="object-cover object-top"
+                    sizes="160px"
+                  />
+                ) : null}
               </div>
-              <figcaption className="mt-4">
+              <figcaption className="mt-3">
                 <p className={`font-display text-sm font-bold ${variant === "future" ? "text-slate-800 dark:text-emerald-50" : "text-slate-800"}`}>
                   {t(person.nameEn, person.nameHi)}
                 </p>
@@ -1528,13 +1537,15 @@ export function FlagshipsSection({
               }`}
             >
               <div className="relative aspect-[16/10] min-h-[180px] overflow-hidden">
-                <Image
-                  src={item.imageUrl}
-                  alt={t(item.titleEn, item.titleHi)}
-                  fill
-                  sizes="320px"
-                  className="object-cover transition duration-500 group-hover:scale-105"
-                />
+                {isRenderableImageSrc(item.imageUrl) ? (
+                  <Image
+                    src={item.imageUrl}
+                    alt={t(item.titleEn, item.titleHi)}
+                    fill
+                    sizes="320px"
+                    className="object-cover transition duration-500 group-hover:scale-105"
+                  />
+                ) : null}
                 <div className={`absolute inset-0 bg-gradient-to-t to-transparent ${isMinistry ? "from-slate-900/60" : isHeritage ? "from-slate-800/70" : "from-[#082952]/90"}`} />
               </div>
               <div className="p-5">

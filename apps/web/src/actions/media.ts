@@ -59,7 +59,7 @@ function parseItemForm(formData: FormData) {
     captionHi: formData.get("captionHi") || undefined,
     mediaType: formData.get("mediaType"),
     sortOrder: formData.get("sortOrder") ?? 0,
-    videoUrl: formData.get("videoUrl") || undefined,
+    externalUrl: formData.get("externalUrl") || undefined,
   });
 }
 
@@ -331,18 +331,29 @@ export async function addMediaItemAction(
 
     const file = formData.get("mediaFile");
     const hasFile = file instanceof File && file.size > 0;
-    const videoUrl = parsed.data.videoUrl?.trim() || "";
-    const hasUrl = Boolean(videoUrl);
-    const mediaType =
-      parsed.data.mediaType ??
-      (hasFile && file instanceof File && file.type.startsWith("video/") ? "video" : "image");
+    const externalUrl = parsed.data.externalUrl?.trim() || "";
+    const hasUrl = Boolean(externalUrl);
+    const mediaType = parsed.data.mediaType;
 
-    if (mediaType === "image") {
-      if (!hasFile) return fail("Image file is required.");
-      if (hasUrl) return fail("Image items use file upload only.");
-    } else {
-      if (hasFile && hasUrl) return fail("Provide either a video file or a video URL, not both.");
-      if (!hasFile && !hasUrl) return fail("Upload a video file or paste a video URL.");
+    if (mediaType === "link") {
+      if (!hasUrl) return fail("External URL is required.");
+      if (hasFile) return fail("External links do not use a file upload.");
+    } else if (hasFile && hasUrl) {
+      return fail("Provide either a file or an external URL, not both.");
+    } else if (!hasFile && !hasUrl) {
+      return fail("Upload a file or paste an external URL.");
+    }
+
+    if (hasFile && file instanceof File) {
+      if (mediaType === "image" && !file.type.startsWith("image/")) {
+        return fail("Image items must be an image file.");
+      }
+      if (mediaType === "video" && !file.type.startsWith("video/")) {
+        return fail("Video items must be a video file.");
+      }
+      if (mediaType === "pdf" && file.type !== "application/pdf") {
+        return fail("PDF items must be a PDF file.");
+      }
     }
 
     const admin = createAdminClient();
@@ -357,13 +368,13 @@ export async function addMediaItemAction(
           title_hi: parsed.data.titleHi || null,
           caption_en: parsed.data.captionEn || null,
           caption_hi: parsed.data.captionHi || null,
-          media_type: "video",
-          storage_path: videoUrl,
+          media_type: mediaType,
+          storage_path: externalUrl,
           sort_order: parsed.data.sortOrder,
         })
         .select("id")
         .single();
-      if (error || !data) return fail(error?.message ?? "Failed to add video URL.");
+      if (error || !data) return fail(error?.message ?? "Failed to add URL.");
 
       await writeAuditLog({
         userId: session.userId,
@@ -422,6 +433,95 @@ export async function addMediaItemAction(
     return ok({ id: data.id });
   } catch (e) {
     return fail(e instanceof Error ? e.message : "Add item failed.");
+  }
+}
+
+export async function updateMediaItemAction(
+  itemId: string,
+  albumId: string,
+  formData: FormData,
+): Promise<ActionResult> {
+  try {
+    const session = await requireAdminSessionForCmsModule("media", [...CONTENT_EDIT_ROLES]);
+    const parsed = parseItemForm(formData);
+    if (!parsed.success) return fail("Validation failed", parsed.error.flatten().fieldErrors);
+
+    const admin = createAdminClient();
+    if (!admin) return fail("Database not configured.");
+
+    const { data: existing } = await admin
+      .from(Tables.mediaItems)
+      .select("*")
+      .eq("id", itemId)
+      .eq("album_id", albumId)
+      .maybeSingle();
+    if (!existing) return fail("Media item not found.");
+
+    const file = formData.get("mediaFile");
+    const hasFile = file instanceof File && file.size > 0;
+    const externalUrl = parsed.data.externalUrl?.trim() || "";
+    const hasUrl = Boolean(externalUrl);
+    const mediaType = parsed.data.mediaType;
+
+    if (hasFile && hasUrl) return fail("Provide either a file or an external URL, not both.");
+    if (mediaType === "link" && !hasUrl && !String(existing.storage_path).startsWith("http")) {
+      return fail("External URL is required.");
+    }
+
+    if (hasFile && file instanceof File) {
+      if (mediaType === "image" && !file.type.startsWith("image/")) {
+        return fail("Image items must be an image file.");
+      }
+      if (mediaType === "video" && !file.type.startsWith("video/")) {
+        return fail("Video items must be a video file.");
+      }
+      if (mediaType === "pdf" && file.type !== "application/pdf") {
+        return fail("PDF items must be a PDF file.");
+      }
+    }
+
+    let storagePath = existing.storage_path as string;
+    if (hasUrl) {
+      storagePath = externalUrl;
+    } else if (hasFile && file instanceof File) {
+      const upload = await uploadMediaItemFile(admin, albumId, itemId, file);
+      if (!upload.success) return upload;
+      storagePath = upload.data;
+    }
+
+    const previousPath = existing.storage_path as string;
+    if (storagePath !== previousPath && previousPath && previousPath !== "pending" && !previousPath.startsWith("http")) {
+      await removeStorageObjects(admin, [previousPath]);
+    }
+
+    const { error } = await admin
+      .from(Tables.mediaItems)
+      .update({
+        title_en: parsed.data.titleEn || null,
+        title_hi: parsed.data.titleHi || null,
+        caption_en: parsed.data.captionEn || null,
+        caption_hi: parsed.data.captionHi || null,
+        media_type: mediaType,
+        storage_path: storagePath,
+        sort_order: parsed.data.sortOrder,
+      })
+      .eq("id", itemId);
+    if (error) return fail(error.message);
+
+    await writeAuditLog({
+      userId: session.userId,
+      action: "update",
+      entityType: "media_item",
+      entityId: itemId,
+      details: { albumId },
+    });
+
+    revalidatePath(`/admin/media/${albumId}`);
+    revalidatePath("/admin/media");
+    revalidatePath("/media");
+    return ok(undefined);
+  } catch (e) {
+    return fail(e instanceof Error ? e.message : "Update failed.");
   }
 }
 
