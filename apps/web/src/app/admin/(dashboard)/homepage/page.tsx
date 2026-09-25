@@ -1,9 +1,15 @@
 import Link from "next/link";
-import { ArrowRight, GraduationCap, Megaphone, Quote, Sprout, Users } from "lucide-react";
+import { ArrowRight, GraduationCap, Megaphone, PanelTop, Quote, Sprout, Users } from "lucide-react";
 
 import { requireSiteStructureOrRedirect } from "@/lib/auth/site-structure-access";
 
 const sections = [
+  {
+    href: "/admin/homepage/header",
+    title: "Public header",
+    description: "Motto, university name, accreditation, logo, and portrait",
+    icon: PanelTop,
+  },
   {
     href: "/admin/banners",
     title: "Hero carousel",
@@ -55,7 +61,13 @@ const sections = [
   {
     href: "/admin/news",
     title: "News & notifications",
-    description: "Latest news and notification columns",
+    description: "Latest news and notification columns. Set display order on each item.",
+    icon: ArrowRight,
+  },
+  {
+    href: "/admin/circulars",
+    title: "Circulars",
+    description: "Circulars column. Set display order on each circular.",
     icon: ArrowRight,
   },
   {

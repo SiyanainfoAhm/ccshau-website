@@ -252,11 +252,24 @@ export interface PublicSocialLink {
   href: string;
 }
 
+export interface PublicHeaderBranding {
+  taglineEn: string;
+  taglineHi: string;
+  shortName: string;
+  nameEn: string;
+  nameHi: string;
+  accreditationEn: string;
+  accreditationHi: string;
+  logoUrl: string;
+  portraitUrl: string;
+}
+
 export interface PublicSiteChrome {
   headerNav: PublicNavItem[];
   quickLinks: PublicQuickLink[];
   footerLinks: PublicQuickLink[];
   socialLinks: PublicSocialLink[];
+  header: PublicHeaderBranding;
 }
 
 export interface PublicCircularCategory {

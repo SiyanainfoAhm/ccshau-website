@@ -39,6 +39,7 @@ function parseNewsForm(formData: FormData) {
     expiresAt: formData.get("expiresAt") || undefined,
     isFeatured: formData.get("isFeatured") === "on",
     isPinned: formData.get("isPinned") === "on",
+    sortOrder: formData.get("sortOrder") || 0,
     removedAttachments: formData.get("removedAttachments") || undefined,
   });
 }
@@ -93,6 +94,7 @@ function toNewsRow(
     expires_at: input.expiresAt ? new Date(input.expiresAt).toISOString() : null,
     is_featured: input.isFeatured ?? false,
     is_pinned: input.isPinned ?? false,
+    sort_order: input.sortOrder ?? 0,
     content_owner_id: userId,
     updated_by: userId,
   };
@@ -149,7 +151,14 @@ export async function createNewsAction(formData: FormData): Promise<ActionResult
     };
 
     const { data, error } = await admin.from(Tables.news).insert(row).select("id").single();
-    if (error) return fail(error.message);
+    if (error) {
+      if (/sort_order/i.test(error.message)) {
+        return fail(
+          "Display order is not in the database yet. Run supabase/migrations/20260925150000_news_circular_sort_order.sql in the Supabase SQL editor, then save again.",
+        );
+      }
+      return fail(error.message);
+    }
 
     const attachments = await mergeAttachments(admin, data.id, formData, parsed.data);
     if (!attachments.success) return fail(attachments.error);
@@ -219,7 +228,14 @@ export async function updateNewsAction(
     };
 
     const { error } = await admin.from(Tables.news).update(row).eq("id", newsId);
-    if (error) return fail(error.message);
+    if (error) {
+      if (/sort_order/i.test(error.message)) {
+        return fail(
+          "Display order is not in the database yet. Run supabase/migrations/20260925150000_news_circular_sort_order.sql in the Supabase SQL editor, then save again.",
+        );
+      }
+      return fail(error.message);
+    }
 
     await writeAuditLog({
       userId: session.userId,

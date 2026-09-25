@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Globe, Menu, Search, Sparkles, X } from "lucide-react";
@@ -70,6 +69,16 @@ export function SiteHeader({
   const shouldShowCollegeNav = Boolean(college) && collegeTopMenu;
   const shouldShowPgStudiesNav = Boolean(pgStudiesHub) && pgStudiesTopMenu && !college;
   const chrome = usePublicSiteChrome();
+  const headerBranding = chrome?.header;
+  const taglineEn = headerBranding?.taglineEn ?? university.taglineEn;
+  const taglineHi = headerBranding?.taglineHi ?? university.taglineHi;
+  const shortName = headerBranding?.shortName ?? university.shortName;
+  const nameEn = headerBranding?.nameEn ?? university.nameEn;
+  const nameHi = headerBranding?.nameHi ?? university.nameHi;
+  const accreditationEn = headerBranding?.accreditationEn ?? "NAEAB A+ Accredited University";
+  const accreditationHi = headerBranding?.accreditationHi ?? "एनएईएबी ए+ मान्यता प्राप्त विश्वविद्यालय";
+  const logoUrl = headerBranding?.logoUrl ?? "/images/ccshau-logo.png";
+  const portraitUrl = headerBranding?.portraitUrl ?? "/images/chaudhary-charan-singh.png";
   const navItems = navItemsProp ?? chrome?.headerNav ?? mockNavItems.map((item) => ({
     labelEn: item.labelEn,
     labelHi: item.labelHi,
@@ -127,8 +136,12 @@ export function SiteHeader({
         className={`border-b text-xs ${isMinistry ? "border-slate-200 bg-slate-50" : isHeritage ? "border-white/50 bg-gradient-to-r from-rose-50 via-amber-50 to-sky-50" : isLight ? "border-slate-200 bg-slate-50" : "border-white/10 bg-black/15"}`}
       >
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-2">
-          <p className={isHeritage ? "text-slate-600" : isLight ? "text-slate-600" : "text-emerald-100"}>
-            {t(university.taglineEn, university.taglineHi)}
+          <p
+            className={`text-sm font-semibold tracking-wide sm:text-base ${
+              lang === "hi" ? "font-hindi" : "font-display italic"
+            } ${isLight ? "text-amber-800" : "text-gradient-gold"}`}
+          >
+            {t(taglineEn, taglineHi)}
           </p>
           <div className="flex items-center gap-3">
             <button
@@ -165,28 +178,27 @@ export function SiteHeader({
           <div
             className={`relative h-14 w-14 shrink-0 overflow-hidden rounded-full bg-black shadow-lg transition group-hover:scale-105 sm:h-16 sm:w-16 md:h-[4.6rem] md:w-[4.6rem] ${isHeritage ? "ring-2 ring-rose-200" : isMinistry ? "ring-2 ring-[#0c3b6e]/30" : isLight ? "ring-2 ring-emerald-200" : "ring-2 ring-amber-400/50"}`}
           >
-            <Image
-              src="/images/ccshau-logo.png"
+            <img
+              src={logoUrl}
               alt={t(
                 "Chaudhary Charan Singh Haryana Agricultural University logo",
                 "चौधरी चरण सिंह हरियाणा कृषि विश्वविद्यालय लोगो",
               )}
-              fill
-              className="object-cover"
-              sizes="74px"
-              priority
+              width={74}
+              height={74}
+              className="h-full w-full object-cover"
             />
           </div>
           <div className="min-w-0">
             <p
               className={`font-display text-lg font-bold leading-tight sm:text-xl md:text-2xl ${isHeritage ? "text-slate-800" : isMinistry ? "text-[#0c3b6e]" : isLight ? "text-emerald-900" : "text-white"}`}
             >
-              {t(university.shortName, university.shortName)}
+              {shortName}
             </p>
             <p
               className={`font-hindi truncate text-xs leading-snug sm:text-sm ${isHeritage ? "text-slate-600" : isLight ? "text-slate-600" : "text-emerald-100/90"}`}
             >
-              {t(university.nameEn, university.nameHi)}
+              {t(nameEn, nameHi)}
             </p>
             <p
               className={`mt-1 inline-flex max-w-full items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-medium leading-tight sm:text-xs ${
@@ -201,7 +213,7 @@ export function SiteHeader({
             >
               <Sparkles className="h-3 w-3 shrink-0" aria-hidden />
               <span className="truncate">
-                {t("NAEAB A+ Accredited University", "एनएईएबी ए+ मान्यता प्राप्त विश्वविद्यालय")}
+                {t(accreditationEn, accreditationHi)}
               </span>
             </p>
           </div>
@@ -265,16 +277,15 @@ export function SiteHeader({
                     : "ring-2 ring-amber-300/55"
             }`}
           >
-            <Image
-              src="/images/chaudhary-charan-singh.png"
+            <img
+              src={portraitUrl}
               alt={t(
                 "Chaudhary Charan Singh, former Prime Minister of India",
                 "चौधरी चरण सिंह, भारत के पूर्व प्रधान मंत्री",
               )}
-              fill
-              className="object-cover object-[50%_12%]"
-              sizes="76px"
-              priority
+              width={76}
+              height={88}
+              className="h-full w-full object-cover object-[50%_12%]"
             />
           </figure>
 

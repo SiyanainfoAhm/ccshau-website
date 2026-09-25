@@ -299,6 +299,20 @@ export function NewsForm({
               />
               Pin to top of listing
             </label>
+            <label className="block text-sm text-slate-700">
+              <span className="mb-1 block font-medium">Display order</span>
+              <input
+                type="number"
+                name="sortOrder"
+                min={0}
+                max={9999}
+                defaultValue={news?.sort_order ?? 0}
+                className="w-28 rounded-lg border border-slate-300 px-3 py-2"
+              />
+              <span className="mt-1 block text-xs text-slate-500">
+                Lower numbers appear first in News and Notifications.
+              </span>
+            </label>
           </div>
         </div>
       </div>

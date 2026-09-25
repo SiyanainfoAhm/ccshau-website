@@ -26,6 +26,7 @@ export const newsFormSchema = z.object({
   expiresAt: z.string().optional(),
   isFeatured: z.coerce.boolean().optional().default(false),
   isPinned: z.coerce.boolean().optional().default(false),
+  sortOrder: z.coerce.number().int().min(0).max(9999).optional().default(0),
   removedAttachments: z.string().optional(),
 });
 

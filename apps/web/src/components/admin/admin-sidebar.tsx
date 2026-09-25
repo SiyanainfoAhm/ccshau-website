@@ -171,6 +171,7 @@ export function AdminSidebar({
                 key={item.href}
                 href={item.href}
                 prefetch={false}
+                suppressHydrationWarning
                 className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
                   active
                     ? "bg-amber-400/20 text-amber-200"

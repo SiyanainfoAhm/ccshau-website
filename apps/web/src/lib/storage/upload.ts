@@ -12,6 +12,7 @@ import {
   facultyImagePath,
   getMediaBucket,
   getStorageBucket,
+  headerImagePath,
   homepageDignitaryImagePath,
   homepageInitiativeImagePath,
   homepageQuoteImagePath,
@@ -209,6 +210,16 @@ export async function uploadBannerImage(
   const bucket = STORAGE_BUCKETS.public;
   const path = bannerImagePath(bannerId, sanitizeFileName(file.name));
   return uploadValidatedImage(file, bucket, path, "Banner must be an image file.");
+}
+
+export async function uploadHeaderImage(
+  _admin: UnusedAdmin,
+  kind: "logo" | "portrait",
+  file: File,
+): Promise<ActionResult<string>> {
+  const bucket = STORAGE_BUCKETS.public;
+  const path = headerImagePath(kind, sanitizeFileName(file.name));
+  return uploadValidatedImage(file, bucket, path, "Header image must be an image file.");
 }
 
 export async function uploadHomepageDignitaryImage(

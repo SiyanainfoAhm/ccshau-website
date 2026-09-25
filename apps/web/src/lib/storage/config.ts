@@ -55,6 +55,11 @@ export function bannerImagePath(bannerId: string, fileName: string): string {
   return `banners/${bannerId}/${safe}`;
 }
 
+export function headerImagePath(kind: "logo" | "portrait", fileName: string): string {
+  const safe = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
+  return `header/${kind}/${Date.now()}-${safe}`;
+}
+
 export function homepageDignitaryImagePath(dignitaryId: string, fileName: string): string {
   const safe = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
   return `homepage/dignitaries/${dignitaryId}/${safe}`;

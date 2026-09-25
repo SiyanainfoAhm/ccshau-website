@@ -200,6 +200,22 @@ export function CircularForm({
         </select>
       </label>
 
+      <label className="block text-sm">
+        <span className="font-medium text-slate-700">Display order</span>
+        <input
+          name="sortOrder"
+          type="number"
+          min={0}
+          max={9999}
+          defaultValue={circular?.sort_order ?? 0}
+          disabled={!canEdit}
+          className="mt-1 w-28 rounded-lg border border-slate-200 px-3 py-2 disabled:bg-slate-50"
+        />
+        <span className="mt-1 block text-xs text-slate-500">
+          Lower numbers appear first in Circulars and the homepage notifications column.
+        </span>
+      </label>
+
       <div className="space-y-2">
         <div>
           <span className="text-sm font-medium text-slate-700">
