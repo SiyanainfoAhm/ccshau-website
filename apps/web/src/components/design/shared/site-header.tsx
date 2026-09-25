@@ -144,6 +144,12 @@ export function SiteHeader({
               <AccessibilityToolbar variant={isLight ? "on-light" : "on-dark"} />
             )}
             <Link
+              href={SELECTED_LAYOUT.routes.screenReaderAccess}
+              className={`underline-offset-2 hover:underline ${isHeritage ? "text-[#9e4a5a]" : isMinistry ? "text-[#0c3b6e]" : isLight ? "text-emerald-700" : "text-amber-200 hover:text-white"}`}
+            >
+              {t("Screen Reader Access", "स्क्रीन रीडर")}
+            </Link>
+            <Link
               href="/faculty-login"
               className={`hidden sm:inline ${isHeritage ? "text-[#9e4a5a] hover:underline" : isMinistry ? "text-[#0c3b6e] hover:underline" : isLight ? "text-emerald-700 hover:underline" : "text-amber-200 hover:text-white"}`}
             >

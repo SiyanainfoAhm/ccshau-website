@@ -126,6 +126,10 @@ export function SiteFooter({
                 { label: t("Circulars", "परिपत्र"), href: SELECTED_LAYOUT.routes.circulars },
                 { label: t("Tenders", "निविदाएं"), href: SELECTED_LAYOUT.routes.tenders },
                 { label: t("Contact", "संपर्क"), href: SELECTED_LAYOUT.routes.contact },
+                {
+                  label: t("Screen Reader Access", "स्क्रीन रीडर"),
+                  href: SELECTED_LAYOUT.routes.screenReaderAccess,
+                },
                 { label: t("Design Gallery", "डिज़ाइन गैलरी"), href: SELECTED_LAYOUT.galleryPath },
               ].map((item) => (
                 <li key={item.label}>
@@ -248,6 +252,11 @@ export function SiteFooter({
             <li>
               <Link href="/rti" className="hover:underline">
                 RTI
+              </Link>
+            </li>
+            <li>
+              <Link href={SELECTED_LAYOUT.routes.screenReaderAccess} className="hover:underline">
+                {t("Screen Reader Access", "स्क्रीन रीडर")}
               </Link>
             </li>
             <li>

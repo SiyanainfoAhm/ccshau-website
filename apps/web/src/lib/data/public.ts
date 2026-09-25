@@ -547,13 +547,23 @@ async function listPublishedPagesForPathMap(
   const all: Page[] = [];
 
   for (let from = 0; ; from += pageSize) {
-    const { data } = await admin
+    let { data, error } = await admin
       .from(Tables.pages)
       .select("id, slug, page_type, parent_id")
       .eq("status", "published")
       .eq("is_deleted", false)
       .order("id")
       .range(from, from + pageSize - 1);
+
+    if (error && /is_deleted/i.test(error.message)) {
+      const fallback = await admin
+        .from(Tables.pages)
+        .select("id, slug, page_type, parent_id")
+        .eq("status", "published")
+        .order("id")
+        .range(from, from + pageSize - 1);
+      data = fallback.data;
+    }
 
     if (!data?.length) break;
     all.push(...(data as Page[]));
@@ -655,21 +665,35 @@ async function loadPublicSiteChrome(): Promise<PublicSiteChrome> {
 
 export const getPublicSiteChrome = unstable_cache(
   loadPublicSiteChrome,
-  ["ccshau-public-site-chrome"],
+  ["ccshau-public-site-chrome-v2"],
   { revalidate: 60, tags: ["public-chrome"] },
 );
+
+function missingDeletedColumn(error: { message?: string } | null | undefined): boolean {
+  return Boolean(error?.message && /is_deleted/i.test(error.message));
+}
 
 export async function getPublishedPageBySlug(slug: string): Promise<PublicPage | null> {
   const admin = createAdminClient();
   if (!admin) return null;
 
-  const { data } = await admin
+  let { data, error } = await admin
     .from(Tables.pages)
     .select("*")
     .eq("slug", slug)
     .eq("status", "published")
     .eq("is_deleted", false)
     .maybeSingle();
+
+  if (missingDeletedColumn(error)) {
+    const fallback = await admin
+      .from(Tables.pages)
+      .select("*")
+      .eq("slug", slug)
+      .eq("status", "published")
+      .maybeSingle();
+    data = fallback.data;
+  }
 
   if (!data) return null;
   return mapPublicPage(data as Page);
@@ -989,7 +1013,7 @@ export async function getPublishedCollegeBySlug(slug: string): Promise<PublicCol
   const admin = createAdminClient();
   if (!admin) return null;
 
-  let { data } = await admin
+  let { data, error } = await admin
     .from(Tables.pages)
     .select("*")
     .eq("slug", slug)
@@ -997,6 +1021,18 @@ export async function getPublishedCollegeBySlug(slug: string): Promise<PublicCol
     .eq("status", "published")
     .eq("is_deleted", false)
     .maybeSingle();
+
+  if (missingDeletedColumn(error)) {
+    const fallback = await admin
+      .from(Tables.pages)
+      .select("*")
+      .eq("slug", slug)
+      .eq("page_type", "college")
+      .eq("status", "published")
+      .maybeSingle();
+    data = fallback.data;
+    error = fallback.error;
+  }
 
   if (!data) {
     const { data: officeFallback } = await admin
