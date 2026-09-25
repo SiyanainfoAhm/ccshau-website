@@ -547,7 +547,7 @@ async function listPublishedPagesForPathMap(
   const all: Page[] = [];
 
   for (let from = 0; ; from += pageSize) {
-    let { data, error } = await admin
+    const first = await admin
       .from(Tables.pages)
       .select("id, slug, page_type, parent_id")
       .eq("status", "published")
@@ -555,7 +555,8 @@ async function listPublishedPagesForPathMap(
       .order("id")
       .range(from, from + pageSize - 1);
 
-    if (error && /is_deleted/i.test(error.message)) {
+    let data = first.data;
+    if (first.error && /is_deleted/i.test(first.error.message)) {
       const fallback = await admin
         .from(Tables.pages)
         .select("id, slug, page_type, parent_id")
@@ -677,7 +678,7 @@ export async function getPublishedPageBySlug(slug: string): Promise<PublicPage |
   const admin = createAdminClient();
   if (!admin) return null;
 
-  let { data, error } = await admin
+  const first = await admin
     .from(Tables.pages)
     .select("*")
     .eq("slug", slug)
@@ -685,7 +686,8 @@ export async function getPublishedPageBySlug(slug: string): Promise<PublicPage |
     .eq("is_deleted", false)
     .maybeSingle();
 
-  if (missingDeletedColumn(error)) {
+  let data = first.data;
+  if (missingDeletedColumn(first.error)) {
     const fallback = await admin
       .from(Tables.pages)
       .select("*")
