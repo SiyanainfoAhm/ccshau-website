@@ -426,7 +426,10 @@ export async function uploadMediaItemFile(
 
   const isVideo = prepared.contentType.startsWith("video/");
   const isImage = prepared.contentType.startsWith("image/");
-  if (!isVideo && !isImage) return fail("Media must be an image or video file.");
+  const isPdf = prepared.contentType === "application/pdf";
+  if (!isVideo && !isImage && !isPdf) {
+    return fail("Media must be an image, PDF, or video file.");
+  }
 
   const storagePath = mediaItemPath(albumId, itemId, sanitizeFileName(file.name));
   return putBlob(bucket, storagePath, prepared.buffer, prepared.contentType, file.name);

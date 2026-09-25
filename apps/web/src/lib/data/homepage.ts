@@ -18,7 +18,7 @@ import {
   type LegacyQuote,
 } from "@/lib/legacy/homepage-content";
 import { getPublicPagePath } from "@/lib/pages/routes";
-import { getStoredFileUrl } from "@/lib/storage/upload";
+import { resolvePublicMediaUrl } from "@/lib/storage/urls";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { normalizeHomepageDignitary } from "@/lib/data/homepage-dignitary";
 
@@ -61,7 +61,7 @@ export interface HomepageContent {
 }
 
 function mapImage(path: string): string {
-  return getStoredFileUrl(path) ?? path;
+  return resolvePublicMediaUrl(path) ?? "";
 }
 
 function mapQuote(row: HomepageQuote): HomepageQuoteItem {

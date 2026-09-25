@@ -149,6 +149,7 @@ export interface Page {
   map_lng: number | null;
   office_cta_enabled: boolean;
   sort_order: number;
+  is_deleted: boolean;
   created_by: string | null;
   updated_by: string | null;
   created_at: string;
@@ -400,7 +401,7 @@ export interface MediaItem {
   album_id: string;
   title_en: string | null;
   title_hi: string | null;
-  media_type: "image" | "video";
+  media_type: "image" | "video" | "pdf" | "link";
   storage_path: string;
   thumbnail_path: string | null;
   caption_en: string | null;
@@ -618,6 +619,7 @@ export interface FacultyAssignment {
   staff_slug: string | null;
   sort_order: number;
   is_active: boolean;
+  is_deleted: boolean;
   created_at: string;
   updated_at: string;
 }

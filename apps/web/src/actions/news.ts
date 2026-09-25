@@ -13,7 +13,7 @@ import {
 } from "@/lib/auth/cms-roles";
 import { hasRole } from "@/lib/auth/rbac";
 import { hasCmsModuleAccess, requireAdminSessionForCmsModule } from "@/lib/auth/cms-module-access-server";
-import { requireAdminSession, requireAdminWithRoles } from "@/lib/auth/session";
+import { requireAdminSession } from "@/lib/auth/session";
 import { Tables } from "@/lib/database/names";
 import type { AttachmentPath, ContentStatus, NewsItem, NoticeType } from "@/lib/database/types";
 import { removeStorageObjects, uploadNewsAttachments } from "@/lib/storage/upload";
@@ -239,7 +239,7 @@ export async function updateNewsAction(
 
 export async function deleteNewsAction(newsId: string): Promise<ActionResult> {
   try {
-    const session = await requireAdminWithRoles(["super_admin", "dept_admin"]);
+    const session = await requireAdminSessionForCmsModule("news", [...CONTENT_EDIT_ROLES]);
     const admin = createAdminClient();
     if (!admin) return fail("Database not configured.");
 

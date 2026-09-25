@@ -6,6 +6,7 @@ import { Plus } from "lucide-react";
 import { listNewsForAdmin } from "@/actions/news";
 import { AdminListFooter } from "@/components/admin/admin-list-footer";
 import { AdminSortableTh } from "@/components/admin/admin-sortable-th";
+import { DeleteNewsButton } from "@/components/admin/delete-news-button";
 import { StatusBadge } from "@/components/admin/status-badge";
 import { canManageUniversityContent } from "@/lib/auth/college-scope";
 import { requireAdminSession } from "@/lib/auth/session";
@@ -98,12 +99,13 @@ export default async function AdminNewsListPage({
                   currentOrder={listParams.sortOrder}
                 />
               </Suspense>
+              <th className="px-4 py-3 text-left font-semibold text-slate-700">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {items.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-10 text-center text-slate-500">
+                <td colSpan={7} className="px-4 py-10 text-center text-slate-500">
                   No news yet.
                   {canCreate && (
                     <>
@@ -137,6 +139,9 @@ export default async function AdminNewsListPage({
                   <td className="px-4 py-3 text-slate-500">{item.attachment_paths?.length ?? 0}</td>
                   <td className="px-4 py-3 text-slate-500">
                     {new Date(item.updated_at).toLocaleDateString("en-IN")}
+                  </td>
+                  <td className="px-4 py-3">
+                    {canCreate ? <DeleteNewsButton newsId={item.id} compact /> : null}
                   </td>
                 </tr>
               ))

@@ -57,7 +57,12 @@ export async function assertPageAccess(
   const admin = createAdminClient();
   if (!admin) throw new Error("Database not configured.");
 
-  const { data, error } = await admin.from(Tables.pages).select("*").eq("id", pageId).maybeSingle();
+  const { data, error } = await admin
+    .from(Tables.pages)
+    .select("*")
+    .eq("id", pageId)
+    .eq("is_deleted", false)
+    .maybeSingle();
   if (error) throw new Error(error.message);
   if (!data) throw new Error("Page not found.");
 
@@ -111,6 +116,7 @@ export async function listCollegesForAdmin(): Promise<
     .select("id, slug, title_en, title_hi")
     .eq("parent_id", container.id)
     .eq("page_type", "college")
+    .eq("is_deleted", false)
     .order("title_en");
 
   return data ?? [];

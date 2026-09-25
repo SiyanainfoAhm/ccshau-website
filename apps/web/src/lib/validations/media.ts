@@ -14,16 +14,19 @@ export const mediaAlbumFormSchema = z.object({
   removeCover: z.coerce.boolean().optional().default(false),
 });
 
+export const MEDIA_ITEM_TYPES = ["image", "video", "pdf", "link"] as const;
+export type MediaItemType = (typeof MEDIA_ITEM_TYPES)[number];
+
 export const mediaItemFormSchema = z.object({
   titleEn: z.string().optional(),
   titleHi: z.string().optional(),
   captionEn: z.string().optional(),
   captionHi: z.string().optional(),
-  mediaType: z.enum(["image", "video"]),
+  mediaType: z.enum(MEDIA_ITEM_TYPES),
   sortOrder: z.coerce.number().int().min(0).default(0),
-  videoUrl: z
+  externalUrl: z
     .string()
     .trim()
     .optional()
-    .refine((v) => !v || /^https?:\/\//i.test(v), "Video URL must start with http:// or https://"),
+    .refine((v) => !v || /^https?:\/\//i.test(v), "URL must start with http:// or https://"),
 });

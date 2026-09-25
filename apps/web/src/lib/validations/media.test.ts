@@ -31,18 +31,24 @@ describe("media schemas", () => {
     ).toBe(false);
   });
 
-  // Video URLs must be http(s); image items ok without videoUrl.
+  // External URLs must be http(s); image items ok without a URL.
   it("requires http(s) video URLs when provided", () => {
     expect(
       mediaItemFormSchema.safeParse({
         mediaType: "video",
-        videoUrl: "https://youtu.be/abc",
+        externalUrl: "https://youtu.be/abc",
       }).success,
     ).toBe(true);
     expect(
       mediaItemFormSchema.safeParse({
-        mediaType: "video",
-        videoUrl: "javascript:alert(1)",
+        mediaType: "pdf",
+        externalUrl: "https://example.com/notice.pdf",
+      }).success,
+    ).toBe(true);
+    expect(
+      mediaItemFormSchema.safeParse({
+        mediaType: "link",
+        externalUrl: "javascript:alert(1)",
       }).success,
     ).toBe(false);
     expect(

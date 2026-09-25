@@ -336,6 +336,7 @@ export async function getPublishedNewsBySlug(slug: string): Promise<PublicNewsIt
     .select("*")
     .eq("slug", slug)
     .eq("status", "published")
+    .eq("is_deleted", false)
     .maybeSingle();
 
   if (!data) return null;
@@ -550,6 +551,7 @@ async function listPublishedPagesForPathMap(
       .from(Tables.pages)
       .select("id, slug, page_type, parent_id")
       .eq("status", "published")
+      .eq("is_deleted", false)
       .order("id")
       .range(from, from + pageSize - 1);
 
@@ -666,6 +668,7 @@ export async function getPublishedPageBySlug(slug: string): Promise<PublicPage |
     .select("*")
     .eq("slug", slug)
     .eq("status", "published")
+    .eq("is_deleted", false)
     .maybeSingle();
 
   if (!data) return null;
@@ -857,7 +860,12 @@ export async function getOfficePortalDataByPageId(
 ): Promise<PublicOfficePortalData | null> {
   const admin = createAdminClient();
   if (!admin) return null;
-  const { data } = await admin.from(Tables.pages).select("*").eq("id", pageId).maybeSingle();
+  const { data } = await admin
+    .from(Tables.pages)
+    .select("*")
+    .eq("id", pageId)
+    .eq("is_deleted", false)
+    .maybeSingle();
   if (!data) return null;
   return getOfficePortalDataForPage(data as Page);
 }
@@ -987,6 +995,7 @@ export async function getPublishedCollegeBySlug(slug: string): Promise<PublicCol
     .eq("slug", slug)
     .eq("page_type", "college")
     .eq("status", "published")
+    .eq("is_deleted", false)
     .maybeSingle();
 
   if (!data) {
@@ -996,13 +1005,15 @@ export async function getPublishedCollegeBySlug(slug: string): Promise<PublicCol
       .eq("slug", slug)
       .eq("layout_template", "office_portal")
       .eq("status", "published")
+      .eq("is_deleted", false)
       .maybeSingle();
 
     if (officeFallback && slug !== PG_STUDIES_HUB_SLUG) {
       const { data: publishedPages } = await admin
         .from(Tables.pages)
         .select("id, slug, page_type, parent_id")
-        .eq("status", "published");
+        .eq("status", "published")
+        .eq("is_deleted", false);
       const pageById = new Map(((publishedPages as Page[]) ?? []).map((p) => [p.id, p]));
       if (getCollegePagePlacement(officeFallback as Page, pageById) === "root") {
         data = officeFallback;
@@ -1016,7 +1027,8 @@ export async function getPublishedCollegeBySlug(slug: string): Promise<PublicCol
   const { data: publishedPages } = await admin
     .from(Tables.pages)
     .select("id, slug, page_type, parent_id")
-    .eq("status", "published");
+    .eq("status", "published")
+    .eq("is_deleted", false);
   const pageById = new Map(((publishedPages as Page[]) ?? []).map((p) => [p.id, p]));
   if (getCollegePagePlacement(college, pageById) !== "root") return null;
 
@@ -1025,6 +1037,7 @@ export async function getPublishedCollegeBySlug(slug: string): Promise<PublicCol
     .select("*")
     .eq("parent_id", college.id)
     .eq("status", "published")
+    .eq("is_deleted", false)
     .order("sort_order")
     .order("title_en");
 
@@ -1042,6 +1055,7 @@ export async function getPublishedCollegeBySlug(slug: string): Promise<PublicCol
       .select("*")
       .in("parent_id", sectionIds)
       .eq("status", "published")
+      .eq("is_deleted", false)
       .order("sort_order")
       .order("title_en");
     subsectionRows = (subsections as Page[]) ?? [];
@@ -1111,6 +1125,7 @@ export async function getPublishedPgStudiesHub(): Promise<PublicPgStudiesHub | n
     .select("*")
     .eq("slug", PG_STUDIES_HUB_SLUG)
     .eq("status", "published")
+    .eq("is_deleted", false)
     .maybeSingle();
 
   if (!hubRow) return null;
@@ -1121,6 +1136,7 @@ export async function getPublishedPgStudiesHub(): Promise<PublicPgStudiesHub | n
     .select("*")
     .eq("parent_id", hub.id)
     .eq("status", "published")
+    .eq("is_deleted", false)
     .order("sort_order")
     .order("title_en");
 
@@ -1205,7 +1221,8 @@ async function getMicrositeListingCards(
     .from(Tables.pages)
     .select("slug, title_en, title_hi, featured_image_path, page_type")
     .in("slug", slugs)
-    .eq("status", "published");
+    .eq("status", "published")
+    .eq("is_deleted", false);
 
   const bySlug = new Map(((data as Page[]) ?? []).map((page) => [page.slug, page]));
 
@@ -1267,6 +1284,7 @@ export async function getPublishedPagePublicPath(slug: string): Promise<string |
     .select("id, slug, page_type, parent_id")
     .eq("slug", slug)
     .eq("status", "published")
+    .eq("is_deleted", false)
     .maybeSingle();
 
   if (!page) return null;
@@ -1274,7 +1292,8 @@ export async function getPublishedPagePublicPath(slug: string): Promise<string |
   const { data: pages } = await admin
     .from(Tables.pages)
     .select("id, slug, page_type, parent_id")
-    .eq("status", "published");
+    .eq("status", "published")
+    .eq("is_deleted", false);
 
   const pageById = new Map(((pages as Page[]) ?? []).map((p) => [p.id, p]));
   return resolvePagePublicPath(page as Page, pageById);
@@ -1695,6 +1714,7 @@ export async function getMediaAlbumBySlug(slug: string): Promise<PublicMediaAlbu
     .select("*")
     .eq("slug", slug)
     .eq("status", "published")
+    .eq("is_deleted", false)
     .maybeSingle();
 
   if (!data) return null;
@@ -1814,6 +1834,7 @@ export async function getPublishedChildPagesByParentSlug(
     .select("id")
     .eq("slug", parentSlug)
     .eq("status", "published")
+    .eq("is_deleted", false)
     .maybeSingle();
 
   if (!parent) return [];
@@ -1823,6 +1844,7 @@ export async function getPublishedChildPagesByParentSlug(
     .select("*")
     .eq("parent_id", parent.id)
     .eq("status", "published")
+    .eq("is_deleted", false)
     .order("sort_order")
     .order("title_en");
 
@@ -1978,6 +2000,7 @@ export async function getPublishedEventPortalBySlug(slug: string): Promise<Publi
     .from(Tables.pages)
     .select("id")
     .eq("slug", EVENT_PORTALS_PARENT_SLUG)
+    .eq("is_deleted", false)
     .maybeSingle();
 
   if (!parent) return null;
@@ -1988,6 +2011,7 @@ export async function getPublishedEventPortalBySlug(slug: string): Promise<Publi
     .eq("slug", slug)
     .eq("parent_id", parent.id)
     .eq("status", "published")
+    .eq("is_deleted", false)
     .maybeSingle();
 
   if (!data) return null;

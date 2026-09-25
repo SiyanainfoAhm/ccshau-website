@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 
 import { getNewsById, listDepartments } from "@/actions/news";
 import { ContentReviewPanel } from "@/components/admin/content-review-panel";
+import { DeleteNewsButton } from "@/components/admin/delete-news-button";
 import { NewsForm } from "@/components/admin/news-form";
 import { StatusBadge } from "@/components/admin/status-badge";
 import { CmsHtmlContent } from "@/components/site/cms-html-content";
@@ -32,11 +33,14 @@ export default async function EditNewsPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-2xl font-bold text-slate-900">
-          {canEdit ? "Edit news" : "Review news"}
-        </h1>
-        <p className="text-sm text-slate-500">/{news.slug}</p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="font-display text-2xl font-bold text-slate-900">
+            {canEdit ? "Edit news" : "Review news"}
+          </h1>
+          <p className="text-sm text-slate-500">/{news.slug}</p>
+        </div>
+        {canEdit ? <DeleteNewsButton newsId={news.id} /> : null}
       </div>
 
       {showReview ? (

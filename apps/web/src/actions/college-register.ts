@@ -332,6 +332,7 @@ async function loadFacultyPersonEditData(
     .from(Tables.facultyAssignments)
     .select("*")
     .eq("person_id", personId)
+    .eq("is_deleted", false)
     .order("sort_order");
   const rows = (assignments ?? []) as FacultyAssignment[];
   if (!rows.length && accessibleIds !== "own") return null;
@@ -507,6 +508,7 @@ export async function registerFacultyAction(
       .select("id")
       .eq("page_id", input.departmentPageId)
       .eq("staff_slug", slug)
+      .eq("is_deleted", false)
       .maybeSingle();
 
     if (existingSlug) return fail("A faculty profile with this URL slug already exists in this department.");
@@ -819,6 +821,7 @@ export async function getFacultyForEdit(assignmentId: string) {
     .from(Tables.facultyAssignments)
     .select("id, person_id, page_id")
     .eq("id", assignmentId)
+    .eq("is_deleted", false)
     .maybeSingle();
 
   if (!assignment) return null;
@@ -965,6 +968,7 @@ export async function updateFacultyAssignmentAction(
       .from(Tables.facultyAssignments)
       .select("*")
       .eq("id", assignmentId)
+      .eq("is_deleted", false)
       .maybeSingle();
     if (!assignment) return fail("Assignment not found.");
     const row = assignment as FacultyAssignment;
@@ -1104,6 +1108,7 @@ export async function deleteFacultyAction(assignmentId: string): Promise<ActionR
       .from(Tables.facultyAssignments)
       .select("*")
       .eq("id", assignmentId)
+      .eq("is_deleted", false)
       .maybeSingle();
 
     if (!existing) return fail("Faculty assignment not found.");
@@ -1186,6 +1191,7 @@ export async function assignExistingFacultyAction(
       .select("id")
       .eq("person_id", personRow.id)
       .eq("page_id", input.departmentPageId)
+      .eq("is_deleted", false)
       .maybeSingle();
     if (already) return fail("This person is already assigned to this department.");
 
@@ -1195,6 +1201,7 @@ export async function assignExistingFacultyAction(
       .select("id")
       .eq("page_id", input.departmentPageId)
       .eq("staff_slug", staffSlug)
+      .eq("is_deleted", false)
       .maybeSingle();
     if (slugTaken) return fail("A faculty profile with this URL slug already exists in this department.");
 

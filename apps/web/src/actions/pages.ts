@@ -540,7 +540,10 @@ export async function deletePageAction(pageId: string): Promise<ActionResult> {
       .eq("id", pageId)
       .maybeSingle();
 
-    const { error } = await admin.from(Tables.pages).delete().eq("id", pageId);
+    const { error } = await admin
+      .from(Tables.pages)
+      .update({ is_deleted: true, updated_by: session.userId })
+      .eq("id", pageId);
     if (error) return fail(error.message);
 
     if (page?.page_type === "college") {
@@ -653,7 +656,10 @@ export async function listPagesForAdmin(
   if (!admin) return emptyPaginatedResult(opts);
 
   const allowedModules = await getAllowedCmsModulesForSession(session);
-  let query = admin.from(Tables.pages).select(PAGES_LIST_COLUMNS, { count: "exact" });
+  let query = admin
+    .from(Tables.pages)
+    .select(PAGES_LIST_COLUMNS, { count: "exact" })
+    .eq("is_deleted", false);
   query = applyPagesListScope(query, session, allowedModules);
 
   if (opts.search) {
@@ -676,6 +682,7 @@ export async function listParentPageOptionsForAdmin(): Promise<ParentPageOptionR
   let query = admin
     .from(Tables.pages)
     .select(PARENT_PAGE_OPTION_COLUMNS)
+    .eq("is_deleted", false)
     .order("title_en", { ascending: true })
     .limit(5000);
 
@@ -720,7 +727,8 @@ async function fetchParentRowsByIds(ids: string[]): Promise<ParentPageOptionRow[
   const { data } = await admin
     .from(Tables.pages)
     .select(PARENT_PAGE_OPTION_COLUMNS)
-    .in("id", ids);
+    .in("id", ids)
+    .eq("is_deleted", false);
   return (data ?? []) as ParentPageOptionRow[];
 }
 
@@ -777,6 +785,7 @@ export async function searchParentPageOptionsForAdmin(
   let query = admin
     .from(Tables.pages)
     .select(PARENT_PAGE_OPTION_COLUMNS)
+    .eq("is_deleted", false)
     .order("title_en", { ascending: true })
     .limit(safeLimit);
 
