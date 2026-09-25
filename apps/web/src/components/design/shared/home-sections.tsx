@@ -302,13 +302,13 @@ export function CollegesGrid({
               style={{ animationDelay: `${i * 60}ms` }}
             >
               {college.logoUrl ? (
-                <div className="relative mx-auto mb-4 flex h-[120px] w-[120px] items-center justify-center">
-                  <Image
+                <div className="mx-auto mb-4 h-[120px] w-[120px] overflow-hidden">
+                  <img
                     src={college.logoUrl}
                     alt={t(college.nameEn, college.nameHi)}
                     width={120}
                     height={120}
-                    className="max-h-[120px] max-w-[120px] object-contain"
+                    className="h-[120px] w-[120px] object-contain object-center"
                   />
                 </div>
               ) : variant !== "heritage" && variant !== "ministry" ? (
