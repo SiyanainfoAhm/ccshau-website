@@ -347,7 +347,7 @@ export async function getPublishedNewsPage(options: {
       fallback = fallback.eq("category", options.category);
     }
     const retry = await fallback.range(from, to);
-    data = retry.data;
+    data = retry.data as typeof data;
     count = retry.count;
   }
 
