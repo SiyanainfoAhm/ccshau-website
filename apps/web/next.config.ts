@@ -95,6 +95,9 @@ const nextConfig: NextConfig = {
     ];
   },
   images: {
+    // Serve Azure and other remote files at their original URL.
+    // Vercel image resizing returns 402 on this project, so logos never appear.
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: "https",
