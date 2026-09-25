@@ -113,6 +113,15 @@ export interface SiteSettings {
   social_youtube_url: string | null;
   social_blogger_url: string | null;
   social_instagram_url: string | null;
+  header_tagline_en: string | null;
+  header_tagline_hi: string | null;
+  header_logo_path: string | null;
+  header_portrait_path: string | null;
+  header_short_name: string | null;
+  header_name_en: string | null;
+  header_name_hi: string | null;
+  header_accreditation_en: string | null;
+  header_accreditation_hi: string | null;
   faculty_people_public_college_ids: string[];
   updated_at: string;
   updated_by: string | null;
@@ -172,6 +181,7 @@ export interface NewsItem {
   expires_at: string | null;
   is_featured: boolean;
   is_pinned: boolean;
+  sort_order: number;
   attachment_paths: AttachmentPath[];
   created_by: string | null;
   updated_by: string | null;
@@ -337,6 +347,7 @@ export interface Circular {
   legacy_notification_id: number | null;
   status: ContentStatus;
   published_at: string | null;
+  sort_order: number;
   archived_at: string | null;
   created_by: string | null;
   updated_by: string | null;

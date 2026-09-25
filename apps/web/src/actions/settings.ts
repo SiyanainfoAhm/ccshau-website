@@ -14,10 +14,12 @@ import {
 import { getSiteSettings } from "@/lib/settings/site-settings";
 import { sendPowerAutomateTestEmail } from "@/lib/power-automate/send";
 import { fail, ok, type ActionResult } from "@/lib/types/action-result";
-import { securitySettingsSchema, socialMediaSettingsSchema } from "@/lib/validations/settings";
+import { securitySettingsSchema, socialMediaSettingsSchema, headerBrandingSchema } from "@/lib/validations/settings";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { uploadHeaderImage } from "@/lib/storage/upload";
 
 const SETTINGS_ROLES = ["super_admin"] as const;
+const HEADER_ROLES = ["super_admin", "university_admin"] as const;
 
 export interface SecuritySettingsView {
   settings: SiteSettings;
@@ -156,6 +158,88 @@ export async function updateSocialMediaSettingsAction(formData: FormData): Promi
     return ok(undefined);
   } catch (e) {
     return fail(e instanceof Error ? e.message : "Failed to update social media settings.");
+  }
+}
+
+function imageFile(formData: FormData, name: string): File | null {
+  const file = formData.get(name);
+  return file instanceof File && file.size > 0 ? file : null;
+}
+
+export async function updateHeaderBrandingAction(formData: FormData): Promise<ActionResult> {
+  try {
+    const session = await requireAdminWithRoles([...HEADER_ROLES]);
+    const parsed = headerBrandingSchema.safeParse({
+      taglineEn: formData.get("taglineEn") ?? "",
+      taglineHi: formData.get("taglineHi") ?? "",
+      shortName: formData.get("shortName") ?? "",
+      nameEn: formData.get("nameEn") ?? "",
+      nameHi: formData.get("nameHi") ?? "",
+      accreditationEn: formData.get("accreditationEn") ?? "",
+      accreditationHi: formData.get("accreditationHi") ?? "",
+    });
+    if (!parsed.success) {
+      return fail("Validation failed", parsed.error.flatten().fieldErrors);
+    }
+
+    const admin = createAdminClient();
+    if (!admin) return fail("Database not configured.");
+
+    const current = await getSiteSettings();
+    let logoPath = formData.get("resetLogo") === "on" ? null : current.header_logo_path;
+    let portraitPath = formData.get("resetPortrait") === "on" ? null : current.header_portrait_path;
+
+    const logo = imageFile(formData, "logo");
+    if (logo) {
+      const uploaded = await uploadHeaderImage(admin, "logo", logo);
+      if (!uploaded.success) return uploaded;
+      logoPath = uploaded.data;
+    }
+
+    const portrait = imageFile(formData, "portrait");
+    if (portrait) {
+      const uploaded = await uploadHeaderImage(admin, "portrait", portrait);
+      if (!uploaded.success) return uploaded;
+      portraitPath = uploaded.data;
+    }
+
+    const row = {
+      header_tagline_en: parsed.data.taglineEn,
+      header_tagline_hi: blankToNull(parsed.data.taglineHi),
+      header_short_name: parsed.data.shortName,
+      header_name_en: parsed.data.nameEn,
+      header_name_hi: blankToNull(parsed.data.nameHi),
+      header_accreditation_en: parsed.data.accreditationEn,
+      header_accreditation_hi: blankToNull(parsed.data.accreditationHi),
+      header_logo_path: logoPath,
+      header_portrait_path: portraitPath,
+      updated_by: session.userId,
+    };
+
+    const { error } = await admin.from(Tables.siteSettings).update(row).eq("id", 1);
+    if (error) {
+      if (/header_tagline|header_logo|header_portrait|header_short_name|header_name|header_accreditation/i.test(error.message)) {
+        return fail(
+          "Header settings are not in the database yet. Run supabase/migrations/20260925140000_site_settings_header_branding.sql in the Supabase SQL editor, then save again.",
+        );
+      }
+      return fail(error.message);
+    }
+
+    await writeAuditLog({
+      userId: session.userId,
+      action: "update",
+      entityType: "site_settings",
+      entityId: "1",
+      details: { header_branding: true, ...row },
+    });
+
+    revalidateTag("public-chrome", "max");
+    revalidatePath("/admin/homepage");
+    revalidatePath("/");
+    return ok(undefined);
+  } catch (e) {
+    return fail(e instanceof Error ? e.message : "Failed to update header settings.");
   }
 }
 

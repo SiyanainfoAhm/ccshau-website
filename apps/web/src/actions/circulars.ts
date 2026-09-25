@@ -31,6 +31,7 @@ function parseForm(formData: FormData) {
     departmentId: formData.get("departmentId") || "",
     categoryId: formData.get("categoryId") || "",
     status: formData.get("status"),
+    sortOrder: formData.get("sortOrder") || 0,
     removeFile: formData.get("removeFile") === "on",
   });
 }
@@ -57,6 +58,7 @@ function toRow(
       input.status === "published"
         ? existingPublishedAt ?? new Date().toISOString()
         : null,
+    sort_order: input.sortOrder ?? 0,
     updated_by: userId,
   };
 }
@@ -182,7 +184,14 @@ export async function createCircularAction(formData: FormData): Promise<ActionRe
       })
       .select("id")
       .single();
-    if (error) return fail(error.message);
+    if (error) {
+      if (/sort_order/i.test(error.message)) {
+        return fail(
+          "Display order is not in the database yet. Run supabase/migrations/20260925150000_news_circular_sort_order.sql in the Supabase SQL editor, then save again.",
+        );
+      }
+      return fail(error.message);
+    }
 
     const upload = await uploadCircularFile(
       admin,
@@ -281,7 +290,14 @@ export async function updateCircularAction(id: string, formData: FormData): Prom
         file_size: fileSize,
       })
       .eq("id", id);
-    if (error) return fail(error.message);
+    if (error) {
+      if (/sort_order/i.test(error.message)) {
+        return fail(
+          "Display order is not in the database yet. Run supabase/migrations/20260925150000_news_circular_sort_order.sql in the Supabase SQL editor, then save again.",
+        );
+      }
+      return fail(error.message);
+    }
 
     await writeAuditLog({
       userId: session.userId,

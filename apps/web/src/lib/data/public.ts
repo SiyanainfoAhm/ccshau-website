@@ -72,6 +72,7 @@ import {
 } from "@/lib/pages/layout-config";
 import { getStoredFileUrl, resolvePublicMediaUrl } from "@/lib/storage/urls";
 import { getPublicFacultyFromAssignment, listPublicStaffForPage } from "@/lib/faculty/people";
+import { resolveHeaderBranding } from "@/lib/settings/header-branding";
 import { getSiteSettings } from "@/lib/settings/site-settings";
 import { socialLinksFromSettings } from "@/lib/social/public-social-links";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -170,8 +171,10 @@ const BANNER_PUBLIC_SELECT =
   "title, image_path, target_url, alt_text, start_date, end_date, priority, is_active";
 const NEWS_LIST_PUBLIC_SELECT =
   "id, slug, title_en, title_hi, category, notice_type, published_at, expires_at, is_featured, is_pinned, attachment_paths";
+const NEWS_LIST_ORDERED_SELECT = `${NEWS_LIST_PUBLIC_SELECT}, sort_order`;
 const CIRCULAR_PUBLIC_SELECT =
   "id, circular_number, title_en, title_hi, published_at, department_id, category_id, file_name, file_path";
+const CIRCULAR_ORDERED_SELECT = `${CIRCULAR_PUBLIC_SELECT}, sort_order`;
 const TENDER_LIST_PUBLIC_SELECT =
   "id, slug, tender_number, title_en, title_hi, description_en, description_hi, category, status, closing_date, published_at, department_id, document_paths";
 const DOWNLOAD_PUBLIC_SELECT =
@@ -239,6 +242,10 @@ export const getActiveBanners = unstable_cache(
   { revalidate: 60, tags: ["public-banners"] },
 );
 
+function missingSortColumn(error: { message?: string } | null | undefined): boolean {
+  return Boolean(error?.message && /sort_order/i.test(error.message));
+}
+
 export async function getPublishedNews(options?: {
   limit?: number;
   category?: string;
@@ -250,8 +257,9 @@ export async function getPublishedNews(options?: {
 
   let query = admin
     .from(Tables.news)
-    .select(NEWS_LIST_PUBLIC_SELECT)
+    .select(NEWS_LIST_ORDERED_SELECT)
     .eq("status", "published")
+    .order("sort_order", { ascending: true })
     .order("is_pinned", { ascending: false })
     .order("published_at", { ascending: false });
 
@@ -265,9 +273,23 @@ export async function getPublishedNews(options?: {
     query = query.limit(options.limit);
   }
 
-  const { data } = await query;
+  const { data, error } = await query;
+  let rows = (data as NewsItem[] | null) ?? [];
+  if (missingSortColumn(error)) {
+    let fallback = admin
+      .from(Tables.news)
+      .select(NEWS_LIST_PUBLIC_SELECT)
+      .eq("status", "published")
+      .order("is_pinned", { ascending: false })
+      .order("published_at", { ascending: false });
+    if (options?.category) fallback = fallback.eq("category", options.category);
+    if (options?.featuredOnly) fallback = fallback.eq("is_featured", true);
+    if (options?.limit) fallback = fallback.limit(options.limit);
+    const retry = await fallback;
+    rows = (retry.data as NewsItem[] | null) ?? [];
+  }
   const now = Date.now();
-  return ((data as NewsItem[] ?? [])
+  return rows
     .filter((item) => {
       if (!item.expires_at) return true;
       return new Date(item.expires_at).getTime() > now;
@@ -283,7 +305,7 @@ export async function getPublishedNews(options?: {
       noticeType: item.notice_type,
       publishedAt: item.published_at,
       attachmentPaths: mapAttachments(item.attachment_paths ?? []),
-    })));
+    }));
 }
 
 export async function getPublishedNewsPage(options: {
@@ -300,8 +322,10 @@ export async function getPublishedNewsPage(options: {
 
   let query = admin
     .from(Tables.news)
-    .select(NEWS_LIST_PUBLIC_SELECT, { count: "exact" })
+    .select(NEWS_LIST_ORDERED_SELECT, { count: "exact" })
     .eq("status", "published")
+    .order("sort_order", { ascending: true })
+    .order("is_pinned", { ascending: false })
     .order("published_at", { ascending: false });
 
   if (options.category && options.category !== "All") {
@@ -309,7 +333,23 @@ export async function getPublishedNewsPage(options: {
   }
 
   const { from, to } = paginationRange(page, pageSize);
-  const { data, count } = await query.range(from, to);
+  const first = await query.range(from, to);
+  let data = first.data;
+  let count = first.count;
+  if (missingSortColumn(first.error)) {
+    let fallback = admin
+      .from(Tables.news)
+      .select(NEWS_LIST_PUBLIC_SELECT, { count: "exact" })
+      .eq("status", "published")
+      .order("is_pinned", { ascending: false })
+      .order("published_at", { ascending: false });
+    if (options.category && options.category !== "All") {
+      fallback = fallback.eq("category", options.category);
+    }
+    const retry = await fallback.range(from, to);
+    data = retry.data;
+    count = retry.count;
+  }
 
   const items = ((data as NewsItem[]) ?? []).map((item) => ({
     id: item.id,
@@ -621,6 +661,17 @@ async function loadPublicSiteChrome(): Promise<PublicSiteChrome> {
       quickLinks: mockQuickLinkItems(),
       footerLinks: mockQuickLinkItems(),
       socialLinks: [],
+      header: resolveHeaderBranding({
+        header_tagline_en: null,
+        header_tagline_hi: null,
+        header_logo_path: null,
+        header_portrait_path: null,
+        header_short_name: null,
+        header_name_en: null,
+        header_name_hi: null,
+        header_accreditation_en: null,
+        header_accreditation_hi: null,
+      }),
     };
   }
 
@@ -661,6 +712,7 @@ async function loadPublicSiteChrome(): Promise<PublicSiteChrome> {
     quickLinks,
     footerLinks,
     socialLinks: socialLinksFromSettings(siteSettings),
+    header: resolveHeaderBranding(siteSettings),
   };
 }
 
@@ -1447,17 +1499,27 @@ export async function getPublishedCirculars(options?: {
 
   let query = admin
     .from(Tables.circulars)
-    .select(CIRCULAR_PUBLIC_SELECT)
+    .select(CIRCULAR_ORDERED_SELECT)
     .eq("status", "published")
+    .order("sort_order", { ascending: true })
     .order("published_at", { ascending: false });
 
   if (categoryIds) {
     query = query.in("category_id", categoryIds);
   }
 
-  const { data } = await query;
-
-  const circulars = (data as Circular[]) ?? [];
+  const { data, error } = await query;
+  let circulars = (data as Circular[]) ?? [];
+  if (missingSortColumn(error)) {
+    let fallback = admin
+      .from(Tables.circulars)
+      .select(CIRCULAR_PUBLIC_SELECT)
+      .eq("status", "published")
+      .order("published_at", { ascending: false });
+    if (categoryIds) fallback = fallback.in("category_id", categoryIds);
+    const retry = await fallback;
+    circulars = (retry.data as Circular[]) ?? [];
+  }
   const deptIds = [...new Set(circulars.map((c) => c.department_id).filter(Boolean))] as string[];
   const catIds = [...new Set(circulars.map((c) => c.category_id).filter(Boolean))] as string[];
   const deptMap = await loadDepartmentNames(admin, deptIds);

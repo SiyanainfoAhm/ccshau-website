@@ -7,5 +7,6 @@ export const circularFormSchema = z.object({
   departmentId: z.string().uuid().optional().or(z.literal("")),
   categoryId: z.string().uuid().optional().or(z.literal("")),
   status: z.enum(["draft", "pending_review", "published", "archived"]),
+  sortOrder: z.coerce.number().int().min(0).max(9999).optional().default(0),
   removeFile: z.coerce.boolean().optional().default(false),
 });

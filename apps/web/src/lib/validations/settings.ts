@@ -28,4 +28,14 @@ export const socialMediaSettingsSchema = z.object({
   instagramUrl: optionalSocialUrl,
 });
 
-export type SocialMediaSettingsInput = z.infer<typeof socialMediaSettingsSchema>;
+export const headerBrandingSchema = z.object({
+  taglineEn: z.string().trim().min(1, "English motto is required").max(80),
+  taglineHi: z.string().trim().max(80),
+  shortName: z.string().trim().min(1, "Short name is required").max(40),
+  nameEn: z.string().trim().min(1, "English university name is required").max(160),
+  nameHi: z.string().trim().max(160),
+  accreditationEn: z.string().trim().min(1, "English accreditation text is required").max(80),
+  accreditationHi: z.string().trim().max(80),
+});
+
+export type HeaderBrandingInput = z.infer<typeof headerBrandingSchema>;
