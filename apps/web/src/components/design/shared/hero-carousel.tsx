@@ -199,7 +199,7 @@ export function HeroCarousel({
   return (
     <section
       data-site-hero
-      className="relative min-h-[90vh] overflow-hidden"
+      className="relative min-h-[76.5vh] overflow-hidden"
       role="region"
       aria-roledescription="carousel"
       aria-label={t("Homepage banner", "मुखपृष्ठ बैनर")}
@@ -222,7 +222,7 @@ export function HeroCarousel({
         </div>
       ))}
 
-      <div className="relative mx-auto flex min-h-[90vh] max-w-7xl flex-col justify-center px-4 py-20">
+      <div className="relative mx-auto flex min-h-[76.5vh] max-w-7xl flex-col justify-center px-4 py-20">
         <div className="animate-fade-up stagger-children">
           {displayTitle && (
             <h1 className={`max-w-4xl ${typeHeroDisplayClass} text-white drop-shadow-[0_3px_16px_rgba(0,0,0,0.65)]`}>
