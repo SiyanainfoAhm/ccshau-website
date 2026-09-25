@@ -2,7 +2,7 @@
 
 import Link, { useLinkStatus } from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import {
   ArrowRightLeft,
   BarChart3,
@@ -113,9 +113,7 @@ export function getSidebarNavItems(access: AdminNavAccess): AdminNavItem[] {
 
 function NavPendingIndicator() {
   const { pending } = useLinkStatus();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-  if (!mounted || !pending) return <span className="ml-auto h-3 w-3 shrink-0" aria-hidden />;
+  if (!pending) return <span className="ml-auto h-3 w-3 shrink-0" aria-hidden />;
 
   return (
     <Loader2
@@ -146,8 +144,6 @@ export function AdminSidebar({
   collegeName?: string | null;
 }) {
   const pathname = usePathname();
-  const [navReady, setNavReady] = useState(false);
-  useEffect(() => setNavReady(true), []);
   const items = getSidebarNavItems(access);
 
   return (
@@ -167,16 +163,15 @@ export function AdminSidebar({
         </div>
         <nav className="flex-1 space-y-1 p-3">
           {items.map((item) => {
-            const active =
-              navReady &&
-              (item.exact
-                ? pathname === item.href
-                : pathname === item.href || pathname.startsWith(`${item.href}/`));
+            const active = item.exact
+              ? pathname === item.href
+              : pathname === item.href || pathname.startsWith(`${item.href}/`);
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 prefetch={false}
+                suppressHydrationWarning
                 className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
                   active
                     ? "bg-amber-400/20 text-amber-200"
