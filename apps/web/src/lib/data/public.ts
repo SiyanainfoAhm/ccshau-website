@@ -1114,15 +1114,23 @@ export async function getPublishedCollegeBySlug(slug: string): Promise<PublicCol
   if (!data) return null;
   const college = data as Page;
 
-  const { data: publishedPages } = await admin
+  const publishedFirst = await admin
     .from(Tables.pages)
     .select("id, slug, page_type, parent_id")
     .eq("status", "published")
     .eq("is_deleted", false);
+  let publishedPages = publishedFirst.data;
+  if (missingDeletedColumn(publishedFirst.error)) {
+    const publishedFallback = await admin
+      .from(Tables.pages)
+      .select("id, slug, page_type, parent_id")
+      .eq("status", "published");
+    publishedPages = publishedFallback.data;
+  }
   const pageById = new Map(((publishedPages as Page[]) ?? []).map((p) => [p.id, p]));
   if (getCollegePagePlacement(college, pageById) !== "root") return null;
 
-  const { data: sections } = await admin
+  const sectionsFirst = await admin
     .from(Tables.pages)
     .select("*")
     .eq("parent_id", college.id)
@@ -1130,6 +1138,17 @@ export async function getPublishedCollegeBySlug(slug: string): Promise<PublicCol
     .eq("is_deleted", false)
     .order("sort_order")
     .order("title_en");
+  let sections = sectionsFirst.data;
+  if (missingDeletedColumn(sectionsFirst.error)) {
+    const sectionsFallback = await admin
+      .from(Tables.pages)
+      .select("*")
+      .eq("parent_id", college.id)
+      .eq("status", "published")
+      .order("sort_order")
+      .order("title_en");
+    sections = sectionsFallback.data;
+  }
 
   // College top nav should match legacy: Home | Departments | Gallery | Contact —
   // not every CMS child page attached under the college root.
@@ -1140,7 +1159,7 @@ export async function getPublishedCollegeBySlug(slug: string): Promise<PublicCol
 
   let subsectionRows: Page[] = [];
   if (sectionIds.length > 0) {
-    const { data: subsections } = await admin
+    const subsectionsFirst = await admin
       .from(Tables.pages)
       .select("*")
       .in("parent_id", sectionIds)
@@ -1148,6 +1167,17 @@ export async function getPublishedCollegeBySlug(slug: string): Promise<PublicCol
       .eq("is_deleted", false)
       .order("sort_order")
       .order("title_en");
+    let subsections = subsectionsFirst.data;
+    if (missingDeletedColumn(subsectionsFirst.error)) {
+      const subsectionsFallback = await admin
+        .from(Tables.pages)
+        .select("*")
+        .in("parent_id", sectionIds)
+        .eq("status", "published")
+        .order("sort_order")
+        .order("title_en");
+      subsections = subsectionsFallback.data;
+    }
     subsectionRows = (subsections as Page[]) ?? [];
   }
 
