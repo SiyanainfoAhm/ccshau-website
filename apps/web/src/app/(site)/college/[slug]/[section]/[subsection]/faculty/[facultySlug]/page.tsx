@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { SiteFooter } from "@/components/design/shared/site-footer";
+import { CollegeSiteFooter } from "@/components/site/college-site-footer";
 import { SiteHeader } from "@/components/design/shared/site-header";
 import { FacultyProfileContent } from "@/components/site/faculty-profile-content";
 import { FacultyProfilePrintButton } from "@/components/site/faculty-profile-print-button";
@@ -153,7 +153,7 @@ export default async function FacultyDetailPage({
           </article>
         </div>
       </main>
-      <SiteFooter variant="future" />
+      <CollegeSiteFooter slug={slug} />
     </>
   );
 }

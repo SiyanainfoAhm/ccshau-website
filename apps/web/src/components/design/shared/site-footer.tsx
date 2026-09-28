@@ -8,6 +8,7 @@ import { useLanguage } from "@/components/design/shared/language-context";
 import { usePublicSiteChrome } from "@/components/site/public-site-context";
 import { SELECTED_LAYOUT } from "@/lib/design/selected-layout";
 import type { PublicQuickLink } from "@/lib/data/public-types";
+import type { PublicMicrositeFooter } from "@/lib/pages/microsite-footer";
 import { quickLinks, university } from "@/lib/mock/site-content";
 
 /** Keep the footer compact; full list lives on /quick-links. */
@@ -16,9 +17,11 @@ const FOOTER_QUICK_LINKS_LIMIT = 10;
 export function SiteFooter({
   variant = "future",
   quickLinks: quickLinksProp,
+  microsite = null,
 }: {
   variant?: "heritage" | "future" | "ministry";
   quickLinks?: PublicQuickLink[];
+  microsite?: PublicMicrositeFooter | null;
 }) {
   const { t } = useLanguage();
   const chrome = usePublicSiteChrome();
@@ -34,6 +37,63 @@ export function SiteFooter({
   const isHeritage = variant === "heritage";
   const isMinistry = variant === "ministry";
   const isFuture = variant === "future";
+
+  if (isFuture && microsite) {
+    const linkClass = "text-emerald-100/90 transition hover:text-amber-200 hover:underline";
+    return (
+      <footer className="footer-future border-t border-emerald-800/50 text-emerald-50">
+        <div className="h-1 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400" aria-hidden />
+        <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:grid-cols-2 lg:grid-cols-4">
+          {microsite.sections.map((section, index) => (
+            <div key={`${section.titleEn}-${index}`} className="space-y-3">
+              {(section.titleEn || section.titleHi) && (
+                <h3 className="text-sm font-bold uppercase tracking-wider text-amber-300">
+                  {t(section.titleEn, section.titleHi || section.titleEn)}
+                </h3>
+              )}
+              {index === 0 && (
+                <div className="space-y-2 text-sm text-emerald-100/90">
+                  <p className="font-display text-lg font-bold text-white">{t(microsite.nameEn, microsite.nameHi)}</p>
+                  {(microsite.descriptionEn || microsite.descriptionHi) && (
+                    <p>{t(microsite.descriptionEn, microsite.descriptionHi || microsite.descriptionEn)}</p>
+                  )}
+                  {microsite.addressEn && (
+                    <p className="flex gap-2">
+                      <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" aria-hidden />
+                      {t(microsite.addressEn, microsite.addressHi || microsite.addressEn)}
+                    </p>
+                  )}
+                  {microsite.phone && (
+                    <p className="flex gap-2">
+                      <Phone className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" aria-hidden />
+                      {microsite.phone}
+                    </p>
+                  )}
+                  {microsite.email && (
+                    <p className="flex gap-2">
+                      <Mail className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" aria-hidden />
+                      <span>{microsite.email}</span>
+                    </p>
+                  )}
+                </div>
+              )}
+              {section.links.length > 0 && (
+                <ul className="space-y-2 text-sm">
+                  {section.links.map((link) => (
+                    <li key={`${link.href}-${link.labelEn}`}>
+                      <Link href={link.href} className={linkClass}>
+                        {t(link.labelEn, link.labelHi || link.labelEn)}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ))}
+        </div>
+      </footer>
+    );
+  }
 
   if (isFuture) {
     return (

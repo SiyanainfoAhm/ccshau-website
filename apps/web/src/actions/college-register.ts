@@ -4,7 +4,12 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { writeAuditLog } from "@/lib/auth/audit";
-import { canDeletePages, canEditPages, isSuperAdminSession } from "@/lib/auth/college-scope";
+import {
+  canDeletePages,
+  canEditPages,
+  isSuperAdminSession,
+  isUniversityAdminSession,
+} from "@/lib/auth/college-scope";
 import {
   canEditOwnFacultyPerson,
   isFacultyOnlyUser,
@@ -1256,6 +1261,7 @@ export async function requireCollegeRegisterAdmin() {
   const session = await requireAdminSession();
   if (
     !isSuperAdminSession(session) &&
+    !isUniversityAdminSession(session) &&
     !session.collegeAssignment &&
     !session.departmentPageAssignment
   ) {
@@ -1429,6 +1435,7 @@ export async function requireCollegeRegisterAdminOrRedirect() {
   const session = await requireAdminSession();
   if (
     !isSuperAdminSession(session) &&
+    !isUniversityAdminSession(session) &&
     !session.collegeAssignment &&
     !session.departmentPageAssignment
   ) {

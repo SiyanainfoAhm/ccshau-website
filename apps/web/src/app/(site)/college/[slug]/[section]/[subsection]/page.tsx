@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
-import { SiteFooter } from "@/components/design/shared/site-footer";
+import { CollegeSiteFooter } from "@/components/site/college-site-footer";
 import { SiteHeader } from "@/components/design/shared/site-header";
 import { PublicConfigurablePage } from "@/components/site/public-configurable-page";
 import { getHomepageContent } from "@/lib/data/homepage";
@@ -79,7 +79,7 @@ export default async function CollegeSubsectionPage({
           cta={layoutConfig.farmersCta && office?.officeCtaEnabled ? homepage?.cta ?? null : null}
         />
       </main>
-      <SiteFooter variant="future" />
+      <CollegeSiteFooter slug={slug} />
     </>
   );
 }
