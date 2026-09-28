@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 
 import { getCollegeForRegisterHub, requireCollegeRegisterAdminOrRedirect } from "@/actions/college-register";
 import { CollegeRegisterHub } from "@/components/admin/college-register-hub";
+import { canEditPages, sessionCanAccessCollegeRoot } from "@/lib/auth/college-scope";
 import { isDepartmentHodOnlyUser } from "@/lib/auth/department-hod-scope";
 import { MICROSITE_KIND_LABELS } from "@/lib/pages/microsite-kind";
 
@@ -32,7 +33,10 @@ export default async function CollegeRegisterDetailPage({
           {MICROSITE_KIND_LABELS[college.kind].en} — manage departments and faculty for this microsite.
         </p>
       </div>
-      <CollegeRegisterHub college={college} />
+      <CollegeRegisterHub
+        college={college}
+        showFooter={canEditPages(session) && sessionCanAccessCollegeRoot(session, college.id)}
+      />
     </div>
   );
 }

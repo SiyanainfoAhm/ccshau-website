@@ -2,7 +2,7 @@ import { notFound, redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
-import { SiteFooter } from "@/components/design/shared/site-footer";
+import { CollegeSiteFooter } from "@/components/site/college-site-footer";
 import { SiteHeader } from "@/components/design/shared/site-header";
 import { PublicCollegeContactPage } from "@/components/site/public-college-contact-page";
 import {
@@ -49,7 +49,7 @@ export default async function CollegeContactPage({ params }: { params: Promise<{
           contactLines={office?.contactLines ?? []}
         />
       </main>
-      <SiteFooter variant="future" />
+      <CollegeSiteFooter slug={slug} />
     </>
   );
 }

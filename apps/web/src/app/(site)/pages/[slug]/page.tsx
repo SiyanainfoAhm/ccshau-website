@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { SiteFooter } from "@/components/design/shared/site-footer";
 import { SiteHeader } from "@/components/design/shared/site-header";
+import { CollegeSiteFooter } from "@/components/site/college-site-footer";
 import { PublicCmsOfficePageContent } from "@/components/site/public-cms-office-page-content";
 import { PublicCmsPageContent } from "@/components/site/public-cms-page-content";
 import {
@@ -61,6 +62,15 @@ export default async function CmsPage({ params }: { params: Promise<{ slug: stri
       : null;
   const collegeSlug = getCollegeSlugForCmsPage(slug);
   const college = collegeSlug ? await getPublishedCollegeBySlug(collegeSlug) : null;
+  let micrositeSlug = college?.collegeSlug ?? collegeSlug;
+  if (!micrositeSlug && pageRow && (pageRow as Page).college_root_id && admin) {
+    const { data: root } = await admin
+      .from(Tables.pages)
+      .select("slug, page_type")
+      .eq("id", (pageRow as Page).college_root_id!)
+      .maybeSingle();
+    if (root?.page_type === "college") micrositeSlug = root.slug;
+  }
   const storedLayout = pageRow ? parseLayoutConfigJson(pageRow.layout_config) : null;
   const newsTickerItems =
     (page.layoutConfig?.newsTicker || storedLayout?.newsTicker) && pageRow
@@ -90,7 +100,7 @@ export default async function CmsPage({ params }: { params: Promise<{ slug: stri
           <PublicCmsPageContent page={page} galleryImages={galleryImages} />
         )}
       </main>
-      <SiteFooter variant="future" />
+      {micrositeSlug ? <CollegeSiteFooter slug={micrositeSlug} /> : <SiteFooter variant="future" />}
     </>
   );
 }
