@@ -130,64 +130,64 @@ export function SiteHeader({
     setMobileOpen(false);
   }
 
-  function MainNavigationBlock() {
-    const panelClass = `${mobileOpen ? "block" : "hidden"} lg:block ${
-      isMinistry
-        ? "border-t border-slate-200 bg-[#0c3b6e]"
-        : isHeritage
-          ? "border-t border-rose-100/80 bg-gradient-to-r from-rose-50/80 via-white to-sky-50/80"
-          : isLight
-            ? "border-t border-slate-200 bg-white"
-            : "ccshau-main-nav-bar"
-    }`;
-    return (
-      <>
-        {customHeaderOn && (
-          <div className="ccshau-main-nav-bar lg:hidden">
-            <div className="mx-auto flex max-w-7xl justify-end px-4 py-2">
-              <button
-                ref={mobileMenuButtonRef}
-                type="button"
-                className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-sm font-semibold text-white"
-                onClick={() => setMobileOpen((open) => !open)}
-                aria-expanded={mobileOpen}
-                aria-controls="mobile-main-navigation"
-                aria-label={mobileOpen ? t("Close menu", "मेनू बंद करें") : t("Open menu", "मेनू खोलें")}
-              >
-                {t("Menu", "मेनू")}
-                {mobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-              </button>
-            </div>
+  const mainNavigation = (
+    <>
+      {customHeaderOn && (
+        <div className="ccshau-main-nav-bar lg:hidden">
+          <div className="mx-auto flex max-w-7xl justify-end px-4 py-2">
+            <button
+              ref={mobileMenuButtonRef}
+              type="button"
+              className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-sm font-semibold text-white"
+              onClick={() => setMobileOpen((open) => !open)}
+              aria-expanded={mobileOpen}
+              aria-controls="mobile-main-navigation"
+              aria-label={mobileOpen ? t("Close menu", "मेनू बंद करें") : t("Open menu", "मेनू खोलें")}
+            >
+              {t("Menu", "मेनू")}
+              {mobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+            </button>
           </div>
-        )}
-        <div id="mobile-main-navigation" className={panelClass}>
-          <form onSubmit={handleSearchSubmit} className="border-b border-white/10 p-4 lg:hidden">
-            <div className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2">
-              <Search className="h-4 w-4 text-emerald-200" />
-              <input
-                type="search"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={t("Search...", "खोजें...")}
-                aria-label={t("Search", "खोज")}
-                className="w-full bg-transparent text-sm text-white outline-none placeholder:text-emerald-200/70"
-              />
-            </div>
-          </form>
-          <MainNavigation
-            items={navItems}
-            resolveHref={resolveHref}
-            tone={isMinistry ? "ministry" : isHeritage ? "heritage" : isLight ? "light" : "future"}
-            mobileOpen={mobileOpen}
-            onMobileClose={() => {
-              setMobileOpen(false);
-              mobileMenuButtonRef.current?.focus();
-            }}
-          />
         </div>
-      </>
-    );
-  }
+      )}
+      <div
+        id="mobile-main-navigation"
+        className={`${mobileOpen ? "block" : "hidden"} lg:block ${
+          isMinistry
+            ? "border-t border-slate-200 bg-[#0c3b6e]"
+            : isHeritage
+              ? "border-t border-rose-100/80 bg-gradient-to-r from-rose-50/80 via-white to-sky-50/80"
+              : isLight
+                ? "border-t border-slate-200 bg-white"
+                : "ccshau-main-nav-bar"
+        }`}
+      >
+        <form onSubmit={handleSearchSubmit} className="border-b border-white/10 p-4 lg:hidden">
+          <div className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2">
+            <Search className="h-4 w-4 text-emerald-200" />
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={t("Search...", "खोजें...")}
+              aria-label={t("Search", "खोज")}
+              className="w-full bg-transparent text-sm text-white outline-none placeholder:text-emerald-200/70"
+            />
+          </div>
+        </form>
+        <MainNavigation
+          items={navItems}
+          resolveHref={resolveHref}
+          tone={isMinistry ? "ministry" : isHeritage ? "heritage" : isLight ? "light" : "future"}
+          mobileOpen={mobileOpen}
+          onMobileClose={() => {
+            setMobileOpen(false);
+            mobileMenuButtonRef.current?.focus();
+          }}
+        />
+      </div>
+    </>
+  );
 
   return (
     <header className={variantStyles[variant]}>
@@ -375,7 +375,7 @@ export function SiteHeader({
       </>
       )}
 
-      {!customHeaderOn && shouldShowMainNav ? <MainNavigationBlock /> : null}
+      {!customHeaderOn && shouldShowMainNav ? mainNavigation : null}
 
       {shouldShowCollegeNav && college && (
         <CollegeNavigation
@@ -384,7 +384,7 @@ export function SiteHeader({
           showMenu={!(customHeaderOn && universityMenuOn)}
         />
       )}
-      {customHeaderOn && shouldShowMainNav ? <MainNavigationBlock /> : null}
+      {customHeaderOn && shouldShowMainNav ? mainNavigation : null}
       {shouldShowPgStudiesNav && pgStudiesHub && <PgStudiesNavigation hub={pgStudiesHub} />}
     </header>
   );

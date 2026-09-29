@@ -70,7 +70,7 @@ export async function loadPublicMicrositeHeader(slug: string) {
     .eq("status", "published")
     .maybeSingle();
 
-  let row = first.data as {
+  const row = first.data as {
     page_type: string;
     microsite_header?: unknown;
   } | null;
