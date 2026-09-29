@@ -57,12 +57,20 @@ export async function assertPageAccess(
   const admin = createAdminClient();
   if (!admin) throw new Error("Database not configured.");
 
-  const { data, error } = await admin
+  const first = await admin
     .from(Tables.pages)
     .select("*")
     .eq("id", pageId)
     .eq("is_deleted", false)
     .maybeSingle();
+
+  let data = first.data;
+  let error = first.error;
+  if (error?.message && /is_deleted/i.test(error.message)) {
+    const fallback = await admin.from(Tables.pages).select("*").eq("id", pageId).maybeSingle();
+    data = fallback.data;
+    error = fallback.error;
+  }
   if (error) throw new Error(error.message);
   if (!data) throw new Error("Page not found.");
 

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 export const dynamic = "force-dynamic";
 
 import { CollegeSiteFooter } from "@/components/site/college-site-footer";
-import { SiteHeader } from "@/components/design/shared/site-header";
+import { CollegeSiteHeader } from "@/components/site/college-site-header";
 import { PublicConfigurablePage } from "@/components/site/public-configurable-page";
 import { getHomepageContent } from "@/lib/data/homepage";
 import {
@@ -60,8 +60,8 @@ export default async function CollegeSubsectionPage({
 
   return (
     <>
-      <SiteHeader
-        variant="future"
+      <CollegeSiteHeader
+        slug={slug}
         homeHref={`/college/${slug}`}
         college={data.college}
         pageLayoutConfig={data.college.layoutConfig}

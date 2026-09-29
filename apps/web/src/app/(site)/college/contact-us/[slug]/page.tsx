@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 export const dynamic = "force-dynamic";
 
 import { CollegeSiteFooter } from "@/components/site/college-site-footer";
-import { SiteHeader } from "@/components/design/shared/site-header";
+import { CollegeSiteHeader } from "@/components/site/college-site-header";
 import { PublicCollegeContactPage } from "@/components/site/public-college-contact-page";
 import {
   getOfficePortalDataByPageId,
@@ -37,8 +37,8 @@ export default async function CollegeContactPage({ params }: { params: Promise<{
 
   return (
     <>
-      <SiteHeader
-        variant="future"
+      <CollegeSiteHeader
+        slug={slug}
         homeHref={`/college/${slug}`}
         college={college}
         pageLayoutConfig={college.layoutConfig}

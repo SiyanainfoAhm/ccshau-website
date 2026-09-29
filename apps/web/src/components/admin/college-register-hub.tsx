@@ -1,16 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { GraduationCap, PanelBottom, Users } from "lucide-react";
+import { GraduationCap, PanelBottom, PanelTop, Users } from "lucide-react";
 
 import type { CollegeOption } from "@/lib/pages/college-register-helpers";
 
 export function CollegeRegisterHub({
   college,
   showFooter = true,
+  showHeader = true,
 }: {
   college: CollegeOption;
   showFooter?: boolean;
+  showHeader?: boolean;
 }) {
   const base = `/admin/register/${college.id}`;
   const cards = [
@@ -26,6 +28,16 @@ export function CollegeRegisterHub({
       title: "Faculty",
       desc: "List, add, edit, or delete HOD and faculty with profile pages.",
     },
+    ...(showHeader
+      ? [
+          {
+            href: `${base}/header`,
+            icon: PanelTop,
+            title: "Header",
+            desc: "Name, short line, and logo shown on this microsite and its inner pages.",
+          },
+        ]
+      : []),
     ...(showFooter
       ? [
           {

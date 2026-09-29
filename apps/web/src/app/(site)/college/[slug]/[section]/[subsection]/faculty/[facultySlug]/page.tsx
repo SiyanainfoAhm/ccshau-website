@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { CollegeSiteFooter } from "@/components/site/college-site-footer";
-import { SiteHeader } from "@/components/design/shared/site-header";
+import { CollegeSiteHeader } from "@/components/site/college-site-header";
 import { FacultyProfileContent } from "@/components/site/faculty-profile-content";
 import { FacultyProfilePrintButton } from "@/components/site/faculty-profile-print-button";
 import { StaffPhoto } from "@/components/site/staff-photo";
@@ -46,7 +46,7 @@ export default async function FacultyDetailPage({
 
   return (
     <>
-      <SiteHeader variant="future" homeHref={`/college/${slug}`} college={college} />
+      <CollegeSiteHeader slug={slug} homeHref={`/college/${slug}`} college={college} />
       <main id="main-content" tabIndex={-1} className={publicMainClass}>
         <div className="mx-auto max-w-4xl px-4 py-8">
           <nav className="mb-6 text-sm text-emerald-800">

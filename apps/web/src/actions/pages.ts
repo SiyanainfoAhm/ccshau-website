@@ -582,6 +582,13 @@ const PAGES_LIST_COLUMNS =
 /** Minimal columns for parent-page dropdown + public path resolution. */
 const PARENT_PAGE_OPTION_COLUMNS = "id, slug, title_en, page_type, parent_id";
 
+/** Quote ilike values so commas in titles such as "College of Agriculture, Hisar" stay inside one filter. */
+function ilikeAny(columns: string[], term: string): string {
+  const safe = term.replace(/["\\]/g, "").replace(/[%_]/g, "");
+  const pattern = `"%${safe}%"`;
+  return columns.map((column) => `${column}.ilike.${pattern}`).join(",");
+}
+
 export type ParentPageOptionRow = {
   id: string;
   slug: string;
@@ -661,8 +668,8 @@ export async function listPagesForAdmin(
     if (hideDeleted) query = query.eq("is_deleted", false);
     query = applyPagesListScope(query, session, allowedModules);
     if (opts.search) {
-      const term = `%${opts.search}%`;
-      query = query.or(`title_en.ilike.${term},title_hi.ilike.${term},slug.ilike.${term}`);
+      const term = opts.search.trim();
+      if (term) query = query.or(ilikeAny(["title_en", "title_hi", "slug"], term));
     }
     return query;
   };
@@ -682,18 +689,18 @@ export async function listParentPageOptionsForAdmin(): Promise<ParentPageOptionR
   if (!admin) return [];
 
   const allowedModules = await getAllowedCmsModulesForSession(session);
-  let query = admin
-    .from(Tables.pages)
-    .select(PARENT_PAGE_OPTION_COLUMNS)
-    .eq("is_deleted", false)
-    .order("title_en", { ascending: true })
-    .limit(5000);
+  const parentQuery = (hideDeleted: boolean) => {
+    let query = admin.from(Tables.pages).select(PARENT_PAGE_OPTION_COLUMNS);
+    if (hideDeleted) query = query.eq("is_deleted", false);
+    query = query.order("title_en", { ascending: true }).limit(5000);
+    return applyPagesListScope(query, session, allowedModules);
+  };
 
-  query = applyPagesListScope(query, session, allowedModules);
-
-  const { data, error } = await query;
-  if (error || !data) return [];
-  return data as ParentPageOptionRow[];
+  const first = await parentQuery(true);
+  const result =
+    first.error?.message && /is_deleted/i.test(first.error.message) ? await parentQuery(false) : first;
+  if (result.error || !result.data) return [];
+  return result.data as ParentPageOptionRow[];
 }
 
 export type AdminParentPageOption = {
@@ -727,12 +734,16 @@ async function fetchParentRowsByIds(ids: string[]): Promise<ParentPageOptionRow[
   if (!ids.length) return [];
   const admin = createAdminClient();
   if (!admin) return [];
-  const { data } = await admin
+  const first = await admin
     .from(Tables.pages)
     .select(PARENT_PAGE_OPTION_COLUMNS)
     .in("id", ids)
     .eq("is_deleted", false);
-  return (data ?? []) as ParentPageOptionRow[];
+  if (first.error?.message && /is_deleted/i.test(first.error.message)) {
+    const fallback = await admin.from(Tables.pages).select(PARENT_PAGE_OPTION_COLUMNS).in("id", ids);
+    return (fallback.data ?? []) as ParentPageOptionRow[];
+  }
+  return (first.data ?? []) as ParentPageOptionRow[];
 }
 
 /** Attach parent/grandparent rows so publicPath + ancestors resolve without loading all pages. */
@@ -784,26 +795,23 @@ export async function searchParentPageOptionsForAdmin(
 
   const allowedModules = await getAllowedCmsModulesForSession(session);
   const safeLimit = Math.min(Math.max(limit, 1), 100);
-
-  let query = admin
-    .from(Tables.pages)
-    .select(PARENT_PAGE_OPTION_COLUMNS)
-    .eq("is_deleted", false)
-    .order("title_en", { ascending: true })
-    .limit(safeLimit);
-
-  query = applyPagesListScope(query, session, allowedModules);
-  if (excludePageId) query = query.neq("id", excludePageId);
-
   const term = search.trim();
-  if (term) {
-    const pattern = `%${term}%`;
-    query = query.or(`title_en.ilike.${pattern},slug.ilike.${pattern}`);
-  }
 
-  const { data, error } = await query;
-  if (error || !data) return [];
-  return enrichParentPageOptions(data as ParentPageOptionRow[]);
+  const parentQuery = (hideDeleted: boolean) => {
+    let query = admin.from(Tables.pages).select(PARENT_PAGE_OPTION_COLUMNS);
+    if (hideDeleted) query = query.eq("is_deleted", false);
+    query = query.order("title_en", { ascending: true }).limit(safeLimit);
+    query = applyPagesListScope(query, session, allowedModules);
+    if (excludePageId) query = query.neq("id", excludePageId);
+    if (term) query = query.or(ilikeAny(["title_en", "slug"], term));
+    return query;
+  };
+
+  const first = await parentQuery(true);
+  const result =
+    first.error?.message && /is_deleted/i.test(first.error.message) ? await parentQuery(false) : first;
+  if (result.error || !result.data) return [];
+  return enrichParentPageOptions(result.data as ParentPageOptionRow[]);
 }
 
 /** Resolve one parent option (current selection on edit). */
