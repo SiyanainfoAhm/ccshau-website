@@ -74,6 +74,15 @@ async function assertNewsAccess(
   return null;
 }
 
+function missingSortOrderColumn(message: string | undefined) {
+  return Boolean(message && /sort_order/i.test(message));
+}
+
+function withoutSortOrder<T extends { sort_order?: number }>(row: T) {
+  const { sort_order: _sortOrder, ...rest } = row;
+  return rest;
+}
+
 function toNewsRow(
   input: ReturnType<typeof newsFormSchema.parse>,
   userId: string,
@@ -150,15 +159,12 @@ export async function createNewsAction(formData: FormData): Promise<ActionResult
       created_by: session.userId,
     };
 
-    const { data, error } = await admin.from(Tables.news).insert(row).select("id").single();
-    if (error) {
-      if (/sort_order/i.test(error.message)) {
-        return fail(
-          "Display order is not in the database yet. Run supabase/migrations/20260925150000_news_circular_sort_order.sql in the Supabase SQL editor, then save again.",
-        );
-      }
-      return fail(error.message);
+    let inserted = await admin.from(Tables.news).insert(row).select("id").single();
+    if (inserted.error && missingSortOrderColumn(inserted.error.message)) {
+      inserted = await admin.from(Tables.news).insert(withoutSortOrder(row)).select("id").single();
     }
+    const { data, error } = inserted;
+    if (error || !data) return fail(error?.message ?? "Failed to create news");
 
     const attachments = await mergeAttachments(admin, data.id, formData, parsed.data);
     if (!attachments.success) return fail(attachments.error);
@@ -227,15 +233,11 @@ export async function updateNewsAction(
       attachment_paths: attachments.data,
     };
 
-    const { error } = await admin.from(Tables.news).update(row).eq("id", newsId);
-    if (error) {
-      if (/sort_order/i.test(error.message)) {
-        return fail(
-          "Display order is not in the database yet. Run supabase/migrations/20260925150000_news_circular_sort_order.sql in the Supabase SQL editor, then save again.",
-        );
-      }
-      return fail(error.message);
+    let updated = await admin.from(Tables.news).update(row).eq("id", newsId);
+    if (updated.error && missingSortOrderColumn(updated.error.message)) {
+      updated = await admin.from(Tables.news).update(withoutSortOrder(row)).eq("id", newsId);
     }
+    if (updated.error) return fail(updated.error.message);
 
     await writeAuditLog({
       userId: session.userId,
