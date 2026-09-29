@@ -234,19 +234,40 @@ export async function upsertPersonAndAssignment(
   let assignmentId: string;
   if (existingAssignment) {
     assignmentId = (existingAssignment as FacultyAssignment).id;
-    const { error } = await admin
+    const updated = await admin
       .from(Tables.facultyAssignments)
       .update(assignmentPayload)
       .eq("id", assignmentId);
-    if (error) throw new Error(error.message);
+    if (updated.error && /is_deleted/i.test(updated.error.message)) {
+      const { is_deleted: _isDeleted, ...withoutDeleted } = assignmentPayload;
+      const retry = await admin
+        .from(Tables.facultyAssignments)
+        .update(withoutDeleted)
+        .eq("id", assignmentId);
+      if (retry.error) throw new Error(retry.error.message);
+    } else if (updated.error) {
+      throw new Error(updated.error.message);
+    }
   } else {
-    const { data, error } = await admin
+    const inserted = await admin
       .from(Tables.facultyAssignments)
       .insert(assignmentPayload)
       .select("id")
       .single();
-    if (error || !data) throw new Error(error?.message ?? "Failed to create faculty assignment.");
-    assignmentId = data.id;
+    if (inserted.error && /is_deleted/i.test(inserted.error.message)) {
+      const { is_deleted: _isDeleted, ...withoutDeleted } = assignmentPayload;
+      const retry = await admin
+        .from(Tables.facultyAssignments)
+        .insert(withoutDeleted)
+        .select("id")
+        .single();
+      if (retry.error || !retry.data) throw new Error(retry.error?.message ?? "Failed to create faculty assignment.");
+      assignmentId = retry.data.id;
+    } else if (inserted.error || !inserted.data) {
+      throw new Error(inserted.error?.message ?? "Failed to create faculty assignment.");
+    } else {
+      assignmentId = inserted.data.id;
+    }
   }
 
   const { data: person } = await admin.from(Tables.facultyPeople).select("*").eq("id", personId).maybeSingle();
@@ -406,6 +427,14 @@ export async function deleteFacultyAssignment(
     .from(Tables.facultyAssignments)
     .update({ is_deleted: true, is_active: false })
     .eq("id", assignmentId);
+  if (error && /is_deleted/i.test(error.message)) {
+    const fallback = await admin
+      .from(Tables.facultyAssignments)
+      .update({ is_active: false })
+      .eq("id", assignmentId);
+    if (fallback.error) throw new Error(fallback.error.message);
+    return;
+  }
   if (error) throw new Error(error.message);
 }
 
@@ -695,15 +724,22 @@ export async function searchFacultyPeople(
     .slice(0, 20);
   if (!rows.length) return [];
 
-  const { data: assignments } = await admin
+  const personIds = rows.map((p) => p.id);
+  const firstAssignments = await admin
     .from(Tables.facultyAssignments)
     .select("person_id, page_id")
-    .in(
-      "person_id",
-      rows.map((p) => p.id),
-    )
+    .in("person_id", personIds)
     .eq("is_active", true)
     .eq("is_deleted", false);
+  let assignments = firstAssignments.data;
+  if (missingDeletedColumn(firstAssignments.error)) {
+    const fallback = await admin
+      .from(Tables.facultyAssignments)
+      .select("person_id, page_id")
+      .in("person_id", personIds)
+      .eq("is_active", true);
+    assignments = fallback.data;
+  }
   const pageIds = [...new Set((assignments ?? []).map((a) => a.page_id as string))];
   const { data: pages } = pageIds.length
     ? await admin.from(Tables.pages).select("id, title_en").in("id", pageIds)

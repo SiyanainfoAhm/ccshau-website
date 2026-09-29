@@ -303,6 +303,10 @@ export async function getFacultyListForRegister(collegePageId?: string) {
   return listFacultyForRegister(session, collegePageId);
 }
 
+function missingDeletedColumn(error: { message?: string } | null | undefined) {
+  return Boolean(error?.message && /is_deleted/i.test(error.message));
+}
+
 async function requireRegisterSession() {
   const session = await requireAdminSession();
   if (
@@ -333,12 +337,21 @@ async function loadFacultyPersonEditData(
   const { data: person } = await admin.from(Tables.facultyPeople).select("*").eq("id", personId).maybeSingle();
   if (!person) return null;
 
-  const { data: assignments } = await admin
+  const firstAssignments = await admin
     .from(Tables.facultyAssignments)
     .select("*")
     .eq("person_id", personId)
     .eq("is_deleted", false)
     .order("sort_order");
+  let assignments = firstAssignments.data;
+  if (missingDeletedColumn(firstAssignments.error)) {
+    const fallback = await admin
+      .from(Tables.facultyAssignments)
+      .select("*")
+      .eq("person_id", personId)
+      .order("sort_order");
+    assignments = fallback.data;
+  }
   const rows = (assignments ?? []) as FacultyAssignment[];
   if (!rows.length && accessibleIds !== "own") return null;
 
@@ -508,13 +521,23 @@ export async function registerFacultyAction(
     const slug = input.staffSlug.trim().toLowerCase();
     if (!slug) return fail("Profile URL slug is required.");
 
-    const { data: existingSlug } = await admin
+    const firstSlug = await admin
       .from(Tables.facultyAssignments)
       .select("id")
       .eq("page_id", input.departmentPageId)
       .eq("staff_slug", slug)
       .eq("is_deleted", false)
       .maybeSingle();
+    let existingSlug = firstSlug.data;
+    if (missingDeletedColumn(firstSlug.error)) {
+      const fallback = await admin
+        .from(Tables.facultyAssignments)
+        .select("id")
+        .eq("page_id", input.departmentPageId)
+        .eq("staff_slug", slug)
+        .maybeSingle();
+      existingSlug = fallback.data;
+    }
 
     if (existingSlug) return fail("A faculty profile with this URL slug already exists in this department.");
 
@@ -822,12 +845,21 @@ export async function getFacultyForEdit(assignmentId: string) {
   const admin = createAdminClient();
   if (!admin) return null;
 
-  const { data: assignment } = await admin
+  const firstAssignment = await admin
     .from(Tables.facultyAssignments)
     .select("id, person_id, page_id")
     .eq("id", assignmentId)
     .eq("is_deleted", false)
     .maybeSingle();
+  let assignment = firstAssignment.data;
+  if (missingDeletedColumn(firstAssignment.error)) {
+    const fallback = await admin
+      .from(Tables.facultyAssignments)
+      .select("id, person_id, page_id")
+      .eq("id", assignmentId)
+      .maybeSingle();
+    assignment = fallback.data;
+  }
 
   if (!assignment) return null;
 
@@ -969,12 +1001,21 @@ export async function updateFacultyAssignmentAction(
 
     const admin = createAdminClient();
     if (!admin) return fail("Database not configured.");
-    const { data: assignment } = await admin
+    const firstAssignment = await admin
       .from(Tables.facultyAssignments)
       .select("*")
       .eq("id", assignmentId)
       .eq("is_deleted", false)
       .maybeSingle();
+    let assignment = firstAssignment.data;
+    if (missingDeletedColumn(firstAssignment.error)) {
+      const fallback = await admin
+        .from(Tables.facultyAssignments)
+        .select("*")
+        .eq("id", assignmentId)
+        .maybeSingle();
+      assignment = fallback.data;
+    }
     if (!assignment) return fail("Assignment not found.");
     const row = assignment as FacultyAssignment;
     await assertRegisterPageAccess(session, row.page_id);
@@ -1109,12 +1150,21 @@ export async function deleteFacultyAction(assignmentId: string): Promise<ActionR
     const admin = createAdminClient();
     if (!admin) return fail("Database not configured.");
 
-    const { data: existing } = await admin
+    const firstExisting = await admin
       .from(Tables.facultyAssignments)
       .select("*")
       .eq("id", assignmentId)
       .eq("is_deleted", false)
       .maybeSingle();
+    let existing = firstExisting.data;
+    if (missingDeletedColumn(firstExisting.error)) {
+      const fallback = await admin
+        .from(Tables.facultyAssignments)
+        .select("*")
+        .eq("id", assignmentId)
+        .maybeSingle();
+      existing = fallback.data;
+    }
 
     if (!existing) return fail("Faculty assignment not found.");
 
@@ -1191,23 +1241,43 @@ export async function assignExistingFacultyAction(
     if (!person) return fail("Faculty person not found.");
     const personRow = person as FacultyPerson;
 
-    const { data: already } = await admin
+    const firstAlready = await admin
       .from(Tables.facultyAssignments)
       .select("id")
       .eq("person_id", personRow.id)
       .eq("page_id", input.departmentPageId)
       .eq("is_deleted", false)
       .maybeSingle();
+    let already = firstAlready.data;
+    if (missingDeletedColumn(firstAlready.error)) {
+      const fallback = await admin
+        .from(Tables.facultyAssignments)
+        .select("id")
+        .eq("person_id", personRow.id)
+        .eq("page_id", input.departmentPageId)
+        .maybeSingle();
+      already = fallback.data;
+    }
     if (already) return fail("This person is already assigned to this department.");
 
     const staffSlug = personRow.global_slug;
-    const { data: slugTaken } = await admin
+    const firstSlug = await admin
       .from(Tables.facultyAssignments)
       .select("id")
       .eq("page_id", input.departmentPageId)
       .eq("staff_slug", staffSlug)
       .eq("is_deleted", false)
       .maybeSingle();
+    let slugTaken = firstSlug.data;
+    if (missingDeletedColumn(firstSlug.error)) {
+      const fallback = await admin
+        .from(Tables.facultyAssignments)
+        .select("id")
+        .eq("page_id", input.departmentPageId)
+        .eq("staff_slug", staffSlug)
+        .maybeSingle();
+      slugTaken = fallback.data;
+    }
     if (slugTaken) return fail("A faculty profile with this URL slug already exists in this department.");
 
     if (input.memberType === "hod") {
