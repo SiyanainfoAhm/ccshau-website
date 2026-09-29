@@ -13,6 +13,25 @@ const lines = [
 ];
 
 describe("microsite footer", () => {
+  it("reads mailing address, office and email id contact labels", () => {
+    expect(
+      footerFromContacts("College of Agriculture", null, [
+        {
+          labelEn: "Mailing Address",
+          labelHi: null,
+          valueEn: "CCS HAU, Hisar",
+          valueHi: null,
+        },
+        { labelEn: "Office", labelHi: null, valueEn: "Office : 01662-255401", valueHi: null },
+        { labelEn: "Email Id", labelHi: null, valueEn: "dean@hau.ac.in", valueHi: null },
+      ]),
+    ).toMatchObject({
+      addressEn: "CCS HAU, Hisar",
+      phone: "01662-255401",
+      email: "dean@hau.ac.in",
+    });
+  });
+
   it("fills the default block from contact lines", () => {
     expect(footerFromContacts("College of Agriculture", "कृषि महाविद्यालय", lines)).toMatchObject({
       nameEn: "College of Agriculture",

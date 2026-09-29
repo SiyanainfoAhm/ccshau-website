@@ -22,6 +22,7 @@ export function MicrositeFooterForm({
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [custom, setCustom] = useState(footer.custom);
+  const [useHauLinks, setUseHauLinks] = useState(footer.useHauLinks);
   const [isTranslating, setIsTranslating] = useState(false);
   const [nameEn, setNameEn] = useState(footer.nameEn);
   const [nameHi, setNameHi] = useState(footer.nameHi);
@@ -209,6 +210,24 @@ export function MicrositeFooterForm({
                 />
               </label>
             </div>
+            {sectionIndex === 3 && (
+              <label className="flex items-start gap-2 text-sm text-slate-800">
+                <input
+                  name="useHauLinks"
+                  type="checkbox"
+                  checked={useHauLinks}
+                  onChange={(e) => setUseHauLinks(e.target.checked)}
+                  className="mt-0.5"
+                />
+                <span>
+                  <span className="font-medium">Add HAU Links</span>
+                  <span className="mt-0.5 block text-slate-500">
+                    Checked: column 4 shows the homepage menu, with one submenu level.
+                    Unchecked: column 4 shows the links below.
+                  </span>
+                </span>
+              </label>
+            )}
             {sectionIndex > 0 && (
               <div className="space-y-2">
                 {section.links.map((link, linkIndex) => (
