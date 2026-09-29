@@ -12,6 +12,10 @@ import { readStoredLayoutConfig } from "@/lib/pages/layout-config";
 import { inferMicrositeKind, isMicrositeRoot, type MicrositeKind } from "@/lib/pages/microsite-kind";
 import { createAdminClient } from "@/lib/supabase/admin";
 
+function missingDeletedColumn(error: { message?: string } | null | undefined): boolean {
+  return Boolean(error?.message && /is_deleted/i.test(error.message));
+}
+
 export interface CollegeOption {
   id: string;
   slug: string;
@@ -194,12 +198,21 @@ export async function listStaffPagesForRegister(
     return departments;
   }
 
-  const { count } = await admin
+  const firstCount = await admin
     .from(Tables.facultyAssignments)
     .select("id", { count: "exact", head: true })
     .eq("page_id", collegePageId)
     .eq("is_active", true)
     .eq("is_deleted", false);
+  let count = firstCount.count;
+  if (missingDeletedColumn(firstCount.error)) {
+    const fallback = await admin
+      .from(Tables.facultyAssignments)
+      .select("id", { count: "exact", head: true })
+      .eq("page_id", collegePageId)
+      .eq("is_active", true);
+    count = fallback.count;
+  }
   if (!count) return departments;
 
   const { data: college } = await admin
@@ -236,11 +249,19 @@ export async function listAccessibleStaffPageIds(session: AdminSession): Promise
   const admin = createAdminClient();
   if (!admin) return ids;
 
-  const { data: assignmentRows } = await admin
+  const firstAssignments = await admin
     .from(Tables.facultyAssignments)
     .select("page_id")
     .eq("is_active", true)
     .eq("is_deleted", false);
+  let assignmentRows = firstAssignments.data;
+  if (missingDeletedColumn(firstAssignments.error)) {
+    const fallback = await admin
+      .from(Tables.facultyAssignments)
+      .select("page_id")
+      .eq("is_active", true);
+    assignmentRows = fallback.data;
+  }
   const pageIds = [...new Set((assignmentRows ?? []).map((row) => row.page_id as string))];
   if (!pageIds.length) return ids;
 
@@ -304,14 +325,27 @@ async function listFacultyForRegisterFromDepartments(
   const deptById = new Map(departments.map((d) => [d.id, d]));
   if (!deptIds.length) return [];
 
-  const { data: assignmentRows } = await admin
+  const assignmentSelect =
+    "id, person_id, page_id, designation_en, member_type, staff_slug, is_active, sort_order";
+  const firstAssignments = await admin
     .from(Tables.facultyAssignments)
-    .select("id, person_id, page_id, designation_en, member_type, staff_slug, is_active, sort_order")
+    .select(assignmentSelect)
     .in("page_id", deptIds)
     .eq("is_active", true)
     .eq("is_deleted", false)
     .order("sort_order")
     .order("staff_slug");
+  let assignmentRows = firstAssignments.data;
+  if (missingDeletedColumn(firstAssignments.error)) {
+    const fallback = await admin
+      .from(Tables.facultyAssignments)
+      .select(assignmentSelect)
+      .in("page_id", deptIds)
+      .eq("is_active", true)
+      .order("sort_order")
+      .order("staff_slug");
+    assignmentRows = fallback.data;
+  }
 
   const rows = (assignmentRows ?? []) as Array<{
     id: string;
@@ -326,15 +360,23 @@ async function listFacultyForRegisterFromDepartments(
   const personIds = [...new Set(rows.map((row) => row.person_id))];
   if (!personIds.length) return [];
 
-  const [{ data: people }, { data: siblings }] = await Promise.all([
-    admin.from(Tables.facultyPeople).select("id, name_en, email").in("id", personIds),
-    admin
+  const peopleResult = await admin.from(Tables.facultyPeople).select("id, name_en, email").in("id", personIds);
+  const firstSiblings = await admin
+    .from(Tables.facultyAssignments)
+    .select("person_id, page_id")
+    .in("person_id", personIds)
+    .eq("is_active", true)
+    .eq("is_deleted", false);
+  let siblings = firstSiblings.data;
+  if (missingDeletedColumn(firstSiblings.error)) {
+    const fallback = await admin
       .from(Tables.facultyAssignments)
       .select("person_id, page_id")
       .in("person_id", personIds)
-      .eq("is_active", true)
-      .eq("is_deleted", false),
-  ]);
+      .eq("is_active", true);
+    siblings = fallback.data;
+  }
+  const people = peopleResult.data;
   const personById = new Map(
     ((people ?? []) as Array<{ id: string; name_en: string; email: string | null }>).map((row) => [row.id, row]),
   );
