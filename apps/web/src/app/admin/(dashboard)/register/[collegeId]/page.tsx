@@ -35,6 +35,7 @@ export default async function CollegeRegisterDetailPage({
       </div>
       <CollegeRegisterHub
         college={college}
+        showHeader={canEditPages(session) && sessionCanAccessCollegeRoot(session, college.id)}
         showFooter={canEditPages(session) && sessionCanAccessCollegeRoot(session, college.id)}
       />
     </div>

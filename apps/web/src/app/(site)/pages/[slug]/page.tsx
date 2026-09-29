@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { SiteFooter } from "@/components/design/shared/site-footer";
 import { SiteHeader } from "@/components/design/shared/site-header";
 import { CollegeSiteFooter } from "@/components/site/college-site-footer";
+import { CollegeSiteHeader } from "@/components/site/college-site-header";
 import { PublicCmsOfficePageContent } from "@/components/site/public-cms-office-page-content";
 import { PublicCmsPageContent } from "@/components/site/public-cms-page-content";
 import {
@@ -81,12 +82,21 @@ export default async function CmsPage({ params }: { params: Promise<{ slug: stri
 
   return (
     <>
-      <SiteHeader
-        variant="future"
-        college={college ?? undefined}
-        homeHref={college ? getCollegePublicHomePath(college.collegeSlug) : undefined}
-        pageLayoutConfig={college?.layoutConfig ?? page.layoutConfig}
-      />
+      {micrositeSlug ? (
+        <CollegeSiteHeader
+          slug={micrositeSlug}
+          college={college ?? undefined}
+          homeHref={college ? getCollegePublicHomePath(college.collegeSlug) : undefined}
+          pageLayoutConfig={college?.layoutConfig ?? page.layoutConfig}
+        />
+      ) : (
+        <SiteHeader
+          variant="future"
+          college={college ?? undefined}
+          homeHref={college ? getCollegePublicHomePath(college.collegeSlug) : undefined}
+          pageLayoutConfig={college?.layoutConfig ?? page.layoutConfig}
+        />
+      )}
       <main id="main-content" tabIndex={-1} className="flex-1">
         {office ? (
           <PublicCmsOfficePageContent

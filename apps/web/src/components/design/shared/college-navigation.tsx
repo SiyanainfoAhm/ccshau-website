@@ -16,6 +16,7 @@ import {
 } from "@/lib/pages/routes";
 import { formatMenuLabel } from "@/lib/i18n/menu-label";
 import type { PublicCollegePage, PublicCollegeSection } from "@/lib/data/public-types";
+import type { PublicMicrositeHeader } from "@/lib/pages/microsite-header";
 
 type CollegeMiddleNavItem =
   | { type: "section"; section: PublicCollegeSection }
@@ -74,7 +75,15 @@ function collegeNavLinkClass(active: boolean, isOpen: boolean, lang: string) {
     .join(" ");
 }
 
-export function CollegeNavigation({ college }: { college: PublicCollegePage }) {
+export function CollegeNavigation({
+  college,
+  micrositeHeader = null,
+  showMenu = true,
+}: {
+  college: PublicCollegePage;
+  micrositeHeader?: PublicMicrositeHeader | null;
+  showMenu?: boolean;
+}) {
   const { lang, t } = useLanguage();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -126,11 +135,41 @@ export function CollegeNavigation({ college }: { college: PublicCollegePage }) {
     { type: "contact" as const, labelEn: "Contact Us", labelHi: "संपर्क करें" },
   ];
 
+  const displayNameEn = micrositeHeader?.nameEn || college.titleEn;
+  const displayNameHi = micrositeHeader?.nameHi || college.titleHi || displayNameEn;
+  const taglineEn = micrositeHeader?.taglineEn ?? "";
+  const taglineHi = micrositeHeader?.taglineHi ?? "";
+
   return (
+    <>
+      {micrositeHeader && (
+        <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3">
+          {micrositeHeader.logoUrl && (
+            // The logo is an admin-uploaded file; dimensions are not known ahead of time.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={micrositeHeader.logoUrl}
+              alt=""
+              className="h-12 w-12 shrink-0 rounded-md bg-white object-contain p-1"
+            />
+          )}
+          <div className="min-w-0">
+            <p className={`truncate text-base font-bold text-white sm:text-lg ${lang === "hi" ? "font-hindi" : ""}`}>
+              {t(displayNameEn, displayNameHi)}
+            </p>
+            {(taglineEn || taglineHi) && (
+              <p className={`truncate text-sm text-emerald-100/90 ${lang === "hi" ? "font-hindi" : ""}`}>
+                {t(taglineEn, taglineHi || taglineEn)}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+      {showMenu && (
     <div className="ccshau-main-nav-bar">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-2 lg:hidden">
         <p className="text-xs font-medium text-emerald-100/90">
-          {formatMenuLabel(t(college.titleEn, college.titleHi ?? college.titleEn), lang, "title")}
+          {formatMenuLabel(t(displayNameEn, displayNameHi), lang, "title")}
         </p>
         <button
           type="button"
@@ -145,7 +184,7 @@ export function CollegeNavigation({ college }: { college: PublicCollegePage }) {
 
       <nav
         aria-label="College navigation"
-        className={`relative ${mobileOpen ? "block" : "hidden"} lg:block`}
+        className={showMenu ? `relative ${mobileOpen ? "block" : "hidden"} lg:block` : "hidden"}
       >
         <ul className="ccshau-main-nav-list mx-auto hidden max-w-7xl items-center justify-center gap-0 px-5 lg:flex">
           {links.map((link, index) => {
@@ -354,5 +393,7 @@ export function CollegeNavigation({ college }: { college: PublicCollegePage }) {
         )}
       </nav>
     </div>
+      )}
+    </>
   );
 }
