@@ -54,6 +54,7 @@ export async function updateMicrositeFooterAction(
       email: formData.get("email"),
       sections: sectionsFromForm(formData),
       links: [],
+      useHauLinks: formData.get("useHauLinks") === "on",
     });
     if (footer.custom && !footer.nameEn) {
       return fail("English name is required for a custom footer.");

@@ -91,11 +91,17 @@ export async function runPaginatedQuery<T>(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   query: any,
   options: Required<Pick<AdminListOptions, "page" | "pageSize" | "sortBy" | "sortOrder">>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  retry?: { when: RegExp; query: any },
 ): Promise<PaginatedResult<T>> {
   const { from, to } = paginationRange(options.page, options.pageSize);
-  const { data, count, error } = await query
-    .order(options.sortBy, { ascending: options.sortOrder === "asc" })
-    .range(from, to);
+  const ordered = (builder: typeof query) =>
+    builder.order(options.sortBy, { ascending: options.sortOrder === "asc" }).range(from, to);
+
+  let { data, count, error } = await ordered(query);
+  if (error && retry?.when.test(error.message ?? "")) {
+    ({ data, count, error } = await ordered(retry.query));
+  }
 
   if (error) {
     console.error("Admin list query failed:", error.message);

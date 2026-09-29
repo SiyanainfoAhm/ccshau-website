@@ -22,6 +22,7 @@ export interface MicrositeFooterInput {
   email: string;
   links: MicrositeFooterLink[];
   sections: MicrositeFooterSection[];
+  useHauLinks: boolean;
 }
 
 export interface PublicMicrositeFooter {
@@ -35,6 +36,7 @@ export interface PublicMicrositeFooter {
   email: string;
   links: MicrositeFooterLink[];
   sections: MicrositeFooterSection[];
+  useHauLinks: boolean;
 }
 
 export interface MicrositeContactLine {
@@ -56,6 +58,7 @@ const EMPTY_FOOTER: MicrositeFooterInput = {
   email: "",
   links: [],
   sections: [],
+  useHauLinks: false,
 };
 
 export const FOOTER_SECTION_COUNT = 4;
@@ -98,6 +101,10 @@ function lineValue(lines: MicrositeContactLine[], labels: string[]): MicrositeCo
   return lines.find((line) => wanted.has(line.labelEn.trim().toLowerCase()));
 }
 
+function cleanContactValue(value: string | null | undefined): string {
+  return (value ?? "").replace(/^(office|phone|telephone|mobile|email|email id|e-mail)\s*:\s*/i, "").trim();
+}
+
 export function parseMicrositeFooter(raw: unknown): MicrositeFooterInput {
   if (!raw || typeof raw !== "object") {
     return { ...EMPTY_FOOTER, links: [], sections: defaultFooterSections() };
@@ -128,6 +135,7 @@ export function parseMicrositeFooter(raw: unknown): MicrositeFooterInput {
     phone: text(row.phone),
     email: text(row.email),
     links,
+    useHauLinks: row.useHauLinks === true,
     sections: hasSectionLinks || parsedSections.length > 0 ? sections : sectionsFromLinks(links),
   };
 }
@@ -137,22 +145,23 @@ export function footerFromContacts(
   nameHi: string | null,
   lines: MicrositeContactLine[],
 ): PublicMicrositeFooter {
-  const address = lineValue(lines, ["address", "college"]);
-  const phone = lineValue(lines, ["phone", "telephone", "mobile"]);
+  const address = lineValue(lines, ["mailing address", "address", "college"]);
+  const phone = lineValue(lines, ["phone", "telephone", "mobile", "office"]);
   const email =
-    lineValue(lines, ["email", "e-mail"]) ??
+    lineValue(lines, ["email", "e-mail", "email id"]) ??
     lines.find((line) => line.valueEn.includes("@"));
   return {
     nameEn,
     nameHi: nameHi?.trim() || nameEn,
     descriptionEn: "",
     descriptionHi: "",
-    addressEn: address?.valueEn.trim() ?? "",
-    addressHi: address?.valueHi?.trim() || address?.valueEn.trim() || "",
-    phone: phone?.valueEn.trim() ?? "",
-    email: email?.valueEn.trim() ?? "",
+    addressEn: cleanContactValue(address?.valueEn),
+    addressHi: cleanContactValue(address?.valueHi) || cleanContactValue(address?.valueEn),
+    phone: cleanContactValue(phone?.valueEn),
+    email: cleanContactValue(email?.valueEn),
     links: [],
     sections: defaultFooterSections(),
+    useHauLinks: false,
   };
 }
 
@@ -184,5 +193,6 @@ export function publicFooterFromSaved(
     email: saved.email,
     links: saved.links,
     sections: saved.sections,
+    useHauLinks: saved.useHauLinks,
   };
 }

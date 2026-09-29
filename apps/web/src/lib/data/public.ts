@@ -938,12 +938,17 @@ export async function getOfficePortalDataByPageId(
 ): Promise<PublicOfficePortalData | null> {
   const admin = createAdminClient();
   if (!admin) return null;
-  const { data } = await admin
+  const first = await admin
     .from(Tables.pages)
     .select("*")
     .eq("id", pageId)
     .eq("is_deleted", false)
     .maybeSingle();
+  let data = first.data;
+  if (missingDeletedColumn(first.error)) {
+    const fallback = await admin.from(Tables.pages).select("*").eq("id", pageId).maybeSingle();
+    data = fallback.data;
+  }
   if (!data) return null;
   return getOfficePortalDataForPage(data as Page);
 }
@@ -1337,14 +1342,24 @@ async function getMicrositeListingCards(
   const admin = createAdminClient();
   if (!admin) return [];
 
-  const { data } = await admin
+  const first = await admin
     .from(Tables.pages)
     .select("slug, title_en, title_hi, featured_image_path, page_type")
     .in("slug", slugs)
     .eq("status", "published")
     .eq("is_deleted", false);
 
-  const bySlug = new Map(((data as Page[]) ?? []).map((page) => [page.slug, page]));
+  let rows = first.data;
+  if (missingDeletedColumn(first.error)) {
+    const fallback = await admin
+      .from(Tables.pages)
+      .select("slug, title_en, title_hi, featured_image_path, page_type")
+      .in("slug", slugs)
+      .eq("status", "published");
+    rows = fallback.data;
+  }
+
+  const bySlug = new Map(((rows as Page[]) ?? []).map((page) => [page.slug, page]));
 
   return slugs.flatMap((slug) => {
     const page = bySlug.get(slug);

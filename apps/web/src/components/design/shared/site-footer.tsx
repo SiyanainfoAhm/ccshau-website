@@ -1,18 +1,183 @@
 "use client";
 
 import Link from "next/link";
-import { Mail, MapPin, Phone } from "lucide-react";
+import { ChevronDown, ChevronLeft, Mail, MapPin, Phone } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { FooterSocialIcons } from "@/components/design/shared/footer-social-icons";
 import { useLanguage } from "@/components/design/shared/language-context";
 import { usePublicSiteChrome } from "@/components/site/public-site-context";
 import { SELECTED_LAYOUT } from "@/lib/design/selected-layout";
-import type { PublicQuickLink } from "@/lib/data/public-types";
+import type { PublicNavItem, PublicQuickLink } from "@/lib/data/public-types";
 import type { PublicMicrositeFooter } from "@/lib/pages/microsite-footer";
 import { quickLinks, university } from "@/lib/mock/site-content";
 
 /** Keep the footer compact; full list lives on /quick-links. */
 const FOOTER_QUICK_LINKS_LIMIT = 10;
+
+function isRealHref(href: string | null | undefined): href is string {
+  const value = href?.trim();
+  return Boolean(value && value !== "#");
+}
+
+function FooterNavLink({
+  item,
+  className,
+}: {
+  item: PublicNavItem;
+  className: string;
+}) {
+  const { t } = useLanguage();
+  const label = t(item.labelEn, item.labelHi ?? item.labelEn);
+  if (!isRealHref(item.href)) {
+    return <span className={className}>{label}</span>;
+  }
+  return (
+    <Link
+      href={item.href}
+      className={className}
+      {...(item.openInNewTab ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+    >
+      {label}
+    </Link>
+  );
+}
+
+function FooterHauMenu({ items }: { items: PublicNavItem[] }) {
+  const { t } = useLanguage();
+  const [openKey, setOpenKey] = useState<string | null>(null);
+  const [activeChild, setActiveChild] = useState(0);
+  const [panelBox, setPanelBox] = useState<{ right: number; bottom: number } | null>(null);
+  const openAnchorRef = useRef<HTMLLIElement | null>(null);
+  const panelRef = useRef<HTMLDivElement | null>(null);
+
+  const placePanel = useCallback(() => {
+    const anchor = openAnchorRef.current;
+    if (!anchor) return;
+    const rect = anchor.getBoundingClientRect();
+    setPanelBox({
+      right: Math.max(8, window.innerWidth - rect.right),
+      bottom: Math.max(8, window.innerHeight - rect.top + 4),
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!openKey) return;
+    placePanel();
+    window.addEventListener("resize", placePanel);
+    window.addEventListener("scroll", placePanel, true);
+    function onPointerDown(event: PointerEvent) {
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      if (openAnchorRef.current?.contains(target)) return;
+      if (panelRef.current?.contains(target)) return;
+      setOpenKey(null);
+    }
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => {
+      window.removeEventListener("resize", placePanel);
+      window.removeEventListener("scroll", placePanel, true);
+      document.removeEventListener("pointerdown", onPointerDown);
+    };
+  }, [openKey, placePanel]);
+
+  return (
+    <ul className="space-y-1 text-sm">
+      {items.map((item, index) => {
+        const key = `${item.labelEn}-${index}`;
+        const children = (item.children ?? []).filter((child) => child.labelEn?.trim());
+        const open = openKey === key;
+        const selected = children[activeChild] ?? children[0];
+        const grandchildren = (selected?.children ?? []).filter((child) => child.labelEn?.trim());
+        return (
+          <li key={key} ref={open ? openAnchorRef : undefined} className="relative">
+            <div className="flex items-center gap-1">
+              <FooterNavLink item={item} className="text-emerald-100/90 hover:text-amber-200 hover:underline" />
+              {children.length > 0 && (
+                <button
+                  type="button"
+                  className="rounded p-0.5 text-amber-200 hover:bg-white/10"
+                  aria-expanded={open}
+                  aria-label={t(`Open ${item.labelEn}`, `${item.labelEn} खोलें`)}
+                  onClick={() => {
+                    setActiveChild(children.findIndex((child) => (child.children?.length ?? 0) > 0) || 0);
+                    setOpenKey(open ? null : key);
+                  }}
+                >
+                  <ChevronDown className={`h-3.5 w-3.5 transition ${open ? "rotate-180" : ""}`} aria-hidden />
+                </button>
+              )}
+            </div>
+            {open && children.length > 0 && panelBox
+              ? createPortal(
+              <div
+                ref={panelRef}
+                className="fixed z-[80] flex max-h-[70vh] overflow-hidden rounded-md border border-slate-200 bg-white text-slate-800 shadow-xl"
+                style={{
+                  right: panelBox.right,
+                  bottom: panelBox.bottom,
+                  maxWidth: `calc(100vw - ${panelBox.right + 72}px)`,
+                }}
+              >
+                {grandchildren.length > 0 && (
+                  <ul className="grid max-h-[70vh] min-w-0 flex-1 grid-cols-2 content-start gap-x-4 overflow-y-auto border-r border-slate-100 p-3">
+                    {grandchildren.map((child) => (
+                      <li key={`${child.href}-${child.labelEn}`}>
+                        <FooterNavLink
+                          item={child}
+                          className="block py-1.5 text-sm text-slate-800 hover:text-emerald-800 hover:underline"
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <ul className="max-h-[70vh] w-56 shrink-0 overflow-y-auto py-1">
+                  {children.map((child, childIndex) => {
+                    const hasKids = (child.children?.length ?? 0) > 0;
+                    const active = childIndex === activeChild;
+                    return (
+                      <li
+                        key={`${child.href}-${child.labelEn}`}
+                        onMouseEnter={() => setActiveChild(childIndex)}
+                        onFocus={() => setActiveChild(childIndex)}
+                      >
+                        {hasKids || !isRealHref(child.href) ? (
+                          <button
+                            type="button"
+                            className={`flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm ${
+                              active ? "bg-emerald-800 font-semibold text-white" : "hover:bg-emerald-50"
+                            }`}
+                            onClick={() => setActiveChild(childIndex)}
+                          >
+                            {hasKids && <ChevronLeft className="h-3.5 w-3.5 shrink-0" aria-hidden />}
+                            <span className="flex-1">{t(child.labelEn, child.labelHi ?? child.labelEn)}</span>
+                          </button>
+                        ) : (
+                          <Link
+                            href={child.href}
+                            className={`flex w-full items-center px-3 py-2 text-sm ${
+                              active ? "bg-emerald-800 font-semibold text-white" : "hover:bg-emerald-50"
+                            }`}
+                            {...(child.openInNewTab ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                          >
+                            {t(child.labelEn, child.labelHi ?? child.labelEn)}
+                          </Link>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>,
+              document.body,
+            )
+              : null}
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
 
 export function SiteFooter({
   variant = "future",
@@ -34,6 +199,7 @@ export function SiteFooter({
   const footerLinks = allQuickLinks.slice(0, FOOTER_QUICK_LINKS_LIMIT);
   const hasMoreQuickLinks = allQuickLinks.length > FOOTER_QUICK_LINKS_LIMIT;
   const socialLinks = chrome?.socialLinks ?? [];
+  const headerNav = chrome?.headerNav ?? [];
   const isHeritage = variant === "heritage";
   const isMinistry = variant === "ministry";
   const isFuture = variant === "future";
@@ -77,16 +243,20 @@ export function SiteFooter({
                   )}
                 </div>
               )}
-              {section.links.length > 0 && (
-                <ul className="space-y-2 text-sm">
-                  {section.links.map((link) => (
-                    <li key={`${link.href}-${link.labelEn}`}>
-                      <Link href={link.href} className={linkClass}>
-                        {t(link.labelEn, link.labelHi || link.labelEn)}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
+              {index === 3 && microsite.useHauLinks ? (
+                <FooterHauMenu items={headerNav} />
+              ) : (
+                section.links.length > 0 && (
+                  <ul className="space-y-2 text-sm">
+                    {section.links.map((link) => (
+                      <li key={`${link.href}-${link.labelEn}`}>
+                        <Link href={link.href} className={linkClass}>
+                          {t(link.labelEn, link.labelHi || link.labelEn)}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )
               )}
             </div>
           ))}

@@ -468,16 +468,29 @@ export function publicStaffFromPersonAssignment(
   };
 }
 
+function missingDeletedColumn(error: { message?: string } | null | undefined): boolean {
+  return Boolean(error?.message && /is_deleted/i.test(error.message));
+}
+
 export async function listPublicStaffForPage(
   admin: SupabaseClient,
   pageId: string,
 ): Promise<PublicOfficeStaffMember[]> {
-  const { data: assignments } = await admin
+  const first = await admin
     .from(Tables.facultyAssignments)
     .select("*")
     .eq("page_id", pageId)
     .eq("is_active", true)
     .eq("is_deleted", false);
+  let assignments = first.data;
+  if (missingDeletedColumn(first.error)) {
+    const fallback = await admin
+      .from(Tables.facultyAssignments)
+      .select("*")
+      .eq("page_id", pageId)
+      .eq("is_active", true);
+    assignments = fallback.data;
+  }
   const rows = (assignments ?? []) as FacultyAssignment[];
   if (!rows.length) return [];
 
@@ -519,7 +532,7 @@ export async function getPublicFacultyFromAssignment(
   pageId: string,
   facultySlug: string,
 ): Promise<PublicOfficeStaffMember | null> {
-  const { data: assignment } = await admin
+  const first = await admin
     .from(Tables.facultyAssignments)
     .select("*")
     .eq("page_id", pageId)
@@ -527,6 +540,17 @@ export async function getPublicFacultyFromAssignment(
     .eq("is_active", true)
     .eq("is_deleted", false)
     .maybeSingle();
+  let assignment = first.data;
+  if (missingDeletedColumn(first.error)) {
+    const fallback = await admin
+      .from(Tables.facultyAssignments)
+      .select("*")
+      .eq("page_id", pageId)
+      .eq("staff_slug", facultySlug)
+      .eq("is_active", true)
+      .maybeSingle();
+    assignment = fallback.data;
+  }
   if (!assignment) return null;
 
   const { data: person } = await admin
@@ -555,13 +579,23 @@ async function listAlsoAtForPeople(
 ): Promise<Map<string, { titleEn: string; href: string | null }[]>> {
   const result = new Map<string, { titleEn: string; href: string | null }[]>();
   if (!personIds.length) return result;
-  const { data: others } = await admin
+  const first = await admin
     .from(Tables.facultyAssignments)
     .select("person_id, page_id, staff_slug")
     .in("person_id", personIds)
     .eq("is_active", true)
     .eq("is_deleted", false)
     .neq("page_id", excludePageId);
+  let others = first.data;
+  if (missingDeletedColumn(first.error)) {
+    const fallback = await admin
+      .from(Tables.facultyAssignments)
+      .select("person_id, page_id, staff_slug")
+      .in("person_id", personIds)
+      .eq("is_active", true)
+      .neq("page_id", excludePageId);
+    others = fallback.data;
+  }
   if (!others?.length) return result;
   const uniquePersonIds = [...new Set(others.map((row) => row.person_id as string))];
   for (const personId of uniquePersonIds) {
@@ -575,13 +609,23 @@ async function listAlsoAt(
   personId: string,
   excludePageId: string,
 ): Promise<{ titleEn: string; href: string | null }[]> {
-  const { data: others } = await admin
+  const first = await admin
     .from(Tables.facultyAssignments)
     .select("page_id, staff_slug")
     .eq("person_id", personId)
     .eq("is_active", true)
     .eq("is_deleted", false)
     .neq("page_id", excludePageId);
+  let others = first.data;
+  if (missingDeletedColumn(first.error)) {
+    const fallback = await admin
+      .from(Tables.facultyAssignments)
+      .select("page_id, staff_slug")
+      .eq("person_id", personId)
+      .eq("is_active", true)
+      .neq("page_id", excludePageId);
+    others = fallback.data;
+  }
   if (!others?.length) return [];
 
   const pageIds = others.map((row) => row.page_id as string);

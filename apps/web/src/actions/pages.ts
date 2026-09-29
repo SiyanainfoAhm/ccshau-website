@@ -656,18 +656,21 @@ export async function listPagesForAdmin(
   if (!admin) return emptyPaginatedResult(opts);
 
   const allowedModules = await getAllowedCmsModulesForSession(session);
-  let query = admin
-    .from(Tables.pages)
-    .select(PAGES_LIST_COLUMNS, { count: "exact" })
-    .eq("is_deleted", false);
-  query = applyPagesListScope(query, session, allowedModules);
+  const pagesQuery = (hideDeleted: boolean) => {
+    let query = admin.from(Tables.pages).select(PAGES_LIST_COLUMNS, { count: "exact" });
+    if (hideDeleted) query = query.eq("is_deleted", false);
+    query = applyPagesListScope(query, session, allowedModules);
+    if (opts.search) {
+      const term = `%${opts.search}%`;
+      query = query.or(`title_en.ilike.${term},title_hi.ilike.${term},slug.ilike.${term}`);
+    }
+    return query;
+  };
 
-  if (opts.search) {
-    const term = `%${opts.search}%`;
-    query = query.or(`title_en.ilike.${term},title_hi.ilike.${term},slug.ilike.${term}`);
-  }
-
-  return runPaginatedQuery<Page>(query, opts);
+  return runPaginatedQuery<Page>(pagesQuery(true), opts, {
+    when: /is_deleted/i,
+    query: pagesQuery(false),
+  });
 }
 
 /** Slim page rows for parent picker / path ancestry (not full page bodies). */
