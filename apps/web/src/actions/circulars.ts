@@ -41,6 +41,15 @@ function getFile(formData: FormData): File | null {
   return file instanceof File && file.size > 0 ? file : null;
 }
 
+function missingSortOrderColumn(message: string | undefined) {
+  return Boolean(message && /sort_order/i.test(message));
+}
+
+function withoutSortOrder<T extends { sort_order?: number }>(row: T) {
+  const { sort_order: _sortOrder, ...rest } = row;
+  return rest;
+}
+
 function toRow(
   input: ReturnType<typeof circularFormSchema.parse>,
   userId: string,
@@ -172,26 +181,24 @@ export async function createCircularAction(formData: FormData): Promise<ActionRe
     const admin = createAdminClient();
     if (!admin) return fail("Database not configured.");
 
-    const { data, error } = await admin
-      .from(Tables.circulars)
-      .insert({
-        ...toRow(
-          parsed.data,
-          session.userId,
-          resolveScopedDepartmentId(session, parsed.data.departmentId),
-        ),
-        created_by: session.userId,
-      })
-      .select("id")
-      .single();
-    if (error) {
-      if (/sort_order/i.test(error.message)) {
-        return fail(
-          "Display order is not in the database yet. Run supabase/migrations/20260925150000_news_circular_sort_order.sql in the Supabase SQL editor, then save again.",
-        );
-      }
-      return fail(error.message);
+    const circularRow = {
+      ...toRow(
+        parsed.data,
+        session.userId,
+        resolveScopedDepartmentId(session, parsed.data.departmentId),
+      ),
+      created_by: session.userId,
+    };
+    let inserted = await admin.from(Tables.circulars).insert(circularRow).select("id").single();
+    if (inserted.error && missingSortOrderColumn(inserted.error.message)) {
+      inserted = await admin
+        .from(Tables.circulars)
+        .insert(withoutSortOrder(circularRow))
+        .select("id")
+        .single();
     }
+    const { data, error } = inserted;
+    if (error || !data) return fail(error?.message ?? "Create failed.");
 
     const upload = await uploadCircularFile(
       admin,
@@ -276,28 +283,22 @@ export async function updateCircularAction(id: string, formData: FormData): Prom
       fileSize = file.size;
     }
 
-    const { error } = await admin
-      .from(Tables.circulars)
-      .update({
-        ...toRow(
-          parsed.data,
-          session.userId,
-          resolveScopedDepartmentId(session, parsed.data.departmentId),
-          existing.published_at,
-        ),
-        file_path: filePath,
-        file_name: fileName,
-        file_size: fileSize,
-      })
-      .eq("id", id);
-    if (error) {
-      if (/sort_order/i.test(error.message)) {
-        return fail(
-          "Display order is not in the database yet. Run supabase/migrations/20260925150000_news_circular_sort_order.sql in the Supabase SQL editor, then save again.",
-        );
-      }
-      return fail(error.message);
+    const circularUpdate = {
+      ...toRow(
+        parsed.data,
+        session.userId,
+        resolveScopedDepartmentId(session, parsed.data.departmentId),
+        existing.published_at,
+      ),
+      file_path: filePath,
+      file_name: fileName,
+      file_size: fileSize,
+    };
+    let updated = await admin.from(Tables.circulars).update(circularUpdate).eq("id", id);
+    if (updated.error && missingSortOrderColumn(updated.error.message)) {
+      updated = await admin.from(Tables.circulars).update(withoutSortOrder(circularUpdate)).eq("id", id);
     }
+    if (updated.error) return fail(updated.error.message);
 
     await writeAuditLog({
       userId: session.userId,
