@@ -373,24 +373,12 @@ export async function getPublishedNewsBySlug(slug: string): Promise<PublicNewsIt
   const admin = createAdminClient();
   if (!admin) return null;
 
-  const first = await admin
+  const { data } = await admin
     .from(Tables.news)
     .select("*")
     .eq("slug", slug)
     .eq("status", "published")
-    .eq("is_deleted", false)
     .maybeSingle();
-
-  let data = first.data;
-  if (missingDeletedColumn(first.error)) {
-    const fallback = await admin
-      .from(Tables.news)
-      .select("*")
-      .eq("slug", slug)
-      .eq("status", "published")
-      .maybeSingle();
-    data = fallback.data;
-  }
 
   if (!data) return null;
   const item = data as NewsItem;
@@ -1874,7 +1862,6 @@ export async function getMediaAlbumBySlug(slug: string): Promise<PublicMediaAlbu
     .select("*")
     .eq("slug", slug)
     .eq("status", "published")
-    .eq("is_deleted", false)
     .maybeSingle();
 
   if (!data) return null;
