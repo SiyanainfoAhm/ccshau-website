@@ -31,13 +31,15 @@ export function AdminHtmlField({ name, label, value, onChange, rows = 12, disabl
   function update() { if (editorRef.current) onChange(editorRef.current.innerHTML); }
   function command(commandName: string, commandValue?: string) { editorRef.current?.focus(); document.execCommand(commandName, false, commandValue); update(); }
   function changeFontSize(direction: "increase" | "decrease") {
-    editorRef.current?.focus();
+    const editor = editorRef.current;
+    if (!editor) return;
+    editor.focus();
     const selection = window.getSelection();
     const anchor = selection?.anchorNode?.parentElement;
     const currentSize = anchor ? parseFloat(window.getComputedStyle(anchor).fontSize) * 0.75 : 12;
     const nextSize = Math.max(6, Math.round(currentSize / 2) * 2 + (direction === "increase" ? 2 : -2));
     document.execCommand("fontSize", false, "7");
-    editorRef.current.querySelectorAll<HTMLElement>('font[size="7"]').forEach((element) => {
+    (editor.querySelectorAll('font[size="7"]') as NodeListOf<HTMLElement>).forEach((element) => {
       element.removeAttribute("size");
       element.style.fontSize = `${nextSize}pt`;
     });
