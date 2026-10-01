@@ -41,6 +41,7 @@ function parseTenderForm(formData: FormData) {
     departmentId: formData.get("departmentId") || "",
     status: formData.get("status"),
     publishedAt: formData.get("publishedAt") || undefined,
+    sortOrder: formData.get("sortOrder") || 0,
     closingDate: formData.get("closingDate") || undefined,
     cancellationNoticeEn: formData.get("cancellationNoticeEn") || undefined,
     cancellationNoticeHi: formData.get("cancellationNoticeHi") || undefined,
@@ -106,6 +107,7 @@ function toTenderRow(
     category: input.category || null,
     department_id: input.departmentId || null,
     status: input.status as TenderStatus,
+    sort_order: input.sortOrder,
     published_at: publishedAt,
     closing_date: input.closingDate ? new Date(input.closingDate).toISOString() : null,
     archived_at: archivedAt,
@@ -468,6 +470,7 @@ const TENDERS_LIST_SORTS = [
   "category",
   "status",
   "closing_date",
+  "sort_order",
   "updated_at",
 ] as const;
 
@@ -500,7 +503,7 @@ export async function listTendersForAdmin(
   let query = admin
     .from(Tables.tenders)
     .select(
-      "id, title_en, tender_number, category, status, closing_date, document_paths, updated_at",
+      "id, title_en, tender_number, category, status, closing_date, sort_order, document_paths, updated_at",
       { count: "exact" },
     );
 

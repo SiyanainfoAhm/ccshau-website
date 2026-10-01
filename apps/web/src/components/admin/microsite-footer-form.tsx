@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
@@ -47,6 +48,16 @@ export function MicrositeFooterForm({
           ),
         };
       }),
+    );
+  }
+
+  function deleteLink(sectionIndex: number, linkIndex: number) {
+    setSections((current) =>
+      current.map((section, index) =>
+        index === sectionIndex
+          ? { ...section, links: section.links.filter((_, itemIndex) => itemIndex !== linkIndex) }
+          : section,
+      ),
     );
   }
 
@@ -231,7 +242,7 @@ export function MicrositeFooterForm({
             {sectionIndex > 0 && (
               <div className="space-y-2">
                 {section.links.map((link, linkIndex) => (
-                  <div key={linkIndex} className="grid gap-2 sm:grid-cols-3">
+                  <div key={linkIndex} className="grid gap-2 sm:grid-cols-[1fr_1fr_1fr_auto]">
                     <input
                       name={`linkLabelEn${sectionIndex}`}
                       placeholder="English label"
@@ -253,6 +264,15 @@ export function MicrositeFooterForm({
                       onChange={(e) => updateLink(sectionIndex, linkIndex, "href", e.target.value)}
                       className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
                     />
+                    <button
+                      type="button"
+                      onClick={() => deleteLink(sectionIndex, linkIndex)}
+                      className="inline-flex items-center justify-center rounded-lg border border-red-200 px-3 py-2 text-red-700 hover:bg-red-50"
+                      aria-label={`Delete link ${linkIndex + 1}`}
+                      title="Delete link"
+                    >
+                      <Trash2 className="h-4 w-4" aria-hidden />
+                    </button>
                   </div>
                 ))}
                 {section.links.length < 30 && (

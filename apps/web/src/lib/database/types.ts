@@ -201,6 +201,7 @@ export interface Tender {
   department_id: string | null;
   content_owner_id: string | null;
   status: TenderStatus;
+  sort_order: number;
   published_at: string | null;
   closing_date: string | null;
   archived_at: string | null;

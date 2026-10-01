@@ -286,6 +286,18 @@ export function TenderForm({
               className="w-full rounded-lg border border-slate-300 px-3 py-2"
             />
           </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-slate-700">Display order</label>
+            <input
+              type="number"
+              name="sortOrder"
+              min={0}
+              step={1}
+              defaultValue={tender?.sort_order ?? 0}
+              className="w-full rounded-lg border border-slate-300 px-3 py-2"
+            />
+            <p className="mt-1 text-xs text-slate-500">Lower numbers appear first.</p>
+          </div>
         </div>
       </div>
 
