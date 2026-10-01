@@ -196,10 +196,10 @@ export const legacyColleges: LegacyCollege[] = [
     color: "from-pink-400 to-rose-400",
   },
   {
-    slug: "college-of-basic-sciences-humanities",
+    slug: "college-basic-sciences-humanities",
     slugAliases: [
       "basic-sciences-humanities",
-      "college-basic-sciences-humanities",
+      "college-of-basic-sciences-humanities",
     ],
     nameEn: "College of Basic Sciences & Humanities",
     nameHi: "मूल विज्ञान और मानविकी महाविद्यालय",

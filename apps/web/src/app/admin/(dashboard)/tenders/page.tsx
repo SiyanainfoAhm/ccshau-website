@@ -18,6 +18,7 @@ const TENDERS_SORTS = [
   "category",
   "status",
   "closing_date",
+  "sort_order",
 ] as const;
 
 export default async function AdminTendersListPage({
@@ -28,8 +29,8 @@ export default async function AdminTendersListPage({
   const session = await requireAdminSession();
   const params = await searchParams;
   const listParams = parseAdminListParams(params, {
-    sortBy: "updated_at",
-    sortOrder: "desc",
+    sortBy: "sort_order",
+    sortOrder: "asc",
     allowedSorts: TENDERS_SORTS,
   });
   const data = await listTendersForAdmin(listParams);
@@ -75,6 +76,7 @@ export default async function AdminTendersListPage({
                   <th className="px-4 py-3 text-left font-semibold text-slate-700">Category</th>
                   <th className="px-4 py-3 text-left font-semibold text-slate-700">Status</th>
                   <th className="px-4 py-3 text-left font-semibold text-slate-700">Closing</th>
+                  <th className="px-4 py-3 text-left font-semibold text-slate-700">Order</th>
                   <th className="px-4 py-3 text-left font-semibold text-slate-700">Docs</th>
                 </tr>
               }
@@ -85,6 +87,7 @@ export default async function AdminTendersListPage({
                 <AdminSortableTh label="Category" column="category" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
                 <AdminSortableTh label="Status" column="status" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
                 <AdminSortableTh label="Closing" column="closing_date" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
+                <AdminSortableTh label="Order" column="sort_order" currentSort={listParams.sortBy} currentOrder={listParams.sortOrder} />
                 <th className="px-4 py-3 text-left font-semibold text-slate-700">Docs</th>
               </tr>
             </Suspense>
@@ -92,7 +95,7 @@ export default async function AdminTendersListPage({
           <tbody className="divide-y divide-slate-100">
             {items.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-10 text-center text-slate-500">
+                <td colSpan={7} className="px-4 py-10 text-center text-slate-500">
                   {hasSearch ? (
                     <>No tenders match &quot;{listParams.search}&quot;.</>
                   ) : (
@@ -133,6 +136,7 @@ export default async function AdminTendersListPage({
                       ? new Date(tender.closing_date).toLocaleDateString("en-IN")
                       : "—"}
                   </td>
+                  <td className="px-4 py-3 text-slate-500">{tender.sort_order ?? 0}</td>
                   <td className="px-4 py-3 text-slate-500">{tender.document_paths?.length ?? 0}</td>
                 </tr>
               ))

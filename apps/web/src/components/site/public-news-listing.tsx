@@ -102,7 +102,7 @@ export function PublicNewsListing({
                     </span>
                     <h2 className="font-semibold text-slate-900 group-hover:text-emerald-800 dark:text-emerald-50 dark:group-hover:text-amber-200">
                       <Link
-                        href={`/news/${item.slug}`}
+                        href={item.attachmentPaths[0]?.url ?? `/news/${item.slug}`}
                         className={`hover:underline ${hasHindi ? "font-hindi" : ""}`}
                         lang={hasHindi ? "hi" : undefined}
                       >

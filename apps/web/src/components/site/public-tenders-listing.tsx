@@ -173,7 +173,7 @@ export function PublicTendersListing({
                         <div className="flex items-center gap-3">
                           <Gavel className="h-4 w-4 shrink-0 text-emerald-600" />
                           <Link
-                            href={`/tenders/${tender.slug}`}
+                            href={tender.documents[0]?.url ?? `/tenders/${tender.slug}`}
                             className="font-medium text-slate-900 hover:text-emerald-800 hover:underline"
                           >
                             {t(tender.titleEn, tender.titleHi ?? tender.titleEn)}

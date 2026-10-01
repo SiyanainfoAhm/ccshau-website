@@ -176,7 +176,7 @@ const CIRCULAR_PUBLIC_SELECT =
   "id, circular_number, title_en, title_hi, published_at, department_id, category_id, file_name, file_path";
 const CIRCULAR_ORDERED_SELECT = `${CIRCULAR_PUBLIC_SELECT}, sort_order`;
 const TENDER_LIST_PUBLIC_SELECT =
-  "id, slug, tender_number, title_en, title_hi, description_en, description_hi, category, status, closing_date, published_at, department_id, document_paths";
+  "id, slug, tender_number, title_en, title_hi, description_en, description_hi, category, status, sort_order, closing_date, published_at, department_id, document_paths";
 const DOWNLOAD_PUBLIC_SELECT =
   "id, title_en, title_hi, category, version, department_id, tags, file_name, file_path, download_count, expires_at";
 
@@ -261,6 +261,7 @@ export async function getPublishedNews(options?: {
     .eq("status", "published")
     .order("sort_order", { ascending: true })
     .order("is_pinned", { ascending: false })
+    .order("sort_order", { ascending: true })
     .order("published_at", { ascending: false });
 
   if (options?.category) {
@@ -326,6 +327,7 @@ export async function getPublishedNewsPage(options: {
     .eq("status", "published")
     .order("sort_order", { ascending: true })
     .order("is_pinned", { ascending: false })
+    .order("sort_order", { ascending: true })
     .order("published_at", { ascending: false });
 
   if (options.category && options.category !== "All") {
@@ -472,6 +474,7 @@ export async function getPublicTenders(options?: {
     .from(Tables.tenders)
     .select(TENDER_LIST_PUBLIC_SELECT)
     .in("status", options?.status ? [options.status] : [...PUBLIC_TENDER_STATUSES])
+    .order("sort_order", { ascending: true })
     .order("published_at", { ascending: false });
 
   if (options?.limit) {
@@ -512,6 +515,7 @@ export async function getPublicTendersPage(options: {
     .from(Tables.tenders)
     .select(TENDER_LIST_PUBLIC_SELECT, { count: "exact" })
     .in("status", statuses)
+    .order("sort_order", { ascending: true })
     .order("published_at", { ascending: false });
 
   if (options.category) {

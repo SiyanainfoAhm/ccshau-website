@@ -138,6 +138,7 @@ export function NewsSection({
           titleEn: item.titleEn,
           titleHi: item.titleHi ?? item.titleEn,
           category: item.category ?? item.noticeType,
+          attachmentUrl: item.attachmentPaths[0]?.url ?? null,
           date: item.publishedAt
             ? new Date(item.publishedAt).toLocaleDateString("en-IN")
             : "",
@@ -177,7 +178,9 @@ export function NewsSection({
           const Icon = categoryIcons[item.category] ?? Bell;
           const pastel = variant === "heritage" ? HERITAGE_NEWS_PASTELS[i % HERITAGE_NEWS_PASTELS.length] : null;
           const detailHref =
-            "slug" in item && item.slug
+            "attachmentUrl" in item && item.attachmentUrl
+              ? item.attachmentUrl
+              : "slug" in item && item.slug
               ? `${newsHref}/${item.slug}`
               : item.id === 1
                 ? variant === "ministry"
@@ -1151,7 +1154,7 @@ export function NotificationsSection({
         ? newsItems.map((item) => ({
             key: item.id,
             label: t(item.titleEn, item.titleHi ?? item.titleEn),
-            href: `${newsPath}/${item.slug}`,
+            href: item.attachmentPaths[0]?.url ?? `${newsPath}/${item.slug}`,
             date: formatNoticeDate(item.publishedAt),
           }))
         : heritageNotifications.news.map((item) => ({
@@ -1165,7 +1168,7 @@ export function NotificationsSection({
         ? recruitmentItems.map((item) => ({
             key: item.id,
             label: t(item.titleEn, item.titleHi ?? item.titleEn),
-            href: `${newsPath}/${item.slug}`,
+            href: item.attachmentPaths[0]?.url ?? `${newsPath}/${item.slug}`,
             date: formatNoticeDate(item.publishedAt),
           }))
         : heritageNotifications.recruitment.map((item) => ({
@@ -1179,7 +1182,7 @@ export function NotificationsSection({
         ? tenderItems.map((item) => ({
             key: item.id,
             label: t(item.titleEn, item.titleHi ?? item.titleEn),
-            href: `${tendersPath}/${item.slug}`,
+            href: item.documents[0]?.url ?? `${tendersPath}/${item.slug}`,
             date: formatNoticeDate(item.publishedAt ?? item.closingDate),
           }))
         : [],

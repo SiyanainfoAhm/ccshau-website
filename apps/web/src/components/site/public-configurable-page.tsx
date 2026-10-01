@@ -547,7 +547,7 @@ export function PublicConfigurablePage({
 
             {showHeadOfficer && office?.headOfficer && (
               <div className={`overflow-hidden ${publicSectionCardClass}`}>
-                <div className="flex flex-col items-center gap-5 p-6 sm:flex-row sm:items-start sm:gap-8">
+                <div className="bg-[#eef5e8] flex flex-col items-center gap-5 p-6 sm:flex-row sm:items-start sm:gap-8">
                   <StaffPhoto
                     src={office.headOfficer.imageUrl}
                     alt={staffPhotoAlt(
@@ -716,7 +716,7 @@ export function PublicConfigurablePage({
                     {bodyTitle}
                   </h2>
                 )}
-                <div className="px-5 py-5 sm:px-6 sm:py-6">
+                <div className="bg-[#eef5e8] px-5 py-5 sm:px-6 sm:py-6">
                   <CmsHtmlContent
                     html={bodyContent!}
                     className={`${publicProseClass} ${lang === "hi" ? "font-hindi" : ""}`}

@@ -238,9 +238,20 @@ export function PublicCircularsListing({
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
                           <ScrollText className="h-4 w-4 shrink-0 text-emerald-600" />
-                          <span className="font-medium text-slate-900">
-                            {t(item.titleEn, item.titleHi ?? item.titleEn)}
-                          </span>
+                          {item.fileUrl ? (
+                            <a
+                              href={item.fileUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="font-medium text-slate-900 hover:text-emerald-800 hover:underline"
+                            >
+                              {t(item.titleEn, item.titleHi ?? item.titleEn)}
+                            </a>
+                          ) : (
+                            <span className="font-medium text-slate-900">
+                              {t(item.titleEn, item.titleHi ?? item.titleEn)}
+                            </span>
+                          )}
                         </div>
                       </td>
                       <td className="hidden px-5 py-4 text-slate-600 md:table-cell">
@@ -254,10 +265,11 @@ export function PublicCircularsListing({
                             href={item.fileUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-emerald-700 hover:underline"
+                            className="inline-flex items-center text-emerald-700 hover:text-emerald-900"
+                            aria-label={t("Download file", "फ़ाइल डाउनलोड करें")}
+                            title={t("Download file", "फ़ाइल डाउनलोड करें")}
                           >
                             <Download className="h-4 w-4" />
-                            {item.fileName ?? "PDF"}
                           </a>
                         ) : (
                           "—"
