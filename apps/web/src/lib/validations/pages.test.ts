@@ -77,3 +77,10 @@ describe("pageFormSchema", () => {
     ).toBe(true);
   });
 });
+
+describe("page deletion status", () => {
+  it("accepts deleted while rejecting unsupported statuses", () => {
+    expect(pageFormSchema.safeParse({ ...basePage, status: "deleted" }).success).toBe(true);
+    expect(pageFormSchema.safeParse({ ...basePage, status: "removed" }).success).toBe(false);
+  });
+});

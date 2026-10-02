@@ -1,4 +1,4 @@
-import type { ContentStatus } from "@/lib/database/types";
+import type { ContentStatus, PageStatus } from "@/lib/database/types";
 
 export const CONTENT_STATUS_OPTIONS: { value: ContentStatus; label: string }[] = [
   { value: "draft", label: "Draft" },
@@ -11,4 +11,10 @@ export const CONTENT_STATUS_OPTIONS: { value: ContentStatus; label: string }[] =
 export function contentStatusOptions(canPublish: boolean) {
   if (canPublish) return CONTENT_STATUS_OPTIONS;
   return CONTENT_STATUS_OPTIONS.filter((option) => option.value !== "published");
+}
+
+export function pageStatusOptions(canPublish: boolean, canDelete: boolean) {
+  const options: { value: PageStatus; label: string }[] = [...contentStatusOptions(canPublish)];
+  if (canDelete) options.push({ value: "deleted", label: "Deleted" });
+  return options;
 }

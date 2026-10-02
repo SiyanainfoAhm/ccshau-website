@@ -316,7 +316,7 @@ export async function getAdminDashboardData(session: AdminSession): Promise<Admi
       .from(Tables.pages)
       .select("id, title_en, slug, status, updated_at")
       .eq("id", departmentPageId)
-      .eq("is_deleted", false)
+      .neq("status", "deleted")
       .maybeSingle();
 
     recentActivity = deptPage
@@ -335,7 +335,7 @@ export async function getAdminDashboardData(session: AdminSession): Promise<Admi
       .from(Tables.pages)
       .select("id, title_en, slug, status, updated_at")
       .eq("college_root_id", collegeRootId)
-      .eq("is_deleted", false)
+      .neq("status", "deleted")
       .order("updated_at", { ascending: false })
       .limit(8);
 
@@ -350,7 +350,7 @@ export async function getAdminDashboardData(session: AdminSession): Promise<Admi
     let pagesQuery = admin
       .from(Tables.pages)
       .select("id, title_en, slug, status, updated_at")
-      .eq("is_deleted", false)
+      .neq("status", "deleted")
       .order("updated_at", { ascending: false })
       .limit(6);
     if (collegeRootId) pagesQuery = pagesQuery.eq("college_root_id", collegeRootId);

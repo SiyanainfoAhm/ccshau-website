@@ -3,7 +3,7 @@ import Link from "next/link";
 import { listDepartments } from "@/actions/pages";
 import { PageForm } from "@/components/admin/page-form";
 import { canPublishContent } from "@/lib/auth/cms-roles";
-import { canCreateCollegeRoot, canEditPages } from "@/lib/auth/college-scope";
+import { canCreateCollegeRoot, canDeletePages, canEditPages } from "@/lib/auth/college-scope";
 import { requireAdminSession } from "@/lib/auth/session";
 
 export default async function NewPagePage() {
@@ -32,6 +32,7 @@ export default async function NewPagePage() {
         initialParentOption={null}
         allowCollegeRoot={canCreateCollegeRoot(session)}
         canPublish={canPublishContent(session)}
+        canDelete={canDeletePages(session)}
       />
     </div>
   );

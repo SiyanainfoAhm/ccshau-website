@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 
 import { writeAuditLog } from "@/lib/auth/audit";
 import {
@@ -23,7 +23,7 @@ import {
   type AdminSession,
 } from "@/lib/auth/session";
 import { Tables } from "@/lib/database/names";
-import type { ContentStatus, Page, PageType } from "@/lib/database/types";
+import type { PageStatus, Page, PageType } from "@/lib/database/types";
 import { syncPublishedCollegeToMenu, removeCollegeFromMenu } from "@/lib/pages/college-menu";
 import {
   buildAdminParentPageOptions,
@@ -256,7 +256,7 @@ function toPageRow(
     head_role_hi: input.headRoleHi || null,
     head_image_path: input.headImagePath || null,
     office_cta_enabled: input.officeCtaEnabled ?? true,
-    status: input.status as ContentStatus,
+    status: input.status as PageStatus,
     published_at: publishedAt,
     content_owner_id: userId,
     updated_by: userId,
@@ -315,6 +315,10 @@ export async function createPageAction(formData: FormData): Promise<ActionResult
     const parsed = parsePageForm(formData);
     if (!parsed.success) {
       return fail("Validation failed", parsed.error.flatten().fieldErrors);
+    }
+
+    if (parsed.data.status === "deleted" && !canDeletePages(session)) {
+      return fail("You do not have permission to delete pages.");
     }
 
     if (parsed.data.status === "published" && !canPublishPages(session)) {
@@ -386,7 +390,8 @@ export async function createPageAction(formData: FormData): Promise<ActionResult
     revalidatePath("/admin/pages");
     revalidatePath(`/college/${parsed.data.slug}`);
     revalidatePath(`/college/contact-us/${parsed.data.slug}`);
-    revalidatePath("/");
+    updateTag("public-chrome");
+    revalidatePath("/", "layout");
     return ok({ id: data.id });
   } catch (e) {
     return fail(e instanceof Error ? e.message : "Failed to create page");
@@ -405,6 +410,10 @@ export async function updatePageAction(
       return fail("Validation failed", parsed.error.flatten().fieldErrors);
     }
 
+    if (parsed.data.status === "deleted" && !canDeletePages(session)) {
+      return fail("You do not have permission to delete pages.");
+    }
+
     if (parsed.data.status === "published" && !canPublishPages(session)) {
       return fail("You do not have permission to publish pages.");
     }
@@ -413,6 +422,9 @@ export async function updatePageAction(
     if (!admin) return fail("Database not configured.");
 
     const existing = await assertPageAccess(session, pageId);
+    if (existing.status === "deleted" && !canDeletePages(session)) {
+      return fail("You do not have permission to restore deleted pages.");
+    }
     const parentSlug = await resolveParentSlug(admin, parsed.data.parentId || null);
     const row = toPageRow(parsed.data, session.userId, formData, parentSlug);
 
@@ -479,6 +491,8 @@ export async function updatePageAction(
     if (row.page_type === "college") {
       if (row.status === "published") {
         await syncPublishedCollegeToMenu(admin, pageId);
+      } else if (row.status === "deleted") {
+        await removeCollegeFromMenu(admin, pageId);
       }
     }
 
@@ -497,7 +511,7 @@ export async function updatePageAction(
 
     await writeAuditLog({
       userId: session.userId,
-      action: parsed.data.status === "published" ? "publish" : "update",
+      action: parsed.data.status === "deleted" ? "delete" : parsed.data.status === "published" ? "publish" : "update",
       entityType: "pages",
       entityId: pageId,
       details: { slug: parsed.data.slug },
@@ -510,7 +524,8 @@ export async function updatePageAction(
     revalidatePath(`/college/${parsed.data.slug}`);
     revalidatePath(`/college/contact-us/${parsed.data.slug}`);
     revalidatePath(publicPath);
-    revalidatePath("/");
+    updateTag("public-chrome");
+    revalidatePath("/", "layout");
     if (ancestors.grandparentSlug) {
       revalidatePath(`/college/${ancestors.grandparentSlug}`);
     } else if (ancestors.parentPageType === "college" && ancestors.parentSlug) {
@@ -542,7 +557,7 @@ export async function deletePageAction(pageId: string): Promise<ActionResult> {
 
     const { error } = await admin
       .from(Tables.pages)
-      .update({ is_deleted: true, updated_by: session.userId })
+      .update({ status: "deleted", updated_by: session.userId })
       .eq("id", pageId);
     if (error) return fail(error.message);
 
@@ -558,7 +573,8 @@ export async function deletePageAction(pageId: string): Promise<ActionResult> {
     });
 
     revalidatePath("/admin/pages");
-    revalidatePath("/");
+    updateTag("public-chrome");
+    revalidatePath("/", "layout");
     if (page?.slug) {
       revalidatePath(`/pages/${page.slug}`);
       revalidatePath(`/college/${page.slug}`);
@@ -663,21 +679,22 @@ export async function listPagesForAdmin(
   if (!admin) return emptyPaginatedResult(opts);
 
   const allowedModules = await getAllowedCmsModulesForSession(session);
-  const pagesQuery = (hideDeleted: boolean) => {
+  const pagesQuery = () => {
     let query = admin.from(Tables.pages).select(PAGES_LIST_COLUMNS, { count: "exact" });
-    if (hideDeleted) query = query.eq("is_deleted", false);
     query = applyPagesListScope(query, session, allowedModules);
     if (opts.search) {
       const term = opts.search.trim();
-      if (term) query = query.or(ilikeAny(["title_en", "title_hi", "slug"], term));
+      if (term) {
+        const statuses = ["draft", "pending_review", "published", "archived", "deleted"]
+          .filter((status) => status.replaceAll("_", " ").includes(term.toLowerCase()));
+        const filters = [ilikeAny(["title_en", "title_hi", "slug"], term), ...statuses.map((status) => `status.eq.${status}`)];
+        query = query.or(filters.join(","));
+      }
     }
     return query;
   };
 
-  return runPaginatedQuery<Page>(pagesQuery(true), opts, {
-    when: /is_deleted/i,
-    query: pagesQuery(false),
-  });
+  return runPaginatedQuery<Page>(pagesQuery(), opts);
 }
 
 /** Slim page rows for parent picker / path ancestry (not full page bodies). */
@@ -689,16 +706,14 @@ export async function listParentPageOptionsForAdmin(): Promise<ParentPageOptionR
   if (!admin) return [];
 
   const allowedModules = await getAllowedCmsModulesForSession(session);
-  const parentQuery = (hideDeleted: boolean) => {
+  const parentQuery = () => {
     let query = admin.from(Tables.pages).select(PARENT_PAGE_OPTION_COLUMNS);
-    if (hideDeleted) query = query.eq("is_deleted", false);
+    query = query.neq("status", "deleted");
     query = query.order("title_en", { ascending: true }).limit(5000);
     return applyPagesListScope(query, session, allowedModules);
   };
 
-  const first = await parentQuery(true);
-  const result =
-    first.error?.message && /is_deleted/i.test(first.error.message) ? await parentQuery(false) : first;
+  const result = await parentQuery();
   if (result.error || !result.data) return [];
   return result.data as ParentPageOptionRow[];
 }
@@ -738,11 +753,8 @@ async function fetchParentRowsByIds(ids: string[]): Promise<ParentPageOptionRow[
     .from(Tables.pages)
     .select(PARENT_PAGE_OPTION_COLUMNS)
     .in("id", ids)
-    .eq("is_deleted", false);
-  if (first.error?.message && /is_deleted/i.test(first.error.message)) {
-    const fallback = await admin.from(Tables.pages).select(PARENT_PAGE_OPTION_COLUMNS).in("id", ids);
-    return (fallback.data ?? []) as ParentPageOptionRow[];
-  }
+    .neq("status", "deleted");
+
   return (first.data ?? []) as ParentPageOptionRow[];
 }
 
@@ -797,9 +809,9 @@ export async function searchParentPageOptionsForAdmin(
   const safeLimit = Math.min(Math.max(limit, 1), 100);
   const term = search.trim();
 
-  const parentQuery = (hideDeleted: boolean) => {
+  const parentQuery = () => {
     let query = admin.from(Tables.pages).select(PARENT_PAGE_OPTION_COLUMNS);
-    if (hideDeleted) query = query.eq("is_deleted", false);
+    query = query.neq("status", "deleted");
     query = query.order("title_en", { ascending: true }).limit(safeLimit);
     query = applyPagesListScope(query, session, allowedModules);
     if (excludePageId) query = query.neq("id", excludePageId);
@@ -807,9 +819,7 @@ export async function searchParentPageOptionsForAdmin(
     return query;
   };
 
-  const first = await parentQuery(true);
-  const result =
-    first.error?.message && /is_deleted/i.test(first.error.message) ? await parentQuery(false) : first;
+  const result = await parentQuery();
   if (result.error || !result.data) return [];
   return enrichParentPageOptions(result.data as ParentPageOptionRow[]);
 }

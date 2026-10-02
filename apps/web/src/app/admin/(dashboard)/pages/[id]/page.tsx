@@ -11,7 +11,7 @@ import { ContentReviewPanel } from "@/components/admin/content-review-panel";
 import { PageForm } from "@/components/admin/page-form";
 import { PageReviewPreview } from "@/components/admin/page-review-preview";
 import { canPublishContent } from "@/lib/auth/cms-roles";
-import { canCreateCollegeRoot, canEditPages, canPublishPages } from "@/lib/auth/college-scope";
+import { canCreateCollegeRoot, canDeletePages, canEditPages, canPublishPages } from "@/lib/auth/college-scope";
 import { requireAdminSession } from "@/lib/auth/session";
 
 export const dynamic = "force-dynamic";
@@ -26,11 +26,11 @@ export default async function EditPagePage({
   const session = await requireAdminSession();
   const { id } = await params;
   const { saved } = await searchParams;
-  const canEdit = canEditPages(session);
 
   const [page, departments] = await Promise.all([getPageById(id), listDepartments()]);
 
   if (!page) notFound();
+  const canEdit = canEditPages(session) && (page.status !== "deleted" || canDeletePages(session));
 
   const [publicPath, initialParentOption] = await Promise.all([
     resolveAdminPagePublicPath(page),
@@ -75,6 +75,7 @@ export default async function EditPagePage({
           allowCollegeRoot={canCreateCollegeRoot(session)}
           canEdit={canEdit}
           canPublish={canPublish}
+          canDelete={canDeletePages(session)}
           initialSuccess={saved === "1" ? "Page created successfully." : null}
           lockPageStructure={
             session.departmentPageAssignment?.departmentPageId === page.id
