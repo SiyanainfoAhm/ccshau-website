@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { contentStatusOptions } from "@/lib/auth/content-status-options";
+import { contentStatusOptions, pageStatusOptions } from "@/lib/auth/content-status-options";
 import { tenderStatusOptions } from "@/lib/auth/tender-status-options";
 
 /* CMS content status select options vs canPublish. */
@@ -34,5 +34,14 @@ describe("tenderStatusOptions", () => {
     expect(tenderStatusOptions(false).map((o) => o.value)).toContain(
       "pending_review",
     );
+  });
+});
+
+describe("pageStatusOptions", () => {
+  it("only allows deleted for users with page deletion permission", () => {
+    expect(pageStatusOptions(true, true).map(o => o.value)).toContain("deleted");
+    expect(pageStatusOptions(true, false).map(o => o.value)).not.toContain("deleted");
+    expect(pageStatusOptions(false, true).map(o => o.value)).not.toContain("published");
+    expect(contentStatusOptions(true).map(o => o.value)).not.toContain("deleted");
   });
 });

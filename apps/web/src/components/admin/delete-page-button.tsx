@@ -20,7 +20,7 @@ export function DeletePageButton({
   function handleDelete() {
     if (
       !confirm(
-        `Delete "${pageTitle}"? This cannot be undone. Child pages will be unlinked from this parent.`,
+        `Delete "${pageTitle}"? Its status will change to Deleted and it will be hidden from the public site. You can restore it by changing its status in admin.`,
       )
     ) {
       return;

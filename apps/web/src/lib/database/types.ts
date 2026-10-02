@@ -4,6 +4,7 @@
  */
 
 export type ContentStatus = "draft" | "pending_review" | "published" | "archived";
+export type PageStatus = ContentStatus | "deleted";
 
 export type PageType = "standard" | "college";
 
@@ -145,7 +146,7 @@ export interface Page {
   page_type: PageType;
   layout_template: LayoutTemplate;
   layout_config: Record<string, unknown> | null;
-  status: ContentStatus;
+  status: PageStatus;
   published_at: string | null;
   featured_image_path: string | null;
   logo_image_path: string | null;
@@ -158,7 +159,6 @@ export interface Page {
   map_lng: number | null;
   office_cta_enabled: boolean;
   sort_order: number;
-  is_deleted: boolean;
   created_by: string | null;
   updated_by: string | null;
   created_at: string;

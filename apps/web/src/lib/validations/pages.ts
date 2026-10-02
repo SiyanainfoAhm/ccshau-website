@@ -64,7 +64,7 @@ export const pageFormSchema = z
     .transform((value) => value === "on" || value === true)
     .default(false),
   officeCtaEnabled: z.coerce.boolean().optional().default(true),
-  status: z.enum(["draft", "pending_review", "published", "archived"]),
+  status: z.enum(["draft", "pending_review", "published", "archived", "deleted"]),
 })
   .superRefine((data, ctx) => {
     if (data.pageType !== "college" || !data.contactLocationEnabled) return;

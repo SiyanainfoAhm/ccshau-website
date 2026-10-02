@@ -61,16 +61,10 @@ export async function assertPageAccess(
     .from(Tables.pages)
     .select("*")
     .eq("id", pageId)
-    .eq("is_deleted", false)
     .maybeSingle();
 
-  let data = first.data;
-  let error = first.error;
-  if (error?.message && /is_deleted/i.test(error.message)) {
-    const fallback = await admin.from(Tables.pages).select("*").eq("id", pageId).maybeSingle();
-    data = fallback.data;
-    error = fallback.error;
-  }
+  const { data, error } = first;
+
   if (error) throw new Error(error.message);
   if (!data) throw new Error("Page not found.");
 
@@ -124,7 +118,7 @@ export async function listCollegesForAdmin(): Promise<
     .select("id, slug, title_en, title_hi")
     .eq("parent_id", container.id)
     .eq("page_type", "college")
-    .eq("is_deleted", false)
+    .neq("status", "deleted")
     .order("title_en");
 
   return data ?? [];

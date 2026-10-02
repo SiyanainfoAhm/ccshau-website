@@ -152,11 +152,13 @@ export function PagesList({
                   </td>
                   {canDelete && (
                     <td className="px-4 py-3 text-right">
-                      <DeletePageButton
-                        pageId={page.id}
-                        pageTitle={page.title_en}
-                        variant="list"
-                      />
+                      {page.status !== "deleted" && (
+                        <DeletePageButton
+                          pageId={page.id}
+                          pageTitle={page.title_en}
+                          variant="list"
+                        />
+                      )}
                     </td>
                   )}
                 </tr>

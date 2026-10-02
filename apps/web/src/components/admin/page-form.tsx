@@ -12,7 +12,7 @@ import { LayoutConfigAdminPanel } from "@/components/admin/layout-config-admin-p
 import { LazyOfficePortalAdminPanel } from "@/components/admin/lazy-office-portal-admin-panel";
 import { ParentPagePicker } from "@/components/admin/parent-page-picker";
 import type { Page, PageContactLine } from "@/lib/database/types";
-import { contentStatusOptions } from "@/lib/auth/content-status-options";
+import { pageStatusOptions } from "@/lib/auth/content-status-options";
 import {
   applyLayoutConfigToFormData,
   LAYOUT_CONFIG_KEYS,
@@ -45,6 +45,7 @@ export function PageForm({
   allowCollegeRoot = true,
   canEdit = true,
   canPublish = true,
+  canDelete = false,
   initialSuccess = null,
   lockPageStructure = false,
 }: {
@@ -55,6 +56,7 @@ export function PageForm({
   allowCollegeRoot?: boolean;
   canEdit?: boolean;
   canPublish?: boolean;
+  canDelete?: boolean;
   /** Shown once after create redirect (?saved=1). */
   initialSuccess?: string | null;
   /** Department HOD: Template / Layout / Parent cannot be changed. */
@@ -818,7 +820,7 @@ export function PageForm({
               defaultValue={page?.status ?? "draft"}
               className="w-full rounded-lg border border-slate-300 px-3 py-2"
             >
-              {contentStatusOptions(canPublish).map((option) => (
+              {pageStatusOptions(canPublish, canDelete).map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>

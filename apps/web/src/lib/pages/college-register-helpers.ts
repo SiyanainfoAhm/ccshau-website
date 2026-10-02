@@ -54,6 +54,7 @@ export async function listCollegesForRegister(session: AdminSession): Promise<Co
   let query = admin
     .from(Tables.pages)
     .select("id, slug, title_en, parent_id, college_root_id, page_type")
+    .neq("status", "deleted")
     .eq("page_type", "college")
     .not("college_root_id", "is", null)
     .order("title_en");
@@ -79,7 +80,7 @@ export async function listCollegesForRegister(session: AdminSession): Promise<Co
   const parentIds = [...new Set(roots.map((r) => r.parent_id).filter(Boolean))] as string[];
   const parentSlugById = new Map<string, string>();
   if (parentIds.length > 0) {
-    const { data: parents } = await admin.from(Tables.pages).select("id, slug").in("id", parentIds);
+    const { data: parents } = await admin.from(Tables.pages).select("id, slug").neq("status", "deleted").in("id", parentIds);
     for (const parent of parents ?? []) {
       parentSlugById.set(parent.id, parent.slug);
     }
@@ -122,6 +123,7 @@ export async function listDepartmentsForRegister(
   let query = admin
     .from(Tables.pages)
     .select("id, slug, title_en, college_root_id, parent_id, layout_template, layout_config, sort_order")
+    .neq("status", "deleted")
     .eq("layout_template", "office_portal")
     .not("college_root_id", "is", null)
     .order("sort_order")
@@ -142,8 +144,8 @@ export async function listDepartmentsForRegister(
   const parentIds = [...new Set(deptPages.map((p) => p.parent_id as string))];
 
   const [{ data: colleges }, { data: parents }] = await Promise.all([
-    admin.from(Tables.pages).select("id, slug, title_en").in("id", collegeIds),
-    admin.from(Tables.pages).select("id, slug").in("id", parentIds),
+    admin.from(Tables.pages).select("id, slug, title_en").neq("status", "deleted").in("id", collegeIds),
+    admin.from(Tables.pages).select("id, slug").neq("status", "deleted").in("id", parentIds),
   ]);
 
   const collegeById = new Map((colleges ?? []).map((c) => [c.id, c]));
@@ -192,6 +194,7 @@ export async function listStaffPagesForRegister(
   const { data: root } = await admin
     .from(Tables.pages)
     .select("id, slug, title_en, college_root_id, parent_id, layout_template, layout_config, sort_order")
+    .neq("status", "deleted")
     .eq("id", collegePageId)
     .maybeSingle();
   if (!root || root.layout_template !== "office_portal" || departments.some((d) => d.id === collegePageId)) {
@@ -218,10 +221,11 @@ export async function listStaffPagesForRegister(
   const { data: college } = await admin
     .from(Tables.pages)
     .select("id, slug, title_en")
+    .neq("status", "deleted")
     .eq("id", collegePageId)
     .maybeSingle();
   const { data: parent } = root.parent_id
-    ? await admin.from(Tables.pages).select("slug").eq("id", root.parent_id).maybeSingle()
+    ? await admin.from(Tables.pages).select("slug").neq("status", "deleted").eq("id", root.parent_id).maybeSingle()
     : { data: null };
 
   const rootOption: DepartmentOption = {
@@ -268,6 +272,7 @@ export async function listAccessibleStaffPageIds(session: AdminSession): Promise
   const { data: pages } = await admin
     .from(Tables.pages)
     .select("id, college_root_id, layout_template, page_type")
+    .neq("status", "deleted")
     .in("id", pageIds);
 
   for (const page of pages ?? []) {
@@ -382,7 +387,7 @@ async function listFacultyForRegisterFromDepartments(
   );
   const extraPageIds = [...new Set((siblings ?? []).map((row) => row.page_id as string))];
   const { data: extraPages } = extraPageIds.length
-    ? await admin.from(Tables.pages).select("id, title_en").in("id", extraPageIds)
+    ? await admin.from(Tables.pages).select("id, title_en").neq("status", "deleted").in("id", extraPageIds)
     : { data: [] };
   const titleByPage = new Map((extraPages ?? []).map((p) => [p.id, p.title_en as string]));
 
@@ -439,6 +444,7 @@ export async function getOrCreateDepartmentSection(
   const { data: existing } = await admin
     .from(Tables.pages)
     .select("id")
+    .neq("status", "deleted")
     .eq("parent_id", collegePageId)
     .ilike("slug", "%department%")
     .maybeSingle();
@@ -500,14 +506,15 @@ export async function buildFacultyDetailPath(
   const { data: dept } = await admin
     .from(Tables.pages)
     .select("slug, parent_id, college_root_id")
+    .neq("status", "deleted")
     .eq("id", departmentPageId)
     .maybeSingle();
 
   if (!dept?.parent_id || !dept.college_root_id) return null;
 
   const [{ data: section }, { data: college }] = await Promise.all([
-    admin.from(Tables.pages).select("slug").eq("id", dept.parent_id).maybeSingle(),
-    admin.from(Tables.pages).select("slug").eq("id", dept.college_root_id).maybeSingle(),
+    admin.from(Tables.pages).select("slug").neq("status", "deleted").eq("id", dept.parent_id).maybeSingle(),
+    admin.from(Tables.pages).select("slug").neq("status", "deleted").eq("id", dept.college_root_id).maybeSingle(),
   ]);
 
   if (!section?.slug || !college?.slug) return null;

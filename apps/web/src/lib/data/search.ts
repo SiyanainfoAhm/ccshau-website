@@ -39,14 +39,12 @@ async function searchPages(
       .from(Tables.pages)
       .select("id, slug, title_en, title_hi, excerpt_en, published_at, page_type, parent_id")
       .eq("status", "published")
-      .eq("is_deleted", false)
       .textSearch("search_vector", query, { type: "websearch", config: "english" })
       .limit(20),
     admin
       .from(Tables.pages)
       .select("id, slug, page_type, parent_id")
-      .eq("status", "published")
-      .eq("is_deleted", false),
+      .eq("status", "published"),
   ]);
 
   const pageById = new Map(((allPages as Page[]) ?? []).map((p) => [p.id, p]));
