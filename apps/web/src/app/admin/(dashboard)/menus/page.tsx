@@ -8,6 +8,7 @@ const LOCATION_LABELS: Record<string, string> = {
   header: "Header navigation",
   footer: "Footer links",
   quick_links: "Quick links",
+  important_links: "Important links",
 };
 
 export default async function AdminMenusPage() {
@@ -18,10 +19,10 @@ export default async function AdminMenusPage() {
     <div className="space-y-6">
       <div>
         <h1 className="font-display text-2xl font-bold text-slate-900">Menu manager</h1>
-        <p className="text-sm text-slate-500">Manage header, footer, and quick-link navigation</p>
+        <p className="text-sm text-slate-500">Manage header, footer, quick-link, and important-link navigation</p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {menus.map((menu) => (
           <Link
             key={menu.id}

@@ -16,6 +16,52 @@ import type { PublicHeroSlide } from "@/lib/data/public-types";
 import { typeBodyLgClass, typeHeroDisplayClass } from "@/lib/design/public-page-classes";
 import { heroSlides as mockHeroSlides, university } from "@/lib/mock/site-content";
 
+function videoEmbedUrl(source: string): string | null {
+  try {
+    const url = new URL(source);
+    if (url.hostname === "youtu.be") return `https://www.youtube.com/embed/${url.pathname.slice(1)}?autoplay=1&mute=1&loop=1&playlist=${url.pathname.slice(1)}&controls=1&enablejsapi=1&rel=0`;
+    if (url.hostname.endsWith("youtube.com")) {
+      const id = url.searchParams.get("v") ?? url.pathname.split("/").filter(Boolean).pop();
+      return id ? `https://www.youtube.com/embed/${id}?autoplay=1&mute=1&loop=1&playlist=${id}&controls=1&enablejsapi=1&rel=0` : null;
+    }
+    if (url.hostname.endsWith("vimeo.com")) {
+      const id = url.pathname.split("/").filter(Boolean).pop();
+      return id ? `https://player.vimeo.com/video/${id}?autoplay=1&muted=1&loop=1&controls=1` : null;
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+function HeroMedia({ slide, alt, className }: { slide: PublicHeroSlide; alt: string; className?: string }) {
+  if (slide.mediaType !== "video") return <Image src={slide.image} alt={alt} fill className={className} priority />;
+  const embed = videoEmbedUrl(slide.image);
+  if (embed) {
+    return (
+      <iframe
+        src={embed}
+        title={alt}
+        className={`relative z-10 pointer-events-auto h-full w-full ${className ?? ""}`}
+        allow="autoplay; fullscreen; picture-in-picture"
+        allowFullScreen
+      />
+    );
+  }
+  return (
+    <video
+      src={slide.image}
+      autoPlay
+      muted
+      loop
+      playsInline
+      controls
+      aria-label={alt}
+      className={`relative z-10 pointer-events-auto h-full w-full object-cover ${className ?? ""}`}
+    />
+  );
+}
+
 export function HeroCarousel({
   variant = "future",
   slides: slidesProp,
@@ -41,6 +87,7 @@ export function HeroCarousel({
           targetUrl: null,
         }));
   const [index, setIndex] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
 
   const showPrev = useCallback(() => {
     setIndex((i) => (i - 1 + heroSlides.length) % heroSlides.length);
@@ -51,9 +98,10 @@ export function HeroCarousel({
   }, [heroSlides.length]);
 
   useEffect(() => {
+    if (isHovered || heroSlides.length < 2) return;
     const id = setInterval(() => setIndex((i) => (i + 1) % heroSlides.length), 6000);
     return () => clearInterval(id);
-  }, [heroSlides.length]);
+  }, [heroSlides.length, isHovered]);
 
   function onCarouselKeyDown(event: React.KeyboardEvent) {
     if (event.key === "ArrowLeft") {
@@ -108,7 +156,7 @@ export function HeroCarousel({
             </div>
           </div>
           <div className="relative aspect-[16/10] overflow-hidden rounded-md border-2 border-slate-300 bg-white shadow-md ring-1 ring-slate-200">
-            <Image src={slide.image} alt={heroSlideAlt(slide, lang)} fill className="object-cover" priority />
+            <HeroMedia slide={slide} alt={heroSlideAlt(slide, lang)} className="object-cover" />
             <div className="absolute bottom-0 left-0 right-0 bg-[#0c3b6e] px-4 py-2 text-center text-sm font-semibold text-white">
               {t(university.taglineEn, university.taglineHi)}
             </div>
@@ -169,8 +217,8 @@ export function HeroCarousel({
           <div className="relative lg:col-span-7">
             <div className="relative h-[320px] p-4 lg:absolute lg:inset-0 lg:h-auto lg:p-6">
               <div className="relative h-full overflow-hidden rounded-3xl shadow-2xl ring-4 ring-white/80">
-                <Image src={slide.image} alt={heroSlideAlt(slide, lang)} fill className="object-cover" priority />
-                <div className="absolute inset-0 bg-gradient-to-tr from-rose-200/20 via-transparent to-sky-200/25" />
+                <HeroMedia slide={slide} alt={heroSlideAlt(slide, lang)} className="object-cover" />
+                <div className="pointer-events-none absolute inset-0 z-20 bg-gradient-to-tr from-rose-200/20 via-transparent to-sky-200/25" />
               </div>
               <div className="absolute -bottom-2 left-8 right-8 hidden rounded-2xl bg-gradient-to-r from-amber-100 via-rose-50 to-sky-100 p-4 shadow-lg ring-1 ring-white lg:block lg:left-10 lg:right-10">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-violet-600">
@@ -204,6 +252,8 @@ export function HeroCarousel({
       aria-roledescription="carousel"
       aria-label={t("Homepage banner", "मुखपृष्ठ बैनर")}
       onKeyDown={onCarouselKeyDown}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       tabIndex={0}
     >
       <FloatingOrbs />
@@ -212,17 +262,13 @@ export function HeroCarousel({
           key={`${i}-${s.image}`}
           className={`absolute inset-0 transition-opacity duration-1000 ${i === index ? "opacity-100" : "opacity-0"}`}
         >
-          <Image
-            src={s.image}
-            alt={heroSlideAlt(s, lang)}
-            fill
-            className={`object-cover ${i === index ? "animate-ken-burns" : "scale-105"}`}
-            priority={i === 0}
-          />
+          {i === index ? (
+            <HeroMedia slide={s} alt={heroSlideAlt(s, lang)} className="animate-ken-burns object-cover" />
+          ) : null}
         </div>
       ))}
 
-      <div className="relative mx-auto flex min-h-[63.5vh] max-w-7xl flex-col justify-center px-4 py-20">
+      <div className="pointer-events-none relative mx-auto flex min-h-[63.5vh] max-w-7xl flex-col justify-center px-4 py-20">
         <div className="animate-fade-up stagger-children">
           {displayTitle && (
             <h1 className={`max-w-4xl ${typeHeroDisplayClass} text-white drop-shadow-[0_3px_16px_rgba(0,0,0,0.65)]`}>
@@ -248,7 +294,7 @@ export function HeroCarousel({
               type="button"
               role="tab"
               onClick={() => setIndex(i)}
-              className={`h-2 rounded-full transition-all ${i === index ? "w-10 bg-amber-400" : "w-2 bg-white/40"}`}
+              className={`pointer-events-auto h-2 rounded-full transition-all ${i === index ? "w-10 bg-amber-400" : "w-2 bg-white/40"}`}
               aria-label={t(`Slide ${i + 1}`, `स्लाइड ${i + 1}`)}
               aria-selected={i === index}
             />

@@ -168,7 +168,7 @@ function mapPublicPage(page: Page): PublicPage {
 const MENU_ITEM_PUBLIC_SELECT =
   "id, menu_id, parent_id, label_en, label_hi, href, page_id, sort_order, is_active, open_in_new_tab";
 const BANNER_PUBLIC_SELECT =
-  "title, image_path, target_url, alt_text, start_date, end_date, priority, is_active";
+  "title, image_path, media_type, target_url, alt_text, start_date, end_date, priority, is_active";
 const NEWS_LIST_PUBLIC_SELECT =
   "id, slug, title_en, title_hi, category, notice_type, published_at, expires_at, is_featured, is_pinned, attachment_paths";
 const NEWS_LIST_ORDERED_SELECT = `${NEWS_LIST_PUBLIC_SELECT}, sort_order`;
@@ -209,7 +209,7 @@ export async function getActiveBannersUncached(): Promise<PublicHeroSlide[]> {
     .from(Tables.banners)
     .select(BANNER_PUBLIC_SELECT)
     .eq("is_active", true)
-    .order("priority", { ascending: false });
+    .order("priority", { ascending: true });
 
   const slides: PublicHeroSlide[] = [];
 
@@ -229,6 +229,7 @@ export async function getActiveBannersUncached(): Promise<PublicHeroSlide[]> {
       imageAltEn: banner.alt_text ?? rawTitle ?? "CCSHAU homepage banner",
       imageAltHi: null,
       image,
+      mediaType: banner.media_type ?? "image",
       targetUrl: banner.target_url,
     });
   }
@@ -607,7 +608,7 @@ async function listPublishedPagesForPathMap(
   return all;
 }
 
-async function getMenuLinks(location: "header" | "footer" | "quick_links"): Promise<PublicQuickLink[]> {
+async function getMenuLinks(location: "header" | "footer" | "quick_links" | "important_links"): Promise<PublicQuickLink[]> {
   const admin = createAdminClient();
   if (!admin) return mockQuickLinkItems();
 
@@ -618,7 +619,7 @@ async function getMenuLinks(location: "header" | "footer" | "quick_links"): Prom
     .eq("is_active", true)
     .maybeSingle();
 
-  if (!menu) return location === "header" ? [] : mockQuickLinkItems();
+  if (!menu) return location === "header" || location === "important_links" ? [] : mockQuickLinkItems();
 
   const [{ data: items }, pages] = await Promise.all([
     admin
@@ -630,7 +631,7 @@ async function getMenuLinks(location: "header" | "footer" | "quick_links"): Prom
     listPublishedPagesForPathMap(admin),
   ]);
 
-  if (!items?.length) return location === "header" ? [] : mockQuickLinkItems();
+  if (!items?.length) return location === "header" || location === "important_links" ? [] : mockQuickLinkItems();
 
   const pageById = loadPublishedPageById(pages);
 
@@ -653,6 +654,7 @@ async function loadPublicSiteChrome(): Promise<PublicSiteChrome> {
       headerNav: mockHeaderNav(),
       quickLinks: mockQuickLinkItems(),
       footerLinks: mockQuickLinkItems(),
+      importantLinks: mockQuickLinkItems(),
       socialLinks: [],
       header: resolveHeaderBranding({
         header_tagline_en: null,
@@ -694,9 +696,10 @@ async function loadPublicSiteChrome(): Promise<PublicSiteChrome> {
     }
   }
 
-  const [quickLinks, footerLinks, siteSettings] = await Promise.all([
+  const [quickLinks, footerLinks, importantLinks, siteSettings] = await Promise.all([
     getMenuLinks("quick_links"),
     getMenuLinks("footer"),
+    getMenuLinks("important_links"),
     getSiteSettings(),
   ]);
 
@@ -704,6 +707,7 @@ async function loadPublicSiteChrome(): Promise<PublicSiteChrome> {
     headerNav,
     quickLinks,
     footerLinks,
+    importantLinks,
     socialLinks: socialLinksFromSettings(siteSettings),
     header: resolveHeaderBranding(siteSettings),
   };
@@ -711,7 +715,7 @@ async function loadPublicSiteChrome(): Promise<PublicSiteChrome> {
 
 export const getPublicSiteChrome = unstable_cache(
   loadPublicSiteChrome,
-  ["ccshau-public-site-chrome-v2"],
+  ["ccshau-public-site-chrome-v3"],
   { revalidate: 60, tags: ["public-chrome"] },
 );
 

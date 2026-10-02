@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import type { MenuLocation } from "@/lib/database/types";
 
-export const MENU_LOCATIONS: MenuLocation[] = ["header", "footer", "quick_links"];
+export const MENU_LOCATIONS: MenuLocation[] = ["header", "footer", "quick_links", "important_links"];
 
 export function isValidMenuLocation(value: string): value is MenuLocation {
   return MENU_LOCATIONS.includes(value as MenuLocation);

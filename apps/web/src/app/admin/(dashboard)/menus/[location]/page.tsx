@@ -11,6 +11,7 @@ const LOCATION_LABELS: Record<MenuLocation, string> = {
   header: "Header navigation",
   footer: "Footer links",
   quick_links: "Quick links",
+  important_links: "Important links",
 };
 
 export default async function AdminMenuLocationPage({

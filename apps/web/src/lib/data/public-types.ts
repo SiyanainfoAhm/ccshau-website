@@ -5,6 +5,7 @@ export interface PublicHeroSlide {
   imageAltEn?: string | null;
   imageAltHi?: string | null;
   image: string;
+  mediaType?: "image" | "video";
   targetUrl?: string | null;
 }
 
@@ -268,6 +269,7 @@ export interface PublicSiteChrome {
   headerNav: PublicNavItem[];
   quickLinks: PublicQuickLink[];
   footerLinks: PublicQuickLink[];
+  importantLinks: PublicQuickLink[];
   socialLinks: PublicSocialLink[];
   header: PublicHeaderBranding;
 }

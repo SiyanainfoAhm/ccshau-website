@@ -197,6 +197,7 @@ export function SiteFooter({
     chrome?.footerLinks ??
     quickLinks.map((label) => ({ labelEn: label, labelHi: null, href: "#" }));
   const footerLinks = allQuickLinks.slice(0, FOOTER_QUICK_LINKS_LIMIT);
+  const importantLinks = chrome?.importantLinks ?? [];
   const hasMoreQuickLinks = allQuickLinks.length > FOOTER_QUICK_LINKS_LIMIT;
   const socialLinks = chrome?.socialLinks ?? [];
   const headerNav = chrome?.headerNav ?? [];
@@ -350,24 +351,10 @@ export function SiteFooter({
               {t("Important", "महत्वपूर्ण")}
             </h3>
             <ul className="space-y-2.5 text-sm">
-              {[
-                { label: "RTI", href: SELECTED_LAYOUT.routes.rti },
-                { label: "NIRF", href: "#" },
-                { label: t("Circulars", "परिपत्र"), href: SELECTED_LAYOUT.routes.circulars },
-                { label: t("Tenders", "निविदाएं"), href: SELECTED_LAYOUT.routes.tenders },
-                { label: t("Contact", "संपर्क"), href: SELECTED_LAYOUT.routes.contact },
-                {
-                  label: t("Screen Reader Access", "स्क्रीन रीडर"),
-                  href: SELECTED_LAYOUT.routes.screenReaderAccess,
-                },
-                { label: t("Design Gallery", "डिज़ाइन गैलरी"), href: SELECTED_LAYOUT.galleryPath },
-              ].map((item) => (
-                <li key={item.label}>
-                  <Link
-                    href={item.href}
-                    className="text-emerald-100/85 transition hover:text-amber-200 hover:underline"
-                  >
-                    {item.label}
+              {importantLinks.map((link, index) => (
+                <li key={`${link.href}-${link.labelEn}-${index}`}>
+                  <Link href={link.href} {...(link.openInNewTab ? { target: "_blank", rel: "noopener noreferrer" } : {})} className="text-emerald-100/85 transition hover:text-amber-200 hover:underline">
+                    {t(link.labelEn, link.labelHi ?? link.labelEn)}
                   </Link>
                 </li>
               ))}
@@ -479,31 +466,13 @@ export function SiteFooter({
             {t("Important", "महत्वपूर्ण")}
           </h3>
           <ul className="space-y-2 text-sm">
-            <li>
-              <Link href="/rti" className="hover:underline">
-                RTI
-              </Link>
-            </li>
-            <li>
-              <Link href={SELECTED_LAYOUT.routes.screenReaderAccess} className="hover:underline">
-                {t("Screen Reader Access", "स्क्रीन रीडर")}
-              </Link>
-            </li>
-            <li>
-              <Link href="#" className="hover:underline">
-                NIRF
-              </Link>
-            </li>
-            <li>
-              <Link href="/design/option-c/tenders" className="hover:underline">
-                {t("Tenders", "निविदाएं")}
-              </Link>
-            </li>
-            <li>
-              <Link href="/design" className="hover:underline">
-                UI Design Gallery
-              </Link>
-            </li>
+            {importantLinks.map((link, index) => (
+              <li key={`${link.href}-${link.labelEn}-${index}`}>
+                <Link href={link.href} {...(link.openInNewTab ? { target: "_blank", rel: "noopener noreferrer" } : {})} className="hover:underline">
+                  {t(link.labelEn, link.labelHi ?? link.labelEn)}
+                </Link>
+              </li>
+            ))}
           </ul>
         </div>
       </div>

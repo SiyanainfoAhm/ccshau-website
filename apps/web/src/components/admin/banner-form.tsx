@@ -15,7 +15,8 @@ export function BannerForm({ banner }: { banner?: Banner }) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  const hasImage = Boolean(banner?.image_path && banner.image_path !== "pending");
+  const hasImage = Boolean(banner?.image_path && banner.image_path !== "pending" && banner?.media_type !== "video");
+  const hasVideo = Boolean(banner?.image_path && banner.image_path !== "pending" && banner?.media_type === "video");
   const imageUrl = hasImage ? getStoredFileUrl(banner!.image_path!) : null;
 
   const startValue = banner?.start_date
@@ -78,37 +79,50 @@ export function BannerForm({ banner }: { banner?: Banner }) {
       </label>
 
       <div className="space-y-2">
-        <span className="text-sm font-medium text-slate-700">Banner image</span>
+        <span className="text-sm font-medium text-slate-700">Banner media</span>
+        <select name="mediaType" defaultValue={banner?.media_type ?? "image"} className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm">
+          <option value="image">Image</option>
+          <option value="video">Video</option>
+        </select>
         {hasImage && imageUrl && (
           <div className="relative h-32 w-full max-w-md overflow-hidden rounded-lg border border-slate-200">
             <Image src={imageUrl} alt={banner?.alt_text ?? banner?.title ?? ""} fill className="object-cover" />
           </div>
         )}
+        {hasVideo && (
+          <p className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600">
+            Video configured: {banner?.image_path}
+          </p>
+        )}
         <AdminFileUploadField
           name="image"
-          accept="image/jpeg,image/png,image/webp,image/gif"
+          accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm"
           required={false}
           kind="image"
           label={hasImage ? "Replace banner image" : "Upload banner image"}
-          hint="JPEG, PNG, WebP or GIF — or paste an image URL below (one of the two is required)"
+          hint="For images: JPEG, PNG, WebP or GIF. For video: upload MP4/WebM or paste a direct video, YouTube, or Vimeo URL."
         />
       </div>
 
       <label className="block text-sm">
-        <span className="font-medium text-slate-700">Target URL / Image URL</span>
+        <span className="font-medium text-slate-700">External media URL / Click URL</span>
         <input
           name="targetUrl"
           type="url"
           defaultValue={
-            banner?.target_url ??
-            (hasImage && banner?.image_path?.startsWith("http") ? banner.image_path : "")
+          banner?.target_url ??
+            (banner?.media_type === "video" && banner?.image_path?.startsWith("http")
+              ? banner.image_path
+              : hasImage && banner?.image_path?.startsWith("http")
+                ? banner.image_path
+                : "")
           }
-          placeholder="https://www.hau.ac.in/public/images/sliders/..."
+          placeholder="https://example.com/banner.mp4 or https://www.youtube.com/watch?v=..."
           className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
         />
         <p className="mt-1 text-xs text-slate-500">
-          Upload a file above <strong>or</strong> paste an image URL here (ek zaroori hai). Image URL
-          slide ke liye use hoti hai; click destination bhi yahi ho sakti hai.
+          Upload a file above <strong>or</strong> paste an external media URL. For images, this can
+          also be used as the click destination; videos play directly in the banner.
         </p>
       </label>
 
