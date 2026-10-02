@@ -22,7 +22,7 @@ export default async function AdminBannersPage({
   const params = await searchParams;
   const listParams = parseAdminListParams(params, {
     sortBy: "priority",
-    sortOrder: "desc",
+    sortOrder: "asc",
     allowedSorts: BANNERS_SORTS,
   });
   const data = await listBannersForAdmin(listParams);
@@ -65,7 +65,20 @@ export default async function AdminBannersPage({
                 >
                   <div className="relative h-36 bg-slate-100">
                     {imageUrl ? (
-                      <Image src={imageUrl} alt={banner.alt_text ?? banner.title} fill className="object-cover" />
+                      banner.media_type === "video" ? (
+                        <video
+                          src={imageUrl}
+                          muted
+                          autoPlay
+                          playsInline
+                          loop
+                          preload="metadata"
+                          className="h-full w-full object-cover"
+                          aria-label={banner.alt_text ?? banner.title}
+                        />
+                      ) : (
+                        <Image src={imageUrl} alt={banner.alt_text ?? banner.title} fill className="object-cover" />
+                      )
                     ) : (
                       <div className="flex h-full items-center justify-center text-sm text-slate-400">
                         No image

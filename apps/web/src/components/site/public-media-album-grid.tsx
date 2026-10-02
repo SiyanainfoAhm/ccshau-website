@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { ChevronLeft, ChevronRight, FileText, Maximize2, Minus, Play, Plus, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, FileText, Maximize2, Minus, Pause, Play, Plus, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { buildImageAlt } from "@/lib/a11y/image-alt";
@@ -130,9 +130,13 @@ export function PublicMediaAlbumGrid({
   const { lang } = useLanguage();
   const slides = items.filter((item) => Boolean(item.url));
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
 
-  const close = useCallback(() => setActiveIndex(null), []);
+  const close = useCallback(() => {
+    setActiveIndex(null);
+    setIsPlaying(false);
+  }, []);
   const showPrev = useCallback(() => {
     setActiveIndex((index) => (index == null ? null : (index - 1 + slides.length) % slides.length));
   }, [slides.length]);
@@ -155,6 +159,12 @@ export function PublicMediaAlbumGrid({
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [activeIndex, showNext, showPrev]);
+
+  useEffect(() => {
+    if (!isPlaying || activeIndex == null || slides.length < 2) return;
+    const timer = window.setInterval(showNext, 5000);
+    return () => window.clearInterval(timer);
+  }, [activeIndex, isPlaying, showNext, slides.length]);
 
   const active = activeIndex == null ? null : slides[activeIndex];
 
@@ -265,9 +275,22 @@ export function PublicMediaAlbumGrid({
               </>
             )}
             <DialogSlide key={active.id} item={active} albumTitleEn={albumTitleEn} />
-            <p className="mt-3 text-center text-sm text-white" aria-live="polite">
-              {pickBilingual(lang, active.titleEn, active.titleHi)} {activeIndex + 1} / {slides.length}
-            </p>
+            <div className="mt-3 flex items-center justify-center gap-3 text-sm text-white">
+              {slides.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => setIsPlaying((value) => !value)}
+                  className="inline-flex items-center gap-1 rounded bg-white/15 px-3 py-1.5 hover:bg-white/25"
+                  aria-label={isPlaying ? "Pause slideshow" : "Play slideshow"}
+                >
+                  {isPlaying ? <Pause className="h-4 w-4" aria-hidden /> : <Play className="h-4 w-4" aria-hidden />}
+                  {isPlaying ? "Pause" : "Slideshow"}
+                </button>
+              )}
+              <p aria-live="polite">
+                {pickBilingual(lang, active.titleEn, active.titleHi)} {activeIndex + 1} / {slides.length}
+              </p>
+            </div>
           </div>
         </div>
       )}

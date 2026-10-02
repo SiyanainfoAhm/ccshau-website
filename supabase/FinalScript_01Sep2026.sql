@@ -97,7 +97,7 @@ END $$;
 
 DO $$ BEGIN
   CREATE TYPE ccshau_menu_location AS ENUM (
-    'header', 'footer', 'quick_links'
+    'header', 'footer', 'quick_links', 'important_links'
   );
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
@@ -510,6 +510,7 @@ CREATE TABLE IF NOT EXISTS ccshau_banners (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   title text NOT NULL,
   image_path text NOT NULL,
+  media_type text NOT NULL DEFAULT 'image' CHECK (media_type IN ('image', 'video')),
   target_url text,
   alt_text text,
   start_date timestamptz,
@@ -984,7 +985,8 @@ ON CONFLICT (slug) DO NOTHING;
 INSERT INTO ccshau_menus (location, name_en, name_hi) VALUES
   ('header', 'Main Navigation', 'मुख्य नेविगेशन'),
   ('footer', 'Footer Links', 'फुटर लिंक'),
-  ('quick_links', 'Quick Links', 'त्वरित लिंक')
+  ('quick_links', 'Quick Links', 'त्वरित लिंक'),
+  ('important_links', 'Important Links', 'महत्वपूर्ण लिंक')
 ON CONFLICT (location) DO NOTHING;
 
 -- Seed: starter URL redirects

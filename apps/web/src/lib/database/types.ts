@@ -24,7 +24,7 @@ export type CollegeScopeRole = "college_admin" | "college_editor" | "college_vie
 
 export type DepartmentPageRole = "dept_hod";
 
-export type MenuLocation = "header" | "footer" | "quick_links";
+export type MenuLocation = "header" | "footer" | "quick_links" | "important_links";
 
 export type NoticeType = "news" | "notice" | "corrigendum" | "cancellation";
 
@@ -311,6 +311,7 @@ export interface Banner {
   id: string;
   title: string;
   image_path: string;
+  media_type?: "image" | "video";
   target_url: string | null;
   alt_text: string | null;
   start_date: string | null;

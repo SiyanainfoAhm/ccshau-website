@@ -18,6 +18,7 @@ function parseBannerForm(formData: FormData) {
   return bannerFormSchema.safeParse({
     title: formData.get("title"),
     targetUrl: formData.get("targetUrl") || "",
+    mediaType: formData.get("mediaType") || "image",
     altText: formData.get("altText") || undefined,
     startDate: formData.get("startDate") || undefined,
     endDate: formData.get("endDate") || undefined,
@@ -40,6 +41,7 @@ function toBannerRow(input: ReturnType<typeof bannerFormSchema.parse>, userId: s
   return {
     title: input.title,
     target_url: input.targetUrl || null,
+    media_type: input.mediaType,
     alt_text: input.altText || null,
     start_date: input.startDate ? new Date(input.startDate).toISOString() : null,
     end_date: input.endDate ? new Date(input.endDate).toISOString() : null,
@@ -56,7 +58,7 @@ export async function listBannersForAdmin(
 ): Promise<PaginatedResult<Banner>> {
   const opts = mergeAdminListOptions(options, {
     sortBy: "priority",
-    sortOrder: "desc",
+    sortOrder: "asc",
     allowedSorts: BANNERS_LIST_SORTS,
   });
 
@@ -101,7 +103,7 @@ export async function createBannerAction(formData: FormData): Promise<ActionResu
         .insert({
           ...toBannerRow(parsed.data, session.userId),
           image_path: targetUrl,
-          target_url: targetUrl,
+          target_url: parsed.data.mediaType === "image" ? targetUrl : null,
         })
         .select("id")
         .single();
