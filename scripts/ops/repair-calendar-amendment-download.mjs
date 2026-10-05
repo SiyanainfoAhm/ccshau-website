@@ -1,0 +1,32 @@
+// Run from apps/web with: node --env-file=.env.local ../../scripts/ops/repair-calendar-amendment-download.mjs [--apply]
+import { createRequire } from 'node:module';
+import { readFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+
+const require = createRequire(new URL('../../apps/web/package.json', import.meta.url));
+const { createClient } = require('@supabase/supabase-js');
+const { BlobServiceClient } = require('@azure/storage-blob');
+const urlKey = Object.keys(process.env).find(key => key.replace(/^\uFEFF/, '') === 'NEXT_PUBLIC_SUPABASE_URL');
+const db = createClient(process.env[urlKey], process.env.SUPABASE_SERVICE_ROLE_KEY);
+const id = '2e1b290e-5786-44af-aa1f-b229265e8ea8';
+const filename = 'zIAVlQCkzMcXTbilJ6T4RRzn1QgltafHhgTYe3dL.pdf';
+const originalPath = `legacy-pending/downloads/42/${filename}`;
+const container = process.env.NEXT_PUBLIC_AZURE_STORAGE_CONTAINER || process.env.AZURE_STORAGE_CONTAINER || 'ccshaucontainer';
+const blobPath = `downloads/${id}/${filename}`;
+const repairedPath = `${container}/${blobPath}`;
+const source = process.env.CALENDAR_AMENDMENT_SOURCE || `C:/Jatin/Projects/CCHAU_mysql/uploads/uploads/downloads-pdf/${filename}`;
+const bytes = await readFile(source);
+if (bytes.subarray(0, 5).toString() !== '%PDF-') throw new Error('Source is not a PDF');
+const { data: row, error } = await db.from('ccshau_downloads').select('id,title_en,file_path').eq('id', id).single();
+if (error) throw error;
+if (![originalPath, repairedPath].includes(row.file_path)) throw new Error('Record path changed; refusing to overwrite');
+console.log(JSON.stringify({ title: row.title_en, currentPath: row.file_path, repairedPath, bytes: bytes.length, apply: process.argv.includes('--apply') }));
+if (!process.argv.includes('--apply')) process.exit(0);
+const blob = BlobServiceClient.fromConnectionString(process.env.AZURE_STORAGE_CONNECTION_STRING).getContainerClient(container).getBlockBlobClient(blobPath);
+if (!(await blob.exists())) await blob.uploadData(bytes, { blobHTTPHeaders: { blobContentType: 'application/pdf' } });
+const stored = await blob.downloadToBuffer();
+const hash = data => createHash('sha256').update(data).digest('hex');
+if (hash(bytes) !== hash(stored)) throw new Error('Azure PDF differs from source');
+const { data: updated, error: updateError } = await db.from('ccshau_downloads').update({ file_path: repairedPath, file_name: filename, file_size: bytes.length, mime_type: 'application/pdf' }).eq('id', id).eq('file_path', row.file_path).select('id,file_path').single();
+if (updateError) throw updateError;
+console.log(JSON.stringify({ repaired: updated, verifiedSha256: hash(stored) }));

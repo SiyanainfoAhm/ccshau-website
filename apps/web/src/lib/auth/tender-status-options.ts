@@ -3,7 +3,7 @@ import type { TenderStatus } from "@/lib/database/types";
 export const TENDER_STATUS_OPTIONS: { value: TenderStatus; label: string }[] = [
   { value: "draft", label: "Draft" },
   { value: "pending_review", label: "Pending review" },
-  { value: "open", label: "Open (live)" },
+  { value: "open", label: "Publish (live)" },
   { value: "closed", label: "Closed" },
   { value: "cancelled", label: "Cancelled" },
   { value: "archived", label: "Archived" },
