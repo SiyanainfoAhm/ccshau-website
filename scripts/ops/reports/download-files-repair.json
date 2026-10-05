@@ -1,0 +1,1108 @@
+{
+  "mode": "apply",
+  "total": 99,
+  "healthy": 84,
+  "repaired": 5,
+  "repairable": 5,
+  "unresolved": [
+    {
+      "id": "1101e3e5-8050-4e13-8d5b-69c80d9b17a5",
+      "title": "Medical Reimbursement Proforma",
+      "error": "Original file not found in local backups"
+    },
+    {
+      "id": "37bed74f-8338-4fe1-b3d1-f508373a2e59",
+      "title": "Career Advancement for Teachers",
+      "error": "Original file not found in local backups"
+    },
+    {
+      "id": "54a73538-7109-41e6-9c63-430e43dafa62",
+      "title": "PowerPoint template for CCSHAU employees",
+      "error": "Original file not found in local backups"
+    },
+    {
+      "id": "98f1e07f-519d-490a-9c67-5f14d9acfb3b",
+      "title": "RTI Information Handbook",
+      "error": "Original file not found in local backups"
+    },
+    {
+      "id": "ab4f2c1e-5cc8-4d89-a7eb-0783775fea0b",
+      "title": "Quarterly Report of Log book of instruments/implements",
+      "error": "Original file not found in local backups"
+    },
+    {
+      "id": "c6fff881-fe59-4207-9b63-254e991e7a10",
+      "title": "Proforma for submitting a Publication to University Technical Publication and Information Cell (TPIC) CCS HAU",
+      "error": "Original file not found in local backups"
+    },
+    {
+      "id": "d48016af-5884-415f-9a17-05240f964764",
+      "title": "No dues certificate",
+      "error": "Original file not found in local backups"
+    },
+    {
+      "id": "e7903dbd-2107-410a-98b5-37b94c38157d",
+      "title": "Tour Programme TA Bill Proforma for SF/RF schemes",
+      "error": "Original file not found in local backups"
+    },
+    {
+      "id": "ed977d84-d1da-4b92-81cb-83f7310c64f1",
+      "title": "Certificate for Claiming Education Allowance",
+      "error": "Original file not found in local backups"
+    },
+    {
+      "id": "ee2c8da3-9182-400d-ba97-5fd0436ff0f6",
+      "title": "Academic Calendar 2026–27 (PDF) 123",
+      "error": "Original file not found in local backups"
+    }
+  ],
+  "entries": [
+    {
+      "id": "01cee0b9-2074-4476-8af2-eb3b370b27b1",
+      "title": "Student Requirement Proforma",
+      "originalPath": "ccshaucontainer/downloads/01cee0b9-2074-4476-8af2-eb3b370b27b1/jzS9LBThNxVYQQVPFq1nLtvgBNeFKnGFWVJWQMxR.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "0209e40c-086d-44b6-8af6-9faa7f72cadb",
+      "title": "Haryana Right to information Rules, 2021 (Hindi & English)",
+      "originalPath": "ccshaucontainer/downloads/0209e40c-086d-44b6-8af6-9faa7f72cadb/Q1SBKpML1O7jihxKbEqqSiE3GXbNlK3xtiVLiTMc.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "0a4ed5ba-7b58-4e17-ade0-ec3d09b21c94",
+      "title": "RTI Act, 2005 in English",
+      "originalPath": "ccshaucontainer/downloads/0a4ed5ba-7b58-4e17-ade0-ec3d09b21c94/A2naJwE06cejk4a1kKvwIRyuHOIWkHFXqb89AGBV.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "0aeb314f-6647-48f7-9c68-aeb83f1d51af",
+      "title": "Haryana Right to information Rules, 2016 (Hindi & English)",
+      "originalPath": "ccshaucontainer/downloads/0aeb314f-6647-48f7-9c68-aeb83f1d51af/6HWEI1pTWW2orL0Hxd4tDYvIVuCa1fISM1q59e0U.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "1101e3e5-8050-4e13-8d5b-69c80d9b17a5",
+      "title": "Medical Reimbursement Proforma",
+      "originalPath": "legacy-pending/downloads/81/ACeIouFxRWO9qRicdqJvY9EobCKbtpDBH18TEeV2.docx",
+      "before": {
+        "ok": false,
+        "reason": "Missing or placeholder path"
+      },
+      "error": "Original file not found in local backups"
+    },
+    {
+      "id": "1f0b47c9-72f5-42a2-af3a-b299b166d87e",
+      "title": "Rate Contract for the Purchase of Computer Accessories and related items for the period ending 31.03.2026",
+      "originalPath": "ccshaucontainer/downloads/1f0b47c9-72f5-42a2-af3a-b299b166d87e/QbJoT1DV6RjHntjt2nSvDvAlBUCmRfeBfSh6KPuO.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "229e9f93-e1f0-4977-818c-fa54c8e0688e",
+      "title": "Faculty Profile Performa",
+      "originalPath": "ccshaucontainer/downloads/229e9f93-e1f0-4977-818c-fa54c8e0688e/Fp0hi1xECXqlkQ1Fi8MkAW8ZXJ7cQTenOZgqLQb3.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "2e1b290e-5786-44af-aa1f-b229265e8ea8",
+      "title": "Amendment in University Calendar Vol. II",
+      "originalPath": "ccshaucontainer/downloads/2e1b290e-5786-44af-aa1f-b229265e8ea8/zIAVlQCkzMcXTbilJ6T4RRzn1QgltafHhgTYe3dL.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "2e6563a4-cab5-4f92-b3f8-a15ae7e10903",
+      "title": "Proforma for transfer proposal",
+      "originalPath": "ccshaucontainer/downloads/2e6563a4-cab5-4f92-b3f8-a15ae7e10903/lKDwIYmbk8sN1y3tKOMpT2FkOkLObpfLKhdvLqKT.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "2e775196-1169-41a5-bb41-227db1cf4ba5",
+      "title": "HKRNL undertaking",
+      "originalPath": "ccshaucontainer/downloads/2e775196-1169-41a5-bb41-227db1cf4ba5/Aqr5mz1j8u8uEHYl2GybfEf1MBHQfa72mfFCaAgl.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "32021226-18ef-4109-a76a-10bec11e7246",
+      "title": "Clarification regarding Actual Postal Charges",
+      "originalPath": "ccshaucontainer/downloads/32021226-18ef-4109-a76a-10bec11e7246/pCGfA0HPEOgOqj1RRl95sMuFg2ardW2rRHd4uEiu.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "338ac03f-a02f-430a-86b3-001bf712c546",
+      "title": "Instructions for writing of ACR's/SAR's",
+      "originalPath": "ccshaucontainer/downloads/338ac03f-a02f-430a-86b3-001bf712c546/OzjPFKVBr8iHVTwIp5aRVUXaQXSx7RI4IaC04RrY.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "33e20dc8-5c0f-41dd-bc2e-c639f4b67d96",
+      "title": "Proforma for issue of NOC for passport",
+      "originalPath": "ccshaucontainer/downloads/33e20dc8-5c0f-41dd-bc2e-c639f4b67d96/8fIVjluyMVYmshh3liHjwh4f9Egh0YDZqWeF4nLU.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "34a0527e-2b55-4111-bbeb-32524447ba77",
+      "title": "Act & Statutes 2014",
+      "originalPath": "ccshaucontainer/downloads/34a0527e-2b55-4111-bbeb-32524447ba77/SJaTmStdeoRWG5W9bfIXkwnKkTcwskUCGJqRaSK2.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "376a79e3-4e88-44a5-afcf-8425a578e330",
+      "title": "Second half demand of funds in respect of AICRPs Scheme",
+      "originalPath": "ccshaucontainer/downloads/376a79e3-4e88-44a5-afcf-8425a578e330/bQHIBhdgJMH9BomyhbV7qxvKhKrxZHn4wgjiqZDG.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "37bed74f-8338-4fe1-b3d1-f508373a2e59",
+      "title": "Career Advancement for Teachers",
+      "originalPath": "legacy-pending/downloads/82/zQJQ8vGTAQ7SOLGWe6NEKBczGdU2pgapp75UJUKi.pdf",
+      "before": {
+        "ok": false,
+        "reason": "Missing or placeholder path"
+      },
+      "error": "Original file not found in local backups"
+    },
+    {
+      "id": "3f446141-e275-4209-8134-2b27f143d28a",
+      "title": "Promotion of Sr. Scale Stenographer to the post of PA/grant of ACP scale",
+      "originalPath": "ccshaucontainer/downloads/3f446141-e275-4209-8134-2b27f143d28a/nUG1tSsi6qyOg6HzWKIBsCdFM7bl32RI41B6C769.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "4034520e-b7b5-470c-ac10-e6cb3b956284",
+      "title": "List of First Appellate Authority and SPIOs under RTI Act, 2005",
+      "originalPath": "ccshaucontainer/downloads/4034520e-b7b5-470c-ac10-e6cb3b956284/ML1hhN015fURH6SbQloDUOO8EHKgrDWNnbhEgEyM.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "4122ff08-8228-4137-b1a6-cceecae72f1b",
+      "title": "Haryana Right to information Rules, 2009 (Hindi & English)",
+      "originalPath": "ccshaucontainer/downloads/4122ff08-8228-4137-b1a6-cceecae72f1b/gBNRcsecNPfA15WjYCkpr8WHUpY3M41j3ecQzsEs.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "417f4246-448a-4e2a-88ee-8192eeea658b",
+      "title": "Proforma for promotion under new Career advancement Scheme - for moving the cases by HOD's",
+      "originalPath": "ccshaucontainer/downloads/417f4246-448a-4e2a-88ee-8192eeea658b/jIsiQavcIVqdDjk0TqMKR5gM96msW6YQeWStXiyM.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "458ed9cd-f0fb-4f38-b2e0-b1022e033560",
+      "title": "Guidelines for submitting the Application/Performa for Retired Employees/Employees for Identity Cards",
+      "originalPath": "ccshaucontainer/downloads/458ed9cd-f0fb-4f38-b2e0-b1022e033560/JzgZ4mkPyP0RzBmGUuov60t6tPao5vmGKGTGuOm3.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "4c393226-93c4-4f63-9580-c37efe3cf4bf",
+      "title": "Celebration of Golden Jubilee Year of CCS HAU from 2nd February, 2019 to 1st February, 2020-approval of logo",
+      "originalPath": "legacy-pending/downloads/44/NLqOXZq3ppXlTQlYNmtRC5Uex61w6C57Eip0m5sV.png",
+      "before": {
+        "ok": false,
+        "reason": "Missing or placeholder path"
+      },
+      "source": "C:\\Jatin\\Projects\\CCHAU_mysql\\uploads\\uploads\\downloads-pdf\\NLqOXZq3ppXlTQlYNmtRC5Uex61w6C57Eip0m5sV.png",
+      "repairedPath": "ccshaucontainer/downloads/4c393226-93c4-4f63-9580-c37efe3cf4bf/NLqOXZq3ppXlTQlYNmtRC5Uex61w6C57Eip0m5sV.png",
+      "after": {
+        "ok": true,
+        "status": 206,
+        "type": "image/png"
+      },
+      "verifiedSha256": "b92e5b55d2fa32234509e1ce4b952ae8074fca6e5252bb99f9b764bbdb6969ef",
+      "result": {
+        "id": "4c393226-93c4-4f63-9580-c37efe3cf4bf",
+        "file_path": "ccshaucontainer/downloads/4c393226-93c4-4f63-9580-c37efe3cf4bf/NLqOXZq3ppXlTQlYNmtRC5Uex61w6C57Eip0m5sV.png"
+      }
+    },
+    {
+      "id": "4d271cd6-e581-4dde-ac18-ff87d65cf875",
+      "title": "PG Grade Performa",
+      "originalPath": "ccshaucontainer/downloads/4d271cd6-e581-4dde-ac18-ff87d65cf875/2d8YMtwyMKA1kMqNQzxlO229ySLYgWkokkY5ukH4.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "4f605220-b7d8-4cd9-94ed-27ac4fad12c6",
+      "title": "Revise Self Assessment Report Proforma",
+      "originalPath": "legacy-pending/downloads/43/QBCoxhc5dzRtgRxqxwWzvJ2WIRcTBypyzTrXVseR.docx",
+      "before": {
+        "ok": false,
+        "reason": "Missing or placeholder path"
+      },
+      "source": "C:\\Jatin\\Projects\\CCHAU_mysql\\uploads\\uploads\\downloads-pdf\\QBCoxhc5dzRtgRxqxwWzvJ2WIRcTBypyzTrXVseR.docx",
+      "repairedPath": "ccshaucontainer/downloads/4f605220-b7d8-4cd9-94ed-27ac4fad12c6/QBCoxhc5dzRtgRxqxwWzvJ2WIRcTBypyzTrXVseR.docx",
+      "after": {
+        "ok": true,
+        "status": 206,
+        "type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      },
+      "verifiedSha256": "8a431e4d1e75fe1b5a44d7e54345c9b66f6c0ca6c3c1fdf6e8b87361f34e26b6",
+      "result": {
+        "id": "4f605220-b7d8-4cd9-94ed-27ac4fad12c6",
+        "file_path": "ccshaucontainer/downloads/4f605220-b7d8-4cd9-94ed-27ac4fad12c6/QBCoxhc5dzRtgRxqxwWzvJ2WIRcTBypyzTrXVseR.docx"
+      }
+    },
+    {
+      "id": "4f9a0227-c9a5-4495-bb48-3b6b1cfab59e",
+      "title": "Proforma for Relieving on transfer/retirement/resignation etc.",
+      "originalPath": "ccshaucontainer/downloads/4f9a0227-c9a5-4495-bb48-3b6b1cfab59e/RnByUta2nbKd56JCDlxb2tlT5Z42vl35paWP4HXd.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "52e9a11f-65c8-4ffe-9063-dbdda1bda680",
+      "title": "Non-Recurring item purchase proforma",
+      "originalPath": "ccshaucontainer/downloads/52e9a11f-65c8-4ffe-9063-dbdda1bda680/XIzoSVFJFot76TyO8ZkOEhsJAkPV3BCz3i7mlU0p.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "54a73538-7109-41e6-9c63-430e43dafa62",
+      "title": "PowerPoint template for CCSHAU employees",
+      "originalPath": "legacy-pending/downloads/45/dW4ZCg0xCxEss955qZ7Con9RifqqybuViX7ZSITz.pdf",
+      "before": {
+        "ok": false,
+        "reason": "Missing or placeholder path"
+      },
+      "error": "Original file not found in local backups"
+    },
+    {
+      "id": "55bb9ed6-456f-4d4f-b696-2b3969f06fb7",
+      "title": "Requisition for a University Vehicle",
+      "originalPath": "legacy-pending/downloads/13/XtUmPIojUIMch8025zb4QOXrbKt8y65x2zTFug8J.docx",
+      "before": {
+        "ok": false,
+        "reason": "Missing or placeholder path"
+      },
+      "source": "C:\\Jatin\\Projects\\CCHAU_mysql\\uploads\\uploads\\downloads-pdf\\XtUmPIojUIMch8025zb4QOXrbKt8y65x2zTFug8J.docx",
+      "repairedPath": "ccshaucontainer/downloads/55bb9ed6-456f-4d4f-b696-2b3969f06fb7/XtUmPIojUIMch8025zb4QOXrbKt8y65x2zTFug8J.docx",
+      "after": {
+        "ok": true,
+        "status": 206,
+        "type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      },
+      "verifiedSha256": "67593dcb1f83c924f5a0760de9c81d45ef6e511710af202b8b7672f144480a32",
+      "result": {
+        "id": "55bb9ed6-456f-4d4f-b696-2b3969f06fb7",
+        "file_path": "ccshaucontainer/downloads/55bb9ed6-456f-4d4f-b696-2b3969f06fb7/XtUmPIojUIMch8025zb4QOXrbKt8y65x2zTFug8J.docx"
+      }
+    },
+    {
+      "id": "5add0100-4e81-409a-81df-5286739fe299",
+      "title": "Vehicle Sticker form for 2 and 4 wheelers",
+      "originalPath": "ccshaucontainer/downloads/5add0100-4e81-409a-81df-5286739fe299/qps7vCt0kRES9LuyYwzUEHco6F7jU82leZzNz2sX.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "60acd1ae-b74d-4b8b-9d47-e2162469f25b",
+      "title": "Grant of advance increment to teachers for outstanding work/National/International award and for bringing project",
+      "originalPath": "ccshaucontainer/downloads/60acd1ae-b74d-4b8b-9d47-e2162469f25b/ciR9Igfq1FaZyC3waNxRnwgQHveTJ9h2A5a7VG2R.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "620e973d-402b-4629-844f-adb342400dd9",
+      "title": "Wi-Fi Internet Registration Form (Students)",
+      "originalPath": "ccshaucontainer/downloads/620e973d-402b-4629-844f-adb342400dd9/Ye40aQosg7z4wP5uMkcvltplMWbBRS7Nc9izn0Lq.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "66802f88-5903-4102-a582-d8064927c32b",
+      "title": "Handed Over Taken Over proforma",
+      "originalPath": "ccshaucontainer/downloads/66802f88-5903-4102-a582-d8064927c32b/VvKSQs9gRBC8DTLquP3xMHo0dvlwcCUxtu2E3nXN.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "68f94976-d4ec-460c-9de1-b502be6fed62",
+      "title": "Nominate Dr. Seema Rani, Professor, SPIO of Extension Education and Communication Management (EECM) under RTI Act, 2005",
+      "originalPath": "ccshaucontainer/downloads/68f94976-d4ec-460c-9de1-b502be6fed62/fyhNFx43VMnKpZsyaMomtEsmqinjPkyxisFvZ15Z.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "6a01a214-00ec-4683-99b7-4967026c7021",
+      "title": "Approve the Academic Performance Indicators (API) based on Performance Based Appraisal System (PBAS) for promotion of teachers (word file)",
+      "originalPath": "ccshaucontainer/downloads/6a01a214-00ec-4683-99b7-4967026c7021/23PNkydvPeTCRzkdHjr6RuwUT2ghaLv81JXpNRO2.doc",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/msword"
+      }
+    },
+    {
+      "id": "6db0fbae-24a8-4ee8-984b-158f44131def",
+      "title": "Job Order Form",
+      "originalPath": "ccshaucontainer/downloads/6db0fbae-24a8-4ee8-984b-158f44131def/mgiRMvdSatGhyGpGjbJI3DtxkchzPNgY4d3H2i1S.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "6ea68939-48d6-4080-a2ab-086f9040d4aa",
+      "title": "Requisition for accommodation in faculty house",
+      "originalPath": "ccshaucontainer/downloads/6ea68939-48d6-4080-a2ab-086f9040d4aa/oFB42gsfA0GBW8Wir7KkcJjwRbGdCCkx0YmGTb2Z.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "7084bf13-ed05-4ba5-91ad-6a5021f673b4",
+      "title": "Proforma for Performance Appraisal of Faculty (June 2009 - June 2015)",
+      "originalPath": "ccshaucontainer/downloads/7084bf13-ed05-4ba5-91ad-6a5021f673b4/UJk1KJezMayY4El0EwOVVhOMpGRVuCPW1Vjd3m0R.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "73041f3c-bd9c-40c4-8f66-2fb3b93f320d",
+      "title": "Distribution of item Proforma",
+      "originalPath": "ccshaucontainer/downloads/73041f3c-bd9c-40c4-8f66-2fb3b93f320d/12oy8xkAjgNhGEjtfAcnKh1utLb8xH93IgfWbDp4.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "74be2408-5a4e-4f3e-bfb0-b66d8574418b",
+      "title": "Lowest Rate Certificate",
+      "originalPath": "ccshaucontainer/downloads/74be2408-5a4e-4f3e-bfb0-b66d8574418b/dlGwXjy767gIa9YkTuBaJQcBaYXlXVC0eKCyWNUY.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "765d8d01-afe7-4741-bc98-ab4cb384d807",
+      "title": "Haryana Right to information Rules, 2005",
+      "originalPath": "ccshaucontainer/downloads/765d8d01-afe7-4741-bc98-ab4cb384d807/thXld6Xu8TYCVMe5zSMXkuJApdKrJTyqVSXZeP15.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "77584a49-0dd8-4ff7-873c-4a211ed18207",
+      "title": "Submission of Programme of Work Proforma",
+      "originalPath": "ccshaucontainer/downloads/77584a49-0dd8-4ff7-873c-4a211ed18207/9RUPN8XyrFOFQhbsUSg4GsE37tjEZrJKIu6M5OdD.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "7847980b-3195-4232-8feb-1a6f14b50cc2",
+      "title": "Agromet Data Request Form",
+      "originalPath": "ccshaucontainer/downloads/7847980b-3195-4232-8feb-1a6f14b50cc2/pmgGdDEBqyDzCT4zap6xOdPpGIbLHq4kGpjivLFq.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "7b3be56d-8285-46d3-875f-0fc30a63e410",
+      "title": "File Movement Chart",
+      "originalPath": "ccshaucontainer/downloads/7b3be56d-8285-46d3-875f-0fc30a63e410/c9V7uUrdIhJNa19oYeNtLPjEDgoPGiBECUTFNbfx.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "7e2dbe0e-9540-45b8-acb3-a075a5b840dc",
+      "title": "Brand Selection List 2024-25",
+      "originalPath": "ccshaucontainer/downloads/7e2dbe0e-9540-45b8-acb3-a075a5b840dc/vuwLiuUJ2hB6CjEpYZWAMBqIQhTaDk4Ujf3X26FP.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "7e5919b3-e84a-4a3e-a20b-b43e35e8906a",
+      "title": "Haryana & Punjab Agricultural University Act 1970",
+      "originalPath": "ccshaucontainer/downloads/7e5919b3-e84a-4a3e-a20b-b43e35e8906a/3EpZ4vGuqEpIK2CKIowzOUb0ifxy0feTCeO76vRi.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "7efa9061-4ace-4bed-8746-8192abeec027",
+      "title": "Net  Exemption Certificate",
+      "originalPath": "ccshaucontainer/downloads/7efa9061-4ace-4bed-8746-8192abeec027/IV06wM7U4ZCvpZIRubAHqZ1UHVL5gt7a1ZKz8oAu.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "8c9cbbb0-490a-4ac3-be08-f75817a2cba9",
+      "title": "Nominate Dr. Renu Munjal, Associate Director, Human Resource Management (DHRM) under RTI Act, 2005",
+      "originalPath": "ccshaucontainer/downloads/8c9cbbb0-490a-4ac3-be08-f75817a2cba9/No5ZKdomWF7TvukCijT9ankG2CgxirvC02X4AP6D.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "8e21ddb4-8c28-4d44-9a23-7cfffed4b6ba",
+      "title": "University items gate pass",
+      "originalPath": "ccshaucontainer/downloads/8e21ddb4-8c28-4d44-9a23-7cfffed4b6ba/W67L15vTDWMb3cqCPTyd0hRz7Sq2Ut4okBRq2wX9.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "928e179e-c9bc-4521-b3df-baf24cff0712",
+      "title": "RTI Act, 2005 in Hindi",
+      "originalPath": "ccshaucontainer/downloads/928e179e-c9bc-4521-b3df-baf24cff0712/J9vIx4hZb6kOClBbhSUnCYnoNLHgeDmgrGAyl4kl.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "94eac413-6aea-4394-9574-214aeacd5308",
+      "title": "Tour Programme Performa",
+      "originalPath": "ccshaucontainer/downloads/94eac413-6aea-4394-9574-214aeacd5308/u8XS7z7A4SUOxJ8DYDCrlxADxZ4Rsn15fyFppeOi.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "98f1e07f-519d-490a-9c67-5f14d9acfb3b",
+      "title": "RTI Information Handbook",
+      "originalPath": "ccshau-public/demo/rti-handbook.pdf",
+      "before": {
+        "ok": false,
+        "status": 404,
+        "type": "application/xml"
+      },
+      "error": "Original file not found in local backups"
+    },
+    {
+      "id": "9c4f868a-6425-464d-a118-0057b3ec26b0",
+      "title": "GST No. of the CCS HAU",
+      "originalPath": "ccshaucontainer/downloads/9c4f868a-6425-464d-a118-0057b3ec26b0/v6y14nrJlABy44N4nmH2SEuxxHzUFxktLYmloQRI.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "9dc67f29-55f9-4e72-9a20-b10296575ac7",
+      "title": "Performance Report of Officers/Heads of Departments",
+      "originalPath": "ccshaucontainer/downloads/9dc67f29-55f9-4e72-9a20-b10296575ac7/Ud4jKus8xcyuM7KbuCWw0zNIWvLO2Ehk8n5IX6Ck.doc",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/msword"
+      }
+    },
+    {
+      "id": "a28cdcd7-d795-4af5-99f3-ce3e337d1130",
+      "title": "Bond proforma for study leave",
+      "originalPath": "ccshaucontainer/downloads/a28cdcd7-d795-4af5-99f3-ce3e337d1130/kZgH0TYEk8hkvrox6HERqVyZ1MWKoHdW24Wn6NXE.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "a569ff95-add2-4a01-91db-49806af8e064",
+      "title": "Logo of Azadi ka Amrit Mahotsav",
+      "originalPath": "legacy-pending/downloads/55/rFAkwCAvaz9Ub1dPPLx7O2VTndd4SU7j8u66V27B.jpeg",
+      "before": {
+        "ok": false,
+        "reason": "Missing or placeholder path"
+      },
+      "source": "C:\\Jatin\\Projects\\CCHAU_mysql\\uploads\\uploads\\downloads-pdf\\rFAkwCAvaz9Ub1dPPLx7O2VTndd4SU7j8u66V27B.jpeg",
+      "repairedPath": "ccshaucontainer/downloads/a569ff95-add2-4a01-91db-49806af8e064/rFAkwCAvaz9Ub1dPPLx7O2VTndd4SU7j8u66V27B.jpeg",
+      "after": {
+        "ok": true,
+        "status": 206,
+        "type": "image/jpeg"
+      },
+      "verifiedSha256": "34bcdd356f1e8e69c0c68a8f816544345b6186b128b017c02216ddde76b1e5ed",
+      "result": {
+        "id": "a569ff95-add2-4a01-91db-49806af8e064",
+        "file_path": "ccshaucontainer/downloads/a569ff95-add2-4a01-91db-49806af8e064/rFAkwCAvaz9Ub1dPPLx7O2VTndd4SU7j8u66V27B.jpeg"
+      }
+    },
+    {
+      "id": "a6d7f562-7de8-4576-a4d3-db57a5ae8af3",
+      "title": "Import of material : Import/Export Code number",
+      "originalPath": "ccshaucontainer/downloads/a6d7f562-7de8-4576-a4d3-db57a5ae8af3/Bwho3WsliiclqwawbSrbZPpEvqCz9DwcONNo9Y1f.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "aa4ccc63-7978-4e17-8cdd-0b882b01a25c",
+      "title": "Reimbursement of Medical Claims -revision/updation of forms",
+      "originalPath": "ccshaucontainer/downloads/aa4ccc63-7978-4e17-8cdd-0b882b01a25c/6RqzqPQ2Lx6BGd8wQuchtwj4BCvrOOqdIXq8RH24.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "ab4f2c1e-5cc8-4d89-a7eb-0783775fea0b",
+      "title": "Quarterly Report of Log book of instruments/implements",
+      "originalPath": "legacy-pending/downloads/79/X4Mj8CK5Ybd8HYYqU5LNpRcf4Ob4PBvfQH8NWo4O.docx",
+      "before": {
+        "ok": false,
+        "reason": "Missing or placeholder path"
+      },
+      "error": "Original file not found in local backups"
+    },
+    {
+      "id": "ac021aaf-7ee3-4f98-a653-8325f08ce83b",
+      "title": "Proforma for seeking approval for attending Selection Committee Meeting to work as Expert for Post-graduate studies",
+      "originalPath": "ccshaucontainer/downloads/ac021aaf-7ee3-4f98-a653-8325f08ce83b/Us00FNnKlfe6bapFIsrB4DibxOoEeRqhMQTrOwxZ.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "acf48849-af25-4d70-85f0-5891afa5ff75",
+      "title": "Revised Edition CCS HAU Account Code Vol. - I",
+      "originalPath": "ccshaucontainer/downloads/acf48849-af25-4d70-85f0-5891afa5ff75/UlHGaBvwxXm1XbKaBApeY6Pa9REhrBnUrT1lEGdH.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "b3bab06a-bc3d-47bf-88f9-57a2a45cc337",
+      "title": "Disclosure of RTI Information under section 4(1) (b) 17 Manuals points (i) to (xvii) Suo- Motuo Disclosure",
+      "originalPath": "ccshaucontainer/downloads/b3bab06a-bc3d-47bf-88f9-57a2a45cc337/DlHTBCM752OS1MTYCTeeSmPf2VyNv8TYnBXcc6bR.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "b5d14f92-2267-4844-8a26-289777a4ca4c",
+      "title": "Application for grant of Casual leave/Restricted Holiday",
+      "originalPath": "ccshaucontainer/downloads/b5d14f92-2267-4844-8a26-289777a4ca4c/RBzjCoHzjFvJ3WWGEC2RFCfGx1uECzJjm4oV67bx.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "b70dc1ea-1da8-4112-983e-de4e18576918",
+      "title": "Bond proforma for leave of the kind due for higher studies/fellowship",
+      "originalPath": "ccshaucontainer/downloads/b70dc1ea-1da8-4112-983e-de4e18576918/RbwZFUYh0BLCJnHbS1MdsAFqQt5ADF893G13gLxe.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "ba5569e6-e243-4277-8802-c1df690bf7b9",
+      "title": "Proforma for information/certificate to be supplied by the candidate/Head of the department for forwarding applications for outside jobs/assignments/fellowships",
+      "originalPath": "ccshaucontainer/downloads/ba5569e6-e243-4277-8802-c1df690bf7b9/EOqzXtaHhfWPEmrQ6nnuDWEIX1RTa3QDUdwIz50H.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "ba90041d-369f-4872-9f04-935666321384",
+      "title": "Approve the Academic Performance Indicators (API) based on Performance Based Appraisal System (PBAS) for promotion of teachers (word file)",
+      "originalPath": "ccshaucontainer/downloads/ba90041d-369f-4872-9f04-935666321384/gQpxdwo6hS1LtwwXZaEEVdOWGXSAUByYRRdK3OKQ.doc",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/msword"
+      }
+    },
+    {
+      "id": "c058e32d-c872-4fff-b30e-4662a18811c2",
+      "title": "Act & Statutes Amendment 01/2015 to 3/2020",
+      "originalPath": "ccshaucontainer/downloads/c058e32d-c872-4fff-b30e-4662a18811c2/PcwNclIaNJeLdF0AMEzmCd7HE1Ze07dxcIUAuJj6.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "c15bc2a1-3899-480b-abee-8e70203fc0c4",
+      "title": "Transfer Entry Delivery Challan",
+      "originalPath": "ccshaucontainer/downloads/c15bc2a1-3899-480b-abee-8e70203fc0c4/NHHHeh0xuO63r38S6n25ypj36oT8EaajcxJGDh79.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "c3a72412-0372-4b7b-99eb-8a1d16838589",
+      "title": "Performa for Retired Employees/ Employees",
+      "originalPath": "ccshaucontainer/downloads/c3a72412-0372-4b7b-99eb-8a1d16838589/CvnIKYQsd1dCJUjj1drA70pVIomT46dZFivUqRcV.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "c4b13000-813e-4267-b085-da4e3484c136",
+      "title": "Request proforma under RTI Act",
+      "originalPath": "ccshaucontainer/downloads/c4b13000-813e-4267-b085-da4e3484c136/rfAGQVKuHpSnnBp5tTInoiLx53XJnCvAXeUuP6XM.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "c5ac97c8-38fe-4f48-914c-82c9badc0e53",
+      "title": "Application Form for Earned Leave",
+      "originalPath": "ccshaucontainer/downloads/c5ac97c8-38fe-4f48-914c-82c9badc0e53/ocuFU0FO2GIB8Wq5tENesJBQEwCsgGVLw7fPKSUu.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "c6fff881-fe59-4207-9b63-254e991e7a10",
+      "title": "Proforma for submitting a Publication to University Technical Publication and Information Cell (TPIC) CCS HAU",
+      "originalPath": "legacy-pending/downloads/54/q6cWvKfQjOFuJEh9MYPsvJe2eP8hJZrcsgJRmLHd.pdf",
+      "before": {
+        "ok": false,
+        "reason": "Missing or placeholder path"
+      },
+      "error": "Original file not found in local backups"
+    },
+    {
+      "id": "c876a186-90f1-4fb3-8d7f-4ac2c07f221b",
+      "title": "Electricity Bill Payment Proforma",
+      "originalPath": "legacy-pending/downloads/78/mWJXJkKfQh5fGR0OMOV56oxGahRBWYBWomSXAaQE.docx",
+      "before": {
+        "ok": false,
+        "reason": "Missing or placeholder path"
+      },
+      "source": "C:\\Jatin\\Projects\\CCHAU_mysql\\uploads\\uploads\\downloads-pdf\\mWJXJkKfQh5fGR0OMOV56oxGahRBWYBWomSXAaQE.docx",
+      "repairedPath": "ccshaucontainer/downloads/c876a186-90f1-4fb3-8d7f-4ac2c07f221b/mWJXJkKfQh5fGR0OMOV56oxGahRBWYBWomSXAaQE.docx",
+      "after": {
+        "ok": true,
+        "status": 206,
+        "type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      },
+      "verifiedSha256": "ddcb1911fa640c7091a9c93489a39c74b755bd7665ecabe06dc4124eb8c5af26",
+      "result": {
+        "id": "c876a186-90f1-4fb3-8d7f-4ac2c07f221b",
+        "file_path": "ccshaucontainer/downloads/c876a186-90f1-4fb3-8d7f-4ac2c07f221b/mWJXJkKfQh5fGR0OMOV56oxGahRBWYBWomSXAaQE.docx"
+      }
+    },
+    {
+      "id": "cca1aee4-ac10-47f8-bb29-e12c5474e09e",
+      "title": "Proforma for refilling of printer cartridge",
+      "originalPath": "ccshaucontainer/downloads/cca1aee4-ac10-47f8-bb29-e12c5474e09e/0Nz054F49AVrR5iwEmpWillbVHOwO8eqtWtgLUsZ.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "cdf61184-0374-4b4c-aa58-be5f38df836c",
+      "title": "Check List Proforma for purchase of equiments",
+      "originalPath": "ccshaucontainer/downloads/cdf61184-0374-4b4c-aa58-be5f38df836c/zJiwUPr0T3Ru2d2K6JnL8YbEt3jqCG5uW1k6VSFZ.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "cf0e8606-6983-442e-84a3-a49fe3d39363",
+      "title": "Nomination of SPIO-cum-Nodal Officer under RTI Act, 2005.",
+      "originalPath": "ccshaucontainer/downloads/cf0e8606-6983-442e-84a3-a49fe3d39363/WwfgHoHyk5G4Um21GoDRuNFGwrQB5FfsxaRwNU4g.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "d48016af-5884-415f-9a17-05240f964764",
+      "title": "No dues certificate",
+      "originalPath": "legacy-pending/downloads/80/nrgdJFyjW2UNSjfyemzQ2NcAI9gJBCp2HMy73JEa.pdf",
+      "before": {
+        "ok": false,
+        "reason": "Missing or placeholder path"
+      },
+      "error": "Original file not found in local backups"
+    },
+    {
+      "id": "d894b351-8a63-450d-b574-6f5e2fae5bbc",
+      "title": "Application for outside jobs/Assignments/Fellowships etc.",
+      "originalPath": "ccshaucontainer/downloads/d894b351-8a63-450d-b574-6f5e2fae5bbc/5UWCQUfL8ne1HdC2102A6J1ijCGmMIzd1wj9LEiR.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "dbf7604b-d494-4bc7-8b7d-344327d86d03",
+      "title": "Test download",
+      "originalPath": "ccshaucontainer/downloads/dbf7604b-d494-4bc7-8b7d-344327d86d03/SJaTmStdeoRWG5W9bfIXkwnKkTcwskUCGJqRaSK2.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "dd5c233d-5931-4687-8d33-654f4213822c",
+      "title": "Performa for  Employee/Retiree Employee  ID",
+      "originalPath": "ccshaucontainer/downloads/dd5c233d-5931-4687-8d33-654f4213822c/iKWphVhQtJ6R35N8uaEVPoGt3ZKSDSj1sLDDTfJg.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "dff0b73d-388a-4e46-a2e8-97bb47bd9c60",
+      "title": "Indent Form AU 12/1, Instrumentation Cell",
+      "originalPath": "ccshaucontainer/downloads/dff0b73d-388a-4e46-a2e8-97bb47bd9c60/uTW7gUzctwZIDEraUyRYWqGZURufqi9UNQX2cJ9s.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "e25b06d8-6ee6-4dbd-92c8-e3175600dc25",
+      "title": "Wi-Fi Internet Registration Form (Employee)",
+      "originalPath": "ccshaucontainer/downloads/e25b06d8-6ee6-4dbd-92c8-e3175600dc25/LB09YW8q8f8L5r0NA0I8IfELrPM9cldv0wB1Yczn.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "e25f0ead-bb22-4f56-82c6-9fbc61b7ce09",
+      "title": "Approve the Academic Performance Indicators (API) based on Performance Based Appraisal System (PBAS) for promotion of teachers",
+      "originalPath": "ccshaucontainer/downloads/e25f0ead-bb22-4f56-82c6-9fbc61b7ce09/NTLh8MYhZ9TJmCH7Hyau7QEjG1ufmXXtINHwoJCg.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "e4b93279-3193-4b32-879d-ad8ff85928c1",
+      "title": "Application Form for Marriage Advance",
+      "originalPath": "ccshaucontainer/downloads/e4b93279-3193-4b32-879d-ad8ff85928c1/jlKKr5lbAm5lS6oVMXTJcBhG9j8ZW13KyLmzBxx0.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "e4f7412d-9250-4298-a517-fa1cb776b9ed",
+      "title": "Re-employment Proforma for Non-Teaching employee",
+      "originalPath": "ccshaucontainer/downloads/e4f7412d-9250-4298-a517-fa1cb776b9ed/WdR57zInWNuDuQuRIEfU2IiboBLhO4Z74Y6ralMl.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "e7903dbd-2107-410a-98b5-37b94c38157d",
+      "title": "Tour Programme TA Bill Proforma for SF/RF schemes",
+      "originalPath": "legacy-pending/downloads/73/5HqJWJ81Gd3qae41Z7LB9xPDzRdOQs5hu1CjApvU.pdf",
+      "before": {
+        "ok": false,
+        "reason": "Missing or placeholder path"
+      },
+      "error": "Original file not found in local backups"
+    },
+    {
+      "id": "e7fb48f5-4568-44c6-9d83-87c38db04ef6",
+      "title": "Proforma-cum-Comprehensive guidelines/procedure for grant of permission/participation of teachers/scientists in Conferences/Symposium/Workshop/Seminar etc.",
+      "originalPath": "ccshaucontainer/downloads/e7fb48f5-4568-44c6-9d83-87c38db04ef6/5EcUcy6UqQ01KmElBhWKtLH8Ib0454eukZwTgZ4z.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "ea7580c9-f1cd-4ab0-b9a5-5c3c83f880d7",
+      "title": "Calendar Volume - III",
+      "originalPath": "ccshaucontainer/downloads/ea7580c9-f1cd-4ab0-b9a5-5c3c83f880d7/R0FXsKLNa2JyRXRTanXnp5LrtXD3fZttrb7AOfwP.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "ec7f490c-4769-45e4-bb7c-f618bb8ea6d4",
+      "title": "Indent Form for consumable store and stationary articles",
+      "originalPath": "ccshaucontainer/downloads/ec7f490c-4769-45e4-bb7c-f618bb8ea6d4/Qmp8NZ4XniV7b0s2KKeHmRPhFcCgmC6sHN3LrbTR.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "ed1f321f-efb4-497f-8625-894ad9318931",
+      "title": "Financial Sanction Proforma",
+      "originalPath": "ccshaucontainer/downloads/ed1f321f-efb4-497f-8625-894ad9318931/qZsk31oWcC0YMpKJczJwn2lxpTHPtGbqHWeAPZHX.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "ed977d84-d1da-4b92-81cb-83f7310c64f1",
+      "title": "Certificate for Claiming Education Allowance",
+      "originalPath": "legacy-pending/downloads/33/yzcmg9vWRLoY7G2KMGZJOK2zvVcC4ltx8zvHJWX3.pdf",
+      "before": {
+        "ok": false,
+        "reason": "Missing or placeholder path"
+      },
+      "error": "Original file not found in local backups"
+    },
+    {
+      "id": "ee09a1bc-9652-4e7f-8743-cbaf873d08a7",
+      "title": "Rate contract of Battery - Automobil - 2025-26",
+      "originalPath": "ccshaucontainer/downloads/ee09a1bc-9652-4e7f-8743-cbaf873d08a7/Hs3pR4W8UzBKDOGSU8fAPUMjqyxIE3KdMpN313Dl.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "ee2c8da3-9182-400d-ba97-5fd0436ff0f6",
+      "title": "Academic Calendar 2026–27 (PDF) 123",
+      "originalPath": "ccshau-public/demo/academic-calendar-2026-27.pdf",
+      "before": {
+        "ok": false,
+        "status": 404,
+        "type": "application/xml"
+      },
+      "error": "Original file not found in local backups"
+    },
+    {
+      "id": "f00b9bdd-0482-4e39-b21d-fbaac54509c7",
+      "title": "Proforma for Relieving on transfer/retirement/resignation etc.",
+      "originalPath": "ccshaucontainer/downloads/f00b9bdd-0482-4e39-b21d-fbaac54509c7/qXLUVDl4Hm6Uzp2yWco44v9sG1zcWqywaPtnJFvE.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "fb173040-a0a2-462f-8143-b8c27ee87e0d",
+      "title": "Brand List of Agro chemicals - 2025-26",
+      "originalPath": "ccshaucontainer/downloads/fb173040-a0a2-462f-8143-b8c27ee87e0d/2Srusaom6q153bXdpXNzi7VmdnZZidk1uSz0vHZj.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "fc39b1ee-db23-497e-a83b-4b63fb17709b",
+      "title": "New Travelling Allowance Rules Book updated 2020",
+      "originalPath": "ccshaucontainer/downloads/fc39b1ee-db23-497e-a83b-4b63fb17709b/TiwLnexD0U2fUVFkb6LOAgVuELWXoiSEjDoJcmeg.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "fcd67098-4725-471e-8c02-7cf660738201",
+      "title": "Decision dated 13.11.2019 of Hon'ble Supreme Court of India, in civil Appeal No. 10044 of 2010 titled as Central Public Information Officer, Supreme Court of India Vs. Subhash Chandra Agarwal regarding personal Information.",
+      "originalPath": "ccshaucontainer/downloads/fcd67098-4725-471e-8c02-7cf660738201/RiGzpRBiK4z4wyEwifKUv55PsDU2vKzfaCSOkU1Y.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "fdcd71d9-1b9e-4666-8891-43f6e4b38e59",
+      "title": "E-mail Performa",
+      "originalPath": "ccshaucontainer/downloads/fdcd71d9-1b9e-4666-8891-43f6e4b38e59/4l4Tf7bbqpGmSJv7jCuDlQUdkYfP57732Iwo3TZV.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "fe791cc2-fefc-40f8-af23-3e545be368f7",
+      "title": "Brand Selection List for 2025-26",
+      "originalPath": "ccshaucontainer/downloads/fe791cc2-fefc-40f8-af23-3e545be368f7/88dfruNyj21ewGuj58N3nsFWgbVLgu7vu6u7RAwE.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    },
+    {
+      "id": "ffb52c3c-c548-4066-97fa-385443ee5199",
+      "title": "L T C Performa",
+      "originalPath": "ccshaucontainer/downloads/ffb52c3c-c548-4066-97fa-385443ee5199/FtJ8QfFBIVSaYna1cWjHMAaTnJ7IKbGvLL6j4scE.pdf",
+      "before": {
+        "ok": true,
+        "status": 206,
+        "type": "application/pdf"
+      }
+    }
+  ]
+}

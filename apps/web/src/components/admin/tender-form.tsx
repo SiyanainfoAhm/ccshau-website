@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useCallback, useRef, useState, useTransition } from "react";
+import { CheckCircle2 } from "lucide-react";
 
 import { createTenderAction, updateTenderAction } from "@/actions/tenders";
 import { translateFieldsEnToHiAction } from "@/actions/translate";
@@ -13,6 +14,8 @@ import { tenderStatusOptions } from "@/lib/auth/tender-status-options";
 import { getStoredFileUrl } from "@/lib/storage/urls";
 import { TENDER_CATEGORIES } from "@/lib/validations/tenders";
 import { slugify } from "@/lib/utils/slug";
+import { useModalA11y } from "@/lib/a11y/use-modal-a11y";
+import { TENDER_STATUS_OPTIONS } from "@/lib/auth/tender-status-options";
 
 interface Department {
   id: string;
@@ -39,7 +42,16 @@ export function TenderForm({
   const [cancellationNoticeEn, setCancellationNoticeEn] = useState(tender?.cancellation_notice_en ?? "");
   const [cancellationNoticeHi, setCancellationNoticeHi] = useState(tender?.cancellation_notice_hi ?? "");
   const [slug, setSlug] = useState(tender?.slug ?? "");
-  const [status, setStatus] = useState(tender?.status ?? "draft");
+  const [status, setStatus] = useState(tender?.status ?? (canPublish ? "open" : "draft"));
+  const [savedTender, setSavedTender] = useState<{ id: string; status: Tender["status"] } | null>(null);
+  const successPanelRef = useRef<HTMLDivElement>(null);
+  const closeSuccess = useCallback(() => {
+    if (!savedTender) return;
+    setSavedTender(null);
+    router.push(`/admin/tenders/${savedTender.id}`);
+    router.refresh();
+  }, [savedTender, router]);
+  useModalA11y({ open: Boolean(savedTender), onClose: closeSuccess, panelRef: successPanelRef });
   const [removeCancellationDoc, setRemoveCancellationDoc] = useState(false);
   const [isTranslating, setIsTranslating] = useState(false);
   const { removed, remove, removedJson } = useAttachmentRemovals(tender?.document_paths ?? []);
@@ -80,7 +92,9 @@ export function TenderForm({
   }
 
   function handleSubmit(formData: FormData) {
+    if (savedTender || isPending) return;
     setError(null);
+    const submittedStatus = formData.get("status") as Tender["status"];
     formData.set("removedDocuments", removedJson);
     formData.set("removeCancellationDocument", removeCancellationDoc ? "true" : "false");
 
@@ -94,8 +108,7 @@ export function TenderForm({
         return;
       }
 
-      router.push(tender ? `/admin/tenders/${tender.id}` : `/admin/tenders/${result.data.id}`);
-      router.refresh();
+      setSavedTender({ id: result.data.id, status: submittedStatus });
     });
   }
 
@@ -113,6 +126,20 @@ export function TenderForm({
 
   return (
     <form action={handleSubmit} className="mx-auto max-w-3xl space-y-6">
+      {savedTender && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 p-4">
+          <div ref={successPanelRef} role="dialog" aria-modal="true" aria-labelledby="tender-success-title" aria-describedby="tender-success-message" tabIndex={-1} className="w-full max-w-md rounded-xl bg-white p-6 text-center shadow-xl outline-none">
+            <CheckCircle2 className="mx-auto mb-3 h-12 w-12 text-emerald-600" aria-hidden />
+            <h2 id="tender-success-title" className="text-xl font-semibold text-slate-900">Tender {tender ? "updated" : "created"} successfully</h2>
+            <p id="tender-success-message" className="mt-3 text-sm text-slate-700">
+              {savedTender.status === "open"
+                ? "Your tender was published successfully."
+                : `Your tender was saved as ${TENDER_STATUS_OPTIONS.find((option) => option.value === savedTender.status)?.label ?? savedTender.status} successfully.`}
+            </p>
+            <button type="button" onClick={closeSuccess} className="mt-5 rounded-lg bg-emerald-800 px-6 py-2 font-semibold text-white hover:bg-emerald-700">OK</button>
+          </div>
+        </div>
+      )}
       {error && (
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
           {error}
@@ -362,7 +389,7 @@ export function TenderForm({
       <div className="flex items-center gap-3">
         <button
           type="submit"
-          disabled={isPending}
+          disabled={isPending || Boolean(savedTender)}
           className="rounded-lg bg-ccshau-chrome-900 px-5 py-2.5 font-semibold text-white hover:bg-ccshau-chrome-800 disabled:opacity-60"
         >
           {isPending ? "Saving…" : tender ? "Update tender" : "Create tender"}
