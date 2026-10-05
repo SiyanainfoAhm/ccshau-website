@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { ChevronLeft, ChevronRight, X, ZoomIn } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, ZoomIn, Play } from "lucide-react";
+import { getYouTubeVideo } from "@/lib/media/video-playback";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useLanguage } from "@/components/design/shared/language-context";
@@ -69,6 +70,7 @@ export function PublicCollegeGallery({
   }
 
   const activeImage = activeIndex == null ? null : visibleImages[activeIndex];
+  const activeVideo = activeImage ? getYouTubeVideo(activeImage.imageUrl) : null;
 
   const heading = pickBilingual(lang, albumTitleEn, albumTitleHi);
 
@@ -84,8 +86,9 @@ export function PublicCollegeGallery({
         ) : null}
         <div className="grid grid-cols-2 gap-4 p-6 sm:grid-cols-3 lg:grid-cols-4">
           {visibleImages.map((image, index) => {
-            const label = pickBilingual(lang, image.titleEn, image.titleHi) || t("Photo", "फोटो");
-            const thumb = (image.thumbnailUrl ?? image.imageUrl)!;
+            const video = getYouTubeVideo(image.imageUrl);
+            const label = pickBilingual(lang, image.titleEn, image.titleHi) || (video ? t("Video", "वीडियो") : t("Photo", "फोटो"));
+            const thumb = (image.thumbnailUrl ?? video?.thumbnailUrl ?? image.imageUrl)!;
             const fitClass = imageFit === "contain" ? "object-contain" : "object-cover";
 
             return (
@@ -110,7 +113,7 @@ export function PublicCollegeGallery({
                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                   />
                   <span className="absolute inset-0 flex items-center justify-center bg-black/0 transition group-hover:bg-black/35">
-                    <ZoomIn className="h-8 w-8 text-white opacity-0 transition group-hover:opacity-100" aria-hidden />
+                    {video ? <Play className="h-10 w-10 rounded-full bg-black/60 p-2 text-white" aria-hidden /> : <ZoomIn className="h-8 w-8 text-white opacity-0 transition group-hover:opacity-100" aria-hidden />}
                   </span>
                 </span>
                 {showCaptions ? (
@@ -136,7 +139,7 @@ export function PublicCollegeGallery({
             className="absolute inset-0 cursor-default"
             onClick={close}
           />
-          <button
+          {!activeVideo && <button
             type="button"
             onClick={(event) => {
               event.stopPropagation();
@@ -146,9 +149,9 @@ export function PublicCollegeGallery({
             aria-label={t("Close", "बंद करें")}
           >
             <X className="h-6 w-6" aria-hidden />
-          </button>
+          </button>}
 
-          {imageCount > 1 && (
+          {!activeVideo && imageCount > 1 && (
             <>
               <button
                 type="button"
@@ -180,10 +183,32 @@ export function PublicCollegeGallery({
             className="pointer-events-none relative z-10 flex max-h-[90vh] w-full max-w-6xl flex-col items-center outline-none"
             role="dialog"
             aria-modal="true"
-            aria-label={t("Image viewer", "छवि दर्शक")}
+            aria-label={activeVideo ? t("Video viewer", "वीडियो दर्शक") : t("Image viewer", "छवि दर्शक")}
             tabIndex={-1}
           >
-            <Image
+            {activeVideo ? (
+              <div className="pointer-events-auto w-full max-w-5xl">
+                <div className="mb-2 flex items-center justify-end gap-2 text-white">
+                  {imageCount > 1 && <>
+                    <button type="button" onClick={showPrev} className="rounded-full bg-white/10 p-2 hover:bg-white/20" aria-label={t("Previous item", "पिछला आइटम")}><ChevronLeft className="h-5 w-5" aria-hidden /></button>
+                    <button type="button" onClick={showNext} className="rounded-full bg-white/10 p-2 hover:bg-white/20" aria-label={t("Next item", "अगला आइटम")}><ChevronRight className="h-5 w-5" aria-hidden /></button>
+                  </>}
+                  <button type="button" onClick={close} className="rounded-full bg-white/10 p-2 hover:bg-white/20" aria-label={t("Close video", "वीडियो बंद करें")}><X className="h-5 w-5" aria-hidden /></button>
+                </div>
+                <iframe
+                  key={activeImage.id}
+                  src={activeVideo.embedUrl}
+                  title={pickBilingual(lang, activeImage.titleEn, activeImage.titleHi) || t("YouTube video", "यूट्यूब वीडियो")}
+                  className="aspect-video min-h-[200px] max-h-[75vh] w-full rounded-lg border-0 bg-black"
+                  allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                  allowFullScreen
+                  referrerPolicy="strict-origin-when-cross-origin"
+                />
+                <a href={activeVideo.url} target="_blank" rel="noopener noreferrer" className="mt-2 block text-center text-sm text-white underline">
+                  {t("Watch on YouTube", "यूट्यूब पर देखें")}
+                </a>
+              </div>
+            ) : <Image
               src={activeImage.imageUrl}
               alt={pickBilingual(lang, activeImage.titleEn, activeImage.titleHi) || t("Gallery image", "गैलरी छवि")}
               width={1600}
@@ -192,7 +217,7 @@ export function PublicCollegeGallery({
               className="pointer-events-auto mx-auto max-h-[85vh] w-auto max-w-full object-contain"
               sizes="100vw"
               priority
-            />
+            />}
             <p className="pointer-events-auto mt-3 max-w-3xl text-center text-sm text-white/90" aria-live="polite">
               {pickBilingual(lang, activeImage.titleEn, activeImage.titleHi) ||
                 `${activeIndex + 1} / ${visibleImages.length}`}

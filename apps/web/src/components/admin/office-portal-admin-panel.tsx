@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { getYouTubeVideo } from "@/lib/media/video-playback";
 
 import {
   createPageContactLineAction,
@@ -35,7 +36,7 @@ import { formatAdminDateTime, isExpiredAt } from "@/lib/utils/format-datetime";
 import { AssignExistingFacultyForm } from "@/components/admin/assign-existing-faculty-form";
 
 function galleryImagePreview(path: string): string {
-  return getStoredFileUrl(path) ?? path;
+  return getYouTubeVideo(path)?.thumbnailUrl ?? getStoredFileUrl(path) ?? path;
 }
 
 function DeleteButton({
@@ -276,6 +277,7 @@ export function OfficePortalAdminPanel({
   const [success, setSuccess] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [galleryFormSeed, setGalleryFormSeed] = useState(0);
+  const [galleryMediaType, setGalleryMediaType] = useState("image");
   const [newsTickerFormSeed, setNewsTickerFormSeed] = useState(0);
   const [studentCornerFormSeed, setStudentCornerFormSeed] = useState(0);
 
@@ -394,9 +396,9 @@ export function OfficePortalAdminPanel({
 
       {showGallery && (
         <section className="rounded-xl border border-emerald-200 bg-white p-6 shadow-sm">
-          <h2 className="font-display text-lg font-bold text-slate-900">Photo gallery</h2>
+          <h2 className="font-display text-lg font-bold text-slate-900">Photo and video gallery</h2>
           <p className="mt-1 text-xs text-slate-500">
-            Images appear in a zoomable grid on the public page when Photo gallery is enabled in
+            Images and YouTube videos appear in the gallery on the public page when Photo gallery is enabled in
             Layout sections.
           </p>
           <ul className="mt-4 space-y-2">
@@ -414,14 +416,14 @@ export function OfficePortalAdminPanel({
                   />
                   <div className="min-w-0">
                     <p className="truncate font-semibold text-slate-800">
-                      {item.title_en ?? `Image ${item.sort_order}`}
+                      {item.title_en ?? `${getYouTubeVideo(item.image_url) ? "Video" : "Image"} ${item.sort_order}`}
                     </p>
                     <p className="truncate text-xs text-slate-500">{item.image_url}</p>
                   </div>
                 </div>
                 {canEdit && (
                 <DeleteButton
-                  label="gallery image"
+                  label="gallery item"
                   onConfirm={async () => {
                     setError(null);
                     setSuccess(null);
@@ -431,7 +433,7 @@ export function OfficePortalAdminPanel({
                       return;
                     }
                     await refreshLists();
-                    setSuccess("Gallery image deleted.");
+                    setSuccess("Gallery item deleted.");
                   }}
                 />
                 )}
@@ -445,12 +447,19 @@ export function OfficePortalAdminPanel({
             action={(formData) =>
               runAction(
                 () => createPageGalleryItemAction(pageId, formData),
-                "Gallery image added successfully.",
+                "Gallery item added successfully.",
                 () => setGalleryFormSeed((seed) => seed + 1),
               )
             }
           >
-            <div className="sm:col-span-2">
+            <label className="text-sm font-medium text-slate-700 sm:col-span-2">
+              Gallery item type
+              <select name="mediaType" value={galleryMediaType} onChange={(event) => setGalleryMediaType(event.target.value)} className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                <option value="image">Image</option>
+                <option value="youtube">YouTube video</option>
+              </select>
+            </label>
+            {galleryMediaType === "image" && <div className="sm:col-span-2">
               <span className="mb-1 block text-sm font-medium text-slate-700">Upload image</span>
               <AdminFileUploadField
                 name="galleryFile"
@@ -459,7 +468,7 @@ export function OfficePortalAdminPanel({
                 label="Upload gallery image"
                 hint="JPEG, PNG, WebP or GIF — max 5 MB"
               />
-            </div>
+            </div>}
             <div className="sm:col-span-2">
               <span className="mb-1 block text-sm font-medium text-slate-700">
                 Thumbnail upload (optional)
@@ -472,10 +481,13 @@ export function OfficePortalAdminPanel({
                 hint="Optional smaller preview image"
               />
             </div>
-            <p className="text-xs text-slate-500 sm:col-span-2">Or paste external URLs:</p>
+            <p className="text-xs text-slate-500 sm:col-span-2">{galleryMediaType === "youtube" ? "Paste a YouTube watch, short, live, or embed URL. Thumbnail is generated automatically unless supplied below." : "Or paste external URLs:"}</p>
             <input
               name="imageUrl"
-              placeholder="Full image URL (if not uploading)"
+              key={galleryMediaType}
+              required={galleryMediaType === "youtube"}
+              aria-label={galleryMediaType === "youtube" ? "YouTube video URL" : "Image URL"}
+              placeholder={galleryMediaType === "youtube" ? "https://www.youtube.com/watch?v=..." : "Full image URL (if not uploading)"}
               className="rounded-lg border border-slate-300 px-3 py-2 text-sm sm:col-span-2"
             />
             <input
@@ -504,7 +516,7 @@ export function OfficePortalAdminPanel({
               disabled={isPending}
               className="rounded-lg bg-emerald-800 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
             >
-              Add gallery image
+              {galleryMediaType === "youtube" ? "Add YouTube video" : "Add gallery image"}
             </button>
           </form>
           )}

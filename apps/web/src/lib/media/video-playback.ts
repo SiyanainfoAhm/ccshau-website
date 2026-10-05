@@ -20,6 +20,27 @@ function youtubeIdFromUrl(url: URL): string | null {
   return null;
 }
 
+/** Strict gallery parser: never render an arbitrary URL or pasted HTML as an iframe. */
+export function getYouTubeVideo(rawUrl: string) {
+  try {
+    const url = new URL(rawUrl.trim());
+    if (!isHttpUrl(rawUrl) || url.username || url.password || url.port) return null;
+    const host = url.hostname.replace(/^www\./, "");
+    const id = host === "youtube-nocookie.com" && url.pathname.startsWith("/embed/")
+      ? url.pathname.split("/")[2]
+      : youtubeIdFromUrl(url);
+    if (!id || !/^[A-Za-z0-9_-]{11}$/.test(id)) return null;
+    return {
+      id,
+      url: `https://www.youtube.com/watch?v=${id}`,
+      embedUrl: `https://www.youtube-nocookie.com/embed/${id}?controls=1&playsinline=1`,
+      thumbnailUrl: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
+    };
+  } catch {
+    return null;
+  }
+}
+
 function vimeoIdFromUrl(url: URL): string | null {
   const host = url.hostname.replace(/^www\./, "");
   if (host === "vimeo.com") {

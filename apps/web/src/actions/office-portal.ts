@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getYouTubeVideo } from "@/lib/media/video-playback";
 
 import { writeAuditLog } from "@/lib/auth/audit";
 import { assertPageAccess } from "@/lib/auth/college-scope-server";
@@ -562,6 +563,13 @@ export async function createPageGalleryItemAction(
       thumbnailFile instanceof File && thumbnailFile.size > 0 ? thumbnailFile : null;
     const imageUrlInput = String(formData.get("imageUrl") ?? "").trim();
     const thumbnailUrlInput = String(formData.get("thumbnailUrl") ?? "").trim();
+    const mediaType = String(formData.get("mediaType") ?? "image");
+    if (mediaType !== "image" && mediaType !== "youtube") return fail("Invalid gallery media type.");
+    const video = getYouTubeVideo(imageUrlInput);
+    if (mediaType === "youtube" && !video) {
+      return fail("Enter a valid YouTube watch, short, live, or embed URL (not iframe HTML).");
+    }
+    if (mediaType === "youtube" && uploadedImage) return fail("Use a YouTube link instead of an image upload.");
 
     if (!uploadedImage && !imageUrlInput) {
       return fail("Upload an image file or enter an image URL.");
@@ -581,8 +589,9 @@ export async function createPageGalleryItemAction(
     if (!admin) return fail("Database not configured.");
     const input = parsed.data;
 
-    let imageUrl = imageUrlInput;
-    let thumbnailUrl = thumbnailUrlInput || null;
+    // Existing URL columns support videos without a schema migration.
+    let imageUrl = video ? video.url : imageUrlInput;
+    let thumbnailUrl = thumbnailUrlInput || video?.thumbnailUrl || null;
 
     if (uploadedImage) {
       const upload = await uploadPageGalleryImage(admin, pageId, uploadedImage);
