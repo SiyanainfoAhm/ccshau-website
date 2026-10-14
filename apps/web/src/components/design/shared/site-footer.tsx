@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { FooterSocialIcons } from "@/components/design/shared/footer-social-icons";
+import { VisitorCounter } from "@/components/site/visitor-counter";
 import { useLanguage } from "@/components/design/shared/language-context";
 import { usePublicSiteChrome } from "@/components/site/public-site-context";
 import { SELECTED_LAYOUT } from "@/lib/design/selected-layout";
@@ -262,6 +263,7 @@ export function SiteFooter({
             </div>
           ))}
         </div>
+        <VisitorCounter />
       </footer>
     );
   }
@@ -361,6 +363,8 @@ export function SiteFooter({
             </ul>
           </div>
         </div>
+
+        <VisitorCounter />
 
         <div className="border-t border-white/10 bg-black/20 px-4 py-5 text-center text-xs text-emerald-200/80">
           © {new Date().getFullYear()} {university.shortName}, Hisar.{" "}

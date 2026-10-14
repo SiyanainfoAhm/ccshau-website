@@ -1,6 +1,5 @@
 "use client";
 
-import { Users } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 export function VisitorCounter() {
@@ -42,13 +41,12 @@ export function VisitorCounter() {
   }, [total]);
 
   return (
-    <section aria-label="Website visitor count" className="px-5 py-4 sm:px-8">
-      <div className="mx-auto flex max-w-4xl items-center justify-center gap-3 rounded-xl border-2 border-amber-300 bg-emerald-950 px-5 py-3 text-white shadow-md sm:gap-4">
-        <Users className="h-6 w-6 shrink-0 text-amber-300" aria-hidden />
-        <span className="text-sm font-bold uppercase tracking-wider sm:text-base">Website visits</span>
-        <span className="h-6 w-px bg-emerald-700" aria-hidden />
-        <span className="min-w-12 text-center text-2xl font-black tabular-nums text-amber-300 sm:text-3xl" aria-live="polite">
-            {total === null ? "—" : displayed.toLocaleString("en-IN")}
+    <section aria-label="Visitor" className="px-4 pb-6 sm:px-8">
+      <div className="mx-auto flex w-fit items-center gap-3 rounded-full border border-amber-300/45 bg-emerald-900/70 px-4 py-2 shadow-[0_8px_24px_rgba(0,0,0,0.16)] ring-1 ring-white/10 backdrop-blur-sm transition hover:border-amber-300 hover:bg-emerald-800/80">
+        <span className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-100 sm:text-sm">Visitor</span>
+        <span className="h-4 w-px bg-amber-300/50" aria-hidden />
+        <span className="min-w-8 text-center text-lg font-black tabular-nums text-amber-300" aria-live="polite">
+          {total === null ? "—" : displayed.toLocaleString("en-IN")}
         </span>
       </div>
     </section>
