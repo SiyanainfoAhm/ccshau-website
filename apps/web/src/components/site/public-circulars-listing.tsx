@@ -215,6 +215,7 @@ export function PublicCircularsListing({
             <table className="w-full text-left text-sm">
               <thead className="bg-emerald-900 text-white">
                 <tr>
+                  <th className="w-20 whitespace-nowrap px-5 py-4 text-center font-semibold">{t("Sr. No.", "क्रमांक")}</th>
                   <th className="px-5 py-4 font-semibold">{t("Title", "शीर्षक")}</th>
                   <th className="hidden px-5 py-4 font-semibold md:table-cell">
                     {t("Published", "प्रकाशित")}
@@ -225,7 +226,7 @@ export function PublicCircularsListing({
               <tbody>
                 {data.items.length === 0 ? (
                   <tr>
-                    <td colSpan={3} className="px-5 py-10 text-center text-slate-500">
+                    <td colSpan={4} className="px-5 py-10 text-center text-slate-500">
                       {t(
                         "No circulars published in this section yet.",
                         "इस अनुभाग में अभी कोई परिपत्र प्रकाशित नहीं है।",
@@ -233,8 +234,11 @@ export function PublicCircularsListing({
                     </td>
                   </tr>
                 ) : (
-                  data.items.map((item) => (
+                  data.items.map((item, index) => (
                     <tr key={item.id} className="border-t border-slate-100 hover:bg-emerald-50/50">
+                      <td className="w-20 px-5 py-4 text-center text-slate-600">
+                        {(data.page - 1) * data.pageSize + index + 1}
+                      </td>
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
                           <ScrollText className="h-4 w-4 shrink-0 text-emerald-600" />
