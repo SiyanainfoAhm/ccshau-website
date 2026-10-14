@@ -14,6 +14,7 @@ import {
 } from "@/components/design/shared/home-sections";
 import { SiteFooter } from "@/components/design/shared/site-footer";
 import { SiteHeader } from "@/components/design/shared/site-header";
+import { VisitorCounter } from "@/components/site/visitor-counter";
 import { getHomepageContent, resolveHomepageColleges } from "@/lib/data/homepage";
 import {
   getActiveBanners,
@@ -83,6 +84,7 @@ export default async function HomePage() {
       <NewsTicker variant="future" headlines={tickerHeadlines} />
       <main id="main-content" tabIndex={-1} className="flex-1">
         <HeroCarousel variant="future" slides={banners.length > 0 ? banners : undefined} />
+        <VisitorCounter />
         <QuotesSection variant="future" quotes={homepage.quotes} />
         <AboutSection variant="future" page={aboutPage} />
         <NewsSection variant="future" items={news} />
