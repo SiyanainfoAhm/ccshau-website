@@ -21,6 +21,7 @@ export default async function AdminCircularsPage({
 }) {
   const session = await requireAdminSession();
   const params = await searchParams;
+  const actionMessage = params.deleted === "1" ? "Circular deleted successfully." : null;
   const listParams = parseAdminListParams(params, {
     sortBy: "published_at",
     sortOrder: "desc",
@@ -56,6 +57,7 @@ export default async function AdminCircularsPage({
           </Link>
         )}
       </div>
+      {actionMessage && <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">{actionMessage}</p>}
 
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         <table className="min-w-full divide-y divide-slate-200 text-sm">
