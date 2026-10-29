@@ -76,7 +76,9 @@ function TableInsertControl({
   const rootRef = useRef<HTMLDivElement>(null);
   const rowsInputRef = useRef<HTMLInputElement>(null);
   const onCancelRef = useRef(onCancel);
-  onCancelRef.current = onCancel;
+  useEffect(() => {
+    onCancelRef.current = onCancel;
+  }, [onCancel]);
 
   useEffect(() => {
     onOpenChange(open);
@@ -348,7 +350,9 @@ export function AdminHtmlField({ name, label, value, onChange, rows = 12, disabl
   const savedRangeRef = useRef<Range | null>(null);
   const activeTableRef = useRef<HTMLTableElement | null>(null);
   const valueRef = useRef(value);
-  valueRef.current = value;
+  useEffect(() => {
+    valueRef.current = value;
+  }, [value]);
 
   function syncTableTools() {
     const editor = editorRef.current;
@@ -383,7 +387,9 @@ export function AdminHtmlField({ name, label, value, onChange, rows = 12, disabl
   }
 
   const syncTableToolsRef = useRef(syncTableTools);
-  syncTableToolsRef.current = syncTableTools;
+  useEffect(() => {
+    syncTableToolsRef.current = syncTableTools;
+  }, [syncTableTools]);
 
   useEffect(() => {
     if (mode !== "design") return;
