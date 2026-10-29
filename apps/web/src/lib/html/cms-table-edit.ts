@@ -1,4 +1,4 @@
-import { CMS_TABLE_MAX_COLUMNS, CMS_TABLE_MAX_ROWS, type CmsTableStyle } from "@/lib/html/build-cms-table-html";
+import { CMS_TABLE_MAX_COLUMNS, cmsTableAtRowLimit, type CmsTableStyle } from "@/lib/html/build-cms-table-html";
 
 const STYLE_CLASSES = ["cms-table-compact", "cms-table-plain"] as const;
 
@@ -31,10 +31,20 @@ function emptyCell(documentRef: Document, tag: "td" | "th"): HTMLTableCellElemen
   return cell;
 }
 
-export function isHeaderRow(table: HTMLTableElement): boolean {
+function rowInTableHead(row: HTMLTableRowElement | undefined): boolean {
+  return row?.parentElement?.tagName === "THEAD";
+}
+
+function firstRowUsesHeaderCells(table: HTMLTableElement): boolean {
   const row = table.rows[0];
   if (!row || row.cells.length === 0) return false;
   return [...row.cells].every((cell) => cell.tagName === "TH");
+}
+
+/** True only when the first row is a `<thead>` of header cells. `<th>` inside `<tbody>` is not a header row. */
+export function isHeaderRow(table: HTMLTableElement): boolean {
+  const row = table.rows[0];
+  return firstRowUsesHeaderCells(table) && rowInTableHead(row);
 }
 
 export function isHeaderColumn(table: HTMLTableElement): boolean {
@@ -61,22 +71,30 @@ export function setCellAlign(cell: HTMLTableCellElement, align: "left" | "center
 
 export function setHeaderRow(table: HTMLTableElement, enabled: boolean) {
   const row = table.rows[0];
-  if (!row || isHeaderRow(table) === enabled) return;
+  if (!row) return;
+  const alreadyHeaderCells = firstRowUsesHeaderCells(table);
+  const inHead = rowInTableHead(row);
+  if (enabled && alreadyHeaderCells && inHead) return;
+  if (!enabled && !alreadyHeaderCells) return;
   const headerColumn = isHeaderColumn(table);
-  [...row.cells].forEach((cell, index) => {
-    const tag = enabled || (headerColumn && index === 0) ? "th" : "td";
-    replaceCell(cell, tag);
-  });
+  if (enabled !== alreadyHeaderCells) {
+    [...row.cells].forEach((cell, index) => {
+      const tag = enabled || (headerColumn && index === 0) ? "th" : "td";
+      replaceCell(cell, tag);
+    });
+  }
   const updated = table.rows[0];
   if (!updated) return;
   if (enabled) {
-    const head = table.tHead ?? table.ownerDocument.createElement("thead");
-    if (!table.tHead) table.insertBefore(head, table.firstChild);
-    head.appendChild(updated);
+    if (!rowInTableHead(updated)) {
+      const head = table.tHead ?? table.ownerDocument.createElement("thead");
+      if (!table.tHead) table.insertBefore(head, table.firstChild);
+      head.appendChild(updated);
+    }
     if (table.tBodies[0] && table.tBodies[0].rows.length === 0) table.tBodies[0].remove();
     return;
   }
-  if (updated.parentElement?.tagName === "THEAD") {
+  if (rowInTableHead(updated)) {
     const body = ensureBody(table);
     body.insertBefore(updated, body.firstChild);
     if (table.tHead && table.tHead.rows.length === 0) table.tHead.remove();
@@ -85,7 +103,7 @@ export function setHeaderRow(table: HTMLTableElement, enabled: boolean) {
 
 export function setHeaderColumn(table: HTMLTableElement, enabled: boolean) {
   if (isHeaderColumn(table) === enabled) return;
-  const headerRow = isHeaderRow(table);
+  const headerRow = firstRowUsesHeaderCells(table);
   [...table.rows].forEach((row, rowIndex) => {
     const cell = row.cells[0];
     if (!cell) return;
@@ -95,7 +113,8 @@ export function setHeaderColumn(table: HTMLTableElement, enabled: boolean) {
 }
 
 export function addRowAfter(table: HTMLTableElement, cell: HTMLTableCellElement): HTMLTableCellElement | null {
-  if (table.rows.length >= CMS_TABLE_MAX_ROWS) return cell;
+  // Same budget as buildCmsTableHtml: at most 20 `<tr>` nodes, header included.
+  if (cmsTableAtRowLimit(table.rows.length)) return cell;
   const current = cell.parentElement;
   if (!(current instanceof HTMLTableRowElement)) return cell;
   const width = Math.max(1, columnCount(table));
@@ -116,7 +135,7 @@ export function addRowAfter(table: HTMLTableElement, cell: HTMLTableCellElement)
 export function addColumnAfter(table: HTMLTableElement, cell: HTMLTableCellElement): HTMLTableCellElement | null {
   if (columnCount(table) >= CMS_TABLE_MAX_COLUMNS) return cell;
   const index = cell.cellIndex;
-  const headerRow = isHeaderRow(table);
+  const headerRow = firstRowUsesHeaderCells(table);
   let placed: HTMLTableCellElement | null = null;
   [...table.rows].forEach((row, rowIndex) => {
     const next = emptyCell(table.ownerDocument, headerRow && rowIndex === 0 ? "th" : "td");

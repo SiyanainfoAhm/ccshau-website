@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildCmsTableHtml } from "@/lib/html/build-cms-table-html";
+import { buildCmsTableHtml, CMS_TABLE_MAX_ROWS } from "@/lib/html/build-cms-table-html";
 import { sanitizeCmsHtml } from "@/lib/html/sanitize-cms-html";
 
 describe("buildCmsTableHtml", () => {
@@ -31,6 +31,13 @@ describe("buildCmsTableHtml", () => {
     expect(buildCmsTableHtml(0, 0, false).match(/<td>/g)).toHaveLength(1);
     expect(buildCmsTableHtml(100, 100, false).match(/<tr>/g)).toHaveLength(20);
     expect(buildCmsTableHtml(100, 100, false).match(/<td>/g)).toHaveLength(20 * 12);
+  });
+
+  it("counts the header row inside the 20-row cap", () => {
+    const html = buildCmsTableHtml(CMS_TABLE_MAX_ROWS, 2, true);
+    expect(html.match(/<tr>/g)).toHaveLength(CMS_TABLE_MAX_ROWS);
+    const body = html.match(/<tbody>[\s\S]*<\/tbody>/)?.[0] ?? "";
+    expect(body.match(/<tr>/g)).toHaveLength(CMS_TABLE_MAX_ROWS - 1);
   });
 
   it("keeps table markup after sanitizing", () => {

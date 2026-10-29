@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 
 import { createCircularAction, updateCircularAction } from "@/actions/circulars";
 import { translateFieldsEnToHiAction } from "@/actions/translate";
@@ -35,6 +35,7 @@ export function CircularForm({
   circular?: Circular;
   canEdit?: boolean;
   canPublish?: boolean;
+  /** Shown once after create redirect (?saved=1). */
   initialSuccess?: string | null;
 }) {
   const router = useRouter();
@@ -44,6 +45,16 @@ export function CircularForm({
   const [titleEn, setTitleEn] = useState(circular?.title_en ?? "");
   const [titleHi, setTitleHi] = useState(circular?.title_hi ?? "");
   const [isTranslating, setIsTranslating] = useState(false);
+
+  useEffect(() => {
+    if (!initialSuccess || typeof window === "undefined") return;
+    // Drop ?saved=1 so a refresh does not re-show the create banner.
+    const url = new URL(window.location.href);
+    if (url.searchParams.has("saved")) {
+      url.searchParams.delete("saved");
+      window.history.replaceState({}, "", url.pathname + url.search);
+    }
+  }, [initialSuccess]);
 
   const hasFile = Boolean(circular?.file_path);
   const fileUrl = hasFile ? getStoredFileUrl(circular!.file_path!) : null;

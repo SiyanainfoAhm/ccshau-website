@@ -14,6 +14,11 @@ function clampCount(value: number, max: number): number {
   return Math.min(max, Math.max(1, Math.floor(value)));
 }
 
+/** True when another `<tr>` would pass the insert-dialog budget. The header row counts as one of those rows. */
+export function cmsTableAtRowLimit(rowCount: number): boolean {
+  return rowCount >= CMS_TABLE_MAX_ROWS;
+}
+
 function readOptions(headerRowOrOptions: boolean | CmsTableOptions): Required<CmsTableOptions> {
   if (typeof headerRowOrOptions === "boolean") {
     return { headerRow: headerRowOrOptions, headerColumn: false, style: "standard" };
@@ -52,14 +57,15 @@ export function buildCmsTableHtml(
   headerRowOrOptions: boolean | CmsTableOptions = true,
 ): string {
   const options = readOptions(headerRowOrOptions);
-  const safeRows = clampCount(rows, CMS_TABLE_MAX_ROWS);
+  const totalRows = clampCount(rows, CMS_TABLE_MAX_ROWS);
   const safeColumns = clampCount(columns, CMS_TABLE_MAX_COLUMNS);
+  const headerCount = options.headerRow ? 1 : 0;
+  const bodyCount = totalRows - headerCount;
   const parts = [tableOpenTag(options.style)];
-  const bodyStart = options.headerRow ? 1 : 0;
-  if (options.headerRow) parts.push(`<thead>${rowHtml(0, safeColumns, options)}</thead>`);
-  if (safeRows - bodyStart > 0) {
-    const body = Array.from({ length: safeRows - bodyStart }, (_, index) =>
-      rowHtml(bodyStart + index, safeColumns, options),
+  if (headerCount > 0) parts.push(`<thead>${rowHtml(0, safeColumns, options)}</thead>`);
+  if (bodyCount > 0) {
+    const body = Array.from({ length: bodyCount }, (_, index) =>
+      rowHtml(headerCount + index, safeColumns, options),
     ).join("");
     parts.push(`<tbody>${body}</tbody>`);
   }

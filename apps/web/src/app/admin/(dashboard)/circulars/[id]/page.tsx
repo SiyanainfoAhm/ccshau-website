@@ -50,7 +50,7 @@ export default async function AdminEditCircularPage({
         circular={circular}
         canEdit={canEdit}
         canPublish={canPublishContent(session)}
-        initialSuccess={query.saved === "1" ? "Circular updated successfully." : null}
+        initialSuccess={query.saved === "1" ? "Circular created successfully." : null}
       />
     </div>
   );

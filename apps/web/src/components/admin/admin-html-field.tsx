@@ -6,6 +6,7 @@ import {
   buildCmsTableHtml,
   CMS_TABLE_MAX_COLUMNS,
   CMS_TABLE_MAX_ROWS,
+  cmsTableAtRowLimit,
   type CmsTableOptions,
   type CmsTableStyle,
 } from "@/lib/html/build-cms-table-html";
@@ -315,7 +316,7 @@ function TableDesignBar({
   return (
     <div className="flex flex-wrap items-center gap-1 border-b border-emerald-100 bg-emerald-50/80 px-2 py-1.5">
       <span className="mr-1 text-[11px] font-semibold uppercase tracking-wide text-emerald-900">Table</span>
-      <button type="button" disabled={disabled || context.rows >= CMS_TABLE_MAX_ROWS} className={tableToolClass} {...press("add-row")}>+ Row</button>
+      <button type="button" disabled={disabled || cmsTableAtRowLimit(context.rows)} className={tableToolClass} {...press("add-row")}>+ Row</button>
       <button type="button" disabled={disabled || context.rows <= 1} className={tableToolClass} {...press("delete-row")}>− Row</button>
       <button type="button" disabled={disabled || context.columns >= CMS_TABLE_MAX_COLUMNS} className={tableToolClass} {...press("add-column")}>+ Column</button>
       <button type="button" disabled={disabled || context.columns <= 1} className={tableToolClass} {...press("delete-column")}>− Column</button>
