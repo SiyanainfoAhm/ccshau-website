@@ -2210,6 +2210,46 @@ html.dark .cms-html ul > li > a[href*=".pdf"] {
   background: #ecfdf5;
 }
 
+.cms-html table.cms-table-compact,
+.prose :where(table.cms-table-compact) {
+  font-size: 0.85rem;
+}
+
+.cms-html table.cms-table-compact th,
+.cms-html table.cms-table-compact td,
+.prose :where(table.cms-table-compact th),
+.prose :where(table.cms-table-compact td) {
+  padding: 0.35rem 0.5rem;
+}
+
+.cms-html table.cms-table-plain,
+.prose :where(table.cms-table-plain) {
+  border: 1px solid #cbd5e1;
+  border-radius: 0.25rem;
+  box-shadow: none;
+}
+
+.cms-html table.cms-table-plain thead,
+.prose :where(table.cms-table-plain thead) {
+  background: #f8fafc;
+}
+
+.cms-html table.cms-table-plain th,
+.prose :where(table.cms-table-plain th) {
+  font-family: inherit;
+  color: #0f172a;
+  background: transparent;
+  border-bottom-color: #cbd5e1;
+  border-right-color: #e2e8f0;
+}
+
+.cms-html table.cms-table-plain tbody tr:nth-child(even),
+.cms-html table.cms-table-plain tbody tr:hover,
+.prose :where(table.cms-table-plain tbody tr:nth-child(even)),
+.prose :where(table.cms-table-plain tbody tr:hover) {
+  background: #f8fafc;
+}
+
 .cms-html caption,
 .prose :where(caption) {
   caption-side: top;
@@ -2331,6 +2371,36 @@ html.dark .prose :where(tbody tr:nth-child(even)) {
 html.dark .cms-html tbody tr:hover,
 html.dark .prose :where(tbody tr:hover) {
   background: rgba(6, 78, 59, 0.35);
+}
+
+html.dark .cms-html table.cms-table-plain,
+html.dark .prose :where(table.cms-table-plain) {
+  border-color: rgba(148, 163, 184, 0.35);
+  background: transparent;
+}
+
+html.dark .cms-html table.cms-table-plain thead,
+html.dark .prose :where(table.cms-table-plain thead) {
+  background: rgba(15, 23, 42, 0.35);
+}
+
+html.dark .cms-html table.cms-table-plain th,
+html.dark .prose :where(table.cms-table-plain th) {
+  color: #e2e8f0;
+  border-bottom-color: rgba(148, 163, 184, 0.35);
+  border-right-color: rgba(148, 163, 184, 0.2);
+}
+
+html.dark .cms-html table.cms-table-plain td,
+html.dark .prose :where(table.cms-table-plain td) {
+  color: #e2e8f0;
+}
+
+html.dark .cms-html table.cms-table-plain tbody tr:nth-child(even),
+html.dark .cms-html table.cms-table-plain tbody tr:hover,
+html.dark .prose :where(table.cms-table-plain tbody tr:nth-child(even)),
+html.dark .prose :where(table.cms-table-plain tbody tr:hover) {
+  background: transparent;
 }
 
 html.dark .cms-html caption,

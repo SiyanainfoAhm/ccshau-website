@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 
 import { createCircularAction, updateCircularAction } from "@/actions/circulars";
 import { translateFieldsEnToHiAction } from "@/actions/translate";
@@ -28,19 +28,33 @@ export function CircularForm({
   circular,
   canEdit = true,
   canPublish = true,
+  initialSuccess = null,
 }: {
   departments: Department[];
   categories: CategoryOption[];
   circular?: Circular;
   canEdit?: boolean;
   canPublish?: boolean;
+  /** Shown once after create redirect (?saved=1). */
+  initialSuccess?: string | null;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(initialSuccess);
   const [titleEn, setTitleEn] = useState(circular?.title_en ?? "");
   const [titleHi, setTitleHi] = useState(circular?.title_hi ?? "");
   const [isTranslating, setIsTranslating] = useState(false);
+
+  useEffect(() => {
+    if (!initialSuccess || typeof window === "undefined") return;
+    // Drop ?saved=1 so a refresh does not re-show the create banner.
+    const url = new URL(window.location.href);
+    if (url.searchParams.has("saved")) {
+      url.searchParams.delete("saved");
+      window.history.replaceState({}, "", url.pathname + url.search);
+    }
+  }, [initialSuccess]);
 
   const hasFile = Boolean(circular?.file_path);
   const fileUrl = hasFile ? getStoredFileUrl(circular!.file_path!) : null;
@@ -69,6 +83,7 @@ export function CircularForm({
 
   function handleSubmit(formData: FormData) {
     setError(null);
+    setSuccess(null);
 
     startTransition(async () => {
       if (circular) {
@@ -77,14 +92,16 @@ export function CircularForm({
           setError(result.error);
           return;
         }
-        router.push(`/admin/circulars/${circular.id}`);
+        setSuccess("Circular updated successfully.");
+        router.refresh();
+        return;
       } else {
         const result = await createCircularAction(formData);
         if (!result.success) {
           setError(result.error);
           return;
         }
-        router.push(`/admin/circulars/${result.data.id}`);
+        router.push(`/admin/circulars/${result.data.id}?saved=1`);
       }
       router.refresh();
     });
@@ -96,6 +113,7 @@ export function CircularForm({
       className="max-w-2xl space-y-5"
     >
       {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+      {success && <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">{success}</p>}
       {!canEdit && (
         <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
           View-only access — you cannot edit or save this circular.

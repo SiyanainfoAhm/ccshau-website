@@ -11,12 +11,15 @@ import { requireAdminSession } from "@/lib/auth/session";
 
 export default async function AdminEditCircularPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | undefined>>;
 }) {
   const session = await requireAdminSession();
   const canEdit = canManageUniversityContent(session);
   const { id } = await params;
+  const query = await searchParams;
   const [circular, departments, categories] = await Promise.all([
     getCircularById(id),
     listDepartments(),
@@ -47,6 +50,7 @@ export default async function AdminEditCircularPage({
         circular={circular}
         canEdit={canEdit}
         canPublish={canPublishContent(session)}
+        initialSuccess={query.saved === "1" ? "Circular created successfully." : null}
       />
     </div>
   );
