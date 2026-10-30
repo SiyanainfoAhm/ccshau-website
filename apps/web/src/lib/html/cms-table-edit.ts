@@ -113,7 +113,6 @@ export function setHeaderColumn(table: HTMLTableElement, enabled: boolean) {
 }
 
 export function addRowAfter(table: HTMLTableElement, cell: HTMLTableCellElement): HTMLTableCellElement | null {
-  // Same budget as buildCmsTableHtml: at most 20 `<tr>` nodes, header included.
   if (cmsTableAtRowLimit(table.rows.length)) return cell;
   const current = cell.parentElement;
   if (!(current instanceof HTMLTableRowElement)) return cell;
