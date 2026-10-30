@@ -1,4 +1,6 @@
 export const CMS_TABLE_MAX_ROWS = 20;
+/** How far + Row can grow a table. The insert dialog still starts at CMS_TABLE_MAX_ROWS. */
+export const CMS_TABLE_ADD_ROW_MAX = 500;
 export const CMS_TABLE_MAX_COLUMNS = 12;
 
 export type CmsTableStyle = "standard" | "compact" | "plain";
@@ -14,9 +16,9 @@ function clampCount(value: number, max: number): number {
   return Math.min(max, Math.max(1, Math.floor(value)));
 }
 
-/** True when another `<tr>` would pass the insert-dialog budget. The header row counts as one of those rows. */
+/** True when + Row would pass the edit cap. Every `<tr>`, including a header, counts. */
 export function cmsTableAtRowLimit(rowCount: number): boolean {
-  return rowCount >= CMS_TABLE_MAX_ROWS;
+  return rowCount >= CMS_TABLE_ADD_ROW_MAX;
 }
 
 function readOptions(headerRowOrOptions: boolean | CmsTableOptions): Required<CmsTableOptions> {

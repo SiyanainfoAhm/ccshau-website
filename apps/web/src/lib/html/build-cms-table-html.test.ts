@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildCmsTableHtml, CMS_TABLE_MAX_ROWS } from "@/lib/html/build-cms-table-html";
+import { buildCmsTableHtml, CMS_TABLE_ADD_ROW_MAX, CMS_TABLE_MAX_ROWS, cmsTableAtRowLimit } from "@/lib/html/build-cms-table-html";
 import { sanitizeCmsHtml } from "@/lib/html/sanitize-cms-html";
 
 describe("buildCmsTableHtml", () => {
@@ -31,6 +31,11 @@ describe("buildCmsTableHtml", () => {
     expect(buildCmsTableHtml(0, 0, false).match(/<td>/g)).toHaveLength(1);
     expect(buildCmsTableHtml(100, 100, false).match(/<tr>/g)).toHaveLength(20);
     expect(buildCmsTableHtml(100, 100, false).match(/<td>/g)).toHaveLength(20 * 12);
+  });
+
+  it("lets + Row grow a table to 500 rows", () => {
+    expect(cmsTableAtRowLimit(CMS_TABLE_ADD_ROW_MAX - 1)).toBe(false);
+    expect(cmsTableAtRowLimit(CMS_TABLE_ADD_ROW_MAX)).toBe(true);
   });
 
   it("counts the header row inside the 20-row cap", () => {
