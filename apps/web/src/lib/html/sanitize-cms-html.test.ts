@@ -61,6 +61,25 @@ describe("sanitizeCmsHtml", () => {
     expect(out).not.toContain("<script");
   });
 
+  // Hash-encoded hau storage links from the old editor resolve to Azure.
+  it("rewrites hash-encoded hau upload links to Azure legacy-storage", () => {
+    const html =
+      '<a href="#https%3A//www.hau.ac.in/storage/app/uploads/af49CYIBL5NeRiZX49AIJdWJSDoEgiCw4lvG5znw.pdf">Glimpses</a>';
+    const out = sanitizeCmsHtml(html);
+    expect(out).toContain(
+      'href="https://hau.ac.in/storage/app/uploads/af49CYIBL5NeRiZX49AIJdWJSDoEgiCw4lvG5znw.pdf"',
+    );
+  });
+
+  it("rewrites other hash-encoded hau upload links to Azure legacy-storage", () => {
+    const html =
+      '<a href="#https%3A//www.hau.ac.in/storage/app/uploads/exampleFile.pdf">File</a>';
+    const out = sanitizeCmsHtml(html);
+    expect(out).toContain(
+      'href="https://ccshau.blob.core.windows.net/ccshaucontainer/legacy-storage/exampleFile.pdf"',
+    );
+  });
+
   // HAU circular-pdf links resolve via lookup API (not missing legacy-storage).
   it("rewrites hau circular-pdf links to the legacy circular api", () => {
     const html =

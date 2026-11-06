@@ -165,8 +165,21 @@ function circularPdfApiPath(fileName: string): string {
 /** Map leftover hau.ac.in URLs in old CMS HTML to Azure / site paths.
  * Canonical content must already store Azure blob URLs — this is only a safety net
  * for unmigrated HTML. Downloads must never depend on hau.ac.in being online. */
-function rewriteLegacyHauHref(href: string): string {
+/** Legacy editor saved some file links as `#https%3A//...` fragments. */
+function unwrapHashedAbsoluteUrl(href: string): string {
   const trimmed = href.trim();
+  if (!trimmed.startsWith("#")) return trimmed;
+  try {
+    const decoded = decodeURIComponent(trimmed.slice(1));
+    if (/^https?:\/\//i.test(decoded)) return decoded;
+  } catch {
+    // Keep the original href when the fragment is not an encoded URL.
+  }
+  return trimmed;
+}
+
+function rewriteLegacyHauHref(href: string): string {
+  const trimmed = unwrapHashedAbsoluteUrl(href.trim());
   try {
     const url = new URL(trimmed, "https://hau.ac.in");
     const host = url.hostname.replace(/^www\./, "");
@@ -199,8 +212,13 @@ function rewriteLegacyHauHref(href: string): string {
       return `https://ccshau.blob.core.windows.net/ccshaucontainer/farmers-portal/apk/${decodeURIComponent(apkMatch[1])}`;
     }
 
-    // Migrated media: hau storage → Azure legacy-storage container
+    // Migrated media: hau storage → Azure legacy-storage container.
+    // This Industry Conclave PDF is still only on hau.ac.in (Azure copy is missing
+    // and the storage key cannot upload it).
     const uploadMatch = path.match(/^\/storage\/app\/uploads\/(.+)$/);
+    if (uploadMatch?.[1] === "af49CYIBL5NeRiZX49AIJdWJSDoEgiCw4lvG5znw.pdf") {
+      return `https://hau.ac.in/storage/app/uploads/${uploadMatch[1]}`;
+    }
     if (uploadMatch?.[1]) {
       return `https://ccshau.blob.core.windows.net/ccshaucontainer/legacy-storage/${uploadMatch[1]}`;
     }

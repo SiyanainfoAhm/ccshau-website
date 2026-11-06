@@ -53,6 +53,27 @@ describe("isPrimarilyPdfHtml", () => {
     expect(isPrimarilyPdfHtml(html)).toBe(true);
   });
 
+  // A single short PDF title still opens in the viewer.
+  it("is true for a single short pdf link", () => {
+    const html =
+      '<h2><a href="https://hau.ac.in/public/pages-pdf/1589357320.pdf">Action Plan</a></h2>';
+    expect(isPrimarilyPdfHtml(html)).toBe(true);
+  });
+
+  // A heading beside one named file stays as CMS content (Industrial Conclave).
+  it("is false when a title sits beside one pdf link", () => {
+    const html =
+      '<p>Industrial Conclave</p><p><a href="https://example.com/glimpses.pdf">Glimpses of Industry Conclave 2020-converted</a></p>';
+    expect(isPrimarilyPdfHtml(html)).toBe(false);
+  });
+
+  // Several titled PDF links (Capacity Building) stay as headings.
+  it("is false when several pdf titles are linked", () => {
+    const html =
+      '<h2><a href="https://example.com/faculty.pdf"><span>International Training for faculty</span></a><br><br><a href="https://example.com/students.pdf">International Training for students</a></h2>';
+    expect(isPrimarilyPdfHtml(html)).toBe(false);
+  });
+
   // Long body text with a PDF link is not primarily PDF.
   it("is false for long body content that also links a pdf", () => {
     const longText = "x".repeat(300);
