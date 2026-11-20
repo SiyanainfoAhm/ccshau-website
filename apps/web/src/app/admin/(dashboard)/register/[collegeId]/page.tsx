@@ -30,7 +30,7 @@ export default async function CollegeRegisterDetailPage({
         </Link>
         <h1 className="mt-2 font-display text-2xl font-bold text-slate-900">{college.title_en}</h1>
         <p className="text-sm text-slate-500">
-          {MICROSITE_KIND_LABELS[college.kind].en} — manage departments and faculty for this microsite.
+          {MICROSITE_KIND_LABELS[college.kind].en} — manage the menu, departments, and faculty for this microsite.
         </p>
       </div>
       <CollegeRegisterHub

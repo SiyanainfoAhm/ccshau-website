@@ -41,6 +41,7 @@ import {
   resolveLayoutTemplateFromForm,
   type PageLayoutConfig,
 } from "@/lib/pages/layout-config";
+import { preserveMicrositeMenu } from "@/lib/pages/microsite-menu";
 import { syncCollegeContactLines } from "@/lib/pages/college-contact-seed";
 import { pageFormSchema } from "@/lib/validations/pages";
 import { emptyPaginatedResult, mergeAdminListOptions, runPaginatedQuery } from "@/lib/data/admin-list";
@@ -441,6 +442,8 @@ export async function updatePageAction(
         );
       }
     }
+
+    row.layout_config = preserveMicrositeMenu(row.layout_config, existing.layout_config) as typeof row.layout_config;
 
     if (
       isCollegesContainerSlug(parentSlug) &&

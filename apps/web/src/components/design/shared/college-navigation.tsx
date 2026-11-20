@@ -15,13 +15,10 @@ import {
   getCollegeSubsectionPath,
 } from "@/lib/pages/routes";
 import { formatMenuLabel } from "@/lib/i18n/menu-label";
-import type { PublicCollegePage, PublicCollegeSection } from "@/lib/data/public-types";
+import type { PublicCollegeNavLink, PublicCollegePage } from "@/lib/data/public-types";
 import type { PublicMicrositeHeader } from "@/lib/pages/microsite-header";
 
-type CollegeMiddleNavItem =
-  | { type: "section"; section: PublicCollegeSection }
-  | { type: "external"; labelEn: string; labelHi: string; href: string }
-  | { type: "faculty"; labelEn: string; labelHi: string; href: string };
+type CollegeMiddleNavItem = Exclude<PublicCollegeNavLink, { type: "home" } | { type: "contact" }>;
 
 function parseCollegeNavState(pathname: string, collegeSlug: string) {
   const base = `/college/${collegeSlug}`;
@@ -109,6 +106,7 @@ export function CollegeNavigation({
     labelEn: "Online Catalogue",
     labelHi: "ऑनलाइन कैटलॉग",
     href: "https://haulibopac.ltsinformatics.com",
+    openInNewTab: true,
   };
   const facultyLink: CollegeMiddleNavItem = {
     type: "faculty",
@@ -129,11 +127,12 @@ export function CollegeNavigation({
           return next;
         })()
       : sectionLinks;
-  const links = [
+  const legacyLinks: PublicCollegeNavLink[] = [
     { type: "home" as const, labelEn: "Home", labelHi: "होम" },
     ...middleLinks,
     { type: "contact" as const, labelEn: "Contact Us", labelHi: "संपर्क करें" },
   ];
+  const links = college.nav ?? legacyLinks;
 
   const displayNameEn = micrositeHeader?.nameEn || college.titleEn;
   const displayNameHi = micrositeHeader?.nameHi || college.titleHi || displayNameEn;
@@ -225,8 +224,8 @@ export function CollegeNavigation({
                   {index > 0 && <span className="ccshau-main-nav-separator" aria-hidden />}
                   <Link
                     href={link.href}
-                    target={link.type === "external" ? "_blank" : undefined}
-                    rel={link.type === "external" ? "noopener noreferrer" : undefined}
+                    target={link.type === "external" && link.openInNewTab !== false ? "_blank" : undefined}
+                    rel={link.type === "external" && link.openInNewTab !== false ? "noopener noreferrer" : undefined}
                     className={collegeNavLinkClass(link.type === "faculty" && isHomePage && facultyTab, false, lang)}
                     onClick={() => setMobileOpen(false)}
                   >
@@ -362,8 +361,8 @@ export function CollegeNavigation({
                     <li key={`${link.labelEn}-mobile`}>
                       <Link
                         href={link.href}
-                        target={link.type === "external" ? "_blank" : undefined}
-                        rel={link.type === "external" ? "noopener noreferrer" : undefined}
+                        target={link.type === "external" && link.openInNewTab !== false ? "_blank" : undefined}
+                        rel={link.type === "external" && link.openInNewTab !== false ? "noopener noreferrer" : undefined}
                         onClick={() => setMobileOpen(false)}
                         className={`flex w-full border-b border-white/5 px-4 py-2.5 text-sm font-semibold text-white/90 transition hover:bg-white/10 hover:text-amber-200 ${lang === "hi" ? "font-hindi" : ""}`}
                       >
