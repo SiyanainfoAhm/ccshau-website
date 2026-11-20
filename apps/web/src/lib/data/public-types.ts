@@ -212,6 +212,13 @@ export interface PublicCollegeSection {
   subsections: PublicCollegeSubsection[];
 }
 
+export type PublicCollegeNavLink =
+  | { type: "home"; labelEn: string; labelHi: string }
+  | { type: "contact"; labelEn: string; labelHi: string }
+  | { type: "section"; section: PublicCollegeSection }
+  | { type: "external"; labelEn: string; labelHi: string; href: string; openInNewTab?: boolean }
+  | { type: "faculty"; labelEn: string; labelHi: string; href: string };
+
 export interface PublicCollegePage extends PublicPage {
   pageId: string;
   pageType: "college";
@@ -221,6 +228,8 @@ export interface PublicCollegePage extends PublicPage {
   mapLat: number | null;
   mapLng: number | null;
   sections: PublicCollegeSection[];
+  /** Present after a microsite menu is saved. Absent means the legacy Home / sections / Contact order. */
+  nav?: PublicCollegeNavLink[];
 }
 
 export interface PublicPgStudiesSection {

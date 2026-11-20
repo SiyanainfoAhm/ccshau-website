@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { GraduationCap, PanelBottom, PanelTop, Users } from "lucide-react";
+import { GraduationCap, Menu, PanelBottom, PanelTop, Users } from "lucide-react";
 
 import type { CollegeOption } from "@/lib/pages/college-register-helpers";
 
@@ -35,6 +35,12 @@ export function CollegeRegisterHub({
             icon: PanelTop,
             title: "Header",
             desc: "Name, short line, and logo shown on this microsite and its inner pages.",
+          },
+          {
+            href: `${base}/menu`,
+            icon: Menu,
+            title: "Menu",
+            desc: "Add menu items, change their order, and hide or show them on this microsite.",
           },
         ]
       : []),

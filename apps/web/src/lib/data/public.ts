@@ -23,6 +23,7 @@ import type {
 import { heroBannerTitle } from "@/lib/banners/hero-display";
 import type {
   PublicCalendarEvent,
+  PublicCollegeNavLink,
   PublicCollegePage,
   PublicCollegeSection,
   PublicCollegeSubsection,
@@ -66,6 +67,7 @@ import { resolvePagePublicPath, getCollegePagePlacement } from "@/lib/pages/reso
 import { KRISHI_VIGYAN_KENDRA_SLUGS } from "@/lib/pages/krishi-vigyan-kendras";
 import { REGIONAL_RESEARCH_STATION_SLUGS } from "@/lib/pages/regional-research-stations";
 import { compareBySortOrderThenTitle } from "@/lib/pages/college-nav";
+import { resolvePublishedCollegeMenu, type CollegeNavPlanItem } from "@/lib/pages/microsite-menu";
 import {
   readStoredLayoutConfig,
   type PageLayoutConfig,
@@ -1006,47 +1008,35 @@ export async function getPageStudentCornerItemsByPageId(
     }));
 }
 
-const NEHRU_LIBRARY_TOP_NAV_SLUGS = new Set([
-  "about-library",
-  "resources",
-  "library-timings-holidays",
-  "digital-library",
-]);
-
-const CAMPUS_SCHOOL_TOP_NAV_SLUGS = new Set([
-  "cs-about-us",
-  "cs-messages",
-  "cs-video-gallery",
-  "cs-school-management",
-  "cs-school-info",
-  "campus-school-gallery",
-]);
-
-/** Structural college nav sections only (legacy: Departments + Gallery). */
-function isCollegeTopNavSection(page: Page, collegeSlug?: string): boolean {
-  if (collegeSlug === "nehru-library") {
-    return NEHRU_LIBRARY_TOP_NAV_SLUGS.has(String(page.slug || "").toLowerCase());
+function collegeNavFromPlan(
+  plan: CollegeNavPlanItem[],
+  sections: PublicCollegeSection[],
+): PublicCollegeNavLink[] {
+  const byId = new Map(sections.map((section) => [section.pageId, section]));
+  const links: PublicCollegeNavLink[] = [];
+  for (const item of plan) {
+    if (item.type === "section") {
+      const section = byId.get(item.pageId);
+      if (section) links.push({ type: "section", section });
+      continue;
+    }
+    if (item.type === "home" || item.type === "contact") {
+      links.push({ type: item.type, labelEn: item.labelEn, labelHi: item.labelHi });
+      continue;
+    }
+    if (item.type === "faculty") {
+      links.push({ type: "faculty", labelEn: item.labelEn, labelHi: item.labelHi, href: item.href });
+      continue;
+    }
+    links.push({
+      type: "external",
+      labelEn: item.labelEn,
+      labelHi: item.labelHi,
+      href: item.href,
+      openInNewTab: item.openInNewTab,
+    });
   }
-  if (collegeSlug === "campus-school") {
-    return CAMPUS_SCHOOL_TOP_NAV_SLUGS.has(String(page.slug || "").toLowerCase());
-  }
-  const slug = String(page.slug || "").toLowerCase();
-  const title = String(page.title_en || "").trim().toLowerCase();
-  return (
-    /^(department|departments|gallery|dhrm)$/.test(slug) ||
-    /(?:^|-)department$/.test(slug) ||
-    /(?:^|-)gallery$/.test(slug) ||
-    slug === "alumni-association-executive-committee" ||
-    title === "departments" ||
-    title === "department" ||
-    title === "gallery" ||
-    title === "dhrm" ||
-    title === "d h r m" ||
-    title === "dsw sections" ||
-    title === "sections" ||
-    title === "alumni ass. executive committee" ||
-    title === "alumni association executive committee"
-  );
+  return links;
 }
 
 export async function getPublishedCollegeBySlug(slug: string): Promise<PublicCollegePage | null> {
@@ -1103,11 +1093,14 @@ export async function getPublishedCollegeBySlug(slug: string): Promise<PublicCol
     .order("title_en");
   const sections = sectionsFirst.data;
 
-  // College top nav should match legacy: Home | Departments | Gallery | Contact —
-  // not every CMS child page attached under the college root.
-  const sectionRows = ((sections as Page[]) ?? []).filter((page) =>
-    isCollegeTopNavSection(page, college.slug),
+  // Without a saved menu, the top nav stays Home | legacy sections | Contact.
+  // A saved menu supplies the order and which items are visible.
+  const menu = resolvePublishedCollegeMenu(
+    college.slug,
+    college.layout_config,
+    (sections as Page[]) ?? [],
   );
+  const sectionRows = menu.rows;
   const sectionIds = sectionRows.map((s) => s.id);
 
   let subsectionRows: Page[] = [];
@@ -1133,6 +1126,10 @@ export async function getPublishedCollegeBySlug(slug: string): Promise<PublicCol
   }
 
   const base = mapPublicPage(college);
+  const mappedSections = sectionRows.map((section) =>
+    mapCollegeSection(section, subsectionsBySection.get(section.id) ?? []),
+  );
+  const nav = menu.navPlan ? collegeNavFromPlan(menu.navPlan, mappedSections) : undefined;
   return {
     ...base,
     pageId: college.id,
@@ -1142,9 +1139,8 @@ export async function getPublishedCollegeBySlug(slug: string): Promise<PublicCol
     layoutConfig: mapLayoutConfig(college),
     mapLat: college.map_lat ?? null,
     mapLng: college.map_lng ?? null,
-    sections: sectionRows.map((section) =>
-      mapCollegeSection(section, subsectionsBySection.get(section.id) ?? []),
-    ),
+    sections: mappedSections,
+    ...(nav ? { nav } : {}),
   };
 }
 

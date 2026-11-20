@@ -1348,6 +1348,13 @@ html.dark #main-content :where(.border-slate-200, .border-emerald-100) {
   font-size: var(--type-h2) !important;
 }
 
+.cms-html p.cms-caption {
+  margin: -0.15em 0 0.85em;
+  font-size: 0.8125rem !important;
+  line-height: 1.35 !important;
+  font-weight: 500;
+}
+
 .cms-html h3 {
   font-size: var(--type-h3) !important;
 }
